@@ -2,6 +2,7 @@
   "name": "train-ticket-booking-system-plus",
   "version": "1.0.0",
   "description": "",
+  "type": "module",
   "scripts": {
     "lint": "markdownlint-cli2 --fix '**.md'",
     "format": "prettier --write '**.{md, json, toml, yaml, yml, sh}'",

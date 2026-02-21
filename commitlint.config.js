@@ -10,8 +10,8 @@ const config = {
         'footer-leading-blank': [2, 'always'],
         'body-max-line-length': [2, 'always', 80],
         'footer-max-line-length': [2, 'always', 80],
-        'signed-off-by': [2, 'always', 'Signed-off-by: <.+@.+>'],
-    },
+        'signed-off-by': [2, 'always', 'Signed-off-by:']
+    }
 };
 
 export default config;

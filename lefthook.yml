@@ -10,14 +10,30 @@ pre-commit:
                 https://github.com/gitleaks/gitleaks)"
 
         # ── Backend, Frontend-Customer, Build-Logic (Spotless) ──────────────────────────────────
-        spotless-lint:
+        spotless-lint-java:
             glob: '**/*.java'
-            run: ./gradlew spotlessCheck
+            run: ./gradlew spotlessJavaCheck
             stage_fixed: false
 
-        spotless-format:
+        spotless-format-java:
             glob: '**/*.java'
-            run: ./gradlew spotlessApply
+            run: ./gradlew spotlessJavaApply
+            stage_fixed: true
+        spotless-lint-kotlin:
+            glob: '**/*.kt'
+            run: ./gradlew spotlessKotlinCheck
+            stage_fixed: false
+        spotless-format-kotlin:
+            glob: '**/*.kt'
+            run: ./gradlew spotlessKotlinApply
+            stage_fixed: true
+        spotless-lint-kotlin-gradle:
+            glob: '**/*.kts'
+            run: ./gradlew spotlessKotlinGradleCheck
+            stage_fixed: false
+        spotless-format-kotlin-gradle:
+            glob: '**/*.kts'
+            run: ./gradlew spotlessKotlinGradleApply
             stage_fixed: true
 
         # ── Frontend / Admin – TypeScript (Biome) ─────────────────────

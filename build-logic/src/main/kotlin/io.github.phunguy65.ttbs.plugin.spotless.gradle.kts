@@ -14,7 +14,7 @@ val libs = the<LibrariesForLibs>()
 
 spotless {
     java {
-        target("**/*.java")
+        target("**/src/**/*.java")
         targetExclude("**/build/**", "**/generated/**")
         palantirJavaFormat(libs.versions.palantirJavaFormat.get()).style("AOSP")
         formatAnnotations()
@@ -27,7 +27,7 @@ spotless {
 
     kotlin {
         target("**/*.kt")
-        targetExclude("**/build/**", "**/generated/**")
+        targetExclude("**/build/**", "**/generated/**", "**/gradle/**")
         ktlint(libs.versions.ktlint.get()).editorConfigOverride(
             mapOf(
                 "indent_size" to "4",
