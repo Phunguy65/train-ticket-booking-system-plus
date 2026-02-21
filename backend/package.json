@@ -1,0 +1,9 @@
+{
+  "name": "backend",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "lint": "./gradlew spotlessCheck",
+    "format": "./gradlew spotlessApply"
+  }
+}

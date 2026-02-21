@@ -1,0 +1,52 @@
+services:
+    postgres:
+        image: postgres:17-alpine
+        container_name: trainbooking-postgres
+        environment:
+            POSTGRES_DB: trainbooking
+            POSTGRES_USER: postgres
+            POSTGRES_PASSWORD: postgres
+            TZ: UTC
+            PGTZ: UTC
+        ports:
+            - '5432:5432'
+        volumes:
+            - postgres_data:/var/lib/postgresql/data
+        networks:
+            - trainbooking-network
+        healthcheck:
+            test: ['CMD-SHELL', 'pg_isready -U postgres']
+            interval: 10s
+            timeout: 5s
+            retries: 5
+        command:
+            - 'postgres'
+            - '-c'
+            - 'timezone=UTC'
+
+    flyway:
+        image: flyway/flyway:11.1.0
+        container_name: trainbooking-flyway
+        environment:
+            FLYWAY_URL: jdbc:postgresql://postgres:5432/trainbooking
+            FLYWAY_USER: postgres
+            FLYWAY_PASSWORD: postgres
+            FLYWAY_BASELINE_ON_MIGRATE: true
+            FLYWAY_BASELINE_VERSION: 0
+            FLYWAY_LOCATIONS: filesystem:/flyway/sql
+        volumes:
+            - ./migrations:/flyway/sql
+        networks:
+            - trainbooking-network
+        depends_on:
+            postgres:
+                condition: service_healthy
+        command: migrate
+
+networks:
+    trainbooking-network:
+        name: trainbooking-network
+        driver: bridge
+
+volumes:
+    postgres_data:

@@ -1,0 +1,44 @@
+include:
+    - path: ./database/docker-compose.yml
+
+services:
+    backend:
+        build:
+            context: ./backend
+            dockerfile: Dockerfile
+        container_name: trainbooking-backend
+        environment:
+            SPRING_PROFILES_ACTIVE: dev
+            SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/trainbooking
+            SPRING_DATASOURCE_USERNAME: postgres
+            SPRING_DATASOURCE_PASSWORD: postgres
+            TZ: UTC
+        ports:
+            - '8080:8080'
+        depends_on:
+            postgres:
+                condition: service_healthy
+            flyway:
+                condition: service_completed_successfully
+        networks:
+            - trainbooking-network
+
+    admin:
+        build:
+            context: ./frontend/admin
+            dockerfile: Dockerfile
+        container_name: trainbooking-admin
+        environment:
+            NEXT_PUBLIC_API_URL: http://localhost:8080/api/v1
+            NEXTAUTH_URL: http://localhost:3000
+            NEXTAUTH_SECRET: dev-secret-change-in-production
+        ports:
+            - '3000:3000'
+        depends_on:
+            - backend
+        networks:
+            - trainbooking-network
+
+networks:
+    trainbooking-network:
+        driver: bridge

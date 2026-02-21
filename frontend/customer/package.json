@@ -1,0 +1,9 @@
+{
+  "name": "customer",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "lint": "cd composeApp && ../gradlew ktlintCheck",
+    "format": "cd composeApp && ../gradlew ktlintFormat"
+  }
+}

@@ -1,0 +1,45 @@
+pre-commit:
+    parallel: true
+    commands:
+        # ── Secret scanning ────────────────────────────────────────────
+        secret-scan:
+            run: >
+                command -v gitleaks >/dev/null 2>&1 && gitleaks protect --staged
+                --config .gitleaks.toml || echo "[secret-scan] gitleaks not
+                found, skipping (install via:
+                https://github.com/gitleaks/gitleaks)"
+
+        # ── Backend, Frontend-Customer, Build-Logic (Spotless) ──────────────────────────────────
+        spotless-lint:
+            glob: '**/*.java'
+            run: ./gradlew spotlessCheck
+            stage_fixed: false
+
+        spotless-format:
+            glob: '**/*.java'
+            run: ./gradlew spotlessApply
+            stage_fixed: true
+
+        # ── Frontend / Admin – TypeScript (Biome) ─────────────────────
+        admin-lint:
+            root: 'frontend/admin/'
+            glob: '**/*.{ts,tsx,js,jsx,json}'
+            run: bun --bun run lint
+
+        admin-format:
+            root: 'frontend/admin/'
+            glob: '**/*.{ts,tsx,js,jsx,json}'
+            run: bun --bun run format
+            stage_fixed: true
+
+        # ── Database – SQL (Prettier) ─────────────────────────────────────
+        database-format:
+            root: 'database/'
+            glob: '**/*.sql'
+            run: bun --bun run format
+            stage_fixed: true
+
+commit-msg:
+    commands:
+        commitlint:
+            run: node_modules/.bin/commitlint --edit {1}
