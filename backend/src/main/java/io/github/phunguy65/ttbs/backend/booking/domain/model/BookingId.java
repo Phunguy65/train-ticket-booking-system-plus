@@ -2,6 +2,7 @@ package io.github.phunguy65.ttbs.backend.booking.domain.model;
 
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.IdGenerator;
 import java.util.UUID;
+import org.jspecify.annotations.NonNull;
 
 public record BookingId(UUID value) {
 
@@ -20,7 +21,7 @@ public record BookingId(UUID value) {
     }
 
     @Override
-    public String toString() {
+    @NonNull public String toString() {
         return value.toString();
     }
 }

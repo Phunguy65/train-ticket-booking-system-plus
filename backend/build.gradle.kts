@@ -35,6 +35,7 @@ dependencies {
     implementation(libs.spring.boot.starter.integration)
     implementation(libs.spring.boot.starter.security)
     implementation(libs.spring.boot.starter.webmvc)
+    implementation(libs.spring.boot.starter.validation)
     implementation(libs.spring.rabbit.stream)
     implementation(libs.spring.integration.amqp)
     implementation(libs.spring.integration.http)
@@ -43,6 +44,10 @@ dependencies {
     implementation(libs.spring.modulith.starter.core)
     implementation(libs.spring.modulith.starter.jpa)
     implementation(libs.spring.security.messaging)
+    implementation(libs.jjwt.api)
+    compileOnly(libs.jspecify)
+    runtimeOnly(libs.jjwt.impl)
+    runtimeOnly(libs.jjwt.jackson)
     developmentOnly(libs.spring.boot.devtools)
     runtimeOnly(libs.postgresql)
     runtimeOnly(libs.spring.modulith.actuator)
@@ -56,8 +61,8 @@ dependencies {
     testImplementation(libs.spring.integration.test)
     testImplementation(libs.spring.modulith.starter.test)
     testRuntimeOnly(libs.junit.platform.launcher)
-    testRuntimeOnly("com.h2database:h2")
-    testImplementation("com.tngtech.archunit:archunit-junit5:1.4.1")
+    testRuntimeOnly(libs.h2)
+    testImplementation(libs.archunit.junit5)
 }
 
 dependencyManagement {

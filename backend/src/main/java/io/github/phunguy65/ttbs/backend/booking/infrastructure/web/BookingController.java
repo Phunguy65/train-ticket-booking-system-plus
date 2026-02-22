@@ -3,9 +3,11 @@ package io.github.phunguy65.ttbs.backend.booking.infrastructure.web;
 import io.github.phunguy65.ttbs.backend.booking.application.dto.BookingDto;
 import io.github.phunguy65.ttbs.backend.booking.application.usecase.CreateBookingUseCase;
 import io.github.phunguy65.ttbs.backend.booking.application.usecase.GetBookingUseCase;
+import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.ErrorCode;
+import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.FailData;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.JsendResponse;
 import java.net.URI;
-import java.util.Map;
+import java.util.List;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -47,6 +49,7 @@ class BookingController {
                 .<ResponseEntity<JsendResponse<?>>>map(
                         dto -> ResponseEntity.ok(JsendResponse.success(mapper.toResponse(dto))))
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body(JsendResponse.fail(Map.of("id", "Booking not found: " + id))));
+                        .body(JsendResponse.fail(new FailData(
+                                "Booking not found", ErrorCode.BOOKING_NOT_FOUND, List.of()))));
     }
 }
