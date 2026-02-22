@@ -1,5 +1,3 @@
-# ADDED Requirements
-
 ## Requirement: ORM entities and domain models are separate classes
 
 JPA `@Entity` classes and domain model classes SHALL be distinct, separate Java/Kotlin classes. A single class SHALL NOT have both `@Entity` annotation and business domain logic. Domain models SHALL be free of all ORM annotations (`@Entity`, `@Table`, `@Column`, `@Id`, `@GeneratedValue`, etc.).

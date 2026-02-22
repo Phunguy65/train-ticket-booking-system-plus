@@ -56,6 +56,8 @@ dependencies {
     testImplementation(libs.spring.integration.test)
     testImplementation(libs.spring.modulith.starter.test)
     testRuntimeOnly(libs.junit.platform.launcher)
+    testRuntimeOnly("com.h2database:h2")
+    testImplementation("com.tngtech.archunit:archunit-junit5:1.4.1")
 }
 
 dependencyManagement {
@@ -76,4 +78,10 @@ hibernate {
 
 tasks.withType<Test> {
     useJUnitPlatform()
+}
+
+// Disable AOT test processing to allow regular JVM test execution.
+// Native image test compilation (nativeTest) can still be run explicitly.
+tasks.named("processTestAot") {
+    enabled = false
 }

@@ -1,5 +1,3 @@
-# ADDED Requirements
-
 ## Requirement: Booking domain model enforces booking lifecycle invariants
 
 The `Booking` aggregate SHALL extend `AggregateRoot<BookingId>` from the shared kernel and enforce all booking business rules. Direct field mutation from outside the aggregate is PROHIBITED — all state changes SHALL go through domain methods.
@@ -28,7 +26,7 @@ Booking lifecycle states: `PENDING` → `CONFIRMED` → `CANCELLED`.
 
 ## Requirement: BookingId, UserId, RouteId, SeatId are type-safe value objects
 
-All ID types in the booking domain SHALL be distinct Kotlin `@JvmInline value class` wrappers around `UUID`. Using a raw `UUID` where a typed ID is expected SHALL be a compile-time error.
+All ID types in the booking domain SHALL be distinct type-safe wrappers around `UUID`. Using a raw `UUID` where a typed ID is expected SHALL be a compile-time error.
 
 #### Scenario: ID types prevent accidental mixing
 
@@ -38,7 +36,7 @@ All ID types in the booking domain SHALL be distinct Kotlin `@JvmInline value cl
 #### Scenario: ID value objects have factory methods
 
 - **WHEN** creating a new ID
-- **THEN** the ID value class SHALL provide a `generate()` static factory method that delegates to `IdGenerator.generateId()` from the shared infrastructure
+- **THEN** the ID type SHALL provide a `generate()` static factory method that delegates to `IdGenerator.generateId()` from the shared infrastructure
 
 ## Requirement: BookingRepository interface defines domain-facing persistence contract
 

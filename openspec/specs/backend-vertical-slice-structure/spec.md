@@ -1,5 +1,3 @@
-# ADDED Requirements
-
 ## Requirement: Backend package structure follows vertical slice per bounded context
 
 The backend SHALL organize all code into top-level feature packages (bounded contexts) under `io.github.phunguy65.ttbs.backend`, with each bounded context being an independent Spring Modulith module. Technical layer packages (controllers/, services/, repositories/) at the global level are PROHIBITED.
