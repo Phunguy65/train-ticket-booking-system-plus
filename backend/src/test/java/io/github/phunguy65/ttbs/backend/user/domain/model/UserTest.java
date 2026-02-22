@@ -1,0 +1,100 @@
+package io.github.phunguy65.ttbs.backend.user.domain.model;
+
+import static org.assertj.core.api.Assertions.*;
+
+import io.github.phunguy65.ttbs.backend.shared.domain.UserId;
+import io.github.phunguy65.ttbs.backend.user.domain.event.UserRegistered;
+import java.time.Instant;
+import java.util.UUID;
+import org.junit.jupiter.api.Test;
+
+class UserTest {
+
+    private static final UserId USER_ID = UserId.of(UUID.randomUUID());
+    private static final String EMAIL = "alice@example.com";
+    private static final String PASSWORD_HASH = "$2a$12$exampleHashedPassword";
+    private static final String FULL_NAME = "Alice Nguyen";
+    private static final String PHONE = "0901234567";
+
+    @Test
+    void create_shouldSetRoleToCustomer() {
+        User user = User.create(USER_ID, EMAIL, PASSWORD_HASH, FULL_NAME, PHONE);
+
+        assertThat(user.getRole()).isEqualTo(UserRole.CUSTOMER);
+    }
+
+    @Test
+    void create_shouldNormalizeEmailToLowercase() {
+        User user = User.create(USER_ID, "ALICE@EXAMPLE.COM", PASSWORD_HASH, FULL_NAME, PHONE);
+
+        assertThat(user.getEmail()).isEqualTo("alice@example.com");
+    }
+
+    @Test
+    void create_shouldStorePasswordHashNotPlainText() {
+        String plainPassword = "myplainpassword";
+        User user = User.create(USER_ID, EMAIL, PASSWORD_HASH, FULL_NAME, PHONE);
+
+        assertThat(user.getPasswordHash()).isEqualTo(PASSWORD_HASH);
+        assertThat(user.getPasswordHash()).isNotEqualTo(plainPassword);
+    }
+
+    @Test
+    void create_shouldRegisterUserRegisteredEvent() {
+        User user = User.create(USER_ID, EMAIL, PASSWORD_HASH, FULL_NAME, PHONE);
+
+        assertThat(user.getDomainEvents()).hasSize(1);
+        assertThat(user.getDomainEvents().getFirst()).isInstanceOf(UserRegistered.class);
+        UserRegistered event = (UserRegistered) user.getDomainEvents().getFirst();
+        assertThat(event.userId()).isEqualTo(USER_ID);
+        assertThat(event.email()).isEqualTo(EMAIL.toLowerCase());
+    }
+
+    @Test
+    void create_shouldSetCorrectFields() {
+        User user = User.create(USER_ID, EMAIL, PASSWORD_HASH, FULL_NAME, PHONE);
+
+        assertThat(user.getId()).isEqualTo(USER_ID);
+        assertThat(user.getFullName()).isEqualTo(FULL_NAME);
+        assertThat(user.getPhone()).isEqualTo(PHONE);
+        assertThat(user.getCreatedAt()).isNotNull();
+        assertThat(user.getUpdatedAt()).isNotNull();
+    }
+
+    @Test
+    void reconstitute_shouldNotRegisterDomainEvents() {
+        User user = User.reconstitute(
+                USER_ID,
+                EMAIL,
+                PASSWORD_HASH,
+                FULL_NAME,
+                PHONE,
+                UserRole.CUSTOMER,
+                Instant.now(),
+                Instant.now());
+
+        assertThat(user.getDomainEvents()).isEmpty();
+    }
+
+    @Test
+    void reconstitute_shouldRestoreAllFields() {
+        Instant createdAt = Instant.parse("2024-01-15T10:00:00Z");
+        Instant updatedAt = Instant.parse("2024-01-16T12:00:00Z");
+
+        User user = User.reconstitute(
+                USER_ID,
+                EMAIL,
+                PASSWORD_HASH,
+                FULL_NAME,
+                PHONE,
+                UserRole.ADMIN,
+                createdAt,
+                updatedAt);
+
+        assertThat(user.getId()).isEqualTo(USER_ID);
+        assertThat(user.getEmail()).isEqualTo(EMAIL);
+        assertThat(user.getRole()).isEqualTo(UserRole.ADMIN);
+        assertThat(user.getCreatedAt()).isEqualTo(createdAt);
+        assertThat(user.getUpdatedAt()).isEqualTo(updatedAt);
+    }
+}
