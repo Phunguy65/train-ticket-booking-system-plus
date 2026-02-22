@@ -1,3 +1,6 @@
 spring:
   application:
     name: backend
+  threads:
+    virtual:
+        enabled: true
