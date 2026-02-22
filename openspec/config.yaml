@@ -1,0 +1,84 @@
+schema: spec-driven
+
+context: |
+  Tech stack: Spring Boot (Backend), Next.js (Frontend), PostgreSQL (Database)
+  Package manager: pnpm
+  Frontend runtime: Bun
+
+  Backend: Vertical Slice Architecture (Spring Modulith + Clean Architecture + DDD)
+
+  Each feature is an independent Spring Modulith module with 3 layers:
+    - domain/      → Pure Java (no framework deps): aggregates, value objects, domain events, repository ports, business errors
+    - application/ → Use case orchestrators (@Service @Transactional), command/result DTOs
+    - infrastructure/ → Framework adapters: persistence (JPA) and web (REST)
+
+  Folder structure per vertical slice (e.g., booking/):
+    {feature}/
+    ├── package-info.java                   # @ApplicationModule - Spring Modulith module boundary
+    ├── domain/
+    │   ├── model/                          # Aggregate root, entities, value objects, status enums
+    │   │   ├── {Entity}.java               # Aggregate root with factory methods: create() and reconstitute()
+    │   │   ├── {Entity}Id.java             # Type-safe ID value object (wraps UUID)
+    │   │   └── {Entity}Status.java         # Lifecycle enum (PENDING, CONFIRMED, CANCELLED, ...)
+    │   ├── event/                          # Domain events (past tense naming, published after transaction)
+    │   │   ├── {Entity}Created.java
+    │   │   ├── {Entity}Confirmed.java
+    │   │   └── {Entity}Cancelled.java
+    │   ├── repository/                     # Repository port (interface only - no impl here)
+    │   │   └── {Entity}Repository.java
+    │   └── errors/                         # Typed business errors as sealed interfaces (not exceptions)
+    │       └── {Entity}Error.java
+    ├── application/
+    │   ├── usecase/                        # One use case class per operation (SRP)
+    │   │   ├── Create{Entity}UseCase.java  # @Service @Transactional - orchestrates create flow
+    │   │   └── Get{Entity}UseCase.java     # @Service - query use case
+    │   └── dto/                            # Application-layer DTOs (commands and result DTOs)
+    │       ├── Create{Entity}Command.java  # Input DTO for create use case
+    │       └── {Entity}Dto.java            # Output DTO returned by use cases
+    └── infrastructure/
+        ├── persistence/                    # JPA adapter layer
+        │   ├── {Entity}Entity.java         # @Entity - JPA mapping (NOT in domain)
+        │   ├── {Entity}JpaRepository.java  # Spring Data JPA interface (package-private)
+        │   ├── {Entity}RepositoryAdapter.java  # @Repository - implements domain repository port
+        │   └── {Entity}EntityMapper.java   # @Component - maps JPA entity <-> domain model
+        └── web/                            # REST adapter layer
+            ├── {Entity}Controller.java     # @RestController - REST endpoints, returns JsendResponse
+            ├── Create{Entity}HttpRequest.java  # HTTP request DTO (public API contract)
+            ├── {Entity}HttpResponse.java   # HTTP response DTO (public API contract)
+            └── {Entity}RequestMapper.java  # @Component - maps HTTP DTOs <-> commands/result DTOs
+
+  Test structure mirrors main source (under src/test/java/.../):
+    {feature}/
+    ├── {Feature}ModuleTest.java            # @ApplicationModuleTest - Spring Modulith integration test
+    ├── domain/model/
+    │   └── {Entity}Test.java              # Pure JUnit 5 unit tests (no Spring)
+    ├── application/usecase/
+    │   ├── Create{Entity}UseCaseTest.java # @ExtendWith(MockitoExtension) - mocked unit tests
+    │   └── Get{Entity}UseCaseTest.java    # @ExtendWith(MockitoExtension) - mocked unit tests
+    └── infrastructure/
+        ├── persistence/
+        │   └── {Entity}RepositoryAdapterTest.java  # @DataJpaTest - persistence integration tests
+        └── web/
+            └── {Entity}ControllerTest.java         # @WebMvcTest - REST API integration tests
+
+  Naming conventions:
+    Domain    : {Entity}, {Entity}Id, {Entity}Status, {Entity}Repository, {Entity}Error, {EntityEvent}(past tense)
+    Application: {Operation}{Entity}Command, {Entity}Dto, {Operation}{Entity}UseCase
+    Persistence: {Entity}Entity, {Entity}JpaRepository, {Entity}RepositoryAdapter, {Entity}EntityMapper
+    Web        : {Entity}Controller, {Operation}{Entity}HttpRequest, {Entity}HttpResponse, {Entity}RequestMapper
+
+  Shared module (type=OPEN, accessible to all modules):
+    shared/domain/      → AggregateRoot, DomainEvent, Result<T,E>, Money, ValueObject
+    shared/infrastructure/web/ → GlobalExceptionHandler, JsendResponse (JSend format)
+
+  Key patterns:
+    - Port-Adapter: domain defines repository interface, infrastructure implements it
+    - Result monad: domain methods return Result<T, E> instead of throwing exceptions
+    - Factory methods: create() registers domain events; reconstitute() does not
+    - Idempotency: use cases check idempotency key before processing
+    - One use case per operation (no god-service classes)
+    - ArchUnit enforces: no JPA in domain, no framework in domain, no infra deps in application layer
+
+rules:
+  specs:
+    - Ensure specifications are clear and concise
