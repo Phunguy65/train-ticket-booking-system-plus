@@ -6,6 +6,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+import io.github.phunguy65.ttbs.backend.shared.domain.PageResult;
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.GlobalExceptionHandler;
 import io.github.phunguy65.ttbs.backend.user.application.dto.CreateUserResult;
@@ -13,9 +14,12 @@ import io.github.phunguy65.ttbs.backend.user.application.dto.UserDto;
 import io.github.phunguy65.ttbs.backend.user.application.port.TokenProvider;
 import io.github.phunguy65.ttbs.backend.user.application.usecase.CreateUserUseCase;
 import io.github.phunguy65.ttbs.backend.user.application.usecase.GetUserByIdUseCase;
+import io.github.phunguy65.ttbs.backend.user.application.usecase.ListUsersUseCase;
 import io.github.phunguy65.ttbs.backend.user.domain.errors.UserError;
 import io.github.phunguy65.ttbs.backend.user.domain.model.UserRole;
+import io.github.phunguy65.ttbs.backend.user.infrastructure.security.SecurityConfig;
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,7 +32,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(UserController.class)
-@Import({UserRequestMapper.class, GlobalExceptionHandler.class})
+@Import({UserRequestMapper.class, GlobalExceptionHandler.class, SecurityConfig.class})
 @WithMockUser
 class UserControllerTest {
 
@@ -40,6 +44,9 @@ class UserControllerTest {
 
     @MockitoBean
     private CreateUserUseCase createUserUseCase;
+
+    @MockitoBean
+    private ListUsersUseCase listUsersUseCase;
 
     @MockitoBean
     private TokenProvider tokenProvider;
@@ -146,5 +153,104 @@ class UserControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("success"))
                 .andExpect(jsonPath("$.data.email").value("alice@example.com"));
+    }
+
+    // ── GET /api/v1/users ─────────────────────────────────────────────────────
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void listUsers_admin_defaultParams_shouldReturn200WithSliceStructure() throws Exception {
+        UserDto dto = sampleUserDto();
+        PageResult<UserDto> pageResult = PageResult.of(List.of(dto), 0, 20, false);
+        when(listUsersUseCase.execute(anyInt(), anyInt(), anyString(), any()))
+                .thenReturn(pageResult);
+
+        mockMvc.perform(get("/api/v1/users").with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("success"))
+                .andExpect(jsonPath("$.data.content").isArray())
+                .andExpect(jsonPath("$.data.content[0].email").value("alice@example.com"))
+                .andExpect(jsonPath("$.data.content[0].fullName").value("Alice"))
+                .andExpect(jsonPath("$.data.content[0].role").value("CUSTOMER"))
+                .andExpect(jsonPath("$.data.content[0].passwordHash").doesNotExist())
+                .andExpect(jsonPath("$.data.page").value(0))
+                .andExpect(jsonPath("$.data.size").value(20))
+                .andExpect(jsonPath("$.data.hasNext").value(false))
+                .andExpect(jsonPath("$.data.hasPrevious").value(false));
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void listUsers_admin_hasNext_shouldReturnHasNextTrue() throws Exception {
+        UserDto dto = sampleUserDto();
+        PageResult<UserDto> pageResult = PageResult.of(List.of(dto), 0, 5, true);
+        when(listUsersUseCase.execute(anyInt(), anyInt(), anyString(), any()))
+                .thenReturn(pageResult);
+
+        mockMvc.perform(get("/api/v1/users").param("size", "5").with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.hasNext").value(true))
+                .andExpect(jsonPath("$.data.hasPrevious").value(false));
+    }
+
+    @Test
+    @WithMockUser(roles = "CUSTOMER")
+    void listUsers_nonAdminUser_shouldReturn403() throws Exception {
+        mockMvc.perform(get("/api/v1/users").with(csrf())).andExpect(status().isForbidden());
+    }
+
+    @Test
+    @org.springframework.security.test.context.support.WithAnonymousUser
+    void listUsers_unauthenticated_shouldReturn401() throws Exception {
+        mockMvc.perform(get("/api/v1/users")).andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void listUsers_negativePage_shouldReturn400() throws Exception {
+        mockMvc.perform(get("/api/v1/users").param("page", "-1").with(csrf()))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value("fail"))
+                .andExpect(jsonPath("$.data.message").value("page must be >= 0"));
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void listUsers_sizeZero_shouldReturn400() throws Exception {
+        mockMvc.perform(get("/api/v1/users").param("size", "0").with(csrf()))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value("fail"))
+                .andExpect(jsonPath("$.data.message").value("size must be between 1 and 100"));
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void listUsers_sizeExceedsMax_shouldReturn400() throws Exception {
+        mockMvc.perform(get("/api/v1/users").param("size", "200").with(csrf()))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value("fail"))
+                .andExpect(jsonPath("$.data.message").value("size must be between 1 and 100"));
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void listUsers_invalidSortField_shouldReturn400() throws Exception {
+        mockMvc.perform(get("/api/v1/users").param("sort", "passwordHash,asc").with(csrf()))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value("fail"))
+                .andExpect(
+                        jsonPath("$.data.message").value("sort field not allowed: passwordHash"));
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void listUsers_validSortField_email_shouldReturn200() throws Exception {
+        PageResult<UserDto> pageResult = PageResult.of(List.of(sampleUserDto()), 0, 20, false);
+        when(listUsersUseCase.execute(anyInt(), anyInt(), anyString(), any()))
+                .thenReturn(pageResult);
+
+        mockMvc.perform(get("/api/v1/users").param("sort", "email,asc").with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("success"));
     }
 }

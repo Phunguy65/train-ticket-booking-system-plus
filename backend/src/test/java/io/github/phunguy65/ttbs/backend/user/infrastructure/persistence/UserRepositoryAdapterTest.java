@@ -2,6 +2,8 @@ package io.github.phunguy65.ttbs.backend.user.infrastructure.persistence;
 
 import static org.assertj.core.api.Assertions.*;
 
+import io.github.phunguy65.ttbs.backend.shared.domain.PageResult;
+import io.github.phunguy65.ttbs.backend.shared.domain.SortDirection;
 import io.github.phunguy65.ttbs.backend.shared.domain.UserId;
 import io.github.phunguy65.ttbs.backend.user.domain.model.User;
 import io.github.phunguy65.ttbs.backend.user.domain.repository.UserRepository;
@@ -20,6 +22,8 @@ class UserRepositoryAdapterTest {
 
     @Autowired
     private UserRepository userRepository;
+
+    // ── Existing tests ───────────────────────────────────────────────────────
 
     @Test
     void save_shouldPersistUser() {
@@ -66,5 +70,88 @@ class UserRepositoryAdapterTest {
 
         assertThat(found).isPresent();
         assertThat(found.get().getId()).isEqualTo(id);
+    }
+
+    // ── findAll slice tests ──────────────────────────────────────────────────
+
+    @Test
+    void findAll_emptyDatabase_returnsEmptyPageResult() {
+        PageResult<User> result = userRepository.findAll(0, 20, "createdAt", SortDirection.DESC);
+
+        assertThat(result.items()).isEmpty();
+        assertThat(result.hasNext()).isFalse();
+        assertThat(result.hasPrevious()).isFalse();
+    }
+
+    @Test
+    void findAll_firstPage_returnsItemsWithCorrectMetadata() {
+        for (int i = 0; i < 5; i++) {
+            userRepository.save(User.create(
+                    UserId.of(UUID.randomUUID()),
+                    "user" + i + "@example.com",
+                    "$2a$12$hash",
+                    "User " + i,
+                    null));
+        }
+
+        PageResult<User> result = userRepository.findAll(0, 3, "email", SortDirection.ASC);
+
+        assertThat(result.items()).hasSize(3);
+        assertThat(result.pageNumber()).isEqualTo(0);
+        assertThat(result.pageSize()).isEqualTo(3);
+        assertThat(result.hasNext()).isTrue();
+        assertThat(result.hasPrevious()).isFalse();
+    }
+
+    @Test
+    void findAll_lastPage_hasNextFalseHasPreviousTrue() {
+        for (int i = 0; i < 4; i++) {
+            userRepository.save(User.create(
+                    UserId.of(UUID.randomUUID()),
+                    "page" + i + "@example.com",
+                    "$2a$12$hash",
+                    "Page User " + i,
+                    null));
+        }
+
+        // page=1, size=3: should return 1 item (the 4th), hasNext=false, hasPrevious=true
+        PageResult<User> result = userRepository.findAll(1, 3, "email", SortDirection.ASC);
+
+        assertThat(result.items()).hasSize(1);
+        assertThat(result.hasNext()).isFalse();
+        assertThat(result.hasPrevious()).isTrue();
+    }
+
+    @Test
+    void findAll_sortByEmailAsc_returnsItemsInOrder() {
+        userRepository.save(User.create(
+                UserId.of(UUID.randomUUID()), "zebra@example.com", "$2a$12$hash", "Zebra", null));
+        userRepository.save(User.create(
+                UserId.of(UUID.randomUUID()), "apple@example.com", "$2a$12$hash", "Apple", null));
+        userRepository.save(User.create(
+                UserId.of(UUID.randomUUID()), "mango@example.com", "$2a$12$hash", "Mango", null));
+
+        PageResult<User> result = userRepository.findAll(0, 10, "email", SortDirection.ASC);
+
+        assertThat(result.items())
+                .extracting(User::getEmail)
+                .containsExactly("apple@example.com", "mango@example.com", "zebra@example.com");
+    }
+
+    @Test
+    void findAll_exactlyOnePage_hasNextFalse() {
+        for (int i = 0; i < 3; i++) {
+            userRepository.save(User.create(
+                    UserId.of(UUID.randomUUID()),
+                    "exact" + i + "@example.com",
+                    "$2a$12$hash",
+                    "Exact " + i,
+                    null));
+        }
+
+        PageResult<User> result = userRepository.findAll(0, 3, "email", SortDirection.ASC);
+
+        assertThat(result.items()).hasSize(3);
+        assertThat(result.hasNext()).isFalse();
     }
 }

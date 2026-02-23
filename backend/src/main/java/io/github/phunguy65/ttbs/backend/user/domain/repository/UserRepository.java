@@ -1,5 +1,7 @@
 package io.github.phunguy65.ttbs.backend.user.domain.repository;
 
+import io.github.phunguy65.ttbs.backend.shared.domain.PageResult;
+import io.github.phunguy65.ttbs.backend.shared.domain.SortDirection;
 import io.github.phunguy65.ttbs.backend.shared.domain.UserId;
 import io.github.phunguy65.ttbs.backend.user.domain.model.User;
 import java.util.Optional;
@@ -11,4 +13,6 @@ public interface UserRepository {
     Optional<User> findByEmail(String email);
 
     Optional<User> findById(UserId id);
+
+    PageResult<User> findAll(int page, int size, String sortField, SortDirection direction);
 }
