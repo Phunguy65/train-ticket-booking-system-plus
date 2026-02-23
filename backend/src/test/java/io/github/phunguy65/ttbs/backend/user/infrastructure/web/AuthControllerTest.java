@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.GlobalExceptionHandler;
+import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.WebConfig;
 import io.github.phunguy65.ttbs.backend.user.application.dto.LoginResultDto;
 import io.github.phunguy65.ttbs.backend.user.application.dto.UserDto;
 import io.github.phunguy65.ttbs.backend.user.application.port.TokenProvider;
@@ -31,7 +32,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import tools.jackson.databind.ObjectMapper;
 
 @WebMvcTest(AuthController.class)
-@Import({AuthRequestMapper.class, GlobalExceptionHandler.class})
+@Import({AuthRequestMapper.class, GlobalExceptionHandler.class, WebConfig.class})
 @WithMockUser
 class AuthControllerTest {
 
@@ -74,7 +75,7 @@ class AuthControllerTest {
         when(registerUserUseCase.execute(any())).thenReturn(Result.success(sampleUserDto()));
 
         mockMvc.perform(
-                        post("/api/v1/auth/register")
+                        post("/api/v1.0/auth/register")
                                 .with(csrf())
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(
@@ -90,7 +91,7 @@ class AuthControllerTest {
                 .thenReturn(Result.failure(new UserError.EmailAlreadyExists()));
 
         mockMvc.perform(
-                        post("/api/v1/auth/register")
+                        post("/api/v1.0/auth/register")
                                 .with(csrf())
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(
@@ -105,7 +106,7 @@ class AuthControllerTest {
                 new LoginResultDto("access-token", "refresh-token", sampleUserDto());
         when(loginUserUseCase.execute(any())).thenReturn(Result.success(loginResult));
 
-        mockMvc.perform(post("/api/v1/auth/login")
+        mockMvc.perform(post("/api/v1.0/auth/login")
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"email\":\"test@example.com\",\"password\":\"password123\"}"))
@@ -119,7 +120,7 @@ class AuthControllerTest {
         when(loginUserUseCase.execute(any()))
                 .thenReturn(Result.failure(new UserError.InvalidCredentials()));
 
-        mockMvc.perform(post("/api/v1/auth/login")
+        mockMvc.perform(post("/api/v1.0/auth/login")
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"email\":\"test@example.com\",\"password\":\"wrong\"}"))
@@ -129,7 +130,7 @@ class AuthControllerTest {
 
     @Test
     void register_withMissingEmail_shouldReturn400() throws Exception {
-        mockMvc.perform(post("/api/v1/auth/register")
+        mockMvc.perform(post("/api/v1.0/auth/register")
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"password\":\"password123\",\"fullName\":\"Test User\"}"))

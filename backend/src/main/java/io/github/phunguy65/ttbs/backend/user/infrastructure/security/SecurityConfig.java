@@ -40,11 +40,11 @@ public class SecurityConfig {
                 .exceptionHandling(ex -> ex.authenticationEntryPoint(
                         new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
                 .authorizeHttpRequests(
-                        auth -> auth.requestMatchers(HttpMethod.POST, "/api/v1/auth/**")
+                        auth -> auth.requestMatchers(HttpMethod.POST, "/api/*/auth/**")
                                 .permitAll()
                                 .requestMatchers("/actuator/**")
                                 .permitAll()
-                                .requestMatchers(HttpMethod.GET, "/api/v1/users")
+                                .requestMatchers(HttpMethod.GET, "/api/*/users")
                                 .hasRole("ADMIN")
                                 .anyRequest()
                                 .authenticated())

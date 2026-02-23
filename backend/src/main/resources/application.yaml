@@ -4,6 +4,12 @@ spring:
   threads:
     virtual:
         enabled: true
+  mvc:
+    apiversion:
+      use:
+        path-segment: 1
+      supported: 1.0
+      default: 1.0
 
 jwt:
   secret: ${JWT_SECRET}

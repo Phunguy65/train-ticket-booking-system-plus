@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 @RestController
-@RequestMapping("/api/bookings")
+@RequestMapping("/{version}/bookings")
 class BookingController {
 
     private final CreateBookingUseCase createBookingUseCase;
@@ -31,7 +31,7 @@ class BookingController {
         this.mapper = mapper;
     }
 
-    @PostMapping
+    @PostMapping(version = "1.0")
     ResponseEntity<JsendResponse<BookingHttpResponse>> createBooking(
             @RequestBody CreateBookingHttpRequest request) {
         BookingDto dto = createBookingUseCase.execute(mapper.toCommand(request));
@@ -42,7 +42,7 @@ class BookingController {
         return ResponseEntity.created(location).body(JsendResponse.success(mapper.toResponse(dto)));
     }
 
-    @GetMapping("/{id}")
+    @GetMapping(value = "/{id}", version = "1.0")
     ResponseEntity<JsendResponse<?>> getBooking(@PathVariable UUID id) {
         return getBookingUseCase
                 .execute(id)

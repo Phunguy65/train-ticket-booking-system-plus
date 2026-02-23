@@ -9,14 +9,14 @@ import io.github.phunguy65.ttbs.backend.user.application.usecase.RefreshTokenUse
 import io.github.phunguy65.ttbs.backend.user.application.usecase.RegisterUserUseCase;
 import io.github.phunguy65.ttbs.backend.user.domain.errors.UserError;
 import jakarta.validation.Valid;
-import java.net.URI;
 import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 @RestController
-@RequestMapping("/api/v1/auth")
+@RequestMapping("/{version}/auth")
 class AuthController {
 
     private final RegisterUserUseCase registerUserUseCase;
@@ -38,17 +38,22 @@ class AuthController {
         this.mapper = mapper;
     }
 
-    @PostMapping("/register")
+    @PostMapping(value = "/register", version = "1.0")
     ResponseEntity<JsendResponse<?>> register(@Valid @RequestBody RegisterHttpRequest request) {
         return registerUserUseCase
                 .execute(mapper.toCommand(request))
                 .fold(
-                        userDto -> ResponseEntity.created(URI.create("/api/v1/auth/register"))
-                                .body(JsendResponse.success(mapper.toResponse(userDto))),
+                        userDto -> {
+                            var location = ServletUriComponentsBuilder.fromCurrentRequest()
+                                    .build()
+                                    .toUri();
+                            return ResponseEntity.created(location)
+                                    .body(JsendResponse.success(mapper.toResponse(userDto)));
+                        },
                         error -> errorResponse(error));
     }
 
-    @PostMapping("/login")
+    @PostMapping(value = "/login", version = "1.0")
     ResponseEntity<JsendResponse<?>> login(@Valid @RequestBody LoginHttpRequest request) {
         return loginUserUseCase
                 .execute(mapper.toCommand(request))
@@ -58,7 +63,7 @@ class AuthController {
                         error -> errorResponse(error));
     }
 
-    @PostMapping("/refresh")
+    @PostMapping(value = "/refresh", version = "1.0")
     ResponseEntity<JsendResponse<?>> refresh(@Valid @RequestBody RefreshTokenHttpRequest request) {
         return refreshTokenUseCase
                 .execute(mapper.toCommand(request))
@@ -68,7 +73,7 @@ class AuthController {
                         error -> errorResponse(error));
     }
 
-    @PostMapping("/logout")
+    @PostMapping(value = "/logout", version = "1.0")
     ResponseEntity<JsendResponse<?>> logout(@Valid @RequestBody RefreshTokenHttpRequest request) {
         return logoutUserUseCase
                 .execute(request.refreshToken())

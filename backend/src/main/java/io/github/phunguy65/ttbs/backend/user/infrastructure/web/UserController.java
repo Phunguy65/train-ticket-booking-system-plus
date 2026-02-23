@@ -13,7 +13,6 @@ import io.github.phunguy65.ttbs.backend.user.application.usecase.GetUserByIdUseC
 import io.github.phunguy65.ttbs.backend.user.application.usecase.ListUsersUseCase;
 import io.github.phunguy65.ttbs.backend.user.domain.errors.UserError;
 import jakarta.validation.Valid;
-import java.net.URI;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -22,9 +21,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 @RestController
-@RequestMapping("/api/v1/users")
+@RequestMapping("/{version}/users")
 class UserController {
 
     private static final Set<String> ALLOWED_SORT_FIELDS =
@@ -46,21 +46,23 @@ class UserController {
         this.mapper = mapper;
     }
 
-    @PostMapping
+    @PostMapping(version = "1.0")
     ResponseEntity<JsendResponse<?>> create(@Valid @RequestBody CreateUserHttpRequest request) {
         return createUserUseCase
                 .execute(mapper.toCommand(request))
                 .fold(
                         result -> {
-                            URI location =
-                                    URI.create("/api/v1/users/" + result.user().id());
+                            var location = ServletUriComponentsBuilder.fromCurrentRequest()
+                                    .path("/{id}")
+                                    .buildAndExpand(result.user().id())
+                                    .toUri();
                             return ResponseEntity.created(location)
                                     .body(JsendResponse.success(mapper.toCreateResponse(result)));
                         },
                         error -> errorResponse(error));
     }
 
-    @GetMapping("/{id}")
+    @GetMapping(value = "/{id}", version = "1.0")
     ResponseEntity<JsendResponse<?>> getById(@PathVariable UUID id) {
         return getUserByIdUseCase
                 .execute(UserId.of(id))
@@ -70,7 +72,7 @@ class UserController {
                         error -> errorResponse(error));
     }
 
-    @GetMapping("/me")
+    @GetMapping(value = "/me", version = "1.0")
     ResponseEntity<JsendResponse<?>> getMe() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         UUID principalId = UUID.fromString(auth.getName());
@@ -82,7 +84,7 @@ class UserController {
                         error -> errorResponse(error));
     }
 
-    @GetMapping
+    @GetMapping(version = "1.0")
     ResponseEntity<JsendResponse<?>> listUsers(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,

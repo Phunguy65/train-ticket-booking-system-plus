@@ -9,6 +9,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import io.github.phunguy65.ttbs.backend.shared.domain.PageResult;
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.GlobalExceptionHandler;
+import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.WebConfig;
 import io.github.phunguy65.ttbs.backend.user.application.dto.CreateUserResult;
 import io.github.phunguy65.ttbs.backend.user.application.dto.UserDto;
 import io.github.phunguy65.ttbs.backend.user.application.port.TokenProvider;
@@ -32,7 +33,12 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(UserController.class)
-@Import({UserRequestMapper.class, GlobalExceptionHandler.class, SecurityConfig.class})
+@Import({
+    UserRequestMapper.class,
+    GlobalExceptionHandler.class,
+    SecurityConfig.class,
+    WebConfig.class
+})
 @WithMockUser
 class UserControllerTest {
 
@@ -61,7 +67,7 @@ class UserControllerTest {
                 USER_UUID, "alice@example.com", "Alice", "090", UserRole.CUSTOMER, Instant.now());
     }
 
-    // ── POST /api/v1/users ────────────────────────────────────────────────────
+    // ── POST /api/v1.0/users ────────────────────────────────────────────────────
 
     @Test
     void createUser_validRequest_shouldReturn201WithTemporaryPassword() throws Exception {
@@ -69,7 +75,7 @@ class UserControllerTest {
                 new CreateUserResult(sampleUserDto(), "abc123temporarypassword");
         when(createUserUseCase.execute(any())).thenReturn(Result.success(createResult));
 
-        mockMvc.perform(post("/api/v1/users")
+        mockMvc.perform(post("/api/v1.0/users")
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"email\":\"alice@example.com\",\"fullName\":\"Alice\"}"))
@@ -84,7 +90,7 @@ class UserControllerTest {
         when(createUserUseCase.execute(any()))
                 .thenReturn(Result.failure(new UserError.EmailAlreadyExists()));
 
-        mockMvc.perform(post("/api/v1/users")
+        mockMvc.perform(post("/api/v1.0/users")
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"email\":\"dup@example.com\",\"fullName\":\"Dup User\"}"))
@@ -95,7 +101,7 @@ class UserControllerTest {
 
     @Test
     void createUser_blankEmail_shouldReturn400WithValidationError() throws Exception {
-        mockMvc.perform(post("/api/v1/users")
+        mockMvc.perform(post("/api/v1.0/users")
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"email\":\"\",\"fullName\":\"Alice\"}"))
@@ -107,7 +113,7 @@ class UserControllerTest {
 
     @Test
     void createUser_blankFullName_shouldReturn400WithValidationError() throws Exception {
-        mockMvc.perform(post("/api/v1/users")
+        mockMvc.perform(post("/api/v1.0/users")
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"email\":\"alice@example.com\",\"fullName\":\"\"}"))
@@ -117,13 +123,13 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.data.errors[?(@.field == 'fullName')]").exists());
     }
 
-    // ── GET /api/v1/users/{id} ────────────────────────────────────────────────
+    // ── GET /api/v1.0/users/{id} ────────────────────────────────────────────────
 
     @Test
     void getById_userFound_shouldReturn200WithUserFields() throws Exception {
         when(getUserByIdUseCase.execute(any())).thenReturn(Result.success(sampleUserDto()));
 
-        mockMvc.perform(get("/api/v1/users/{id}", USER_UUID).with(csrf()))
+        mockMvc.perform(get("/api/v1.0/users/{id}", USER_UUID).with(csrf()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("success"))
                 .andExpect(jsonPath("$.data.id").value(USER_UUID.toString()))
@@ -138,7 +144,7 @@ class UserControllerTest {
         when(getUserByIdUseCase.execute(any()))
                 .thenReturn(Result.failure(new UserError.UserNotFound()));
 
-        mockMvc.perform(get("/api/v1/users/{id}", USER_UUID).with(csrf()))
+        mockMvc.perform(get("/api/v1.0/users/{id}", USER_UUID).with(csrf()))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.status").value("fail"))
                 .andExpect(jsonPath("$.data.code").value("USER_NOT_FOUND"));
@@ -149,13 +155,13 @@ class UserControllerTest {
     void getMe_authenticatedUser_shouldReturn200WithUserFields() throws Exception {
         when(getUserByIdUseCase.execute(any())).thenReturn(Result.success(sampleUserDto()));
 
-        mockMvc.perform(get("/api/v1/users/me").with(csrf()))
+        mockMvc.perform(get("/api/v1.0/users/me").with(csrf()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("success"))
                 .andExpect(jsonPath("$.data.email").value("alice@example.com"));
     }
 
-    // ── GET /api/v1/users ─────────────────────────────────────────────────────
+    // ── GET /api/v1.0/users ─────────────────────────────────────────────────────
 
     @Test
     @WithMockUser(roles = "ADMIN")
@@ -165,7 +171,7 @@ class UserControllerTest {
         when(listUsersUseCase.execute(anyInt(), anyInt(), anyString(), any()))
                 .thenReturn(pageResult);
 
-        mockMvc.perform(get("/api/v1/users").with(csrf()))
+        mockMvc.perform(get("/api/v1.0/users").with(csrf()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("success"))
                 .andExpect(jsonPath("$.data.content").isArray())
@@ -187,7 +193,7 @@ class UserControllerTest {
         when(listUsersUseCase.execute(anyInt(), anyInt(), anyString(), any()))
                 .thenReturn(pageResult);
 
-        mockMvc.perform(get("/api/v1/users").param("size", "5").with(csrf()))
+        mockMvc.perform(get("/api/v1.0/users").param("size", "5").with(csrf()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.hasNext").value(true))
                 .andExpect(jsonPath("$.data.hasPrevious").value(false));
@@ -196,19 +202,19 @@ class UserControllerTest {
     @Test
     @WithMockUser(roles = "CUSTOMER")
     void listUsers_nonAdminUser_shouldReturn403() throws Exception {
-        mockMvc.perform(get("/api/v1/users").with(csrf())).andExpect(status().isForbidden());
+        mockMvc.perform(get("/api/v1.0/users").with(csrf())).andExpect(status().isForbidden());
     }
 
     @Test
     @org.springframework.security.test.context.support.WithAnonymousUser
     void listUsers_unauthenticated_shouldReturn401() throws Exception {
-        mockMvc.perform(get("/api/v1/users")).andExpect(status().isUnauthorized());
+        mockMvc.perform(get("/api/v1.0/users")).andExpect(status().isUnauthorized());
     }
 
     @Test
     @WithMockUser(roles = "ADMIN")
     void listUsers_negativePage_shouldReturn400() throws Exception {
-        mockMvc.perform(get("/api/v1/users").param("page", "-1").with(csrf()))
+        mockMvc.perform(get("/api/v1.0/users").param("page", "-1").with(csrf()))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.status").value("fail"))
                 .andExpect(jsonPath("$.data.message").value("page must be >= 0"));
@@ -217,7 +223,7 @@ class UserControllerTest {
     @Test
     @WithMockUser(roles = "ADMIN")
     void listUsers_sizeZero_shouldReturn400() throws Exception {
-        mockMvc.perform(get("/api/v1/users").param("size", "0").with(csrf()))
+        mockMvc.perform(get("/api/v1.0/users").param("size", "0").with(csrf()))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.status").value("fail"))
                 .andExpect(jsonPath("$.data.message").value("size must be between 1 and 100"));
@@ -226,7 +232,7 @@ class UserControllerTest {
     @Test
     @WithMockUser(roles = "ADMIN")
     void listUsers_sizeExceedsMax_shouldReturn400() throws Exception {
-        mockMvc.perform(get("/api/v1/users").param("size", "200").with(csrf()))
+        mockMvc.perform(get("/api/v1.0/users").param("size", "200").with(csrf()))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.status").value("fail"))
                 .andExpect(jsonPath("$.data.message").value("size must be between 1 and 100"));
@@ -235,7 +241,7 @@ class UserControllerTest {
     @Test
     @WithMockUser(roles = "ADMIN")
     void listUsers_invalidSortField_shouldReturn400() throws Exception {
-        mockMvc.perform(get("/api/v1/users").param("sort", "passwordHash,asc").with(csrf()))
+        mockMvc.perform(get("/api/v1.0/users").param("sort", "passwordHash,asc").with(csrf()))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.status").value("fail"))
                 .andExpect(
@@ -249,7 +255,7 @@ class UserControllerTest {
         when(listUsersUseCase.execute(anyInt(), anyInt(), anyString(), any()))
                 .thenReturn(pageResult);
 
-        mockMvc.perform(get("/api/v1/users").param("sort", "email,asc").with(csrf()))
+        mockMvc.perform(get("/api/v1.0/users").param("sort", "email,asc").with(csrf()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("success"));
     }

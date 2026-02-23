@@ -10,6 +10,7 @@ import io.github.phunguy65.ttbs.backend.booking.application.dto.BookingDto;
 import io.github.phunguy65.ttbs.backend.booking.application.usecase.CreateBookingUseCase;
 import io.github.phunguy65.ttbs.backend.booking.application.usecase.GetBookingUseCase;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.GlobalExceptionHandler;
+import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.WebConfig;
 import io.github.phunguy65.ttbs.backend.user.application.port.TokenProvider;
 import java.math.BigDecimal;
 import java.util.Optional;
@@ -26,7 +27,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import tools.jackson.databind.ObjectMapper;
 
 @WebMvcTest(BookingController.class)
-@Import({BookingRequestMapper.class, GlobalExceptionHandler.class})
+@Import({BookingRequestMapper.class, GlobalExceptionHandler.class, WebConfig.class})
 @WithMockUser
 class BookingControllerTest {
 
@@ -67,7 +68,7 @@ class BookingControllerTest {
                 "idempotency-key-test");
         when(createBookingUseCase.execute(any())).thenReturn(dto);
 
-        mockMvc.perform(post("/api/bookings")
+        mockMvc.perform(post("/api/v1.0/bookings")
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -87,7 +88,7 @@ class BookingControllerTest {
                 bookingId, userId, routeId, seatId, "CONFIRMED", BigDecimal.ZERO, "VND", "key-123");
         when(getBookingUseCase.execute(bookingId)).thenReturn(Optional.of(dto));
 
-        mockMvc.perform(get("/api/bookings/{id}", bookingId))
+        mockMvc.perform(get("/api/v1.0/bookings/{id}", bookingId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("success"))
                 .andExpect(jsonPath("$.data.id").value(bookingId.toString()))
@@ -99,7 +100,7 @@ class BookingControllerTest {
         UUID unknownId = UUID.randomUUID();
         when(getBookingUseCase.execute(unknownId)).thenReturn(Optional.empty());
 
-        mockMvc.perform(get("/api/bookings/{id}", unknownId))
+        mockMvc.perform(get("/api/v1.0/bookings/{id}", unknownId))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.status").value("fail"))
                 .andExpect(jsonPath("$.data.code").value("BOOKING_NOT_FOUND"));
