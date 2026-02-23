@@ -10,6 +10,7 @@ import io.github.phunguy65.ttbs.backend.booking.application.dto.BookingDto;
 import io.github.phunguy65.ttbs.backend.booking.application.usecase.CreateBookingUseCase;
 import io.github.phunguy65.ttbs.backend.booking.application.usecase.GetBookingUseCase;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.GlobalExceptionHandler;
+import io.github.phunguy65.ttbs.backend.user.application.port.TokenProvider;
 import java.math.BigDecimal;
 import java.util.Optional;
 import java.util.UUID;
@@ -18,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -39,6 +41,12 @@ class BookingControllerTest {
 
     @MockitoBean
     private GetBookingUseCase getBookingUseCase;
+
+    @MockitoBean
+    private TokenProvider tokenProvider;
+
+    @MockitoBean
+    private UserDetailsService userDetailsService;
 
     @Test
     void postBookings_withValidRequest_shouldReturn201WithJsendSuccess() throws Exception {
@@ -94,6 +102,6 @@ class BookingControllerTest {
         mockMvc.perform(get("/api/bookings/{id}", unknownId))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.status").value("fail"))
-                .andExpect(jsonPath("$.data.id").exists());
+                .andExpect(jsonPath("$.data.code").value("BOOKING_NOT_FOUND"));
     }
 }

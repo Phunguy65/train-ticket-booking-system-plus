@@ -1,5 +1,7 @@
 package io.github.phunguy65.ttbs.backend.user.infrastructure.web;
 
+import io.github.phunguy65.ttbs.backend.user.application.command.CreateUserCommand;
+import io.github.phunguy65.ttbs.backend.user.application.dto.CreateUserResult;
 import io.github.phunguy65.ttbs.backend.user.application.dto.UserDto;
 import org.springframework.stereotype.Component;
 
@@ -14,5 +16,21 @@ class UserRequestMapper {
                 dto.phone(),
                 dto.role().name(),
                 dto.createdAt());
+    }
+
+    CreateUserCommand toCommand(CreateUserHttpRequest request) {
+        return new CreateUserCommand(request.email(), request.fullName(), request.phone());
+    }
+
+    CreateUserHttpResponse toCreateResponse(CreateUserResult result) {
+        UserDto user = result.user();
+        return new CreateUserHttpResponse(
+                user.id(),
+                user.email(),
+                user.fullName(),
+                user.phone(),
+                user.role().name(),
+                user.createdAt(),
+                result.temporaryPassword());
     }
 }

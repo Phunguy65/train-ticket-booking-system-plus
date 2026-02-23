@@ -1,0 +1,4 @@
+jwt:
+  secret: test-secret-key-that-is-long-enough-for-hs256-algorithm-for-testing
+  access-token-expiry: 900
+  refresh-token-expiry: 604800
