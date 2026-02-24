@@ -2,7 +2,6 @@ package io.github.phunguy65.ttbs.backend.user.infrastructure.web;
 
 import io.github.phunguy65.ttbs.backend.shared.domain.PageResult;
 import io.github.phunguy65.ttbs.backend.shared.domain.SortDirection;
-import io.github.phunguy65.ttbs.backend.shared.domain.UserId;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.ErrorCode;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.FailData;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.JsendResponse;
@@ -13,6 +12,7 @@ import io.github.phunguy65.ttbs.backend.user.application.usecase.GetUserByIdUseC
 import io.github.phunguy65.ttbs.backend.user.application.usecase.ListUsersUseCase;
 import io.github.phunguy65.ttbs.backend.user.application.usecase.UpdateUserUseCase;
 import io.github.phunguy65.ttbs.backend.user.domain.errors.UserError;
+import io.github.phunguy65.ttbs.backend.user.domain.model.UserId;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Set;

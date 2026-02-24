@@ -2,8 +2,8 @@ package io.github.phunguy65.ttbs.backend.user.infrastructure.persistence;
 
 import io.github.phunguy65.ttbs.backend.shared.domain.PageResult;
 import io.github.phunguy65.ttbs.backend.shared.domain.SortDirection;
-import io.github.phunguy65.ttbs.backend.shared.domain.UserId;
 import io.github.phunguy65.ttbs.backend.user.domain.model.User;
+import io.github.phunguy65.ttbs.backend.user.domain.model.UserId;
 import io.github.phunguy65.ttbs.backend.user.domain.repository.UserRepository;
 import java.util.List;
 import java.util.Optional;

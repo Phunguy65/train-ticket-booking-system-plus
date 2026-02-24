@@ -1,7 +1,6 @@
 package io.github.phunguy65.ttbs.backend.user.domain.model;
 
 import io.github.phunguy65.ttbs.backend.shared.domain.AggregateRoot;
-import io.github.phunguy65.ttbs.backend.shared.domain.UserId;
 import io.github.phunguy65.ttbs.backend.user.domain.event.UserRegistered;
 import java.time.Instant;
 

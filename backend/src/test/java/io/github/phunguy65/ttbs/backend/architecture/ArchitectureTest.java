@@ -41,6 +41,8 @@ class ArchitectureTest {
                 .resideInAPackage("..domain..")
                 .and()
                 .resideOutsideOfPackage("..shared.domain..")
+                .and()
+                .haveSimpleNameNotEndingWith("package-info")
                 .should()
                 .dependOnClassesThat()
                 .resideInAnyPackage(

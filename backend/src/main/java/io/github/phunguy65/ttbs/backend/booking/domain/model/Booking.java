@@ -6,7 +6,7 @@ import io.github.phunguy65.ttbs.backend.booking.domain.event.BookingConfirmed;
 import io.github.phunguy65.ttbs.backend.booking.domain.event.BookingCreated;
 import io.github.phunguy65.ttbs.backend.shared.domain.AggregateRoot;
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
-import io.github.phunguy65.ttbs.backend.shared.domain.UserId;
+import io.github.phunguy65.ttbs.backend.user.domain.model.UserId;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;

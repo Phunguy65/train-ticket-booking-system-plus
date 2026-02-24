@@ -5,9 +5,9 @@ import static org.mockito.Mockito.*;
 
 import io.github.phunguy65.ttbs.backend.shared.domain.PageResult;
 import io.github.phunguy65.ttbs.backend.shared.domain.SortDirection;
-import io.github.phunguy65.ttbs.backend.shared.domain.UserId;
 import io.github.phunguy65.ttbs.backend.user.application.dto.UserDto;
 import io.github.phunguy65.ttbs.backend.user.domain.model.User;
+import io.github.phunguy65.ttbs.backend.user.domain.model.UserId;
 import io.github.phunguy65.ttbs.backend.user.domain.model.UserRole;
 import io.github.phunguy65.ttbs.backend.user.domain.repository.UserRepository;
 import java.time.Instant;

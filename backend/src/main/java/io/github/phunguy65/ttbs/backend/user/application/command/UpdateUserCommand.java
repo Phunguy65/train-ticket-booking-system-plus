@@ -1,6 +1,6 @@
 package io.github.phunguy65.ttbs.backend.user.application.command;
 
-import io.github.phunguy65.ttbs.backend.shared.domain.UserId;
+import io.github.phunguy65.ttbs.backend.user.domain.model.UserId;
 import org.openapitools.jackson.nullable.JsonNullable;
 
 public record UpdateUserCommand(

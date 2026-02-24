@@ -2,13 +2,13 @@ package io.github.phunguy65.ttbs.backend.user.application.usecase;
 
 import io.github.phunguy65.ttbs.backend.shared.domain.DomainEvent;
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
-import io.github.phunguy65.ttbs.backend.shared.domain.UserId;
 import io.github.phunguy65.ttbs.backend.user.application.command.CreateUserCommand;
 import io.github.phunguy65.ttbs.backend.user.application.dto.CreateUserResult;
 import io.github.phunguy65.ttbs.backend.user.application.dto.UserDto;
 import io.github.phunguy65.ttbs.backend.user.application.port.PasswordEncoder;
 import io.github.phunguy65.ttbs.backend.user.domain.errors.UserError;
 import io.github.phunguy65.ttbs.backend.user.domain.model.User;
+import io.github.phunguy65.ttbs.backend.user.domain.model.UserId;
 import io.github.phunguy65.ttbs.backend.user.domain.repository.UserRepository;
 import java.util.UUID;
 import org.springframework.context.ApplicationEventPublisher;

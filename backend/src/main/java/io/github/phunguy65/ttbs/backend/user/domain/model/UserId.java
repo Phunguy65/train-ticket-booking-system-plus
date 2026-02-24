@@ -1,4 +1,4 @@
-package io.github.phunguy65.ttbs.backend.shared.domain;
+package io.github.phunguy65.ttbs.backend.user.domain.model;
 
 import java.util.UUID;
 import org.jspecify.annotations.NonNull;

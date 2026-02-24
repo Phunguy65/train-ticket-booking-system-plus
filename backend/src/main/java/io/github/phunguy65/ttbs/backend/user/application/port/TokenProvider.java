@@ -1,7 +1,7 @@
 package io.github.phunguy65.ttbs.backend.user.application.port;
 
-import io.github.phunguy65.ttbs.backend.shared.domain.UserId;
 import io.github.phunguy65.ttbs.backend.user.domain.model.User;
+import io.github.phunguy65.ttbs.backend.user.domain.model.UserId;
 
 /**
  * Port for JWT token generation and validation.

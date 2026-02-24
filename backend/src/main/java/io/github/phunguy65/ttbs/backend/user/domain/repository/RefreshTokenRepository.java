@@ -1,6 +1,6 @@
 package io.github.phunguy65.ttbs.backend.user.domain.repository;
 
-import io.github.phunguy65.ttbs.backend.shared.domain.UserId;
+import io.github.phunguy65.ttbs.backend.user.domain.model.UserId;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;

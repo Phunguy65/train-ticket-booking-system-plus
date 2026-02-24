@@ -2,7 +2,6 @@ package io.github.phunguy65.ttbs.backend.user.domain.model;
 
 import static org.assertj.core.api.Assertions.*;
 
-import io.github.phunguy65.ttbs.backend.shared.domain.UserId;
 import io.github.phunguy65.ttbs.backend.user.domain.event.UserRegistered;
 import java.time.Instant;
 import java.util.UUID;

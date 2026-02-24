@@ -2,8 +2,8 @@ package io.github.phunguy65.ttbs.backend.user.infrastructure.security;
 
 import static org.assertj.core.api.Assertions.*;
 
-import io.github.phunguy65.ttbs.backend.shared.domain.UserId;
 import io.github.phunguy65.ttbs.backend.user.domain.model.User;
+import io.github.phunguy65.ttbs.backend.user.domain.model.UserId;
 import io.github.phunguy65.ttbs.backend.user.domain.model.UserRole;
 import java.time.Instant;
 import java.util.UUID;

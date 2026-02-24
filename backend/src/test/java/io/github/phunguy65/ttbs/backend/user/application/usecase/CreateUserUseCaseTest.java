@@ -95,7 +95,7 @@ class CreateUserUseCaseTest {
         CreateUserCommand command =
                 new CreateUserCommand("existing@example.com", "Existing User", null);
         User existingUser = User.create(
-                io.github.phunguy65.ttbs.backend.shared.domain.UserId.of(
+                io.github.phunguy65.ttbs.backend.user.domain.model.UserId.of(
                         java.util.UUID.randomUUID()),
                 "existing@example.com",
                 "$2a$12$hash",

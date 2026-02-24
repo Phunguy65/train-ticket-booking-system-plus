@@ -1,7 +1,7 @@
 package io.github.phunguy65.ttbs.backend.user.infrastructure.security;
 
-import io.github.phunguy65.ttbs.backend.shared.domain.UserId;
 import io.github.phunguy65.ttbs.backend.user.application.port.TokenProvider;
+import io.github.phunguy65.ttbs.backend.user.domain.model.UserId;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

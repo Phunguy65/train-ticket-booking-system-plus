@@ -5,12 +5,12 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
-import io.github.phunguy65.ttbs.backend.shared.domain.UserId;
 import io.github.phunguy65.ttbs.backend.user.application.command.RefreshTokenCommand;
 import io.github.phunguy65.ttbs.backend.user.application.dto.LoginResultDto;
 import io.github.phunguy65.ttbs.backend.user.application.port.RefreshTokenManager;
 import io.github.phunguy65.ttbs.backend.user.domain.errors.UserError;
 import io.github.phunguy65.ttbs.backend.user.domain.model.User;
+import io.github.phunguy65.ttbs.backend.user.domain.model.UserId;
 import io.github.phunguy65.ttbs.backend.user.domain.model.UserRole;
 import io.github.phunguy65.ttbs.backend.user.domain.repository.RefreshTokenRepository;
 import io.github.phunguy65.ttbs.backend.user.domain.repository.RefreshTokenRepository.RefreshTokenData;
