@@ -9,31 +9,47 @@ pre-commit:
                 found, skipping (install via:
                 https://github.com/gitleaks/gitleaks)"
 
-        # ── Backend, Frontend-Customer, Build-Logic (Spotless) ──────────────────────────────────
-        spotless-lint-java:
-            glob: '**/*.java'
-            run: ./gradlew spotlessJavaCheck
+        # ── Backend ──────────────────────────────────
+        backend-lint:
+            root: 'backend/'
+            glob: '**/*.{java,kt,kts}'
+            exclude:
+                - 'third_party/**'
+            run: ./gradlew spotlessCheck
             stage_fixed: false
 
-        spotless-format-java:
-            glob: '**/*.java'
-            run: ./gradlew spotlessJavaApply
+        backend-format:
+            root: 'backend/'
+            glob: '**/*.{java,kt,kts}'
+            exclude:
+                - 'third_party/**'
+            run: ./gradlew spotlessApply
             stage_fixed: true
-        spotless-lint-kotlin:
-            glob: '**/*.kt'
-            run: ./gradlew spotlessKotlinCheck
+
+        # ── Build logic ──────────────────────────────────
+        build-logic-lint:
+            root: 'build-logic/'
+            glob: '**/*.{kt,kts}'
+            run: ./gradlew spotlessCheck
             stage_fixed: false
-        spotless-format-kotlin:
-            glob: '**/*.kt'
-            run: ./gradlew spotlessKotlinApply
+
+        build-logic-format:
+            root: 'build-logic/'
+            glob: '**/*.{kt,kts}'
+            run: ./gradlew spotlessApply
             stage_fixed: true
-        spotless-lint-kotlin-gradle:
-            glob: '**/*.kts'
-            run: ./gradlew spotlessKotlinGradleCheck
+
+        # ── Frontend / Customer ──────────────────────────────────
+        customer-lint:
+            root: 'frontend/customer/'
+            glob: '**/*.{kt,kts}'
+            run: ./gradlew spotlessCheck
             stage_fixed: false
-        spotless-format-kotlin-gradle:
-            glob: '**/*.kts'
-            run: ./gradlew spotlessKotlinGradleApply
+
+        customer-format:
+            root: 'frontend/customer/'
+            glob: '**/*.{kt,kts}'
+            run: ./gradlew spotlessApply
             stage_fixed: true
 
         # ── Frontend / Admin – TypeScript (Biome) ─────────────────────

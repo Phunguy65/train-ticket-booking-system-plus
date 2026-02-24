@@ -9,6 +9,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import io.github.phunguy65.ttbs.backend.shared.domain.PageResult;
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.GlobalExceptionHandler;
+import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.JacksonConfig;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.WebConfig;
 import io.github.phunguy65.ttbs.backend.user.application.dto.CreateUserResult;
 import io.github.phunguy65.ttbs.backend.user.application.dto.UserDto;
@@ -16,6 +17,7 @@ import io.github.phunguy65.ttbs.backend.user.application.port.TokenProvider;
 import io.github.phunguy65.ttbs.backend.user.application.usecase.CreateUserUseCase;
 import io.github.phunguy65.ttbs.backend.user.application.usecase.GetUserByIdUseCase;
 import io.github.phunguy65.ttbs.backend.user.application.usecase.ListUsersUseCase;
+import io.github.phunguy65.ttbs.backend.user.application.usecase.UpdateUserUseCase;
 import io.github.phunguy65.ttbs.backend.user.domain.errors.UserError;
 import io.github.phunguy65.ttbs.backend.user.domain.model.UserRole;
 import io.github.phunguy65.ttbs.backend.user.infrastructure.security.SecurityConfig;
@@ -37,7 +39,8 @@ import org.springframework.test.web.servlet.MockMvc;
     UserRequestMapper.class,
     GlobalExceptionHandler.class,
     SecurityConfig.class,
-    WebConfig.class
+    WebConfig.class,
+    JacksonConfig.class
 })
 @WithMockUser
 class UserControllerTest {
@@ -55,6 +58,9 @@ class UserControllerTest {
     private ListUsersUseCase listUsersUseCase;
 
     @MockitoBean
+    private UpdateUserUseCase updateUserUseCase;
+
+    @MockitoBean
     private TokenProvider tokenProvider;
 
     @MockitoBean
@@ -67,7 +73,7 @@ class UserControllerTest {
                 USER_UUID, "alice@example.com", "Alice", "090", UserRole.CUSTOMER, Instant.now());
     }
 
-    // ── POST /api/v1.0/users ────────────────────────────────────────────────────
+    // ── POST /api/v1.0/users ─────────────────────────────────────────────────────
 
     @Test
     void createUser_validRequest_shouldReturn201WithTemporaryPassword() throws Exception {
@@ -123,7 +129,7 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.data.errors[?(@.field == 'fullName')]").exists());
     }
 
-    // ── GET /api/v1.0/users/{id} ────────────────────────────────────────────────
+    // ── GET /api/v1.0/users/{id} ─────────────────────────────────────────────────
 
     @Test
     void getById_userFound_shouldReturn200WithUserFields() throws Exception {
@@ -161,7 +167,7 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.data.email").value("alice@example.com"));
     }
 
-    // ── GET /api/v1.0/users ─────────────────────────────────────────────────────
+    // ── GET /api/v1.0/users ──────────────────────────────────────────────────────
 
     @Test
     @WithMockUser(roles = "ADMIN")
@@ -258,5 +264,118 @@ class UserControllerTest {
         mockMvc.perform(get("/api/v1.0/users").param("sort", "email,asc").with(csrf()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("success"));
+    }
+
+    // ── PATCH /api/v1.0/users/me ─────────────────────────────────────────────────
+
+    @Test
+    @WithMockUser(username = "00000000-0000-0000-0000-000000000001")
+    void patchMe_validPartialBody_shouldReturn200WithUpdatedUser() throws Exception {
+        UserDto updated = new UserDto(
+                USER_UUID,
+                "alice@example.com",
+                "New Name",
+                "090",
+                UserRole.CUSTOMER,
+                Instant.now());
+        when(updateUserUseCase.execute(any())).thenReturn(Result.success(updated));
+
+        mockMvc.perform(patch("/api/v1.0/users/me")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"fullName\":\"New Name\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("success"))
+                .andExpect(jsonPath("$.data.fullName").value("New Name"));
+    }
+
+    @Test
+    @WithMockUser(username = "00000000-0000-0000-0000-000000000001")
+    void patchMe_blankFullName_shouldReturn400WithRequiredViolation() throws Exception {
+        mockMvc.perform(patch("/api/v1.0/users/me")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"fullName\":\"\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value("fail"))
+                .andExpect(jsonPath("$.data.code").value("VALIDATION_ERROR"))
+                .andExpect(jsonPath("$.data.errors[?(@.field == 'fullName')]").exists());
+    }
+
+    @Test
+    @WithMockUser(username = "00000000-0000-0000-0000-000000000001")
+    void patchMe_invalidEmailFormat_shouldReturn400WithInvalidFormatViolation() throws Exception {
+        mockMvc.perform(patch("/api/v1.0/users/me")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"email\":\"not-an-email\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value("fail"))
+                .andExpect(jsonPath("$.data.code").value("VALIDATION_ERROR"))
+                .andExpect(jsonPath("$.data.errors[?(@.field == 'email')]").exists());
+    }
+
+    @Test
+    @org.springframework.security.test.context.support.WithAnonymousUser
+    void patchMe_unauthenticated_shouldReturn401() throws Exception {
+        mockMvc.perform(patch("/api/v1.0/users/me")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"fullName\":\"Name\"}"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    // ── PATCH /api/v1.0/users/{id} ───────────────────────────────────────────────
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void patchById_asAdmin_shouldReturn200() throws Exception {
+        when(updateUserUseCase.execute(any())).thenReturn(Result.success(sampleUserDto()));
+
+        mockMvc.perform(patch("/api/v1.0/users/{id}", USER_UUID)
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"fullName\":\"Updated\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("success"));
+    }
+
+    @Test
+    @WithMockUser(roles = "CUSTOMER")
+    void patchById_asCustomer_shouldReturn403() throws Exception {
+        mockMvc.perform(patch("/api/v1.0/users/{id}", USER_UUID)
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"fullName\":\"Updated\"}"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void patchById_userNotFound_shouldReturn404() throws Exception {
+        when(updateUserUseCase.execute(any()))
+                .thenReturn(Result.failure(new UserError.UserNotFound()));
+
+        mockMvc.perform(patch("/api/v1.0/users/{id}", USER_UUID)
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"fullName\":\"Updated\"}"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.status").value("fail"))
+                .andExpect(jsonPath("$.data.code").value("USER_NOT_FOUND"));
+    }
+
+    @Test
+    @WithMockUser(username = "00000000-0000-0000-0000-000000000001")
+    void patchMe_duplicateEmail_shouldReturn409() throws Exception {
+        when(updateUserUseCase.execute(any()))
+                .thenReturn(Result.failure(new UserError.EmailAlreadyExists()));
+
+        mockMvc.perform(patch("/api/v1.0/users/me")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"email\":\"taken@example.com\"}"))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.status").value("fail"))
+                .andExpect(jsonPath("$.data.code").value("USER_EMAIL_ALREADY_EXISTS"));
     }
 }

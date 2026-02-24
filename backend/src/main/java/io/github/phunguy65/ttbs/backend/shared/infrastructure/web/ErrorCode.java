@@ -12,6 +12,9 @@ public enum ErrorCode {
     // ── Bean Validation umbrella ──────────────────────────────────────────────
     VALIDATION_ERROR,
 
+    // ── Authorization ─────────────────────────────────────────────────────────
+    ACCESS_DENIED,
+
     // ── User module ───────────────────────────────────────────────────────────
     USER_EMAIL_ALREADY_EXISTS,
     USER_INVALID_CREDENTIALS,

@@ -1,6 +1,7 @@
 [versions]
 # ─── Java ─────────────────────────────────────────────────────────────────
 archunitJunit5 = "1.4.1"
+jacksonDatabindNullable = "0.2.9"
 java = "25"
 # ─── Backend ─────────────────────────────────────────────────────────────────
 springBoot = "4.0.3"
@@ -37,6 +38,7 @@ jspecify = "1.0.0"
 
 [libraries]
 # ─── Backend ─────────────────────────────────────────────────────────────────
+jackson-databind-nullable = { module = "org.openapitools:jackson-databind-nullable", version.ref = "jacksonDatabindNullable" }
 spring-modulith-bom = { module = "org.springframework.modulith:spring-modulith-bom", version.ref = "springModulith" }
 
 # Spring Boot Starters (version managed by Spring Boot BOM)

@@ -11,6 +11,7 @@ import io.github.phunguy65.ttbs.backend.user.application.dto.UserDto;
 import io.github.phunguy65.ttbs.backend.user.application.usecase.CreateUserUseCase;
 import io.github.phunguy65.ttbs.backend.user.application.usecase.GetUserByIdUseCase;
 import io.github.phunguy65.ttbs.backend.user.application.usecase.ListUsersUseCase;
+import io.github.phunguy65.ttbs.backend.user.application.usecase.UpdateUserUseCase;
 import io.github.phunguy65.ttbs.backend.user.domain.errors.UserError;
 import jakarta.validation.Valid;
 import java.util.List;
@@ -18,9 +19,17 @@ import java.util.Set;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 @RestController
@@ -33,16 +42,19 @@ class UserController {
     private final GetUserByIdUseCase getUserByIdUseCase;
     private final CreateUserUseCase createUserUseCase;
     private final ListUsersUseCase listUsersUseCase;
+    private final UpdateUserUseCase updateUserUseCase;
     private final UserRequestMapper mapper;
 
     UserController(
             GetUserByIdUseCase getUserByIdUseCase,
             CreateUserUseCase createUserUseCase,
             ListUsersUseCase listUsersUseCase,
+            UpdateUserUseCase updateUserUseCase,
             UserRequestMapper mapper) {
         this.getUserByIdUseCase = getUserByIdUseCase;
         this.createUserUseCase = createUserUseCase;
         this.listUsersUseCase = listUsersUseCase;
+        this.updateUserUseCase = updateUserUseCase;
         this.mapper = mapper;
     }
 
@@ -134,6 +146,30 @@ class UserController {
                 result.hasPrevious());
 
         return ResponseEntity.ok(JsendResponse.success(sliceResponse));
+    }
+
+    @PatchMapping(value = "/{id}", version = "1.0")
+    @PreAuthorize("hasRole('ADMIN')")
+    ResponseEntity<JsendResponse<?>> patchById(
+            @PathVariable UUID id, @Valid @RequestBody UpdateUserHttpRequest request) {
+        return updateUserUseCase
+                .execute(mapper.toUpdateCommand(id, request))
+                .fold(
+                        userDto -> ResponseEntity.ok(
+                                JsendResponse.success(mapper.toResponse(userDto))),
+                        error -> errorResponse(error));
+    }
+
+    @PatchMapping(value = "/me", version = "1.0")
+    ResponseEntity<JsendResponse<?>> patchMe(@Valid @RequestBody UpdateUserHttpRequest request) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        UUID principalId = UUID.fromString(auth.getName());
+        return updateUserUseCase
+                .execute(mapper.toUpdateCommand(principalId, request))
+                .fold(
+                        userDto -> ResponseEntity.ok(
+                                JsendResponse.success(mapper.toResponse(userDto))),
+                        error -> errorResponse(error));
     }
 
     private ResponseEntity<JsendResponse<?>> errorResponse(UserError error) {

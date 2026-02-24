@@ -45,6 +45,7 @@ dependencies {
     implementation(libs.spring.modulith.starter.jpa)
     implementation(libs.spring.security.messaging)
     implementation(libs.jjwt.api)
+    implementation(libs.jackson.databind.nullable)
     compileOnly(libs.jspecify)
     runtimeOnly(libs.jjwt.impl)
     runtimeOnly(libs.jjwt.jackson)
