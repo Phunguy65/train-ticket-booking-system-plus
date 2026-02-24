@@ -1,6 +1,5 @@
 package io.github.phunguy65.ttbs.backend.booking.infrastructure.web;
 
-import io.github.phunguy65.ttbs.backend.booking.application.dto.BookingDto;
 import io.github.phunguy65.ttbs.backend.booking.application.usecase.CreateBookingUseCase;
 import io.github.phunguy65.ttbs.backend.booking.application.usecase.GetBookingUseCase;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.ErrorCode;
@@ -32,14 +31,23 @@ class BookingController {
     }
 
     @PostMapping(version = "1.0")
-    ResponseEntity<JsendResponse<BookingHttpResponse>> createBooking(
-            @RequestBody CreateBookingHttpRequest request) {
-        BookingDto dto = createBookingUseCase.execute(mapper.toCommand(request));
-        URI location = ServletUriComponentsBuilder.fromCurrentRequest()
-                .path("/{id}")
-                .buildAndExpand(dto.id())
-                .toUri();
-        return ResponseEntity.created(location).body(JsendResponse.success(mapper.toResponse(dto)));
+    ResponseEntity<JsendResponse<?>> createBooking(@RequestBody CreateBookingHttpRequest request) {
+        return createBookingUseCase
+                .execute(mapper.toCommand(request))
+                .fold(
+                        dto -> {
+                            URI location = ServletUriComponentsBuilder.fromCurrentRequest()
+                                    .path("/{id}")
+                                    .buildAndExpand(dto.id())
+                                    .toUri();
+                            return ResponseEntity.created(location)
+                                    .body(JsendResponse.success(mapper.toResponse(dto)));
+                        },
+                        error -> ResponseEntity.status(HttpStatus.CONFLICT)
+                                .body(JsendResponse.fail(new FailData(
+                                        error.message(),
+                                        ErrorCode.SEAT_NOT_AVAILABLE,
+                                        List.of()))));
     }
 
     @GetMapping(value = "/{id}", version = "1.0")

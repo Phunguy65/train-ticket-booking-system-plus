@@ -1,7 +1,7 @@
 package io.github.phunguy65.ttbs.backend.booking.infrastructure.web;
 
+import io.github.phunguy65.ttbs.backend.booking.application.command.CreateBookingCommand;
 import io.github.phunguy65.ttbs.backend.booking.application.dto.BookingDto;
-import io.github.phunguy65.ttbs.backend.booking.application.dto.CreateBookingCommand;
 import org.springframework.stereotype.Component;
 
 @Component

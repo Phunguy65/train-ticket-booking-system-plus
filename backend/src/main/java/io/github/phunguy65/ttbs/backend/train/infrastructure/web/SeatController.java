@@ -1,0 +1,92 @@
+package io.github.phunguy65.ttbs.backend.train.infrastructure.web;
+
+import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.ErrorCode;
+import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.FailData;
+import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.JsendResponse;
+import io.github.phunguy65.ttbs.backend.train.application.usecase.CreateSeatUseCase;
+import io.github.phunguy65.ttbs.backend.train.application.usecase.GetAvailableSeatsForRouteUseCase;
+import io.github.phunguy65.ttbs.backend.train.application.usecase.GetSeatsByTrainUseCase;
+import io.github.phunguy65.ttbs.backend.train.domain.errors.SeatError;
+import jakarta.validation.Valid;
+import java.util.List;
+import java.util.UUID;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+
+@RestController
+class SeatController {
+
+    private final CreateSeatUseCase createSeatUseCase;
+    private final GetSeatsByTrainUseCase getSeatsByTrainUseCase;
+    private final GetAvailableSeatsForRouteUseCase getAvailableSeatsForRouteUseCase;
+    private final SeatRequestMapper mapper;
+
+    SeatController(
+            CreateSeatUseCase createSeatUseCase,
+            GetSeatsByTrainUseCase getSeatsByTrainUseCase,
+            GetAvailableSeatsForRouteUseCase getAvailableSeatsForRouteUseCase,
+            SeatRequestMapper mapper) {
+        this.createSeatUseCase = createSeatUseCase;
+        this.getSeatsByTrainUseCase = getSeatsByTrainUseCase;
+        this.getAvailableSeatsForRouteUseCase = getAvailableSeatsForRouteUseCase;
+        this.mapper = mapper;
+    }
+
+    @PostMapping(value = "/{version}/trains/{trainId}/seats", version = "1.0")
+    @PreAuthorize("hasRole('ADMIN')")
+    ResponseEntity<JsendResponse<?>> createSeat(
+            @PathVariable UUID trainId, @Valid @RequestBody CreateSeatHttpRequest request) {
+        return createSeatUseCase
+                .execute(mapper.toCommand(trainId, request))
+                .fold(
+                        dto -> {
+                            var location = ServletUriComponentsBuilder.fromCurrentRequest()
+                                    .path("/{id}")
+                                    .buildAndExpand(dto.id())
+                                    .toUri();
+                            return ResponseEntity.created(location)
+                                    .body(JsendResponse.success(mapper.toResponse(dto)));
+                        },
+                        this::seatErrorResponse);
+    }
+
+    @GetMapping(value = "/{version}/trains/{trainId}/seats", version = "1.0")
+    ResponseEntity<JsendResponse<?>> getSeatsByTrain(@PathVariable UUID trainId) {
+        List<SeatHttpResponse> responses = getSeatsByTrainUseCase.execute(trainId).stream()
+                .map(mapper::toResponse)
+                .toList();
+        return ResponseEntity.ok(JsendResponse.success(responses));
+    }
+
+    @GetMapping(value = "/{version}/routes/{routeId}/seats/available", version = "1.0")
+    ResponseEntity<JsendResponse<?>> getAvailableSeats(@PathVariable UUID routeId) {
+        List<SeatHttpResponse> responses =
+                getAvailableSeatsForRouteUseCase.execute(routeId).stream()
+                        .map(mapper::toResponse)
+                        .toList();
+        return ResponseEntity.ok(JsendResponse.success(responses));
+    }
+
+    private ResponseEntity<JsendResponse<?>> seatErrorResponse(SeatError error) {
+        HttpStatus status =
+                switch (error) {
+                    case SeatError.TrainNotFound e -> HttpStatus.NOT_FOUND;
+                    case SeatError.SeatNumberAlreadyExists e -> HttpStatus.CONFLICT;
+                };
+        ErrorCode code =
+                switch (error) {
+                    case SeatError.TrainNotFound e -> ErrorCode.TRAIN_NOT_FOUND;
+                    case SeatError.SeatNumberAlreadyExists e ->
+                        ErrorCode.SEAT_NUMBER_ALREADY_EXISTS;
+                };
+        return ResponseEntity.status(status)
+                .body(JsendResponse.fail(new FailData(error.message(), code, List.of())));
+    }
+}

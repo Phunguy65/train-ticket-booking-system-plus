@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -50,6 +51,23 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(JsendResponse.fail(
                         new FailData("Validation failed", ErrorCode.VALIDATION_ERROR, violations)));
+    }
+
+    /**
+     * Handles optimistic locking failures — two concurrent requests modified the same entity.
+     * Returns JSend {@code fail} with HTTP 409 Conflict.
+     *
+     * <p>This typically happens when two concurrent booking requests race to book the same seat.
+     * The client should retry.
+     */
+    @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
+    ResponseEntity<JsendResponse<FailData>> handleOptimisticLock(
+            ObjectOptimisticLockingFailureException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(JsendResponse.fail(new FailData(
+                        "The resource was modified concurrently. Please retry.",
+                        ErrorCode.SEAT_NOT_AVAILABLE,
+                        List.of())));
     }
 
     /**

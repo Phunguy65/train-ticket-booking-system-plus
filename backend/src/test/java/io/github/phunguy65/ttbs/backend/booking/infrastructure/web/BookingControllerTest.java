@@ -9,6 +9,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import io.github.phunguy65.ttbs.backend.booking.application.dto.BookingDto;
 import io.github.phunguy65.ttbs.backend.booking.application.usecase.CreateBookingUseCase;
 import io.github.phunguy65.ttbs.backend.booking.application.usecase.GetBookingUseCase;
+import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.GlobalExceptionHandler;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.WebConfig;
 import io.github.phunguy65.ttbs.backend.user.application.port.TokenProvider;
@@ -66,7 +67,7 @@ class BookingControllerTest {
                 BigDecimal.ZERO,
                 "VND",
                 "idempotency-key-test");
-        when(createBookingUseCase.execute(any())).thenReturn(dto);
+        when(createBookingUseCase.execute(any())).thenReturn(Result.success(dto));
 
         mockMvc.perform(post("/api/v1.0/bookings")
                         .with(csrf())

@@ -34,6 +34,17 @@ public sealed interface BookingError {
         }
     }
 
+    /**
+     * Attempted to create a booking for a seat that is not available on the route.
+     * Returned when the seat availability check fails (seat is already BOOKED or does not exist).
+     */
+    record SeatNotAvailable() implements BookingError {
+        @Override
+        public String message() {
+            return "The requested seat is not available for this route.";
+        }
+    }
+
     /** Human-readable description of the error, suitable for a JSend {@code fail} data payload. */
     String message();
 }

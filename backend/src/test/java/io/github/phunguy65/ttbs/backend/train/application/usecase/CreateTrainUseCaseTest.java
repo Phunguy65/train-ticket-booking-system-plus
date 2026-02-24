@@ -8,10 +8,9 @@ import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.train.application.command.CreateTrainCommand;
 import io.github.phunguy65.ttbs.backend.train.application.dto.TrainDto;
 import io.github.phunguy65.ttbs.backend.train.domain.errors.TrainError;
+import io.github.phunguy65.ttbs.backend.train.domain.event.TrainCreated;
 import io.github.phunguy65.ttbs.backend.train.domain.model.Train;
-import io.github.phunguy65.ttbs.backend.train.domain.model.TrainId;
 import io.github.phunguy65.ttbs.backend.train.domain.repository.TrainRepository;
-import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -69,18 +68,10 @@ class CreateTrainUseCaseTest {
     void execute_success_shouldPublishTrainCreatedEvent() {
         CreateTrainCommand command = new CreateTrainCommand("SE002", "Another Train", 150);
         when(trainRepository.existsByTrainNumber("SE002")).thenReturn(false);
-        when(trainRepository.save(any(Train.class))).thenAnswer(inv -> {
-            Train t = inv.getArgument(0);
-            return Train.reconstitute(
-                    TrainId.of(UUID.randomUUID()),
-                    t.getTrainNumber(),
-                    t.getName(),
-                    t.getTotalSeats(),
-                    t.getCreatedAt());
-        });
+        when(trainRepository.save(any(Train.class))).thenAnswer(inv -> inv.getArgument(0));
 
         useCase.execute(command);
 
-        verify(eventPublisher, atLeastOnce()).publishEvent(any());
+        verify(eventPublisher, atLeastOnce()).publishEvent(any(TrainCreated.class));
     }
 }

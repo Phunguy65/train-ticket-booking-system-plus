@@ -3,6 +3,8 @@ package io.github.phunguy65.ttbs.backend.train;
 import static org.assertj.core.api.Assertions.*;
 
 import io.github.phunguy65.ttbs.backend.train.application.command.CreateTrainCommand;
+import io.github.phunguy65.ttbs.backend.train.application.port.RouteSeatAvailabilityPort;
+import io.github.phunguy65.ttbs.backend.train.application.usecase.CreateSeatUseCase;
 import io.github.phunguy65.ttbs.backend.train.application.usecase.CreateTrainUseCase;
 import io.github.phunguy65.ttbs.backend.train.domain.event.TrainCreated;
 import org.junit.jupiter.api.Test;
@@ -23,10 +25,23 @@ class TrainModuleTest {
     @Autowired
     private CreateTrainUseCase createTrainUseCase;
 
+    @Autowired
+    private CreateSeatUseCase createSeatUseCase;
+
+    @Autowired
+    private RouteSeatAvailabilityPort routeSeatAvailabilityPort;
+
     @Test
     void trainModule_isStructurallyValid() {
         // Spring Modulith verifies module structure upon context loading.
         // If this test starts successfully, module boundaries are valid.
+    }
+
+    @Test
+    void trainModule_exposesAvailabilityPortViaModelInterface() {
+        // Verify that RouteSeatAvailabilityPort bean is wired from the
+        // train::model named interface, confirming the module exposes it correctly.
+        assertThat(routeSeatAvailabilityPort).isNotNull();
     }
 
     @Test
