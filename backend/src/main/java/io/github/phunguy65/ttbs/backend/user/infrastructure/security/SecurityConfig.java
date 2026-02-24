@@ -48,6 +48,10 @@ public class SecurityConfig {
                                 .permitAll()
                                 .requestMatchers(HttpMethod.GET, "/api/*/users")
                                 .hasRole("ADMIN")
+                                .requestMatchers(HttpMethod.POST, "/api/*/trains/**")
+                                .hasRole("ADMIN")
+                                .requestMatchers(HttpMethod.GET, "/api/*/trains/**")
+                                .authenticated()
                                 .anyRequest()
                                 .authenticated())
                 .addFilterBefore(

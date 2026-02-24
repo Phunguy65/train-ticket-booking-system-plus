@@ -24,5 +24,9 @@ public enum ErrorCode {
     // ── Booking module ────────────────────────────────────────────────────────
     BOOKING_NOT_FOUND,
     BOOKING_CANNOT_CONFIRM,
-    BOOKING_ALREADY_CANCELLED
+    BOOKING_ALREADY_CANCELLED,
+
+    // ── Train module ──────────────────────────────────────────────────────────
+    TRAIN_NUMBER_ALREADY_EXISTS,
+    TRAIN_NOT_FOUND
 }
