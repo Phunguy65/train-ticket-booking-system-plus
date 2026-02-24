@@ -9,14 +9,17 @@ context: |
 
   Each feature is an independent Spring Modulith module with 3 layers:
     - domain/      → Pure Java (no framework deps): aggregates, value objects, domain events, repository ports, business errors
-    - application/ → Use case orchestrators (@Service @Transactional), command/result DTOs
-    - infrastructure/ → Framework adapters: persistence (JPA) and web (REST)
+    - application/ → Use case orchestrators (@Service @Transactional), command/result DTOs, infrastructure ports
+    - infrastructure/ → Framework adapters: persistence (JPA), web (REST), and optionally security
 
   Folder structure per vertical slice (e.g., booking/):
     {feature}/
     ├── package-info.java                   # @ApplicationModule - Spring Modulith module boundary
+    │                                       # Use @NamedInterface("name") in sub-packages to export to other modules
+    │                                       # Use allowedDependencies = {"module::interface"} for cross-module access
     ├── domain/
-    │   ├── model/                          # Aggregate root, entities, value objects, status enums
+    │   ├── model/                          # Aggregate root, entities, value objects, role/status enums
+    │   │   ├── package-info.java           # Optional: @NamedInterface("model") to expose to other modules
     │   │   ├── {Entity}.java               # Aggregate root with factory methods: create() and reconstitute()
     │   │   ├── {Entity}Id.java             # Type-safe ID value object (wraps UUID)
     │   │   └── {Entity}Status.java         # Lifecycle enum (PENDING, CONFIRMED, CANCELLED, ...)
@@ -32,15 +35,19 @@ context: |
     │   ├── usecase/                        # One use case class per operation (SRP)
     │   │   ├── Create{Entity}UseCase.java  # @Service @Transactional - orchestrates create flow
     │   │   └── Get{Entity}UseCase.java     # @Service - query use case
-    │   └── dto/                            # Application-layer DTOs (commands and result DTOs)
-    │       ├── Create{Entity}Command.java  # Input DTO for create use case
-    │       └── {Entity}Dto.java            # Output DTO returned by use cases
+    │   ├── command/                        # Input DTOs for use cases (CQRS-style)
+    │   │   └── Create{Entity}Command.java  # Input command DTO for create use case
+    │   ├── dto/                            # Output DTOs returned by use cases
+    │   │   └── {Entity}Dto.java            # Output DTO returned by use cases
+    │   └── port/                           # Ports for infrastructure concerns (optional)
+    │       └── {Capability}Port.java       # Interface abstracting infrastructure (e.g., PasswordEncoder, TokenProvider)
     └── infrastructure/
         ├── persistence/                    # JPA adapter layer
         │   ├── {Entity}Entity.java         # @Entity - JPA mapping (NOT in domain)
         │   ├── {Entity}JpaRepository.java  # Spring Data JPA interface (package-private)
         │   ├── {Entity}RepositoryAdapter.java  # @Repository - implements domain repository port
         │   └── {Entity}EntityMapper.java   # @Component - maps JPA entity <-> domain model
+        ├── security/                       # Security adapter layer (only for modules owning auth) 
         └── web/                            # REST adapter layer
             ├── {Entity}Controller.java     # @RestController - REST endpoints, returns JsendResponse
             ├── Create{Entity}HttpRequest.java  # HTTP request DTO (public API contract)
@@ -58,25 +65,29 @@ context: |
     └── infrastructure/
         ├── persistence/
         │   └── {Entity}RepositoryAdapterTest.java  # @DataJpaTest - persistence integration tests
+        ├── security/                               # Security-specific tests (modules with auth only)
+        │   └── JwtTokenProviderTest.java           # @ExtendWith(MockitoExtension) - unit tests
         └── web/
             └── {Entity}ControllerTest.java         # @WebMvcTest - REST API integration tests
 
   Naming conventions:
     Domain    : {Entity}, {Entity}Id, {Entity}Status, {Entity}Repository, {Entity}Error, {EntityEvent}(past tense)
-    Application: {Operation}{Entity}Command, {Entity}Dto, {Operation}{Entity}UseCase
+    Application: {Operation}{Entity}Command, {Entity}Dto, {Operation}{Entity}UseCase, {Capability}Port (e.g., PasswordEncoder, TokenProvider)
     Persistence: {Entity}Entity, {Entity}JpaRepository, {Entity}RepositoryAdapter, {Entity}EntityMapper
     Web        : {Entity}Controller, {Operation}{Entity}HttpRequest, {Entity}HttpResponse, {Entity}RequestMapper
 
   Shared module (type=OPEN, accessible to all modules):
-    shared/domain/      → AggregateRoot, DomainEvent, Result<T,E>, Money, ValueObject
+    shared/domain/      → AggregateRoot, DomainEvent, Result<T,E>, Money, ValueObject, PageResult, SortDirection
     shared/infrastructure/web/ → GlobalExceptionHandler, JsendResponse (JSend format)
-
   Key patterns:
     - Port-Adapter: domain defines repository interface, infrastructure implements it
+    - Application Ports: abstract infrastructure concerns (JWT, BCrypt, email) behind interfaces in application/port/
     - Result monad: domain methods return Result<T, E> instead of throwing exceptions
     - Factory methods: create() registers domain events; reconstitute() does not
     - Idempotency: use cases check idempotency key before processing
     - One use case per operation (no god-service classes)
+    - CQRS-style DTOs: commands (input) live in application/command/, result DTOs (output) in application/dto/
+    - Named Interface: expose sub-packages via @NamedInterface in package-info.java for controlled cross-module access
     - ArchUnit enforces: no JPA in domain, no framework in domain, no infra deps in application layer
 
 rules:
