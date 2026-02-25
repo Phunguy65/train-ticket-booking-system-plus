@@ -1,6 +1,7 @@
 package io.github.phunguy65.ttbs.backend.train.domain.model;
 
 import io.github.phunguy65.ttbs.backend.shared.domain.AggregateRoot;
+import io.github.phunguy65.ttbs.backend.station.domain.model.StationId;
 import io.github.phunguy65.ttbs.backend.train.domain.event.RouteCreated;
 import java.math.BigDecimal;
 import java.time.Instant;

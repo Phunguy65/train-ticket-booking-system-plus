@@ -4,10 +4,10 @@ import static org.assertj.core.api.Assertions.*;
 
 import io.github.phunguy65.ttbs.backend.shared.domain.PageResult;
 import io.github.phunguy65.ttbs.backend.shared.domain.SortDirection;
+import io.github.phunguy65.ttbs.backend.station.domain.model.StationId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.Route;
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteFilter;
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteId;
-import io.github.phunguy65.ttbs.backend.train.domain.model.StationId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.TrainId;
 import io.github.phunguy65.ttbs.backend.train.domain.repository.RouteRepository;
 import java.math.BigDecimal;

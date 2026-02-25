@@ -2,6 +2,7 @@ package io.github.phunguy65.ttbs.backend.train.domain.model;
 
 import static org.assertj.core.api.Assertions.*;
 
+import io.github.phunguy65.ttbs.backend.station.domain.model.StationId;
 import io.github.phunguy65.ttbs.backend.train.domain.event.RouteCreated;
 import java.math.BigDecimal;
 import java.time.Instant;

@@ -1,9 +1,9 @@
 package io.github.phunguy65.ttbs.backend.train.infrastructure.persistence;
 
+import io.github.phunguy65.ttbs.backend.station.domain.model.StationId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.Route;
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteStatus;
-import io.github.phunguy65.ttbs.backend.train.domain.model.StationId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.TrainId;
 import java.time.Instant;
 import org.springframework.stereotype.Component;

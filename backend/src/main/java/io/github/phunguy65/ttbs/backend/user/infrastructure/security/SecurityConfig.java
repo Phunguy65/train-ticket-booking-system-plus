@@ -52,6 +52,10 @@ public class SecurityConfig {
                                 .hasRole("ADMIN")
                                 .requestMatchers(HttpMethod.GET, "/api/*/trains/**")
                                 .authenticated()
+                                .requestMatchers(HttpMethod.POST, "/api/*/stations/**")
+                                .hasRole("ADMIN")
+                                .requestMatchers(HttpMethod.GET, "/api/*/stations/**")
+                                .authenticated()
                                 .anyRequest()
                                 .authenticated())
                 .addFilterBefore(
