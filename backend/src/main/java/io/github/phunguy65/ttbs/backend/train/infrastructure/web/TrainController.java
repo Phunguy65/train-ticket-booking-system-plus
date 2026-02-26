@@ -10,6 +10,7 @@ import io.github.phunguy65.ttbs.backend.train.application.dto.TrainDto;
 import io.github.phunguy65.ttbs.backend.train.application.usecase.CreateTrainUseCase;
 import io.github.phunguy65.ttbs.backend.train.application.usecase.GetTrainByIdUseCase;
 import io.github.phunguy65.ttbs.backend.train.application.usecase.GetTrainsUseCase;
+import io.github.phunguy65.ttbs.backend.train.application.usecase.UpdateTrainUseCase;
 import io.github.phunguy65.ttbs.backend.train.domain.errors.TrainError;
 import io.github.phunguy65.ttbs.backend.train.domain.model.TrainId;
 import jakarta.validation.Valid;
@@ -20,6 +21,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -38,16 +40,19 @@ class TrainController {
     private final CreateTrainUseCase createTrainUseCase;
     private final GetTrainByIdUseCase getTrainByIdUseCase;
     private final GetTrainsUseCase getTrainsUseCase;
+    private final UpdateTrainUseCase updateTrainUseCase;
     private final TrainRequestMapper mapper;
 
     TrainController(
             CreateTrainUseCase createTrainUseCase,
             GetTrainByIdUseCase getTrainByIdUseCase,
             GetTrainsUseCase getTrainsUseCase,
+            UpdateTrainUseCase updateTrainUseCase,
             TrainRequestMapper mapper) {
         this.createTrainUseCase = createTrainUseCase;
         this.getTrainByIdUseCase = getTrainByIdUseCase;
         this.getTrainsUseCase = getTrainsUseCase;
+        this.updateTrainUseCase = updateTrainUseCase;
         this.mapper = mapper;
     }
 
@@ -122,6 +127,17 @@ class TrainController {
     ResponseEntity<JsendResponse<?>> getById(@PathVariable UUID id) {
         return getTrainByIdUseCase
                 .execute(TrainId.of(id))
+                .fold(
+                        dto -> ResponseEntity.ok(JsendResponse.success(mapper.toResponse(dto))),
+                        error -> errorResponse(error));
+    }
+
+    @PatchMapping(value = "/{id}", version = "1.0")
+    @PreAuthorize("hasRole('ADMIN')")
+    ResponseEntity<JsendResponse<?>> patchById(
+            @PathVariable UUID id, @Valid @RequestBody UpdateTrainHttpRequest request) {
+        return updateTrainUseCase
+                .execute(mapper.toUpdateCommand(id, request))
                 .fold(
                         dto -> ResponseEntity.ok(JsendResponse.success(mapper.toResponse(dto))),
                         error -> errorResponse(error));

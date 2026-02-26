@@ -15,6 +15,7 @@ import io.github.phunguy65.ttbs.backend.train.application.dto.TrainDto;
 import io.github.phunguy65.ttbs.backend.train.application.usecase.CreateTrainUseCase;
 import io.github.phunguy65.ttbs.backend.train.application.usecase.GetTrainByIdUseCase;
 import io.github.phunguy65.ttbs.backend.train.application.usecase.GetTrainsUseCase;
+import io.github.phunguy65.ttbs.backend.train.application.usecase.UpdateTrainUseCase;
 import io.github.phunguy65.ttbs.backend.train.domain.errors.TrainError;
 import io.github.phunguy65.ttbs.backend.user.application.port.TokenProvider;
 import io.github.phunguy65.ttbs.backend.user.infrastructure.security.SecurityConfig;
@@ -53,6 +54,9 @@ class TrainControllerTest {
 
     @MockitoBean
     private GetTrainsUseCase getTrainsUseCase;
+
+    @MockitoBean
+    private UpdateTrainUseCase updateTrainUseCase;
 
     @MockitoBean
     private TokenProvider tokenProvider;
@@ -171,5 +175,73 @@ class TrainControllerTest {
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.status").value("fail"))
                 .andExpect(jsonPath("$.data.code").value("TRAIN_NOT_FOUND"));
+    }
+
+    // ── PATCH /api/v1.0/trains/{id} ──────────────────────────────────────────
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void patchTrain_validRequest_shouldReturn200() throws Exception {
+        when(updateTrainUseCase.execute(any())).thenReturn(Result.success(sampleTrainDto()));
+
+        mockMvc.perform(patch("/api/v1.0/trains/{id}", TRAIN_UUID)
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\":\"Updated Express\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("success"))
+                .andExpect(jsonPath("$.data.trainNumber").value("SE001"));
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void patchTrain_trainNotFound_shouldReturn404() throws Exception {
+        when(updateTrainUseCase.execute(any()))
+                .thenReturn(Result.failure(new TrainError.TrainNotFound()));
+
+        mockMvc.perform(patch("/api/v1.0/trains/{id}", TRAIN_UUID)
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\":\"Updated\"}"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.status").value("fail"))
+                .andExpect(jsonPath("$.data.code").value("TRAIN_NOT_FOUND"));
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void patchTrain_duplicateTrainNumber_shouldReturn409() throws Exception {
+        when(updateTrainUseCase.execute(any()))
+                .thenReturn(Result.failure(new TrainError.TrainNumberAlreadyExists("SE002")));
+
+        mockMvc.perform(patch("/api/v1.0/trains/{id}", TRAIN_UUID)
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"trainNumber\":\"SE002\"}"))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.status").value("fail"))
+                .andExpect(jsonPath("$.data.code").value("TRAIN_NUMBER_ALREADY_EXISTS"));
+    }
+
+    @Test
+    @WithMockUser(roles = "CUSTOMER")
+    void patchTrain_nonAdmin_shouldReturn403() throws Exception {
+        mockMvc.perform(patch("/api/v1.0/trains/{id}", TRAIN_UUID)
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\":\"Updated\"}"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void patchTrain_blankTrainNumber_shouldReturn400() throws Exception {
+        mockMvc.perform(patch("/api/v1.0/trains/{id}", TRAIN_UUID)
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"trainNumber\":\"\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value("fail"))
+                .andExpect(jsonPath("$.data.code").value("VALIDATION_ERROR"));
     }
 }

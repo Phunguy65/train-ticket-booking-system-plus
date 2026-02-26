@@ -6,6 +6,7 @@ import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.JsendResponse;
 import io.github.phunguy65.ttbs.backend.train.application.usecase.CreateSeatUseCase;
 import io.github.phunguy65.ttbs.backend.train.application.usecase.GetAvailableSeatsForRouteUseCase;
 import io.github.phunguy65.ttbs.backend.train.application.usecase.GetSeatsByTrainUseCase;
+import io.github.phunguy65.ttbs.backend.train.application.usecase.UpdateSeatUseCase;
 import io.github.phunguy65.ttbs.backend.train.domain.errors.SeatError;
 import jakarta.validation.Valid;
 import java.util.List;
@@ -14,6 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -26,16 +28,19 @@ class SeatController {
     private final CreateSeatUseCase createSeatUseCase;
     private final GetSeatsByTrainUseCase getSeatsByTrainUseCase;
     private final GetAvailableSeatsForRouteUseCase getAvailableSeatsForRouteUseCase;
+    private final UpdateSeatUseCase updateSeatUseCase;
     private final SeatRequestMapper mapper;
 
     SeatController(
             CreateSeatUseCase createSeatUseCase,
             GetSeatsByTrainUseCase getSeatsByTrainUseCase,
             GetAvailableSeatsForRouteUseCase getAvailableSeatsForRouteUseCase,
+            UpdateSeatUseCase updateSeatUseCase,
             SeatRequestMapper mapper) {
         this.createSeatUseCase = createSeatUseCase;
         this.getSeatsByTrainUseCase = getSeatsByTrainUseCase;
         this.getAvailableSeatsForRouteUseCase = getAvailableSeatsForRouteUseCase;
+        this.updateSeatUseCase = updateSeatUseCase;
         this.mapper = mapper;
     }
 
@@ -74,14 +79,27 @@ class SeatController {
         return ResponseEntity.ok(JsendResponse.success(responses));
     }
 
+    @PatchMapping(value = "/{version}/seats/{id}", version = "1.0")
+    @PreAuthorize("hasRole('ADMIN')")
+    ResponseEntity<JsendResponse<?>> patchById(
+            @PathVariable UUID id, @Valid @RequestBody UpdateSeatHttpRequest request) {
+        return updateSeatUseCase
+                .execute(mapper.toUpdateCommand(id, request))
+                .fold(
+                        dto -> ResponseEntity.ok(JsendResponse.success(mapper.toResponse(dto))),
+                        this::seatErrorResponse);
+    }
+
     private ResponseEntity<JsendResponse<?>> seatErrorResponse(SeatError error) {
         HttpStatus status =
                 switch (error) {
+                    case SeatError.SeatNotFound e -> HttpStatus.NOT_FOUND;
                     case SeatError.TrainNotFound e -> HttpStatus.NOT_FOUND;
                     case SeatError.SeatNumberAlreadyExists e -> HttpStatus.CONFLICT;
                 };
         ErrorCode code =
                 switch (error) {
+                    case SeatError.SeatNotFound e -> ErrorCode.SEAT_NOT_FOUND;
                     case SeatError.TrainNotFound e -> ErrorCode.TRAIN_NOT_FOUND;
                     case SeatError.SeatNumberAlreadyExists e ->
                         ErrorCode.SEAT_NUMBER_ALREADY_EXISTS;

@@ -15,6 +15,7 @@ import io.github.phunguy65.ttbs.backend.train.application.dto.RouteDto;
 import io.github.phunguy65.ttbs.backend.train.application.usecase.CreateRouteUseCase;
 import io.github.phunguy65.ttbs.backend.train.application.usecase.GetRouteByIdUseCase;
 import io.github.phunguy65.ttbs.backend.train.application.usecase.GetRoutesUseCase;
+import io.github.phunguy65.ttbs.backend.train.application.usecase.UpdateRouteUseCase;
 import io.github.phunguy65.ttbs.backend.train.domain.errors.RouteError;
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteStatus;
 import io.github.phunguy65.ttbs.backend.user.application.port.TokenProvider;
@@ -55,6 +56,9 @@ class RouteControllerTest {
 
     @MockitoBean
     private GetRoutesUseCase getRoutesUseCase;
+
+    @MockitoBean
+    private UpdateRouteUseCase updateRouteUseCase;
 
     @MockitoBean
     private TokenProvider tokenProvider;
@@ -201,6 +205,59 @@ class RouteControllerTest {
     @Test
     void listRoutes_invalidSize_shouldReturn400() throws Exception {
         mockMvc.perform(get("/api/v1.0/routes").param("size", "0").with(csrf()))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value("fail"))
+                .andExpect(jsonPath("$.data.code").value("VALIDATION_ERROR"));
+    }
+
+    // ── PATCH /api/v1.0/routes/{id} ──────────────────────────────────────────
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void patchRoute_validRequest_shouldReturn200() throws Exception {
+        when(updateRouteUseCase.execute(any())).thenReturn(Result.success(sampleRouteDto()));
+
+        mockMvc.perform(patch("/api/v1.0/routes/{id}", ROUTE_UUID)
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"basePrice\":200.00}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("success"))
+                .andExpect(jsonPath("$.data.id").value(ROUTE_UUID.toString()));
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void patchRoute_routeNotFound_shouldReturn404() throws Exception {
+        when(updateRouteUseCase.execute(any()))
+                .thenReturn(Result.failure(new RouteError.RouteNotFound()));
+
+        mockMvc.perform(patch("/api/v1.0/routes/{id}", ROUTE_UUID)
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"basePrice\":200.00}"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.status").value("fail"))
+                .andExpect(jsonPath("$.data.code").value("ROUTE_NOT_FOUND"));
+    }
+
+    @Test
+    @WithMockUser(roles = "CUSTOMER")
+    void patchRoute_nonAdmin_shouldReturn403() throws Exception {
+        mockMvc.perform(patch("/api/v1.0/routes/{id}", ROUTE_UUID)
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"basePrice\":200.00}"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void patchRoute_negativePrice_shouldReturn400() throws Exception {
+        mockMvc.perform(patch("/api/v1.0/routes/{id}", ROUTE_UUID)
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"basePrice\":-10.00}"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.status").value("fail"))
                 .andExpect(jsonPath("$.data.code").value("VALIDATION_ERROR"));

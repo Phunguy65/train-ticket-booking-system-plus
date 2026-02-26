@@ -7,6 +7,13 @@ package io.github.phunguy65.ttbs.backend.train.domain.errors;
  */
 public sealed interface SeatError {
 
+    record SeatNotFound() implements SeatError {
+        @Override
+        public String message() {
+            return "Seat not found";
+        }
+    }
+
     record SeatNumberAlreadyExists(String seatNumber) implements SeatError {
         @Override
         public String message() {

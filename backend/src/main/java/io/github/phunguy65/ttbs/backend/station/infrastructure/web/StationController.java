@@ -10,6 +10,7 @@ import io.github.phunguy65.ttbs.backend.station.application.dto.StationDto;
 import io.github.phunguy65.ttbs.backend.station.application.usecase.CreateStationUseCase;
 import io.github.phunguy65.ttbs.backend.station.application.usecase.GetStationByIdUseCase;
 import io.github.phunguy65.ttbs.backend.station.application.usecase.GetStationsUseCase;
+import io.github.phunguy65.ttbs.backend.station.application.usecase.UpdateStationUseCase;
 import io.github.phunguy65.ttbs.backend.station.domain.errors.StationError;
 import io.github.phunguy65.ttbs.backend.station.domain.model.StationId;
 import jakarta.validation.Valid;
@@ -20,6 +21,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -38,16 +40,19 @@ class StationController {
     private final CreateStationUseCase createStationUseCase;
     private final GetStationByIdUseCase getStationByIdUseCase;
     private final GetStationsUseCase getStationsUseCase;
+    private final UpdateStationUseCase updateStationUseCase;
     private final StationRequestMapper mapper;
 
     StationController(
             CreateStationUseCase createStationUseCase,
             GetStationByIdUseCase getStationByIdUseCase,
             GetStationsUseCase getStationsUseCase,
+            UpdateStationUseCase updateStationUseCase,
             StationRequestMapper mapper) {
         this.createStationUseCase = createStationUseCase;
         this.getStationByIdUseCase = getStationByIdUseCase;
         this.getStationsUseCase = getStationsUseCase;
+        this.updateStationUseCase = updateStationUseCase;
         this.mapper = mapper;
     }
 
@@ -123,6 +128,17 @@ class StationController {
     ResponseEntity<JsendResponse<?>> getById(@PathVariable UUID id) {
         return getStationByIdUseCase
                 .execute(StationId.of(id))
+                .fold(
+                        dto -> ResponseEntity.ok(JsendResponse.success(mapper.toResponse(dto))),
+                        error -> errorResponse(error));
+    }
+
+    @PatchMapping(value = "/{id}", version = "1.0")
+    @PreAuthorize("hasRole('ADMIN')")
+    ResponseEntity<JsendResponse<?>> patchById(
+            @PathVariable UUID id, @Valid @RequestBody UpdateStationHttpRequest request) {
+        return updateStationUseCase
+                .execute(mapper.toUpdateCommand(id, request))
                 .fold(
                         dto -> ResponseEntity.ok(JsendResponse.success(mapper.toResponse(dto))),
                         error -> errorResponse(error));

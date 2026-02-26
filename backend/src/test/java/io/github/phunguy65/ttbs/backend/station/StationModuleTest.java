@@ -32,7 +32,7 @@ class StationModuleTest {
     @Test
     void createStation_publishesStationCreatedEvent(PublishedEvents events) {
         CreateStationCommand command =
-                new CreateStationCommand("HN-MODULE-TEST", "Module Test Station", "Test City");
+                new CreateStationCommand("HN-MOD", "Module Test Station", "Test City");
 
         createStationUseCase.execute(command);
 
@@ -40,6 +40,6 @@ class StationModuleTest {
         assertThat(stationCreatedEvents)
                 .as("Expected StationCreated event to be published")
                 .hasSize(1);
-        assertThat(stationCreatedEvents.iterator().next().code()).isEqualTo("HN-MODULE-TEST");
+        assertThat(stationCreatedEvents.iterator().next().code()).isEqualTo("HN-MOD");
     }
 }

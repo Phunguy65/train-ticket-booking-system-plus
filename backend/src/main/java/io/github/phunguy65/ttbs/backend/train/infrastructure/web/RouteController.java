@@ -10,6 +10,7 @@ import io.github.phunguy65.ttbs.backend.train.application.dto.RouteDto;
 import io.github.phunguy65.ttbs.backend.train.application.usecase.CreateRouteUseCase;
 import io.github.phunguy65.ttbs.backend.train.application.usecase.GetRouteByIdUseCase;
 import io.github.phunguy65.ttbs.backend.train.application.usecase.GetRoutesUseCase;
+import io.github.phunguy65.ttbs.backend.train.application.usecase.UpdateRouteUseCase;
 import io.github.phunguy65.ttbs.backend.train.domain.errors.RouteError;
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteFilter;
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteId;
@@ -22,6 +23,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -40,16 +42,19 @@ class RouteController {
     private final CreateRouteUseCase createRouteUseCase;
     private final GetRouteByIdUseCase getRouteByIdUseCase;
     private final GetRoutesUseCase getRoutesUseCase;
+    private final UpdateRouteUseCase updateRouteUseCase;
     private final RouteRequestMapper mapper;
 
     RouteController(
             CreateRouteUseCase createRouteUseCase,
             GetRouteByIdUseCase getRouteByIdUseCase,
             GetRoutesUseCase getRoutesUseCase,
+            UpdateRouteUseCase updateRouteUseCase,
             RouteRequestMapper mapper) {
         this.createRouteUseCase = createRouteUseCase;
         this.getRouteByIdUseCase = getRouteByIdUseCase;
         this.getRoutesUseCase = getRoutesUseCase;
+        this.updateRouteUseCase = updateRouteUseCase;
         this.mapper = mapper;
     }
 
@@ -131,6 +136,17 @@ class RouteController {
     ResponseEntity<JsendResponse<?>> getById(@PathVariable UUID id) {
         return getRouteByIdUseCase
                 .execute(RouteId.of(id))
+                .fold(
+                        dto -> ResponseEntity.ok(JsendResponse.success(mapper.toResponse(dto))),
+                        error -> errorResponse(error));
+    }
+
+    @PatchMapping(value = "/{id}", version = "1.0")
+    @PreAuthorize("hasRole('ADMIN')")
+    ResponseEntity<JsendResponse<?>> patchById(
+            @PathVariable UUID id, @Valid @RequestBody UpdateRouteHttpRequest request) {
+        return updateRouteUseCase
+                .execute(mapper.toUpdateCommand(id, request))
                 .fold(
                         dto -> ResponseEntity.ok(JsendResponse.success(mapper.toResponse(dto))),
                         error -> errorResponse(error));

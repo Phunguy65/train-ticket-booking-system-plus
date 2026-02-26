@@ -1,7 +1,10 @@
 package io.github.phunguy65.ttbs.backend.train.infrastructure.web;
 
 import io.github.phunguy65.ttbs.backend.train.application.command.CreateRouteCommand;
+import io.github.phunguy65.ttbs.backend.train.application.command.UpdateRouteCommand;
 import io.github.phunguy65.ttbs.backend.train.application.dto.RouteDto;
+import io.github.phunguy65.ttbs.backend.train.domain.model.RouteId;
+import java.util.UUID;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -28,5 +31,14 @@ class RouteRequestMapper {
                 dto.basePrice(),
                 dto.status(),
                 dto.createdAt());
+    }
+
+    UpdateRouteCommand toUpdateCommand(UUID id, UpdateRouteHttpRequest request) {
+        return new UpdateRouteCommand(
+                RouteId.of(id),
+                request.departureTime(),
+                request.arrivalTime(),
+                request.basePrice(),
+                request.status());
     }
 }

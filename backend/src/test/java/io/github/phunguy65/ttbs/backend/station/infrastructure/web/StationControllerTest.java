@@ -15,6 +15,7 @@ import io.github.phunguy65.ttbs.backend.station.application.dto.StationDto;
 import io.github.phunguy65.ttbs.backend.station.application.usecase.CreateStationUseCase;
 import io.github.phunguy65.ttbs.backend.station.application.usecase.GetStationByIdUseCase;
 import io.github.phunguy65.ttbs.backend.station.application.usecase.GetStationsUseCase;
+import io.github.phunguy65.ttbs.backend.station.application.usecase.UpdateStationUseCase;
 import io.github.phunguy65.ttbs.backend.station.domain.errors.StationError;
 import io.github.phunguy65.ttbs.backend.user.application.port.TokenProvider;
 import io.github.phunguy65.ttbs.backend.user.infrastructure.security.SecurityConfig;
@@ -53,6 +54,9 @@ class StationControllerTest {
 
     @MockitoBean
     private GetStationsUseCase getStationsUseCase;
+
+    @MockitoBean
+    private UpdateStationUseCase updateStationUseCase;
 
     @MockitoBean
     private TokenProvider tokenProvider;
@@ -181,5 +185,73 @@ class StationControllerTest {
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.status").value("fail"))
                 .andExpect(jsonPath("$.data.code").value("STATION_NOT_FOUND"));
+    }
+
+    // ── PATCH /api/v1.0/stations/{id} ────────────────────────────────────────
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void patchStation_validRequest_shouldReturn200() throws Exception {
+        when(updateStationUseCase.execute(any())).thenReturn(Result.success(sampleStationDto()));
+
+        mockMvc.perform(patch("/api/v1.0/stations/{id}", STATION_UUID)
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\":\"Hanoi Central\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("success"))
+                .andExpect(jsonPath("$.data.code").value("HN"));
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void patchStation_stationNotFound_shouldReturn404() throws Exception {
+        when(updateStationUseCase.execute(any()))
+                .thenReturn(Result.failure(new StationError.StationNotFound()));
+
+        mockMvc.perform(patch("/api/v1.0/stations/{id}", STATION_UUID)
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\":\"Updated\"}"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.status").value("fail"))
+                .andExpect(jsonPath("$.data.code").value("STATION_NOT_FOUND"));
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void patchStation_duplicateCode_shouldReturn409() throws Exception {
+        when(updateStationUseCase.execute(any()))
+                .thenReturn(Result.failure(new StationError.StationCodeAlreadyExists("SGN")));
+
+        mockMvc.perform(patch("/api/v1.0/stations/{id}", STATION_UUID)
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"code\":\"SGN\"}"))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.status").value("fail"))
+                .andExpect(jsonPath("$.data.code").value("STATION_CODE_ALREADY_EXISTS"));
+    }
+
+    @Test
+    @WithMockUser(roles = "CUSTOMER")
+    void patchStation_nonAdmin_shouldReturn403() throws Exception {
+        mockMvc.perform(patch("/api/v1.0/stations/{id}", STATION_UUID)
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\":\"Updated\"}"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void patchStation_blankCode_shouldReturn400() throws Exception {
+        mockMvc.perform(patch("/api/v1.0/stations/{id}", STATION_UUID)
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"code\":\"\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value("fail"))
+                .andExpect(jsonPath("$.data.code").value("VALIDATION_ERROR"));
     }
 }
