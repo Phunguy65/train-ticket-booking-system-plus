@@ -28,28 +28,26 @@ pre-commit:
 
         # ── Build logic ──────────────────────────────────
         build-logic-lint:
-            root: 'build-logic/'
-            glob: '**/*.{kt,kts}'
-            run: ./gradlew spotlessCheck
+            glob: 'build-logic/**/*.{kt,kts}'
+            run: ./gradlew ktlintCheck
             stage_fixed: false
 
         build-logic-format:
-            root: 'build-logic/'
-            glob: '**/*.{kt,kts}'
-            run: ./gradlew spotlessApply
+            glob: 'build-logic/**/*.{kt,kts}'
+            run: ./gradlew ktlintFormat
             stage_fixed: true
 
         # ── Frontend / Customer ──────────────────────────────────
         customer-lint:
             root: 'frontend/customer/'
             glob: '**/*.{kt,kts}'
-            run: ./gradlew spotlessCheck
+            run: ./gradlew ktlintCheck
             stage_fixed: false
 
         customer-format:
             root: 'frontend/customer/'
             glob: '**/*.{kt,kts}'
-            run: ./gradlew spotlessApply
+            run: ./gradlew ktlintFormat
             stage_fixed: true
 
         # ── Frontend / Admin – TypeScript (Biome) ─────────────────────
