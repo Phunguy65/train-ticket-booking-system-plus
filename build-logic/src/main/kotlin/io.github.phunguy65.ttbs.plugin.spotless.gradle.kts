@@ -20,4 +20,40 @@ spotless {
         importOrder()
         removeUnusedImports()
     }
+
+    kotlin {
+        target("**/*.kt")
+        targetExclude("**/build/**", "**/generated/**", "**/gradle/**", "**/bin/**", "**/third-party/**")
+        ktlint(libs.versions.ktlint.get()).editorConfigOverride(
+            mapOf(
+                "indent_size" to "4",
+                "indent_style" to "space",
+                "insert_final_newline" to "true",
+                "ktlint_standard_trailing-comma-on-call-site" to "disabled",
+                "ktlint_standard_trailing-comma-on-declaration-site" to "disabled"
+            )
+        ).customRuleSets(
+            listOf(
+                libs.ktlint.compose.rules.get().toString()
+            )
+        )
+        trimTrailingWhitespace()
+        endWithNewline()
+    }
+
+    kotlinGradle {
+        target("**/*.gradle.kts")
+        targetExclude("**/build/**", "**/generated/**", "**/gradle/**", "**/bin/**", "**/third-party/**")
+        ktlint(libs.versions.ktlint.get()).editorConfigOverride(
+            mapOf(
+                "indent_size" to "4",
+                "indent_style" to "space",
+                "insert_final_newline" to "true",
+                "ktlint_standard_trailing-comma-on-call-site" to "disabled",
+                "ktlint_standard_trailing-comma-on-declaration-site" to "disabled"
+            )
+        )
+        trimTrailingWhitespace()
+        endWithNewline()
+    }
 }
