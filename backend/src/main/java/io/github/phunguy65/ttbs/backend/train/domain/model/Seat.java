@@ -14,15 +14,12 @@ public class Seat extends AggregateRoot<SeatId> {
     private final SeatId id;
     private final TrainId trainId;
     private final String seatNumber;
-    private final SeatClass seatClass;
     private final Instant createdAt;
 
-    private Seat(
-            SeatId id, TrainId trainId, String seatNumber, SeatClass seatClass, Instant createdAt) {
+    private Seat(SeatId id, TrainId trainId, String seatNumber, Instant createdAt) {
         this.id = id;
         this.trainId = trainId;
         this.seatNumber = seatNumber;
-        this.seatClass = seatClass;
         this.createdAt = createdAt;
     }
 
@@ -30,8 +27,8 @@ public class Seat extends AggregateRoot<SeatId> {
      * Factory method for creating a new seat.
      * Does NOT register domain events (seats are admin reference data).
      */
-    public static Seat create(SeatId id, TrainId trainId, String seatNumber, SeatClass seatClass) {
-        return new Seat(id, trainId, seatNumber, seatClass, Instant.now());
+    public static Seat create(SeatId id, TrainId trainId, String seatNumber) {
+        return new Seat(id, trainId, seatNumber, Instant.now());
     }
 
     /**
@@ -39,8 +36,8 @@ public class Seat extends AggregateRoot<SeatId> {
      * Does NOT register domain events.
      */
     public static Seat reconstitute(
-            SeatId id, TrainId trainId, String seatNumber, SeatClass seatClass, Instant createdAt) {
-        return new Seat(id, trainId, seatNumber, seatClass, createdAt);
+            SeatId id, TrainId trainId, String seatNumber, Instant createdAt) {
+        return new Seat(id, trainId, seatNumber, createdAt);
     }
 
     @Override
@@ -54,10 +51,6 @@ public class Seat extends AggregateRoot<SeatId> {
 
     public String getSeatNumber() {
         return seatNumber;
-    }
-
-    public SeatClass getSeatClass() {
-        return seatClass;
     }
 
     public Instant getCreatedAt() {

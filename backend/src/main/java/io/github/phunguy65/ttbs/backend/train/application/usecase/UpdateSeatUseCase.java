@@ -5,7 +5,6 @@ import io.github.phunguy65.ttbs.backend.train.application.command.UpdateSeatComm
 import io.github.phunguy65.ttbs.backend.train.application.dto.SeatDto;
 import io.github.phunguy65.ttbs.backend.train.domain.errors.SeatError;
 import io.github.phunguy65.ttbs.backend.train.domain.model.Seat;
-import io.github.phunguy65.ttbs.backend.train.domain.model.SeatClass;
 import io.github.phunguy65.ttbs.backend.train.domain.repository.SeatRepository;
 import org.openapitools.jackson.nullable.JsonNullable;
 import org.springframework.stereotype.Service;
@@ -39,11 +38,9 @@ public class UpdateSeatUseCase {
 
         String newSeatNumber =
                 seatNumberField.isPresent() ? seatNumberField.get() : seat.getSeatNumber();
-        SeatClass newSeatClass =
-                command.seatClass().isPresent() ? command.seatClass().get() : seat.getSeatClass();
 
         Seat updated = Seat.reconstitute(
-                seat.getId(), seat.getTrainId(), newSeatNumber, newSeatClass, seat.getCreatedAt());
+                seat.getId(), seat.getTrainId(), newSeatNumber, seat.getCreatedAt());
 
         Seat saved = seatRepository.save(updated);
         return Result.success(toDto(saved));
@@ -54,7 +51,6 @@ public class UpdateSeatUseCase {
                 seat.getId().value(),
                 seat.getTrainId().value(),
                 seat.getSeatNumber(),
-                seat.getSeatClass(),
                 seat.getCreatedAt());
     }
 }

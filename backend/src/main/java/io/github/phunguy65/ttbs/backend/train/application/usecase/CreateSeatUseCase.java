@@ -37,7 +37,7 @@ public class CreateSeatUseCase {
         }
 
         SeatId seatId = SeatId.of(UUID.randomUUID());
-        Seat seat = Seat.create(seatId, trainId, command.seatNumber(), command.seatClass());
+        Seat seat = Seat.create(seatId, trainId, command.seatNumber());
         Seat saved = seatRepository.save(seat);
 
         return Result.success(toDto(saved));
@@ -48,7 +48,6 @@ public class CreateSeatUseCase {
                 seat.getId().value(),
                 seat.getTrainId().value(),
                 seat.getSeatNumber(),
-                seat.getSeatClass(),
                 seat.getCreatedAt());
     }
 }

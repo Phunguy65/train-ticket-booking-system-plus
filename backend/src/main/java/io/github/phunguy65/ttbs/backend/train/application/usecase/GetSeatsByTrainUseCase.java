@@ -24,7 +24,6 @@ public class GetSeatsByTrainUseCase {
                         seat.getId().value(),
                         seat.getTrainId().value(),
                         seat.getSeatNumber(),
-                        seat.getSeatClass(),
                         seat.getCreatedAt()))
                 .toList();
     }

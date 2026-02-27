@@ -42,7 +42,6 @@ public class GetAvailableSeatsForRouteUseCase {
                 seat.getId().value(),
                 seat.getTrainId().value(),
                 seat.getSeatNumber(),
-                seat.getSeatClass(),
                 seat.getCreatedAt());
     }
 }

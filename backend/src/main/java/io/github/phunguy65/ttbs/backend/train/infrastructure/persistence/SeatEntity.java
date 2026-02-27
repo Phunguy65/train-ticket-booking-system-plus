@@ -18,9 +18,6 @@ class SeatEntity {
     @Column(name = "seat_number", nullable = false)
     private String seatNumber;
 
-    @Column(name = "seat_class", nullable = false)
-    private String seatClass;
-
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
@@ -48,14 +45,6 @@ class SeatEntity {
 
     void setSeatNumber(String seatNumber) {
         this.seatNumber = seatNumber;
-    }
-
-    String getSeatClass() {
-        return seatClass;
-    }
-
-    void setSeatClass(String seatClass) {
-        this.seatClass = seatClass;
     }
 
     Instant getCreatedAt() {
