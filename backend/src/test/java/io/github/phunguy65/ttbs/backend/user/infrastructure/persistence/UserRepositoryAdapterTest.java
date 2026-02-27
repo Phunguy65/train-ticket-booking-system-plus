@@ -7,6 +7,8 @@ import io.github.phunguy65.ttbs.backend.shared.domain.SortDirection;
 import io.github.phunguy65.ttbs.backend.user.domain.model.User;
 import io.github.phunguy65.ttbs.backend.user.domain.model.UserId;
 import io.github.phunguy65.ttbs.backend.user.domain.repository.UserRepository;
+import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -153,5 +155,74 @@ class UserRepositoryAdapterTest {
 
         assertThat(result.items()).hasSize(3);
         assertThat(result.hasNext()).isFalse();
+    }
+
+    // ── Soft-delete filter tests ──────────────────────────────────────────────
+
+    @Test
+    void findByEmail_softDeletedUser_shouldReturnEmpty() {
+        UserId id = UserId.of(UUID.randomUUID());
+        User user = User.create(id, "deleted@example.com", "$2a$12$hash", "Deleted User", null);
+        userRepository.save(user);
+        userRepository.softDeleteById(id, Instant.now());
+
+        Optional<User> found = userRepository.findByEmail("deleted@example.com");
+
+        assertThat(found).isEmpty();
+    }
+
+    @Test
+    void findById_softDeletedUser_shouldReturnEmpty() {
+        UserId id = UserId.of(UUID.randomUUID());
+        User user = User.create(id, "deleted2@example.com", "$2a$12$hash", "Deleted2", null);
+        userRepository.save(user);
+        userRepository.softDeleteById(id, Instant.now());
+
+        Optional<User> found = userRepository.findById(id);
+
+        assertThat(found).isEmpty();
+    }
+
+    @Test
+    void findAll_softDeletedUser_shouldNotBeIncluded() {
+        UserId activeId = UserId.of(UUID.randomUUID());
+        UserId deletedId = UserId.of(UUID.randomUUID());
+        userRepository.save(
+                User.create(activeId, "active@example.com", "$2a$12$hash", "Active", null));
+        userRepository.save(
+                User.create(deletedId, "gone@example.com", "$2a$12$hash", "Gone", null));
+        userRepository.softDeleteById(deletedId, Instant.now());
+
+        PageResult<User> result = userRepository.findAll(0, 20, "email", SortDirection.ASC);
+
+        assertThat(result.items()).extracting(User::getEmail).containsExactly("active@example.com");
+    }
+
+    @Test
+    void softDeleteById_shouldSetDeletedAt() {
+        UserId id = UserId.of(UUID.randomUUID());
+        userRepository.save(User.create(id, "todel@example.com", "$2a$12$hash", "ToDelete", null));
+        Instant before = Instant.now();
+
+        userRepository.softDeleteById(id, before);
+
+        assertThat(userRepository.findById(id)).isEmpty();
+    }
+
+    @Test
+    void softDeleteByIds_bulkDelete_shouldReturnAffectedCount() {
+        UserId id1 = UserId.of(UUID.randomUUID());
+        UserId id2 = UserId.of(UUID.randomUUID());
+        UserId id3 = UserId.of(UUID.randomUUID());
+        userRepository.save(User.create(id1, "bulk1@example.com", "$2a$12$hash", "Bulk1", null));
+        userRepository.save(User.create(id2, "bulk2@example.com", "$2a$12$hash", "Bulk2", null));
+        userRepository.save(User.create(id3, "bulk3@example.com", "$2a$12$hash", "Bulk3", null));
+
+        int affected = userRepository.softDeleteByIds(List.of(id1, id2), Instant.now());
+
+        assertThat(affected).isEqualTo(2);
+        assertThat(userRepository.findById(id1)).isEmpty();
+        assertThat(userRepository.findById(id2)).isEmpty();
+        assertThat(userRepository.findById(id3)).isPresent();
     }
 }

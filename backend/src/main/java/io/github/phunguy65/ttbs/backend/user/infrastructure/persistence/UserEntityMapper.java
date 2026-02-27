@@ -17,7 +17,8 @@ class UserEntityMapper {
                 entity.getPhone(),
                 entity.getRole(),
                 entity.getCreatedAt() != null ? entity.getCreatedAt() : Instant.now(),
-                entity.getUpdatedAt() != null ? entity.getUpdatedAt() : Instant.now());
+                entity.getUpdatedAt() != null ? entity.getUpdatedAt() : Instant.now(),
+                entity.getDeletedAt());
     }
 
     UserEntity toEntity(User user) {
@@ -30,6 +31,7 @@ class UserEntityMapper {
         entity.setRole(user.getRole());
         entity.setCreatedAt(user.getCreatedAt());
         entity.setUpdatedAt(user.getUpdatedAt());
+        entity.setDeletedAt(user.getDeletedAt());
         return entity;
     }
 }

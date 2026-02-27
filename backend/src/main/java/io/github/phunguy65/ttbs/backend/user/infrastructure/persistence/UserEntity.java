@@ -35,6 +35,9 @@ class UserEntity {
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
+    @Column(name = "deleted_at")
+    private Instant deletedAt;
+
     protected UserEntity() {}
 
     UUID getId() {
@@ -99,5 +102,13 @@ class UserEntity {
 
     void setUpdatedAt(Instant updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    Instant getDeletedAt() {
+        return deletedAt;
+    }
+
+    void setDeletedAt(Instant deletedAt) {
+        this.deletedAt = deletedAt;
     }
 }

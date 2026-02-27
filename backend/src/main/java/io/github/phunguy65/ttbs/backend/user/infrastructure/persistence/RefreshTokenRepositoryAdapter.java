@@ -3,6 +3,7 @@ package io.github.phunguy65.ttbs.backend.user.infrastructure.persistence;
 import io.github.phunguy65.ttbs.backend.user.domain.model.UserId;
 import io.github.phunguy65.ttbs.backend.user.domain.repository.RefreshTokenRepository;
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.stereotype.Repository;
@@ -46,5 +47,11 @@ class RefreshTokenRepositoryAdapter implements RefreshTokenRepository {
     @Override
     public void revokeAllByUserId(UserId userId) {
         jpaRepository.revokeAllByUserId(userId.value(), Instant.now());
+    }
+
+    @Override
+    public void revokeAllByUserIds(List<UserId> userIds) {
+        List<UUID> uuids = userIds.stream().map(UserId::value).toList();
+        jpaRepository.revokeAllByUserIdIn(uuids, Instant.now());
     }
 }

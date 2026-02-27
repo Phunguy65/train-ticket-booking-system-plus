@@ -1,6 +1,7 @@
 package io.github.phunguy65.ttbs.backend.user.infrastructure.persistence;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -18,4 +19,10 @@ interface RefreshTokenJpaRepository extends JpaRepository<RefreshTokenEntity, UU
     @Query(
             "UPDATE RefreshTokenEntity t SET t.revokedAt = :revokedAt WHERE t.userId = :userId AND t.revokedAt IS NULL")
     void revokeAllByUserId(@Param("userId") UUID userId, @Param("revokedAt") Instant revokedAt);
+
+    @Modifying
+    @Query(
+            "UPDATE RefreshTokenEntity t SET t.revokedAt = :revokedAt WHERE t.userId IN :userIds AND t.revokedAt IS NULL")
+    void revokeAllByUserIdIn(
+            @Param("userIds") List<UUID> userIds, @Param("revokedAt") Instant revokedAt);
 }

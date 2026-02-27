@@ -58,7 +58,8 @@ class RefreshTokenUseCaseTest {
                 "090",
                 UserRole.CUSTOMER,
                 Instant.now(),
-                Instant.now());
+                Instant.now(),
+                null);
     }
 
     private String sha256(String input) {

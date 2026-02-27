@@ -48,7 +48,8 @@ class UpdateUserUseCaseTest {
                 "090",
                 UserRole.CUSTOMER,
                 Instant.now(),
-                Instant.now());
+                Instant.now(),
+                null);
     }
 
     @Test
@@ -142,7 +143,8 @@ class UpdateUserUseCaseTest {
                 null,
                 UserRole.CUSTOMER,
                 Instant.now(),
-                Instant.now());
+                Instant.now(),
+                null);
 
         when(userRepository.findById(USER_ID)).thenReturn(Optional.of(existing));
         when(userRepository.findByEmail("taken@example.com")).thenReturn(Optional.of(otherUser));

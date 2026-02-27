@@ -14,9 +14,11 @@ import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.WebConfig;
 import io.github.phunguy65.ttbs.backend.user.application.dto.CreateUserResult;
 import io.github.phunguy65.ttbs.backend.user.application.dto.UserDto;
 import io.github.phunguy65.ttbs.backend.user.application.port.TokenProvider;
+import io.github.phunguy65.ttbs.backend.user.application.usecase.BulkSoftDeleteUsersUseCase;
 import io.github.phunguy65.ttbs.backend.user.application.usecase.CreateUserUseCase;
 import io.github.phunguy65.ttbs.backend.user.application.usecase.GetUserByIdUseCase;
 import io.github.phunguy65.ttbs.backend.user.application.usecase.ListUsersUseCase;
+import io.github.phunguy65.ttbs.backend.user.application.usecase.SoftDeleteUserUseCase;
 import io.github.phunguy65.ttbs.backend.user.application.usecase.UpdateUserUseCase;
 import io.github.phunguy65.ttbs.backend.user.domain.errors.UserError;
 import io.github.phunguy65.ttbs.backend.user.domain.model.UserRole;
@@ -59,6 +61,12 @@ class UserControllerTest {
 
     @MockitoBean
     private UpdateUserUseCase updateUserUseCase;
+
+    @MockitoBean
+    private SoftDeleteUserUseCase softDeleteUserUseCase;
+
+    @MockitoBean
+    private BulkSoftDeleteUsersUseCase bulkSoftDeleteUsersUseCase;
 
     @MockitoBean
     private TokenProvider tokenProvider;
@@ -377,5 +385,109 @@ class UserControllerTest {
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.status").value("fail"))
                 .andExpect(jsonPath("$.data.code").value("USER_EMAIL_ALREADY_EXISTS"));
+    }
+
+    // ── DELETE /api/v1.0/users/me ────────────────────────────────────────────────
+
+    @Test
+    @WithMockUser(username = "00000000-0000-0000-0000-000000000001")
+    void deleteMe_authenticated_shouldReturn200() throws Exception {
+        when(softDeleteUserUseCase.execute(any())).thenReturn(Result.success());
+
+        mockMvc.perform(delete("/api/v1.0/users/me").with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("success"));
+    }
+
+    @Test
+    @org.springframework.security.test.context.support.WithAnonymousUser
+    void deleteMe_unauthenticated_shouldReturn401() throws Exception {
+        mockMvc.perform(delete("/api/v1.0/users/me")).andExpect(status().isUnauthorized());
+    }
+
+    // ── DELETE /api/v1.0/users/{id} ──────────────────────────────────────────────
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void deleteById_asAdmin_shouldReturn200() throws Exception {
+        when(softDeleteUserUseCase.execute(any())).thenReturn(Result.success());
+
+        mockMvc.perform(delete("/api/v1.0/users/{id}", USER_UUID).with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("success"));
+    }
+
+    @Test
+    @WithMockUser(roles = "CUSTOMER")
+    void deleteById_asCustomer_shouldReturn403() throws Exception {
+        mockMvc.perform(delete("/api/v1.0/users/{id}", USER_UUID).with(csrf()))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void deleteById_userNotFound_shouldReturn404() throws Exception {
+        when(softDeleteUserUseCase.execute(any()))
+                .thenReturn(Result.failure(new UserError.UserNotFound()));
+
+        mockMvc.perform(delete("/api/v1.0/users/{id}", USER_UUID).with(csrf()))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.data.code").value("USER_NOT_FOUND"));
+    }
+
+    // ── DELETE /api/v1.0/users (bulk) ────────────────────────────────────────────
+
+    @Test
+    @WithMockUser(username = "00000000-0000-0000-0000-000000000001", roles = "ADMIN")
+    void bulkDelete_asAdmin_shouldReturn200WithDeletedCount() throws Exception {
+        UUID otherId = UUID.randomUUID();
+        when(bulkSoftDeleteUsersUseCase.execute(any())).thenReturn(1);
+
+        mockMvc.perform(delete("/api/v1.0/users")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"userIds\":[\"" + otherId + "\"]}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("success"))
+                .andExpect(jsonPath("$.data.deletedCount").value(1));
+    }
+
+    @Test
+    @WithMockUser(username = "00000000-0000-0000-0000-000000000001", roles = "ADMIN")
+    void bulkDelete_selfInList_shouldReturn400() throws Exception {
+        mockMvc.perform(delete("/api/v1.0/users")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"userIds\":[\"00000000-0000-0000-0000-000000000001\"]}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.data.code").value("USER_CANNOT_BULK_DELETE_SELF"));
+    }
+
+    @Test
+    @WithMockUser(username = "00000000-0000-0000-0000-000000000001", roles = "ADMIN")
+    void bulkDelete_moreThan100Ids_shouldReturn400() throws Exception {
+        StringBuilder sb = new StringBuilder("{\"userIds\":[");
+        for (int i = 0; i < 101; i++) {
+            if (i > 0) sb.append(",");
+            sb.append("\"").append(UUID.randomUUID()).append("\"");
+        }
+        sb.append("]}");
+
+        mockMvc.perform(delete("/api/v1.0/users")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(sb.toString()))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.data.code").value("VALIDATION_ERROR"));
+    }
+
+    @Test
+    @WithMockUser(roles = "CUSTOMER")
+    void bulkDelete_asCustomer_shouldReturn403() throws Exception {
+        mockMvc.perform(delete("/api/v1.0/users")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"userIds\":[\"" + UUID.randomUUID() + "\"]}"))
+                .andExpect(status().isForbidden());
     }
 }

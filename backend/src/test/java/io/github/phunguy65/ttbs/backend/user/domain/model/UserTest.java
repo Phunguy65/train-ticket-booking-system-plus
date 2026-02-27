@@ -2,6 +2,8 @@ package io.github.phunguy65.ttbs.backend.user.domain.model;
 
 import static org.assertj.core.api.Assertions.*;
 
+import io.github.phunguy65.ttbs.backend.shared.domain.Result;
+import io.github.phunguy65.ttbs.backend.user.domain.event.UserDeleted;
 import io.github.phunguy65.ttbs.backend.user.domain.event.UserRegistered;
 import java.time.Instant;
 import java.util.UUID;
@@ -70,7 +72,8 @@ class UserTest {
                 PHONE,
                 UserRole.CUSTOMER,
                 Instant.now(),
-                Instant.now());
+                Instant.now(),
+                null);
 
         assertThat(user.getDomainEvents()).isEmpty();
     }
@@ -88,12 +91,90 @@ class UserTest {
                 PHONE,
                 UserRole.ADMIN,
                 createdAt,
-                updatedAt);
+                updatedAt,
+                null);
 
         assertThat(user.getId()).isEqualTo(USER_ID);
         assertThat(user.getEmail()).isEqualTo(EMAIL);
         assertThat(user.getRole()).isEqualTo(UserRole.ADMIN);
         assertThat(user.getCreatedAt()).isEqualTo(createdAt);
         assertThat(user.getUpdatedAt()).isEqualTo(updatedAt);
+    }
+
+    // ── softDelete() ─────────────────────────────────────────────────────────
+
+    @Test
+    void softDelete_shouldSetDeletedAt() {
+        User user = User.create(USER_ID, EMAIL, PASSWORD_HASH, FULL_NAME, PHONE);
+        user.clearDomainEvents();
+
+        Result<Void, ?> result = user.softDelete();
+
+        assertThat(result.isSuccess()).isTrue();
+        assertThat(user.isDeleted()).isTrue();
+        assertThat(user.getDeletedAt()).isNotNull();
+    }
+
+    @Test
+    void softDelete_shouldRegisterUserDeletedEvent() {
+        User user = User.create(USER_ID, EMAIL, PASSWORD_HASH, FULL_NAME, PHONE);
+        user.clearDomainEvents();
+
+        user.softDelete();
+
+        assertThat(user.getDomainEvents()).hasSize(1);
+        assertThat(user.getDomainEvents().getFirst()).isInstanceOf(UserDeleted.class);
+        UserDeleted event = (UserDeleted) user.getDomainEvents().getFirst();
+        assertThat(event.userId()).isEqualTo(USER_ID);
+        assertThat(event.occurredAt()).isNotNull();
+    }
+
+    @Test
+    void softDelete_secondCall_isIdempotent() {
+        User user = User.create(USER_ID, EMAIL, PASSWORD_HASH, FULL_NAME, PHONE);
+        user.clearDomainEvents();
+        user.softDelete();
+        Instant firstDeletedAt = user.getDeletedAt();
+        user.clearDomainEvents();
+
+        Result<Void, ?> result = user.softDelete();
+
+        assertThat(result.isSuccess()).isTrue();
+        assertThat(user.getDeletedAt()).isEqualTo(firstDeletedAt);
+        assertThat(user.getDomainEvents()).isEmpty();
+    }
+
+    @Test
+    void isDeleted_activeUser_returnsFalse() {
+        User user = User.create(USER_ID, EMAIL, PASSWORD_HASH, FULL_NAME, PHONE);
+
+        assertThat(user.isDeleted()).isFalse();
+    }
+
+    @Test
+    void isDeleted_afterSoftDelete_returnsTrue() {
+        User user = User.create(USER_ID, EMAIL, PASSWORD_HASH, FULL_NAME, PHONE);
+        user.softDelete();
+
+        assertThat(user.isDeleted()).isTrue();
+    }
+
+    @Test
+    void reconstitute_withDeletedAt_shouldRestoreDeletedAt() {
+        Instant deletedAt = Instant.parse("2024-06-01T08:00:00Z");
+
+        User user = User.reconstitute(
+                USER_ID,
+                EMAIL,
+                PASSWORD_HASH,
+                FULL_NAME,
+                PHONE,
+                UserRole.CUSTOMER,
+                Instant.now(),
+                Instant.now(),
+                deletedAt);
+
+        assertThat(user.getDeletedAt()).isEqualTo(deletedAt);
+        assertThat(user.isDeleted()).isTrue();
     }
 }

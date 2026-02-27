@@ -54,7 +54,8 @@ class LoginUserUseCaseTest {
                 "090",
                 io.github.phunguy65.ttbs.backend.user.domain.model.UserRole.CUSTOMER,
                 java.time.Instant.now(),
-                java.time.Instant.now());
+                java.time.Instant.now(),
+                null);
     }
 
     @Test

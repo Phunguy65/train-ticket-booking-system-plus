@@ -40,7 +40,8 @@ class ListUsersUseCaseTest {
                 "090",
                 UserRole.CUSTOMER,
                 Instant.now(),
-                Instant.now());
+                Instant.now(),
+                null);
 
         PageResult<User> repoResult = PageResult.of(List.of(user), 0, 20, false);
         when(userRepository.findAll(0, 20, "createdAt", SortDirection.DESC)).thenReturn(repoResult);
@@ -68,7 +69,8 @@ class ListUsersUseCaseTest {
                 null,
                 UserRole.ADMIN,
                 Instant.now(),
-                Instant.now());
+                Instant.now(),
+                null);
 
         PageResult<User> repoResult = PageResult.of(List.of(user), 0, 5, true);
         when(userRepository.findAll(0, 5, "email", SortDirection.ASC)).thenReturn(repoResult);
@@ -119,7 +121,8 @@ class ListUsersUseCaseTest {
                 null,
                 UserRole.CUSTOMER,
                 Instant.now(),
-                Instant.now());
+                Instant.now(),
+                null);
 
         PageResult<User> repoResult = PageResult.of(List.of(user), 0, 20, false);
         when(userRepository.findAll(anyInt(), anyInt(), anyString(), any())).thenReturn(repoResult);

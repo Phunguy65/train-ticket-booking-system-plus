@@ -54,7 +54,8 @@ public class UpdateUserUseCase {
                 newPhone,
                 user.getRole(),
                 user.getCreatedAt(),
-                Instant.now());
+                Instant.now(),
+                user.getDeletedAt());
 
         User saved = userRepository.save(updated);
         return Result.success(toDto(saved));

@@ -43,7 +43,8 @@ class GetUserByIdUseCaseTest {
                 "090",
                 UserRole.CUSTOMER,
                 Instant.now(),
-                Instant.now());
+                Instant.now(),
+                null);
     }
 
     @Test

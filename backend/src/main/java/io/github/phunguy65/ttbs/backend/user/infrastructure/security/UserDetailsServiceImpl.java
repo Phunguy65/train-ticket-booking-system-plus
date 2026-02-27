@@ -22,6 +22,10 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
     /**
      * Loads user by ID (UUID string). Called by {@link JwtAuthenticationFilter} after token validation.
+     *
+     * <p>Soft-deleted users are automatically excluded because {@code UserRepository.findById}
+     * filters {@code deleted_at IS NULL}. A deleted user will receive a
+     * {@link UsernameNotFoundException} and their JWT will be rejected.
      */
     @Override
     public UserDetails loadUserByUsername(String userId) throws UsernameNotFoundException {

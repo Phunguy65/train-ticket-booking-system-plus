@@ -84,10 +84,10 @@ class BookingController {
     }
 
     /**
-     * POST /api/{version}/bookings/{id}/confirm
+     * POST /api/{version}/bookings/{id}:confirm
      * Confirm a held booking after payment.
      */
-    @PostMapping(value = "/{id}/confirm", version = "1.0")
+    @PostMapping(value = "/{id}:confirm", version = "1.0")
     ResponseEntity<JsendResponse<?>> confirmHold(
             @PathVariable UUID id, @Valid @RequestBody ConfirmSeatHoldHttpRequest request) {
         return confirmSeatHoldUseCase

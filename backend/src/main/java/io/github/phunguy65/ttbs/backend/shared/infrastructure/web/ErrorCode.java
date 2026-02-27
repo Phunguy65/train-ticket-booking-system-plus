@@ -20,6 +20,7 @@ public enum ErrorCode {
     USER_INVALID_CREDENTIALS,
     USER_INVALID_REFRESH_TOKEN,
     USER_NOT_FOUND,
+    USER_CANNOT_BULK_DELETE_SELF,
 
     // ── Booking module ────────────────────────────────────────────────────────
     BOOKING_NOT_FOUND,

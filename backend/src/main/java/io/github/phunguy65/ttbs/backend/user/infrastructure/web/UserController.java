@@ -6,15 +6,20 @@ import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.ErrorCode;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.FailData;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.JsendResponse;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.SliceHttpResponse;
+import io.github.phunguy65.ttbs.backend.user.application.command.BulkSoftDeleteUsersCommand;
+import io.github.phunguy65.ttbs.backend.user.application.command.SoftDeleteUserCommand;
 import io.github.phunguy65.ttbs.backend.user.application.dto.UserDto;
+import io.github.phunguy65.ttbs.backend.user.application.usecase.BulkSoftDeleteUsersUseCase;
 import io.github.phunguy65.ttbs.backend.user.application.usecase.CreateUserUseCase;
 import io.github.phunguy65.ttbs.backend.user.application.usecase.GetUserByIdUseCase;
 import io.github.phunguy65.ttbs.backend.user.application.usecase.ListUsersUseCase;
+import io.github.phunguy65.ttbs.backend.user.application.usecase.SoftDeleteUserUseCase;
 import io.github.phunguy65.ttbs.backend.user.application.usecase.UpdateUserUseCase;
 import io.github.phunguy65.ttbs.backend.user.domain.errors.UserError;
 import io.github.phunguy65.ttbs.backend.user.domain.model.UserId;
 import jakarta.validation.Valid;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
@@ -22,6 +27,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -43,6 +49,8 @@ class UserController {
     private final CreateUserUseCase createUserUseCase;
     private final ListUsersUseCase listUsersUseCase;
     private final UpdateUserUseCase updateUserUseCase;
+    private final SoftDeleteUserUseCase softDeleteUserUseCase;
+    private final BulkSoftDeleteUsersUseCase bulkSoftDeleteUsersUseCase;
     private final UserRequestMapper mapper;
 
     UserController(
@@ -50,11 +58,15 @@ class UserController {
             CreateUserUseCase createUserUseCase,
             ListUsersUseCase listUsersUseCase,
             UpdateUserUseCase updateUserUseCase,
+            SoftDeleteUserUseCase softDeleteUserUseCase,
+            BulkSoftDeleteUsersUseCase bulkSoftDeleteUsersUseCase,
             UserRequestMapper mapper) {
         this.getUserByIdUseCase = getUserByIdUseCase;
         this.createUserUseCase = createUserUseCase;
         this.listUsersUseCase = listUsersUseCase;
         this.updateUserUseCase = updateUserUseCase;
+        this.softDeleteUserUseCase = softDeleteUserUseCase;
+        this.bulkSoftDeleteUsersUseCase = bulkSoftDeleteUsersUseCase;
         this.mapper = mapper;
     }
 
@@ -172,22 +184,78 @@ class UserController {
                         error -> errorResponse(error));
     }
 
+    @DeleteMapping(value = "/me", version = "1.0")
+    ResponseEntity<JsendResponse<?>> deleteMe() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        UUID principalId = UUID.fromString(auth.getName());
+        return softDeleteUserUseCase
+                .execute(new SoftDeleteUserCommand(UserId.of(principalId)))
+                .fold(
+                        ignored -> ResponseEntity.ok(JsendResponse.success()),
+                        error -> errorResponse(error));
+    }
+
+    @DeleteMapping(value = "/{id}", version = "1.0")
+    @PreAuthorize("hasRole('ADMIN')")
+    ResponseEntity<JsendResponse<?>> deleteById(@PathVariable UUID id) {
+        return softDeleteUserUseCase
+                .execute(new SoftDeleteUserCommand(UserId.of(id)))
+                .fold(
+                        ignored -> ResponseEntity.ok(JsendResponse.success()),
+                        error -> errorResponse(error));
+    }
+
+    @DeleteMapping(version = "1.0")
+    @PreAuthorize("hasRole('ADMIN')")
+    ResponseEntity<JsendResponse<?>> bulkDelete(
+            @Valid @RequestBody BulkSoftDeleteUsersHttpRequest request) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        UUID callerId = UUID.fromString(auth.getName());
+
+        if (request.userIds().contains(callerId)) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(JsendResponse.fail(new FailData(
+                            "Admin cannot include their own ID in a bulk delete request",
+                            ErrorCode.USER_CANNOT_BULK_DELETE_SELF,
+                            List.of())));
+        }
+
+        List<UserId> userIds = request.userIds().stream().map(UserId::of).toList();
+        int deletedCount =
+                bulkSoftDeleteUsersUseCase.execute(new BulkSoftDeleteUsersCommand(userIds));
+
+        return ResponseEntity.ok(JsendResponse.success(Map.of("deletedCount", deletedCount)));
+    }
+
     private ResponseEntity<JsendResponse<?>> errorResponse(UserError error) {
-        HttpStatus status =
-                switch (error) {
-                    case UserError.UserNotFound e -> HttpStatus.NOT_FOUND;
-                    case UserError.EmailAlreadyExists e -> HttpStatus.CONFLICT;
-                    case UserError.InvalidCredentials e -> HttpStatus.UNAUTHORIZED;
-                    case UserError.InvalidRefreshToken e -> HttpStatus.UNAUTHORIZED;
-                };
-        ErrorCode code =
-                switch (error) {
-                    case UserError.UserNotFound e -> ErrorCode.USER_NOT_FOUND;
-                    case UserError.EmailAlreadyExists e -> ErrorCode.USER_EMAIL_ALREADY_EXISTS;
-                    case UserError.InvalidCredentials e -> ErrorCode.USER_INVALID_CREDENTIALS;
-                    case UserError.InvalidRefreshToken e -> ErrorCode.USER_INVALID_REFRESH_TOKEN;
-                };
-        return ResponseEntity.status(status)
-                .body(JsendResponse.fail(new FailData(error.message(), code, List.of())));
+        return switch (error) {
+            case UserError.UserAlreadyDeleted e ->
+                // Idempotent: treat as success
+                ResponseEntity.ok(JsendResponse.success());
+            default -> {
+                HttpStatus status =
+                        switch (error) {
+                            case UserError.UserNotFound e -> HttpStatus.NOT_FOUND;
+                            case UserError.EmailAlreadyExists e -> HttpStatus.CONFLICT;
+                            case UserError.InvalidCredentials e -> HttpStatus.UNAUTHORIZED;
+                            case UserError.InvalidRefreshToken e -> HttpStatus.UNAUTHORIZED;
+                            case UserError.UserAlreadyDeleted e -> HttpStatus.OK; // unreachable
+                        };
+                ErrorCode code =
+                        switch (error) {
+                            case UserError.UserNotFound e -> ErrorCode.USER_NOT_FOUND;
+                            case UserError.EmailAlreadyExists e ->
+                                ErrorCode.USER_EMAIL_ALREADY_EXISTS;
+                            case UserError.InvalidCredentials e ->
+                                ErrorCode.USER_INVALID_CREDENTIALS;
+                            case UserError.InvalidRefreshToken e ->
+                                ErrorCode.USER_INVALID_REFRESH_TOKEN;
+                            case UserError.UserAlreadyDeleted e ->
+                                ErrorCode.USER_NOT_FOUND; // unreachable
+                        };
+                yield ResponseEntity.status(status)
+                        .body(JsendResponse.fail(new FailData(error.message(), code, List.of())));
+            }
+        };
     }
 }

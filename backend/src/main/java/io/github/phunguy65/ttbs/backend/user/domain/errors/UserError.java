@@ -35,6 +35,13 @@ public sealed interface UserError {
         }
     }
 
+    record UserAlreadyDeleted() implements UserError {
+        @Override
+        public String message() {
+            return "User has already been deleted";
+        }
+    }
+
     /** Human-readable description suitable for a JSend {@code fail} data payload. */
     String message();
 }

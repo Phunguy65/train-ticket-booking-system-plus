@@ -2,6 +2,7 @@ package io.github.phunguy65.ttbs.backend.user.domain.repository;
 
 import io.github.phunguy65.ttbs.backend.user.domain.model.UserId;
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -37,6 +38,11 @@ public interface RefreshTokenRepository {
      * Revokes all active tokens belonging to a user (used on token-reuse detection).
      */
     void revokeAllByUserId(UserId userId);
+
+    /**
+     * Revokes all active tokens belonging to a list of users (used during bulk soft-delete).
+     */
+    void revokeAllByUserIds(List<UserId> userIds);
 
     /**
      * Lightweight projection returned from lookups.

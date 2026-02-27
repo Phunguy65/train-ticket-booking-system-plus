@@ -5,6 +5,7 @@ import io.github.phunguy65.ttbs.backend.shared.domain.SortDirection;
 import io.github.phunguy65.ttbs.backend.user.domain.model.User;
 import io.github.phunguy65.ttbs.backend.user.domain.model.UserId;
 import io.github.phunguy65.ttbs.backend.user.domain.repository.UserRepository;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.PageRequest;
@@ -37,7 +38,7 @@ class UserRepositoryAdapter implements UserRepository {
 
     @Override
     public Optional<User> findById(UserId id) {
-        return jpaRepository.findById(id.value()).map(mapper::toDomain);
+        return jpaRepository.findActiveById(id.value()).map(mapper::toDomain);
     }
 
     @Override
@@ -45,8 +46,19 @@ class UserRepositoryAdapter implements UserRepository {
         Sort.Direction sortDir =
                 direction == SortDirection.ASC ? Sort.Direction.ASC : Sort.Direction.DESC;
         PageRequest pageable = PageRequest.of(page, size, Sort.by(sortDir, sortField));
-        Slice<UserEntity> slice = jpaRepository.findAll(pageable);
+        Slice<UserEntity> slice = jpaRepository.findAllActive(pageable);
         List<User> items = slice.getContent().stream().map(mapper::toDomain).toList();
         return PageResult.of(items, page, size, slice.hasNext());
+    }
+
+    @Override
+    public void softDeleteById(UserId id, Instant deletedAt) {
+        jpaRepository.softDeleteById(id.value(), deletedAt);
+    }
+
+    @Override
+    public int softDeleteByIds(List<UserId> ids, Instant deletedAt) {
+        List<java.util.UUID> uuids = ids.stream().map(UserId::value).toList();
+        return jpaRepository.softDeleteByIds(uuids, deletedAt);
     }
 }
