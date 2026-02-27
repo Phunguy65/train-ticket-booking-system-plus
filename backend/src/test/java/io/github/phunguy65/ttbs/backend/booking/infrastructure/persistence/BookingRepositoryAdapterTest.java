@@ -2,22 +2,29 @@ package io.github.phunguy65.ttbs.backend.booking.infrastructure.persistence;
 
 import static org.assertj.core.api.Assertions.*;
 
+import io.github.phunguy65.ttbs.backend.booking.domain.model.BookedSeat;
 import io.github.phunguy65.ttbs.backend.booking.domain.model.Booking;
 import io.github.phunguy65.ttbs.backend.booking.domain.model.BookingId;
 import io.github.phunguy65.ttbs.backend.booking.domain.model.BookingStatus;
 import io.github.phunguy65.ttbs.backend.booking.domain.repository.BookingRepository;
+import io.github.phunguy65.ttbs.backend.train.domain.model.RouteId;
+import io.github.phunguy65.ttbs.backend.train.domain.model.SeatId;
+import io.github.phunguy65.ttbs.backend.user.domain.model.UserId;
 import java.math.BigDecimal;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.test.context.TestPropertySource;
 
 @DataJpaTest
 @Import({BookingRepositoryAdapter.class, BookingEntityMapper.class})
-@org.springframework.test.context.TestPropertySource(
-        properties = "spring.modulith.detection.disabled=true")
+@TestPropertySource(properties = "spring.modulith.detection.disabled=true")
 class BookingRepositoryAdapterTest {
 
     @Autowired
@@ -27,22 +34,38 @@ class BookingRepositoryAdapterTest {
     private static final UUID ROUTE_ID = UUID.randomUUID();
     private static final UUID SEAT_ID = UUID.randomUUID();
 
+    private static List<BookedSeat> oneEconomySeat() {
+        return List.of(BookedSeat.of(SeatId.of(SEAT_ID), new BigDecimal("200000.00")));
+    }
+
+    private static Booking createHold(String idemKey) {
+        return Booking.createHold(
+                USER_ID,
+                ROUTE_ID,
+                oneEconomySeat(),
+                new BigDecimal("200000.00"),
+                "VND",
+                Instant.now().plus(15, ChronoUnit.MINUTES),
+                idemKey,
+                "Test Passenger",
+                "test@example.com",
+                null);
+    }
+
     @Test
     void save_shouldPersistBooking() {
-        Booking booking = Booking.create(
-                USER_ID, ROUTE_ID, SEAT_ID, new BigDecimal("200000.00"), "VND", "idem-key-save");
+        Booking booking = createHold("idem-key-save");
 
         Booking saved = bookingRepository.save(booking);
 
         assertThat(saved.getId()).isNotNull();
         assertThat(saved.getUserId().value()).isEqualTo(USER_ID);
-        assertThat(saved.getStatus()).isEqualTo(BookingStatus.PENDING);
+        assertThat(saved.getStatus()).isEqualTo(BookingStatus.HELD);
     }
 
     @Test
     void findById_shouldReturnCorrectDomainModel() {
-        Booking booking = Booking.create(
-                USER_ID, ROUTE_ID, SEAT_ID, new BigDecimal("150000.00"), "VND", "idem-key-find");
+        Booking booking = createHold("idem-key-find");
         Booking saved = bookingRepository.save(booking);
 
         Optional<Booking> found = bookingRepository.findById(saved.getId());
@@ -50,28 +73,23 @@ class BookingRepositoryAdapterTest {
         assertThat(found).isPresent();
         assertThat(found.get().getId()).isEqualTo(saved.getId());
         assertThat(found.get().getUserId().value()).isEqualTo(USER_ID);
-        assertThat(found.get().getStatus()).isEqualTo(BookingStatus.PENDING);
+        assertThat(found.get().getStatus()).isEqualTo(BookingStatus.HELD);
         assertThat(found.get().getDomainEvents()).isEmpty();
     }
 
     @Test
-    void save_thenFindById_shouldPreserveAllFields() {
-        BigDecimal price = new BigDecimal("300000.00");
-        Booking booking =
-                Booking.create(USER_ID, ROUTE_ID, SEAT_ID, price, "VND", "idem-key-roundtrip");
+    void save_thenFindById_shouldPreserveBookedSeats() {
+        Booking booking = createHold("idem-key-roundtrip");
         Booking saved = bookingRepository.save(booking);
 
         Optional<Booking> found = bookingRepository.findById(saved.getId());
 
         assertThat(found).isPresent();
         Booking retrieved = found.get();
-        assertThat(retrieved.getUserId().value()).isEqualTo(USER_ID);
-        assertThat(retrieved.getRouteId().value()).isEqualTo(ROUTE_ID);
-        assertThat(retrieved.getSeatId().value()).isEqualTo(SEAT_ID);
-        assertThat(retrieved.getTotalPrice()).isEqualByComparingTo(price);
-        assertThat(retrieved.getCurrency()).isEqualTo("VND");
-        assertThat(retrieved.getIdempotencyKey()).isEqualTo("idem-key-roundtrip");
-        assertThat(retrieved.getStatus()).isEqualTo(BookingStatus.PENDING);
+        assertThat(retrieved.getBookedSeats()).hasSize(1);
+        assertThat(retrieved.getBookedSeats().getFirst().seatId().value()).isEqualTo(SEAT_ID);
+        assertThat(retrieved.getBookedSeats().getFirst().unitPrice())
+                .isEqualByComparingTo("200000.00");
     }
 
     @Test
@@ -79,5 +97,68 @@ class BookingRepositoryAdapterTest {
         Optional<Booking> found = bookingRepository.findById(BookingId.of(UUID.randomUUID()));
 
         assertThat(found).isEmpty();
+    }
+
+    @Test
+    void findByIdempotencyKey_shouldReturnBooking() {
+        Booking booking = createHold("idem-key-lookup");
+        bookingRepository.save(booking);
+
+        Optional<Booking> found = bookingRepository.findByIdempotencyKey("idem-key-lookup");
+
+        assertThat(found).isPresent();
+        assertThat(found.get().getStatus()).isEqualTo(BookingStatus.HELD);
+    }
+
+    @Test
+    void findActiveHoldByUserIdAndRouteId_whenHoldExists_shouldReturn() {
+        Booking booking = createHold("idem-active-hold");
+        bookingRepository.save(booking);
+
+        Optional<Booking> found = bookingRepository.findActiveHoldByUserIdAndRouteId(
+                UserId.of(USER_ID), RouteId.of(ROUTE_ID));
+
+        assertThat(found).isPresent();
+        assertThat(found.get().getStatus()).isEqualTo(BookingStatus.HELD);
+    }
+
+    @Test
+    void findActiveHoldByUserIdAndRouteId_whenNoHold_shouldReturnEmpty() {
+        Optional<Booking> found = bookingRepository.findActiveHoldByUserIdAndRouteId(
+                UserId.of(UUID.randomUUID()), RouteId.of(UUID.randomUUID()));
+
+        assertThat(found).isEmpty();
+    }
+
+    @Test
+    void findExpiredHolds_shouldReturnExpiredHolds() {
+        // Create a hold that has already expired (deadline in the past)
+        Booking expiredBooking = Booking.createHold(
+                USER_ID,
+                ROUTE_ID,
+                oneEconomySeat(),
+                new BigDecimal("200000.00"),
+                "VND",
+                Instant.now().minus(1, ChronoUnit.MINUTES),
+                "idem-expired",
+                "Test",
+                "test@test.com",
+                null);
+        bookingRepository.save(expiredBooking);
+
+        List<Booking> expired = bookingRepository.findExpiredHolds(Instant.now(), 100);
+
+        assertThat(expired).isNotEmpty();
+        assertThat(expired.getFirst().getStatus()).isEqualTo(BookingStatus.HELD);
+    }
+
+    @Test
+    void findExpiredHolds_shouldNotReturnActiveHolds() {
+        // Create a hold that expires in the future
+        bookingRepository.save(createHold("idem-not-expired"));
+
+        List<Booking> expired = bookingRepository.findExpiredHolds(Instant.now(), 100);
+
+        assertThat(expired).isEmpty();
     }
 }

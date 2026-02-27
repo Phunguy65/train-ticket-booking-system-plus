@@ -9,7 +9,6 @@ import io.github.phunguy65.ttbs.backend.train.application.command.CreateSeatComm
 import io.github.phunguy65.ttbs.backend.train.application.dto.SeatDto;
 import io.github.phunguy65.ttbs.backend.train.domain.errors.SeatError;
 import io.github.phunguy65.ttbs.backend.train.domain.model.Seat;
-import io.github.phunguy65.ttbs.backend.train.domain.model.SeatClass;
 import io.github.phunguy65.ttbs.backend.train.domain.model.Train;
 import io.github.phunguy65.ttbs.backend.train.domain.model.TrainId;
 import io.github.phunguy65.ttbs.backend.train.domain.repository.SeatRepository;
@@ -35,7 +34,6 @@ class CreateSeatUseCaseTest {
 
     private static final UUID TRAIN_UUID = UUID.randomUUID();
     private static final String SEAT_NUMBER = "1A";
-    private static final SeatClass SEAT_CLASS = SeatClass.ECONOMY;
 
     @BeforeEach
     void setUp() {
@@ -56,13 +54,12 @@ class CreateSeatUseCaseTest {
         when(seatRepository.save(any(Seat.class))).thenAnswer(inv -> inv.getArgument(0));
 
         Result<SeatDto, SeatError> result =
-                useCase.execute(new CreateSeatCommand(TRAIN_UUID, SEAT_NUMBER, SEAT_CLASS));
+                useCase.execute(new CreateSeatCommand(TRAIN_UUID, SEAT_NUMBER));
 
         assertThat(result.isSuccess()).isTrue();
         SeatDto dto = ((Result.Success<SeatDto, SeatError>) result).value();
         assertThat(dto.trainId()).isEqualTo(TRAIN_UUID);
         assertThat(dto.seatNumber()).isEqualTo(SEAT_NUMBER);
-        assertThat(dto.seatClass()).isEqualTo(SEAT_CLASS);
         assertThat(dto.id()).isNotNull();
     }
 
@@ -71,7 +68,7 @@ class CreateSeatUseCaseTest {
         when(trainRepository.findById(TrainId.of(TRAIN_UUID))).thenReturn(Optional.empty());
 
         Result<SeatDto, SeatError> result =
-                useCase.execute(new CreateSeatCommand(TRAIN_UUID, SEAT_NUMBER, SEAT_CLASS));
+                useCase.execute(new CreateSeatCommand(TRAIN_UUID, SEAT_NUMBER));
 
         assertThat(result.isFailure()).isTrue();
         assertThat(((Result.Failure<SeatDto, SeatError>) result).error())
@@ -87,7 +84,7 @@ class CreateSeatUseCaseTest {
                 .thenReturn(true);
 
         Result<SeatDto, SeatError> result =
-                useCase.execute(new CreateSeatCommand(TRAIN_UUID, SEAT_NUMBER, SEAT_CLASS));
+                useCase.execute(new CreateSeatCommand(TRAIN_UUID, SEAT_NUMBER));
 
         assertThat(result.isFailure()).isTrue();
         assertThat(((Result.Failure<SeatDto, SeatError>) result).error())

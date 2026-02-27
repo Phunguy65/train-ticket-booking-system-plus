@@ -9,7 +9,6 @@ import io.github.phunguy65.ttbs.backend.train.application.command.UpdateSeatComm
 import io.github.phunguy65.ttbs.backend.train.application.dto.SeatDto;
 import io.github.phunguy65.ttbs.backend.train.domain.errors.SeatError;
 import io.github.phunguy65.ttbs.backend.train.domain.model.Seat;
-import io.github.phunguy65.ttbs.backend.train.domain.model.SeatClass;
 import io.github.phunguy65.ttbs.backend.train.domain.model.SeatId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.TrainId;
 import io.github.phunguy65.ttbs.backend.train.domain.repository.SeatRepository;
@@ -40,32 +39,30 @@ class UpdateSeatUseCaseTest {
     }
 
     private Seat makeSeat() {
-        return Seat.reconstitute(SEAT_ID, TRAIN_ID, "1A", SeatClass.ECONOMY, Instant.now());
+        return Seat.reconstitute(SEAT_ID, TRAIN_ID, "1A", Instant.now());
     }
 
     @Test
-    void execute_updateSeatClass_shouldUpdateOnlySeatClass() {
+    void execute_updateSeatNumber_shouldUpdateSeatNumber() {
         Seat existing = makeSeat();
         when(seatRepository.findById(SEAT_ID)).thenReturn(Optional.of(existing));
+        when(seatRepository.existsByTrainIdAndSeatNumber(TRAIN_ID, "2B")).thenReturn(false);
         when(seatRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
-        UpdateSeatCommand command = new UpdateSeatCommand(
-                SEAT_ID, JsonNullable.undefined(), JsonNullable.of(SeatClass.BUSINESS));
+        UpdateSeatCommand command = new UpdateSeatCommand(SEAT_ID, JsonNullable.of("2B"));
 
         Result<SeatDto, SeatError> result = useCase.execute(command);
 
         assertThat(result.isSuccess()).isTrue();
         SeatDto dto = ((Result.Success<SeatDto, SeatError>) result).value();
-        assertThat(dto.seatClass()).isEqualTo(SeatClass.BUSINESS);
-        assertThat(dto.seatNumber()).isEqualTo("1A");
+        assertThat(dto.seatNumber()).isEqualTo("2B");
     }
 
     @Test
     void execute_seatNotFound_shouldReturnSeatNotFound() {
         when(seatRepository.findById(SEAT_ID)).thenReturn(Optional.empty());
 
-        UpdateSeatCommand command =
-                new UpdateSeatCommand(SEAT_ID, JsonNullable.of("2B"), JsonNullable.undefined());
+        UpdateSeatCommand command = new UpdateSeatCommand(SEAT_ID, JsonNullable.of("2B"));
 
         Result<SeatDto, SeatError> result = useCase.execute(command);
 
@@ -81,8 +78,7 @@ class UpdateSeatUseCaseTest {
         when(seatRepository.findById(SEAT_ID)).thenReturn(Optional.of(existing));
         when(seatRepository.existsByTrainIdAndSeatNumber(TRAIN_ID, "2B")).thenReturn(true);
 
-        UpdateSeatCommand command =
-                new UpdateSeatCommand(SEAT_ID, JsonNullable.of("2B"), JsonNullable.undefined());
+        UpdateSeatCommand command = new UpdateSeatCommand(SEAT_ID, JsonNullable.of("2B"));
 
         Result<SeatDto, SeatError> result = useCase.execute(command);
 
@@ -98,8 +94,7 @@ class UpdateSeatUseCaseTest {
         when(seatRepository.findById(SEAT_ID)).thenReturn(Optional.of(existing));
         when(seatRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
-        UpdateSeatCommand command =
-                new UpdateSeatCommand(SEAT_ID, JsonNullable.of("1A"), JsonNullable.undefined());
+        UpdateSeatCommand command = new UpdateSeatCommand(SEAT_ID, JsonNullable.of("1A"));
 
         Result<SeatDto, SeatError> result = useCase.execute(command);
 

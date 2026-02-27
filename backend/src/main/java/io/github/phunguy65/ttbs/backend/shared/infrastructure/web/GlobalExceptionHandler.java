@@ -1,5 +1,7 @@
 package io.github.phunguy65.ttbs.backend.shared.infrastructure.web;
 
+import jakarta.persistence.LockTimeoutException;
+import jakarta.persistence.PessimisticLockException;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -10,9 +12,9 @@ import jakarta.validation.constraints.Size;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.CannotAcquireLockException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -29,6 +31,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
  * <p>Handler mapping:
  * <ul>
  *   <li>{@link MethodArgumentNotValidException} → 400 {@code fail} (Bean Validation errors)
+ *   <li>{@link jakarta.persistence.PessimisticLockException} / {@link jakarta.persistence.LockTimeoutException} → 409 {@code fail} (pessimistic lock timeout)
  *   <li>{@link Exception} → 500 {@code error} (catch-all, hides implementation details)
  * </ul>
  */
@@ -54,18 +57,30 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * Handles optimistic locking failures — two concurrent requests modified the same entity.
+     * Handles pessimistic locking failures — could not acquire row-level lock within timeout.
      * Returns JSend {@code fail} with HTTP 409 Conflict.
      *
-     * <p>This typically happens when two concurrent booking requests race to book the same seat.
-     * The client should retry.
+     * <p>This happens when a concurrent transaction holds a {@code SELECT FOR UPDATE} lock on a
+     * seat row and our lock timeout (3 000 ms) expires. The client should retry.
+     *
+     * <p>Spring translates:
+     * <ul>
+     *   <li>{@link jakarta.persistence.LockTimeoutException} →
+     *       {@link org.springframework.dao.CannotAcquireLockException}
+     *   <li>{@link jakarta.persistence.PessimisticLockException} →
+     *       {@link org.springframework.dao.PessimisticLockingFailureException}
+     * </ul>
      */
-    @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
-    ResponseEntity<JsendResponse<FailData>> handleOptimisticLock(
-            ObjectOptimisticLockingFailureException ex) {
+    @ExceptionHandler({
+        PessimisticLockException.class,
+        LockTimeoutException.class,
+        CannotAcquireLockException.class,
+        org.springframework.dao.PessimisticLockingFailureException.class
+    })
+    ResponseEntity<JsendResponse<FailData>> handlePessimisticLock(Exception ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(JsendResponse.fail(new FailData(
-                        "The resource was modified concurrently. Please retry.",
+                        "The requested seats are temporarily locked. Please retry.",
                         ErrorCode.SEAT_NOT_AVAILABLE,
                         List.of())));
     }

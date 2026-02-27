@@ -4,11 +4,13 @@ import io.github.phunguy65.ttbs.backend.booking.domain.model.BookingStatus;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
 @Table(name = "bookings")
-public class BookingEntity {
+class BookingEntity {
 
     @Id
     @Column(name = "id", nullable = false, updatable = false)
@@ -19,9 +21,6 @@ public class BookingEntity {
 
     @Column(name = "route_id", nullable = false)
     private UUID routeId;
-
-    @Column(name = "seat_id", nullable = false)
-    private UUID seatId;
 
     @Column(name = "booking_reference", nullable = false, unique = true)
     private String bookingReference;
@@ -63,6 +62,13 @@ public class BookingEntity {
     @Column(name = "payment_code", length = 50)
     private String paymentCode;
 
+    @OneToMany(
+            mappedBy = "booking",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true,
+            fetch = FetchType.LAZY)
+    private List<BookingSeatsEntity> seats = new ArrayList<>();
+
     protected BookingEntity() {}
 
     public UUID getId() {
@@ -87,14 +93,6 @@ public class BookingEntity {
 
     public void setRouteId(UUID routeId) {
         this.routeId = routeId;
-    }
-
-    public UUID getSeatId() {
-        return seatId;
-    }
-
-    public void setSeatId(UUID seatId) {
-        this.seatId = seatId;
     }
 
     public String getBookingReference() {
@@ -199,5 +197,18 @@ public class BookingEntity {
 
     public void setPaymentCode(String paymentCode) {
         this.paymentCode = paymentCode;
+    }
+
+    public List<BookingSeatsEntity> getSeats() {
+        return seats;
+    }
+
+    public void setSeats(List<BookingSeatsEntity> seats) {
+        this.seats = seats;
+    }
+
+    public void addSeat(BookingSeatsEntity seat) {
+        seats.add(seat);
+        seat.setBooking(this);
     }
 }

@@ -1,26 +1,47 @@
 package io.github.phunguy65.ttbs.backend.booking.infrastructure.web;
 
-import io.github.phunguy65.ttbs.backend.booking.application.command.CreateBookingCommand;
-import io.github.phunguy65.ttbs.backend.booking.application.dto.BookingDto;
+import io.github.phunguy65.ttbs.backend.booking.application.command.CancelBookingCommand;
+import io.github.phunguy65.ttbs.backend.booking.application.command.ConfirmSeatHoldCommand;
+import io.github.phunguy65.ttbs.backend.booking.application.command.CreateSeatHoldCommand;
+import io.github.phunguy65.ttbs.backend.booking.application.dto.HoldDto;
 import org.springframework.stereotype.Component;
 
 @Component
 class BookingRequestMapper {
 
-    CreateBookingCommand toCommand(CreateBookingHttpRequest request) {
-        return new CreateBookingCommand(
-                request.userId(), request.routeId(), request.seatId(), request.idempotencyKey());
+    CreateSeatHoldCommand toCreateHoldCommand(CreateSeatHoldHttpRequest request) {
+        return new CreateSeatHoldCommand(
+                request.userId(),
+                request.routeId(),
+                request.seatIds(),
+                request.idempotencyKey(),
+                request.passengerName(),
+                request.passengerEmail(),
+                request.passengerPhone());
     }
 
-    BookingHttpResponse toResponse(BookingDto dto) {
+    ConfirmSeatHoldCommand toConfirmCommand(
+            java.util.UUID bookingId, ConfirmSeatHoldHttpRequest request) {
+        return new ConfirmSeatHoldCommand(bookingId, request.paymentReference());
+    }
+
+    CancelBookingCommand toCancelCommand(java.util.UUID bookingId) {
+        return new CancelBookingCommand(bookingId);
+    }
+
+    BookingHttpResponse toResponse(HoldDto dto) {
+        java.util.List<BookingHttpResponse.BookedSeatResponse> seats = dto.seats().stream()
+                .map(s -> new BookingHttpResponse.BookedSeatResponse(s.seatId(), s.unitPrice()))
+                .toList();
         return new BookingHttpResponse(
-                dto.id(),
-                dto.userId(),
+                dto.bookingId(),
+                null,
                 dto.routeId(),
-                dto.seatId(),
                 dto.status(),
+                seats,
                 dto.totalPrice(),
                 dto.currency(),
-                dto.idempotencyKey());
+                null,
+                dto.expiresAt());
     }
 }

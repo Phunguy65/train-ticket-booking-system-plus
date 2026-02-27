@@ -3,7 +3,6 @@ package io.github.phunguy65.ttbs.backend.train.infrastructure.persistence;
 import static org.assertj.core.api.Assertions.*;
 
 import io.github.phunguy65.ttbs.backend.train.domain.model.Seat;
-import io.github.phunguy65.ttbs.backend.train.domain.model.SeatClass;
 import io.github.phunguy65.ttbs.backend.train.domain.model.SeatId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.Train;
 import io.github.phunguy65.ttbs.backend.train.domain.model.TrainId;
@@ -49,7 +48,7 @@ class SeatRepositoryAdapterTest {
     }
 
     private Seat newSeat(String seatNumber) {
-        return Seat.create(SeatId.of(UUID.randomUUID()), trainId, seatNumber, SeatClass.ECONOMY);
+        return Seat.create(SeatId.of(UUID.randomUUID()), trainId, seatNumber);
     }
 
     @Test
@@ -61,7 +60,6 @@ class SeatRepositoryAdapterTest {
         assertThat(saved.getId()).isNotNull();
         assertThat(saved.getSeatNumber()).isEqualTo("1A");
         assertThat(saved.getTrainId()).isEqualTo(trainId);
-        assertThat(saved.getSeatClass()).isEqualTo(SeatClass.ECONOMY);
     }
 
     @Test

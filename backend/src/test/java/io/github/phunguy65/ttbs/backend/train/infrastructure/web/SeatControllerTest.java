@@ -16,7 +16,6 @@ import io.github.phunguy65.ttbs.backend.train.application.usecase.GetAvailableSe
 import io.github.phunguy65.ttbs.backend.train.application.usecase.GetSeatsByTrainUseCase;
 import io.github.phunguy65.ttbs.backend.train.application.usecase.UpdateSeatUseCase;
 import io.github.phunguy65.ttbs.backend.train.domain.errors.SeatError;
-import io.github.phunguy65.ttbs.backend.train.domain.model.SeatClass;
 import io.github.phunguy65.ttbs.backend.user.application.port.TokenProvider;
 import io.github.phunguy65.ttbs.backend.user.infrastructure.security.SecurityConfig;
 import java.time.Instant;
@@ -69,7 +68,7 @@ class SeatControllerTest {
     private static final UUID SEAT_UUID = UUID.randomUUID();
 
     private SeatDto sampleSeatDto() {
-        return new SeatDto(SEAT_UUID, TRAIN_UUID, "1A", SeatClass.ECONOMY, Instant.now());
+        return new SeatDto(SEAT_UUID, TRAIN_UUID, "1A", Instant.now());
     }
 
     // ── POST /api/v1.0/trains/{trainId}/seats ───────────────────────────────
@@ -82,11 +81,10 @@ class SeatControllerTest {
         mockMvc.perform(post("/api/v1.0/trains/{trainId}/seats", TRAIN_UUID)
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"seatNumber\":\"1A\",\"seatClass\":\"ECONOMY\"}"))
+                        .content("{\"seatNumber\":\"1A\"}"))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.status").value("success"))
-                .andExpect(jsonPath("$.data.seatNumber").value("1A"))
-                .andExpect(jsonPath("$.data.seatClass").value("ECONOMY"));
+                .andExpect(jsonPath("$.data.seatNumber").value("1A"));
     }
 
     @Test
@@ -98,7 +96,7 @@ class SeatControllerTest {
         mockMvc.perform(post("/api/v1.0/trains/{trainId}/seats", TRAIN_UUID)
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"seatNumber\":\"1A\",\"seatClass\":\"ECONOMY\"}"))
+                        .content("{\"seatNumber\":\"1A\"}"))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.status").value("fail"))
                 .andExpect(jsonPath("$.data.code").value("SEAT_NUMBER_ALREADY_EXISTS"));
@@ -113,7 +111,7 @@ class SeatControllerTest {
         mockMvc.perform(post("/api/v1.0/trains/{trainId}/seats", TRAIN_UUID)
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"seatNumber\":\"1A\",\"seatClass\":\"ECONOMY\"}"))
+                        .content("{\"seatNumber\":\"1A\"}"))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.status").value("fail"))
                 .andExpect(jsonPath("$.data.code").value("TRAIN_NOT_FOUND"));
@@ -125,7 +123,7 @@ class SeatControllerTest {
         mockMvc.perform(post("/api/v1.0/trains/{trainId}/seats", TRAIN_UUID)
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"seatNumber\":\"1A\",\"seatClass\":\"ECONOMY\"}"))
+                        .content("{\"seatNumber\":\"1A\"}"))
                 .andExpect(status().isForbidden());
     }
 

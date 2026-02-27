@@ -17,6 +17,14 @@ public interface RouteSeatAvailabilityRepository {
 
     Optional<RouteSeatAvailability> findByRouteIdAndSeatId(RouteId routeId, SeatId seatId);
 
+    /**
+     * Acquires pessimistic write locks on the specified seats for a given route.
+     * Seat IDs MUST be sorted ascending before calling to prevent deadlocks.
+     * Returns at most {@code seatIds.size()} records.
+     */
+    List<RouteSeatAvailability> findByRouteIdAndSeatIdsForUpdate(
+            RouteId routeId, List<SeatId> seatIds);
+
     List<RouteSeatAvailability> saveAll(List<RouteSeatAvailability> records);
 
     RouteSeatAvailability save(RouteSeatAvailability record);

@@ -4,11 +4,18 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
-import io.github.phunguy65.ttbs.backend.booking.application.command.CreateBookingCommand;
-import io.github.phunguy65.ttbs.backend.booking.application.usecase.CreateBookingUseCase;
-import io.github.phunguy65.ttbs.backend.booking.domain.event.BookingCreated;
+import io.github.phunguy65.ttbs.backend.booking.application.command.CreateSeatHoldCommand;
+import io.github.phunguy65.ttbs.backend.booking.application.usecase.CreateSeatHoldUseCase;
+import io.github.phunguy65.ttbs.backend.booking.domain.event.SeatHoldCreated;
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
+import io.github.phunguy65.ttbs.backend.train.application.port.RoutePort;
 import io.github.phunguy65.ttbs.backend.train.application.port.RouteSeatAvailabilityPort;
+import io.github.phunguy65.ttbs.backend.train.application.port.SeatPort;
+import io.github.phunguy65.ttbs.backend.train.domain.model.Route;
+import io.github.phunguy65.ttbs.backend.train.domain.model.RouteId;
+import io.github.phunguy65.ttbs.backend.train.domain.model.SeatId;
+import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,8 +29,14 @@ class BookingModuleTest {
     @MockitoBean
     private RouteSeatAvailabilityPort routeSeatAvailabilityPort;
 
+    @MockitoBean
+    private RoutePort routePort;
+
+    @MockitoBean
+    private SeatPort seatPort;
+
     @Autowired
-    private CreateBookingUseCase createBookingUseCase;
+    private CreateSeatHoldUseCase createSeatHoldUseCase;
 
     @Test
     void bookingModule_isStructurallyValid() {
@@ -32,25 +45,38 @@ class BookingModuleTest {
     }
 
     @Test
-    void createBooking_publishesBookingCreatedEvent(PublishedEvents events) {
+    void createSeatHold_publishesSeatHoldCreatedEvent(PublishedEvents events) {
         UUID userId = UUID.randomUUID();
         UUID routeId = UUID.randomUUID();
         UUID seatId = UUID.randomUUID();
         String key = "module-test-key-" + UUID.randomUUID();
-        CreateBookingCommand command = new CreateBookingCommand(userId, routeId, seatId, key);
 
-        when(routeSeatAvailabilityPort.reserveSeat(any(), any())).thenReturn(Result.success(null));
+        CreateSeatHoldCommand command = new CreateSeatHoldCommand(
+                userId, routeId, List.of(seatId), key, "Nguyen Van A", "a@example.com", null);
 
-        createBookingUseCase.execute(command);
+        // Mock route
+        Route mockRoute = org.mockito.Mockito.mock(Route.class);
+        org.mockito.Mockito.when(mockRoute.getBasePrice())
+                .thenReturn(java.math.BigDecimal.valueOf(100_000));
+        when(routePort.findById(RouteId.of(routeId))).thenReturn(Optional.of(mockRoute));
 
-        // PublishedEvents captures all events published via ApplicationEventPublisher during this
-        // test
-        var allEvents = events.ofType(Object.class);
-        var bookingCreatedEvents = events.ofType(BookingCreated.class);
+        // Mock seat
+        io.github.phunguy65.ttbs.backend.train.domain.model.Seat mockSeat =
+                org.mockito.Mockito.mock(
+                        io.github.phunguy65.ttbs.backend.train.domain.model.Seat.class);
+        org.mockito.Mockito.when(mockSeat.getId()).thenReturn(SeatId.of(seatId));
+        when(seatPort.findById(SeatId.of(seatId))).thenReturn(Optional.of(mockSeat));
 
-        assertThat(bookingCreatedEvents)
-                .as("Expected BookingCreated event to be published. All events: " + allEvents)
+        // Mock seat availability port — successful hold
+        when(routeSeatAvailabilityPort.holdSeats(any(), any())).thenReturn(Result.success(null));
+
+        createSeatHoldUseCase.execute(command);
+
+        var seatHoldCreatedEvents = events.ofType(SeatHoldCreated.class);
+
+        assertThat(seatHoldCreatedEvents)
+                .as("Expected SeatHoldCreated event to be published")
                 .hasSize(1);
-        assertThat(bookingCreatedEvents.iterator().next().userId()).isEqualTo(userId);
+        assertThat(seatHoldCreatedEvents.iterator().next().userId()).isEqualTo(userId);
     }
 }

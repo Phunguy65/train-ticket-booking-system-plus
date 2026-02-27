@@ -7,10 +7,14 @@ import io.github.phunguy65.ttbs.backend.train.domain.errors.RouteSeatAvailabilit
  * Domain entity tracking the availability of a specific seat on a specific route.
  *
  * <p>This entity is NOT an AggregateRoot — it is managed within the seat management context.
- * The {@code version} field enables optimistic locking at the JPA layer.
+ * Concurrency safety is enforced exclusively via pessimistic locking ({@code SELECT FOR UPDATE
+ * NOWAIT}) at the database layer — no optimistic locking ({@code @Version}) is used.
  *
  * <p>Allowed state transitions:
  * <ul>
+ *   <li>AVAILABLE → HELD (via {@link #hold()})
+ *   <li>HELD → BOOKED (via {@link #confirmHold()})
+ *   <li>HELD → AVAILABLE (via {@link #expire()})
  *   <li>AVAILABLE → BOOKED (via {@link #book()})
  *   <li>BOOKED → CANCELLED (via {@link #cancel()})
  *   <li>CANCELLED → AVAILABLE (via {@link #release()})
@@ -21,29 +25,66 @@ public class RouteSeatAvailability {
     private final RouteId routeId;
     private final SeatId seatId;
     private RouteSeatAvailabilityStatus status;
-    private int version;
 
     private RouteSeatAvailability(
-            RouteId routeId, SeatId seatId, RouteSeatAvailabilityStatus status, int version) {
+            RouteId routeId, SeatId seatId, RouteSeatAvailabilityStatus status) {
         this.routeId = routeId;
         this.seatId = seatId;
         this.status = status;
-        this.version = version;
     }
 
     /**
      * Factory method for creating a new availability record with status {@code AVAILABLE}.
      */
     public static RouteSeatAvailability create(RouteId routeId, SeatId seatId) {
-        return new RouteSeatAvailability(routeId, seatId, RouteSeatAvailabilityStatus.AVAILABLE, 0);
+        return new RouteSeatAvailability(routeId, seatId, RouteSeatAvailabilityStatus.AVAILABLE);
     }
 
     /**
      * Factory method for reconstituting from persistence.
      */
     public static RouteSeatAvailability reconstitute(
-            RouteId routeId, SeatId seatId, RouteSeatAvailabilityStatus status, int version) {
-        return new RouteSeatAvailability(routeId, seatId, status, version);
+            RouteId routeId, SeatId seatId, RouteSeatAvailabilityStatus status) {
+        return new RouteSeatAvailability(routeId, seatId, status);
+    }
+
+    /**
+     * Transitions status from {@code AVAILABLE} to {@code HELD}.
+     *
+     * @return success if the seat was AVAILABLE; failure with {@code SeatNotAvailable} otherwise
+     */
+    public Result<Void, RouteSeatAvailabilityError> hold() {
+        if (status != RouteSeatAvailabilityStatus.AVAILABLE) {
+            return Result.failure(new RouteSeatAvailabilityError.SeatNotAvailable());
+        }
+        this.status = RouteSeatAvailabilityStatus.HELD;
+        return Result.success();
+    }
+
+    /**
+     * Transitions status from {@code HELD} to {@code BOOKED} after payment confirmation.
+     *
+     * @return success if the seat was HELD; failure with {@code SeatNotAvailable} otherwise
+     */
+    public Result<Void, RouteSeatAvailabilityError> confirmHold() {
+        if (status != RouteSeatAvailabilityStatus.HELD) {
+            return Result.failure(new RouteSeatAvailabilityError.SeatNotAvailable());
+        }
+        this.status = RouteSeatAvailabilityStatus.BOOKED;
+        return Result.success();
+    }
+
+    /**
+     * Transitions status from {@code HELD} back to {@code AVAILABLE} when a hold expires.
+     *
+     * @return success if the seat was HELD; failure with {@code SeatNotAvailable} otherwise
+     */
+    public Result<Void, RouteSeatAvailabilityError> expire() {
+        if (status != RouteSeatAvailabilityStatus.HELD) {
+            return Result.failure(new RouteSeatAvailabilityError.SeatNotAvailable());
+        }
+        this.status = RouteSeatAvailabilityStatus.AVAILABLE;
+        return Result.success();
     }
 
     /**
@@ -95,9 +136,5 @@ public class RouteSeatAvailability {
 
     public RouteSeatAvailabilityStatus getStatus() {
         return status;
-    }
-
-    public int getVersion() {
-        return version;
     }
 }

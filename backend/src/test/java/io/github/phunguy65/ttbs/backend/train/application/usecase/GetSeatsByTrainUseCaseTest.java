@@ -5,7 +5,6 @@ import static org.mockito.Mockito.*;
 
 import io.github.phunguy65.ttbs.backend.train.application.dto.SeatDto;
 import io.github.phunguy65.ttbs.backend.train.domain.model.Seat;
-import io.github.phunguy65.ttbs.backend.train.domain.model.SeatClass;
 import io.github.phunguy65.ttbs.backend.train.domain.model.SeatId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.TrainId;
 import io.github.phunguy65.ttbs.backend.train.domain.repository.SeatRepository;
@@ -36,10 +35,8 @@ class GetSeatsByTrainUseCaseTest {
     @Test
     void execute_withSeats_shouldReturnDtoList() {
         TrainId trainId = TrainId.of(TRAIN_UUID);
-        Seat seat1 = Seat.reconstitute(
-                SeatId.of(UUID.randomUUID()), trainId, "1A", SeatClass.ECONOMY, Instant.now());
-        Seat seat2 = Seat.reconstitute(
-                SeatId.of(UUID.randomUUID()), trainId, "1B", SeatClass.BUSINESS, Instant.now());
+        Seat seat1 = Seat.reconstitute(SeatId.of(UUID.randomUUID()), trainId, "1A", Instant.now());
+        Seat seat2 = Seat.reconstitute(SeatId.of(UUID.randomUUID()), trainId, "1B", Instant.now());
         when(seatRepository.findByTrainId(trainId)).thenReturn(List.of(seat1, seat2));
 
         List<SeatDto> result = useCase.execute(TRAIN_UUID);
