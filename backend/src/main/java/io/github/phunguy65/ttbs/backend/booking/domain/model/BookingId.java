@@ -11,10 +11,6 @@ public record BookingId(UUID value) {
         }
     }
 
-    public static BookingId generate() {
-        return new BookingId(UUID.randomUUID());
-    }
-
     public static BookingId of(UUID value) {
         return new BookingId(value);
     }

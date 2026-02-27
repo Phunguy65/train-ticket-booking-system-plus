@@ -90,7 +90,7 @@ public class Booking extends AggregateRoot<BookingId> {
             String passengerName,
             String passengerEmail,
             String passengerPhone) {
-        BookingId bookingId = BookingId.generate();
+        BookingId bookingId = BookingId.of(UUID.randomUUID());
         Instant now = Instant.now();
         Booking booking = new Booking(
                 bookingId,
