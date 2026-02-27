@@ -2,7 +2,7 @@
 -- V11.0.0 — B2.0.0 Baseline Schema
 --
 -- Complete consolidated schema representing the final state after
--- all migrations V1.0.0 through V10.0.0. This is the authoritative
+-- all migrations V1.0.0 through V12.0.0. This is the authoritative
 -- starting point for new database instances.
 --
 -- Key design decisions captured here:
@@ -13,9 +13,12 @@
 --   - Multi-seat bookings via booking_seats join table
 --   - Unified pricing: all seats share route.base_price (no seat class multiplier)
 --   - JWT refresh token revocation tracking
+--   - Soft delete via deleted_at TIMESTAMPTZ (NULL = active) on all
+--     master-data and operational tables; follows refresh_tokens.revoked_at
+--     pattern — manual WHERE deleted_at IS NULL filtering in application queries
 --
--- For existing databases (already at V10.0.0):
---   Run: flyway baseline -baselineVersion=11.0.0
+-- For existing databases (already at V11.0.0):
+--   Run: flyway migrate  (applies V12.0.0 automatically)
 -- ============================================================
 -- ============================================================
 -- TABLE: users
@@ -29,13 +32,15 @@ CREATE TABLE users (
     role VARCHAR(20) NOT NULL DEFAULT 'CUSTOMER',
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT pk_users PRIMARY KEY (id),
-    CONSTRAINT uq_users_email UNIQUE (email)
+    deleted_at TIMESTAMPTZ,
+    CONSTRAINT pk_users PRIMARY KEY (id)
 );
 
 COMMENT ON COLUMN users.created_at IS 'Timestamp with timezone (UTC)';
 
 COMMENT ON COLUMN users.updated_at IS 'Timestamp with timezone (UTC)';
+
+COMMENT ON COLUMN users.deleted_at IS 'Soft delete timestamp (UTC); NULL = active';
 
 -- ============================================================
 -- TABLE: stations
@@ -46,11 +51,13 @@ CREATE TABLE stations (
     name VARCHAR(255) NOT NULL,
     city VARCHAR(100) NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT pk_stations PRIMARY KEY (id),
-    CONSTRAINT uq_stations_code UNIQUE (code)
+    deleted_at TIMESTAMPTZ,
+    CONSTRAINT pk_stations PRIMARY KEY (id)
 );
 
 COMMENT ON COLUMN stations.created_at IS 'Timestamp with timezone (UTC)';
+
+COMMENT ON COLUMN stations.deleted_at IS 'Soft delete timestamp (UTC); NULL = active';
 
 -- ============================================================
 -- TABLE: trains
@@ -61,11 +68,13 @@ CREATE TABLE trains (
     name VARCHAR(255) NOT NULL,
     total_seats INTEGER NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT pk_trains PRIMARY KEY (id),
-    CONSTRAINT uq_trains_train_number UNIQUE (train_number)
+    deleted_at TIMESTAMPTZ,
+    CONSTRAINT pk_trains PRIMARY KEY (id)
 );
 
 COMMENT ON COLUMN trains.created_at IS 'Timestamp with timezone (UTC)';
+
+COMMENT ON COLUMN trains.deleted_at IS 'Soft delete timestamp (UTC); NULL = active';
 
 -- ============================================================
 -- TABLE: routes
@@ -80,6 +89,7 @@ CREATE TABLE routes (
     base_price DECIMAL(10, 2) NOT NULL,
     status VARCHAR(20) NOT NULL DEFAULT 'SCHEDULED',
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMPTZ,
     CONSTRAINT pk_routes PRIMARY KEY (id),
     CONSTRAINT routes_train_id_fkey FOREIGN KEY (train_id) REFERENCES trains (id),
     CONSTRAINT routes_origin_station_id_fkey FOREIGN KEY (origin_station_id) REFERENCES stations (id),
@@ -92,6 +102,8 @@ COMMENT ON COLUMN routes.arrival_time IS 'Arrival time with timezone (UTC)';
 
 COMMENT ON COLUMN routes.created_at IS 'Timestamp with timezone (UTC)';
 
+COMMENT ON COLUMN routes.deleted_at IS 'Soft delete timestamp (UTC); NULL = active';
+
 -- ============================================================
 -- TABLE: seats
 -- Dropped columns (not present in final state):
@@ -103,12 +115,14 @@ CREATE TABLE seats (
     train_id UUID NOT NULL,
     seat_number VARCHAR(10) NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMPTZ,
     CONSTRAINT pk_seats PRIMARY KEY (id),
-    CONSTRAINT seats_train_id_fkey FOREIGN KEY (train_id) REFERENCES trains (id),
-    CONSTRAINT uq_seats_train_seat UNIQUE (train_id, seat_number)
+    CONSTRAINT seats_train_id_fkey FOREIGN KEY (train_id) REFERENCES trains (id)
 );
 
 COMMENT ON COLUMN seats.created_at IS 'Timestamp with timezone (UTC)';
+
+COMMENT ON COLUMN seats.deleted_at IS 'Soft delete timestamp (UTC); NULL = active';
 
 -- ============================================================
 -- TABLE: bookings
@@ -131,6 +145,7 @@ CREATE TABLE bookings (
     payment_code VARCHAR(50),
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMPTZ,
     CONSTRAINT pk_bookings PRIMARY KEY (id),
     CONSTRAINT uq_bookings_reference UNIQUE (booking_reference),
     CONSTRAINT uq_bookings_idempotency UNIQUE (idempotency_key),
@@ -144,6 +159,8 @@ COMMENT ON COLUMN bookings.payment_deadline IS 'Payment deadline with timezone (
 COMMENT ON COLUMN bookings.created_at IS 'Timestamp with timezone (UTC)';
 
 COMMENT ON COLUMN bookings.updated_at IS 'Timestamp with timezone (UTC)';
+
+COMMENT ON COLUMN bookings.deleted_at IS 'Soft delete timestamp (UTC); NULL = active';
 
 -- ============================================================
 -- TABLE: booking_seats
@@ -231,6 +248,51 @@ COMMENT ON COLUMN refresh_tokens.created_at IS 'Token creation timestamp (UTC)';
 -- ============================================================
 -- INDEXES
 -- ============================================================
+-- users: active e-mail uniqueness (soft-delete-aware)
+CREATE UNIQUE INDEX uq_users_email_active ON users (email)
+WHERE
+    deleted_at IS NULL;
+
+-- users: filter active rows quickly
+CREATE INDEX idx_users_deleted_at ON users (deleted_at)
+WHERE
+    deleted_at IS NULL;
+
+-- stations: active code uniqueness (soft-delete-aware)
+CREATE UNIQUE INDEX uq_stations_code_active ON stations (code)
+WHERE
+    deleted_at IS NULL;
+
+-- stations: filter active rows quickly
+CREATE INDEX idx_stations_deleted_at ON stations (deleted_at)
+WHERE
+    deleted_at IS NULL;
+
+-- trains: active train_number uniqueness (soft-delete-aware)
+CREATE UNIQUE INDEX uq_trains_train_number_active ON trains (train_number)
+WHERE
+    deleted_at IS NULL;
+
+-- trains: filter active rows quickly
+CREATE INDEX idx_trains_deleted_at ON trains (deleted_at)
+WHERE
+    deleted_at IS NULL;
+
+-- routes: filter active rows quickly
+CREATE INDEX idx_routes_deleted_at ON routes (deleted_at)
+WHERE
+    deleted_at IS NULL;
+
+-- seats: active (train_id, seat_number) uniqueness (soft-delete-aware)
+CREATE UNIQUE INDEX uq_seats_train_seat_active ON seats (train_id, seat_number)
+WHERE
+    deleted_at IS NULL;
+
+-- seats: filter active rows quickly
+CREATE INDEX idx_seats_deleted_at ON seats (deleted_at)
+WHERE
+    deleted_at IS NULL;
+
 -- bookings: user lookup
 CREATE INDEX idx_bookings_user ON bookings (user_id);
 
@@ -238,9 +300,16 @@ CREATE INDEX idx_bookings_user ON bookings (user_id);
 CREATE INDEX idx_bookings_status_deadline ON bookings (status, payment_deadline);
 
 -- bookings: one active hold per user per route (business rule enforcement)
+-- Excludes soft-deleted rows so a deleted HELD booking cannot block a new hold.
 CREATE UNIQUE INDEX idx_one_active_hold_per_user_route ON bookings (user_id, route_id)
 WHERE
-    status = 'HELD';
+    status = 'HELD'
+    AND deleted_at IS NULL;
+
+-- bookings: filter active rows quickly
+CREATE INDEX idx_bookings_deleted_at ON bookings (deleted_at)
+WHERE
+    deleted_at IS NULL;
 
 -- routes: train lookup
 CREATE INDEX idx_routes_train ON routes (train_id);
