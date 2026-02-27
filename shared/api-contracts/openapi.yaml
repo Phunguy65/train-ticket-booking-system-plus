@@ -376,9 +376,6 @@ components:
           format: int64
         seatNumber:
           type: string
-        seatClass:
-          type: string
-          enum: [ECONOMY, BUSINESS, FIRST_CLASS]
         status:
           type: string
           enum: [AVAILABLE, RESERVED, BLOCKED]
