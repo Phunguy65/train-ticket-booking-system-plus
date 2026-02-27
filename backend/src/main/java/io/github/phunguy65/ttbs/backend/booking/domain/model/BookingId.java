@@ -1,6 +1,5 @@
 package io.github.phunguy65.ttbs.backend.booking.domain.model;
 
-import io.github.phunguy65.ttbs.backend.shared.infrastructure.IdGenerator;
 import java.util.UUID;
 import org.jspecify.annotations.NonNull;
 
@@ -13,7 +12,7 @@ public record BookingId(UUID value) {
     }
 
     public static BookingId generate() {
-        return new BookingId(UUID.fromString(IdGenerator.generate()));
+        return new BookingId(UUID.randomUUID());
     }
 
     public static BookingId of(UUID value) {
