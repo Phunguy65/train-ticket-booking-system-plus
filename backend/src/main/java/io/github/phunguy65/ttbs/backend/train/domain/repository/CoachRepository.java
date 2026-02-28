@@ -23,4 +23,6 @@ public interface CoachRepository {
     boolean existsByTrainIdAndCarNumber(TrainId trainId, int carNumber);
 
     void softDeleteById(CoachId id, Instant deletedAt);
+
+    int softDeleteByIds(List<CoachId> ids, Instant deletedAt);
 }

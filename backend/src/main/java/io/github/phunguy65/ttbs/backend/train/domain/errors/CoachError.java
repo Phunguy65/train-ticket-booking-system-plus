@@ -1,5 +1,8 @@
 package io.github.phunguy65.ttbs.backend.train.domain.errors;
 
+import java.util.List;
+import java.util.UUID;
+
 /**
  * Typed business errors for the Coach domain.
  *
@@ -25,6 +28,13 @@ public sealed interface CoachError {
         @Override
         public String message() {
             return "Train not found";
+        }
+    }
+
+    record CoachInUse(List<UUID> conflictingIds) implements CoachError {
+        @Override
+        public String message() {
+            return "One or more coaches have active seats and cannot be deleted";
         }
     }
 

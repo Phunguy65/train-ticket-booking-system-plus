@@ -7,6 +7,7 @@ import io.github.phunguy65.ttbs.backend.train.domain.repository.CoachRepository;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -48,5 +49,11 @@ class CoachRepositoryAdapter implements CoachRepository {
     @Override
     public void softDeleteById(CoachId id, Instant deletedAt) {
         jpaRepository.softDeleteById(id.value(), deletedAt);
+    }
+
+    @Override
+    public int softDeleteByIds(List<CoachId> ids, Instant deletedAt) {
+        List<UUID> uuids = ids.stream().map(CoachId::value).toList();
+        return jpaRepository.softDeleteByIds(uuids, deletedAt);
     }
 }

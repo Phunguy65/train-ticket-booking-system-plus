@@ -24,4 +24,9 @@ interface CoachJpaRepository extends JpaRepository<CoachEntity, UUID> {
     @Query(
             "UPDATE CoachEntity c SET c.deletedAt = :deletedAt WHERE c.id = :id AND c.deletedAt IS NULL")
     void softDeleteById(@Param("id") UUID id, @Param("deletedAt") Instant deletedAt);
+
+    @Modifying
+    @Query(
+            "UPDATE CoachEntity c SET c.deletedAt = :deletedAt WHERE c.id IN :ids AND c.deletedAt IS NULL")
+    int softDeleteByIds(@Param("ids") List<UUID> ids, @Param("deletedAt") Instant deletedAt);
 }
