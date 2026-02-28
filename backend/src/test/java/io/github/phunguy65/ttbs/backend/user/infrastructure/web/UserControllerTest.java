@@ -435,7 +435,7 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.data.code").value("USER_NOT_FOUND"));
     }
 
-    // ── DELETE /api/v1.0/users (bulk) ────────────────────────────────────────────
+    // ── POST /api/v1.0/users:bulkDelete ──────────────────────────────────────────
 
     @Test
     @WithMockUser(username = "00000000-0000-0000-0000-000000000001", roles = "ADMIN")
@@ -443,7 +443,7 @@ class UserControllerTest {
         UUID otherId = UUID.randomUUID();
         when(bulkSoftDeleteUsersUseCase.execute(any())).thenReturn(1);
 
-        mockMvc.perform(delete("/api/v1.0/users")
+        mockMvc.perform(post("/api/v1.0/users:bulkDelete")
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"userIds\":[\"" + otherId + "\"]}"))
@@ -455,7 +455,7 @@ class UserControllerTest {
     @Test
     @WithMockUser(username = "00000000-0000-0000-0000-000000000001", roles = "ADMIN")
     void bulkDelete_selfInList_shouldReturn400() throws Exception {
-        mockMvc.perform(delete("/api/v1.0/users")
+        mockMvc.perform(post("/api/v1.0/users:bulkDelete")
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"userIds\":[\"00000000-0000-0000-0000-000000000001\"]}"))
@@ -473,7 +473,7 @@ class UserControllerTest {
         }
         sb.append("]}");
 
-        mockMvc.perform(delete("/api/v1.0/users")
+        mockMvc.perform(post("/api/v1.0/users:bulkDelete")
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(sb.toString()))
@@ -484,7 +484,7 @@ class UserControllerTest {
     @Test
     @WithMockUser(roles = "CUSTOMER")
     void bulkDelete_asCustomer_shouldReturn403() throws Exception {
-        mockMvc.perform(delete("/api/v1.0/users")
+        mockMvc.perform(post("/api/v1.0/users:bulkDelete")
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"userIds\":[\"" + UUID.randomUUID() + "\"]}"))

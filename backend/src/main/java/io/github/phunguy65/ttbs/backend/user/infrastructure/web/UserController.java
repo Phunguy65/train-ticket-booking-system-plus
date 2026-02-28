@@ -33,13 +33,11 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 @RestController
-@RequestMapping("/{version}/users")
 class UserController {
 
     private static final Set<String> ALLOWED_SORT_FIELDS =
@@ -70,7 +68,7 @@ class UserController {
         this.mapper = mapper;
     }
 
-    @PostMapping(version = "1.0")
+    @PostMapping(value = "/{version}/users", version = "1.0")
     ResponseEntity<JsendResponse<?>> create(@Valid @RequestBody CreateUserHttpRequest request) {
         return createUserUseCase
                 .execute(mapper.toCommand(request))
@@ -86,7 +84,7 @@ class UserController {
                         error -> errorResponse(error));
     }
 
-    @GetMapping(value = "/{id}", version = "1.0")
+    @GetMapping(value = "/{version}/users/{id}", version = "1.0")
     ResponseEntity<JsendResponse<?>> getById(@PathVariable UUID id) {
         return getUserByIdUseCase
                 .execute(UserId.of(id))
@@ -96,7 +94,7 @@ class UserController {
                         error -> errorResponse(error));
     }
 
-    @GetMapping(value = "/me", version = "1.0")
+    @GetMapping(value = "/{version}/users/me", version = "1.0")
     ResponseEntity<JsendResponse<?>> getMe() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         UUID principalId = UUID.fromString(auth.getName());
@@ -108,7 +106,7 @@ class UserController {
                         error -> errorResponse(error));
     }
 
-    @GetMapping(version = "1.0")
+    @GetMapping(value = "/{version}/users", version = "1.0")
     ResponseEntity<JsendResponse<?>> listUsers(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
@@ -160,7 +158,7 @@ class UserController {
         return ResponseEntity.ok(JsendResponse.success(sliceResponse));
     }
 
-    @PatchMapping(value = "/{id}", version = "1.0")
+    @PatchMapping(value = "/{version}/users/{id}", version = "1.0")
     @PreAuthorize("hasRole('ADMIN')")
     ResponseEntity<JsendResponse<?>> patchById(
             @PathVariable UUID id, @Valid @RequestBody UpdateUserHttpRequest request) {
@@ -172,7 +170,7 @@ class UserController {
                         error -> errorResponse(error));
     }
 
-    @PatchMapping(value = "/me", version = "1.0")
+    @PatchMapping(value = "/{version}/users/me", version = "1.0")
     ResponseEntity<JsendResponse<?>> patchMe(@Valid @RequestBody UpdateUserHttpRequest request) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         UUID principalId = UUID.fromString(auth.getName());
@@ -184,7 +182,7 @@ class UserController {
                         error -> errorResponse(error));
     }
 
-    @DeleteMapping(value = "/me", version = "1.0")
+    @DeleteMapping(value = "/{version}/users/me", version = "1.0")
     ResponseEntity<JsendResponse<?>> deleteMe() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         UUID principalId = UUID.fromString(auth.getName());
@@ -195,7 +193,7 @@ class UserController {
                         error -> errorResponse(error));
     }
 
-    @DeleteMapping(value = "/{id}", version = "1.0")
+    @DeleteMapping(value = "/{version}/users/{id}", version = "1.0")
     @PreAuthorize("hasRole('ADMIN')")
     ResponseEntity<JsendResponse<?>> deleteById(@PathVariable UUID id) {
         return softDeleteUserUseCase
@@ -205,7 +203,7 @@ class UserController {
                         error -> errorResponse(error));
     }
 
-    @DeleteMapping(version = "1.0")
+    @PostMapping(value = "/{version}/users:bulkDelete", version = "1.0")
     @PreAuthorize("hasRole('ADMIN')")
     ResponseEntity<JsendResponse<?>> bulkDelete(
             @Valid @RequestBody BulkSoftDeleteUsersHttpRequest request) {

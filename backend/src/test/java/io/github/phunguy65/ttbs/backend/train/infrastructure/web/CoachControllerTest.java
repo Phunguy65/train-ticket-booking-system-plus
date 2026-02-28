@@ -11,6 +11,7 @@ import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.GlobalExceptio
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.JacksonConfig;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.WebConfig;
 import io.github.phunguy65.ttbs.backend.train.application.dto.CoachDto;
+import io.github.phunguy65.ttbs.backend.train.application.usecase.BulkCreateCoachesUseCase;
 import io.github.phunguy65.ttbs.backend.train.application.usecase.BulkSoftDeleteCoachesUseCase;
 import io.github.phunguy65.ttbs.backend.train.application.usecase.CreateCoachUseCase;
 import io.github.phunguy65.ttbs.backend.train.application.usecase.GetCoachByIdUseCase;
@@ -61,6 +62,9 @@ class CoachControllerTest {
 
     @MockitoBean
     private BulkSoftDeleteCoachesUseCase bulkSoftDeleteCoachesUseCase;
+
+    @MockitoBean
+    private BulkCreateCoachesUseCase bulkCreateCoachesUseCase;
 
     @MockitoBean
     private TokenProvider tokenProvider;
@@ -249,17 +253,18 @@ class CoachControllerTest {
                 .andExpect(status().isForbidden());
     }
 
-    // ── DELETE /api/v1.0/coaches?ids=... ─────────────────────────────────────
+    // ── POST /api/v1.0/coaches:bulkDelete ────────────────────────────────────
 
     @Test
     @WithMockUser(roles = "ADMIN")
     void bulkDelete_success_shouldReturn200WithDeletedCount() throws Exception {
         when(bulkSoftDeleteCoachesUseCase.execute(any())).thenReturn(Result.success(2));
 
-        mockMvc.perform(delete("/api/v1.0/coaches")
-                        .param("ids", COACH_UUID.toString())
-                        .param("ids", UUID.randomUUID().toString())
-                        .with(csrf()))
+        mockMvc.perform(post("/api/v1.0/coaches:bulkDelete")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"coachIds\":[\"" + COACH_UUID + "\",\"" + UUID.randomUUID()
+                                + "\"]}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("success"))
                 .andExpect(jsonPath("$.data.deletedCount").value(2));
@@ -272,10 +277,11 @@ class CoachControllerTest {
         when(bulkSoftDeleteCoachesUseCase.execute(any()))
                 .thenReturn(Result.failure(new CoachError.CoachInUse(List.of(conflictingId))));
 
-        mockMvc.perform(delete("/api/v1.0/coaches")
-                        .param("ids", COACH_UUID.toString())
-                        .param("ids", conflictingId.toString())
-                        .with(csrf()))
+        mockMvc.perform(post("/api/v1.0/coaches:bulkDelete")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"coachIds\":[\"" + COACH_UUID + "\",\"" + conflictingId
+                                + "\"]}"))
                 .andExpect(status().isUnprocessableEntity())
                 .andExpect(jsonPath("$.status").value("fail"))
                 .andExpect(jsonPath("$.data.code").value("COACH_IN_USE"))
@@ -285,7 +291,10 @@ class CoachControllerTest {
     @Test
     @WithMockUser(roles = "ADMIN")
     void bulkDelete_missingIds_shouldReturn400() throws Exception {
-        mockMvc.perform(delete("/api/v1.0/coaches").with(csrf()))
+        mockMvc.perform(post("/api/v1.0/coaches:bulkDelete")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"coachIds\":[]}"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.status").value("fail"))
                 .andExpect(jsonPath("$.data.code").value("VALIDATION_ERROR"));
@@ -294,11 +303,16 @@ class CoachControllerTest {
     @Test
     @WithMockUser(roles = "ADMIN")
     void bulkDelete_exceedsMaxBatchSize_shouldReturn400() throws Exception {
-        String[] uuids = new String[101];
+        StringBuilder sb = new StringBuilder("{\"coachIds\":[");
         for (int i = 0; i < 101; i++) {
-            uuids[i] = UUID.randomUUID().toString();
+            if (i > 0) sb.append(",");
+            sb.append("\"").append(UUID.randomUUID()).append("\"");
         }
-        mockMvc.perform(delete("/api/v1.0/coaches").param("ids", uuids).with(csrf()))
+        sb.append("]}");
+        mockMvc.perform(post("/api/v1.0/coaches:bulkDelete")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(sb.toString()))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.status").value("fail"))
                 .andExpect(jsonPath("$.data.code").value("VALIDATION_ERROR"));
@@ -307,18 +321,20 @@ class CoachControllerTest {
     @Test
     @WithAnonymousUser
     void bulkDelete_unauthenticated_shouldReturn401() throws Exception {
-        mockMvc.perform(delete("/api/v1.0/coaches")
-                        .param("ids", COACH_UUID.toString())
-                        .with(csrf()))
+        mockMvc.perform(post("/api/v1.0/coaches:bulkDelete")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"coachIds\":[\"" + COACH_UUID + "\"]}"))
                 .andExpect(status().isUnauthorized());
     }
 
     @Test
     @WithMockUser(roles = "CUSTOMER")
     void bulkDelete_nonAdmin_shouldReturn403() throws Exception {
-        mockMvc.perform(delete("/api/v1.0/coaches")
-                        .param("ids", COACH_UUID.toString())
-                        .with(csrf()))
+        mockMvc.perform(post("/api/v1.0/coaches:bulkDelete")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"coachIds\":[\"" + COACH_UUID + "\"]}"))
                 .andExpect(status().isForbidden());
     }
 }

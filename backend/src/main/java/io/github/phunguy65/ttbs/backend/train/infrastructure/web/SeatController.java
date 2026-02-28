@@ -99,7 +99,7 @@ class SeatController {
                 .fold(v -> ResponseEntity.ok(JsendResponse.success()), this::seatErrorResponse);
     }
 
-    @DeleteMapping(value = "/{version}/seats", version = "1.0")
+    @PostMapping(value = "/{version}/seats:bulkDelete", version = "1.0")
     @PreAuthorize("hasRole('ADMIN')")
     ResponseEntity<JsendResponse<?>> bulkDelete(
             @Valid @RequestBody BulkSoftDeleteSeatsHttpRequest request) {

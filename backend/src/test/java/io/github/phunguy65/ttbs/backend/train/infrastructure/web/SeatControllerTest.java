@@ -11,6 +11,7 @@ import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.GlobalExceptio
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.JacksonConfig;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.WebConfig;
 import io.github.phunguy65.ttbs.backend.train.application.dto.SeatDto;
+import io.github.phunguy65.ttbs.backend.train.application.usecase.BulkCreateSeatsUseCase;
 import io.github.phunguy65.ttbs.backend.train.application.usecase.BulkSoftDeleteSeatsUseCase;
 import io.github.phunguy65.ttbs.backend.train.application.usecase.CreateSeatUseCase;
 import io.github.phunguy65.ttbs.backend.train.application.usecase.GetAvailableSeatsForRouteUseCase;
@@ -60,6 +61,9 @@ class SeatControllerTest {
 
     @MockitoBean
     private BulkSoftDeleteSeatsUseCase bulkSoftDeleteSeatsUseCase;
+
+    @MockitoBean
+    private BulkCreateSeatsUseCase bulkCreateSeatsUseCase;
 
     @MockitoBean
     private TokenProvider tokenProvider;

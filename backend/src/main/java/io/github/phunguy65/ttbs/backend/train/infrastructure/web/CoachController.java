@@ -26,7 +26,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -103,25 +102,11 @@ class CoachController {
                 .fold(v -> ResponseEntity.ok(JsendResponse.success()), this::coachErrorResponse);
     }
 
-    @DeleteMapping(value = "/{version}/coaches", version = "1.0")
+    @PostMapping(value = "/{version}/coaches:bulkDelete", version = "1.0")
     @PreAuthorize("hasRole('ADMIN')")
     ResponseEntity<JsendResponse<?>> bulkDelete(
-            @RequestParam(value = "ids", required = false) List<UUID> ids) {
-        if (ids == null || ids.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(JsendResponse.fail(new FailData(
-                            "At least one coach ID is required",
-                            ErrorCode.VALIDATION_ERROR,
-                            List.of())));
-        }
-        if (ids.size() > 100) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(JsendResponse.fail(new FailData(
-                            "Bulk delete is limited to 100 IDs per request",
-                            ErrorCode.VALIDATION_ERROR,
-                            List.of())));
-        }
-        List<CoachId> coachIds = ids.stream().map(CoachId::of).toList();
+            @Valid @RequestBody BulkSoftDeleteCoachesHttpRequest request) {
+        List<CoachId> coachIds = request.coachIds().stream().map(CoachId::of).toList();
         return bulkSoftDeleteCoachesUseCase
                 .execute(new BulkSoftDeleteCoachesCommand(coachIds))
                 .fold(
