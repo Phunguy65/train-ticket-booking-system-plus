@@ -40,6 +40,10 @@ public enum ErrorCode {
     COACH_CAR_NUMBER_ALREADY_EXISTS,
     COACH_TRAIN_NOT_FOUND,
     COACH_IN_USE,
+    COACH_CAR_NUMBERS_ALREADY_EXIST,
+    COACH_DUPLICATE_CAR_NUMBERS_IN_REQUEST,
+    SEAT_NUMBERS_ALREADY_EXIST,
+    SEAT_DUPLICATE_SEAT_NUMBERS_IN_REQUEST,
 
     // ── Station module ────────────────────────────────────────────────────────
     STATION_NOT_FOUND,

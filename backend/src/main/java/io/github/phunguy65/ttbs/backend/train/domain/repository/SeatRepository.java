@@ -16,6 +16,8 @@ public interface SeatRepository {
 
     Seat save(Seat seat);
 
+    List<Seat> saveAll(List<Seat> seats);
+
     List<Seat> findByCoachId(CoachId coachId);
 
     Optional<Seat> findById(SeatId id);

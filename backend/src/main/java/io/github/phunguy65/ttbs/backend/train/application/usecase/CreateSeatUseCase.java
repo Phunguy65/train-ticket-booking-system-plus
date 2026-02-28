@@ -29,7 +29,7 @@ public class CreateSeatUseCase {
         CoachId coachId = CoachId.of(command.coachId());
 
         if (coachRepository.findById(coachId).isEmpty()) {
-            return Result.failure(new SeatError.TrainNotFound());
+            return Result.failure(new SeatError.CoachNotFound());
         }
 
         if (seatRepository.existsByCoachIdAndSeatNumber(coachId, command.seatNumber())) {

@@ -29,6 +29,13 @@ class SeatRepositoryAdapter implements SeatRepository {
     }
 
     @Override
+    public List<Seat> saveAll(List<Seat> seats) {
+        List<SeatEntity> entities = seats.stream().map(mapper::toEntity).toList();
+        List<SeatEntity> saved = jpaRepository.saveAll(entities);
+        return saved.stream().map(mapper::toDomain).toList();
+    }
+
+    @Override
     public List<Seat> findByCoachId(CoachId coachId) {
         return jpaRepository.findByCoachId(coachId.value()).stream()
                 .map(mapper::toDomain)

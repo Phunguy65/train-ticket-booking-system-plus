@@ -29,6 +29,13 @@ class CoachRepositoryAdapter implements CoachRepository {
     }
 
     @Override
+    public List<Coach> saveAll(List<Coach> coaches) {
+        List<CoachEntity> entities = coaches.stream().map(mapper::toEntity).toList();
+        List<CoachEntity> saved = jpaRepository.saveAll(entities);
+        return saved.stream().map(mapper::toDomain).toList();
+    }
+
+    @Override
     public Optional<Coach> findById(CoachId id) {
         return jpaRepository.findActiveById(id.value()).map(mapper::toDomain);
     }

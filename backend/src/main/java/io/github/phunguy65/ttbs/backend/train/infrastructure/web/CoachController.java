@@ -5,6 +5,7 @@ import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.FailData;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.JsendResponse;
 import io.github.phunguy65.ttbs.backend.train.application.command.BulkSoftDeleteCoachesCommand;
 import io.github.phunguy65.ttbs.backend.train.application.command.SoftDeleteCoachCommand;
+import io.github.phunguy65.ttbs.backend.train.application.usecase.BulkCreateCoachesUseCase;
 import io.github.phunguy65.ttbs.backend.train.application.usecase.BulkSoftDeleteCoachesUseCase;
 import io.github.phunguy65.ttbs.backend.train.application.usecase.CreateCoachUseCase;
 import io.github.phunguy65.ttbs.backend.train.application.usecase.GetCoachByIdUseCase;
@@ -37,6 +38,7 @@ class CoachController {
     private final GetCoachesByTrainUseCase getCoachesByTrainUseCase;
     private final SoftDeleteCoachUseCase softDeleteCoachUseCase;
     private final BulkSoftDeleteCoachesUseCase bulkSoftDeleteCoachesUseCase;
+    private final BulkCreateCoachesUseCase bulkCreateCoachesUseCase;
     private final CoachRequestMapper mapper;
 
     CoachController(
@@ -45,12 +47,14 @@ class CoachController {
             GetCoachesByTrainUseCase getCoachesByTrainUseCase,
             SoftDeleteCoachUseCase softDeleteCoachUseCase,
             BulkSoftDeleteCoachesUseCase bulkSoftDeleteCoachesUseCase,
+            BulkCreateCoachesUseCase bulkCreateCoachesUseCase,
             CoachRequestMapper mapper) {
         this.createCoachUseCase = createCoachUseCase;
         this.getCoachByIdUseCase = getCoachByIdUseCase;
         this.getCoachesByTrainUseCase = getCoachesByTrainUseCase;
         this.softDeleteCoachUseCase = softDeleteCoachUseCase;
         this.bulkSoftDeleteCoachesUseCase = bulkSoftDeleteCoachesUseCase;
+        this.bulkCreateCoachesUseCase = bulkCreateCoachesUseCase;
         this.mapper = mapper;
     }
 
@@ -126,6 +130,18 @@ class CoachController {
                         this::coachErrorResponse);
     }
 
+    @PostMapping(value = "/{version}/trains/{trainId}/coaches:bulkCreate", version = "1.0")
+    @PreAuthorize("hasRole('ADMIN')")
+    ResponseEntity<JsendResponse<?>> bulkCreateCoaches(
+            @PathVariable UUID trainId, @Valid @RequestBody BulkCreateCoachesHttpRequest request) {
+        return bulkCreateCoachesUseCase
+                .execute(mapper.toBulkCommand(trainId, request))
+                .fold(
+                        dtos -> ResponseEntity.status(HttpStatus.CREATED)
+                                .body(JsendResponse.success(mapper.toResponseList(dtos))),
+                        this::coachErrorResponse);
+    }
+
     private ResponseEntity<JsendResponse<?>> coachErrorResponse(CoachError error) {
         HttpStatus status =
                 switch (error) {
@@ -133,6 +149,9 @@ class CoachController {
                     case CoachError.CarNumberAlreadyExists e -> HttpStatus.CONFLICT;
                     case CoachError.TrainNotFound e -> HttpStatus.NOT_FOUND;
                     case CoachError.CoachInUse e -> HttpStatus.UNPROCESSABLE_ENTITY;
+                    case CoachError.CarNumbersAlreadyExist e -> HttpStatus.CONFLICT;
+                    case CoachError.DuplicateCarNumbersInRequest e ->
+                        HttpStatus.UNPROCESSABLE_ENTITY;
                 };
         ErrorCode code =
                 switch (error) {
@@ -141,6 +160,10 @@ class CoachController {
                         ErrorCode.COACH_CAR_NUMBER_ALREADY_EXISTS;
                     case CoachError.TrainNotFound e -> ErrorCode.COACH_TRAIN_NOT_FOUND;
                     case CoachError.CoachInUse e -> ErrorCode.COACH_IN_USE;
+                    case CoachError.CarNumbersAlreadyExist e ->
+                        ErrorCode.COACH_CAR_NUMBERS_ALREADY_EXIST;
+                    case CoachError.DuplicateCarNumbersInRequest e ->
+                        ErrorCode.COACH_DUPLICATE_CAR_NUMBERS_IN_REQUEST;
                 };
 
         if (error instanceof CoachError.CoachInUse inUse) {
@@ -149,6 +172,22 @@ class CoachController {
                             "message", inUse.message(),
                             "code", code,
                             "conflictingIds", inUse.conflictingIds())));
+        }
+
+        if (error instanceof CoachError.CarNumbersAlreadyExist conflict) {
+            return ResponseEntity.status(status)
+                    .body(JsendResponse.fail(Map.of(
+                            "message", conflict.message(),
+                            "code", code,
+                            "conflictingCarNumbers", conflict.conflictingCarNumbers())));
+        }
+
+        if (error instanceof CoachError.DuplicateCarNumbersInRequest dup) {
+            return ResponseEntity.status(status)
+                    .body(JsendResponse.fail(Map.of(
+                            "message", dup.message(),
+                            "code", code,
+                            "duplicates", dup.duplicates())));
         }
 
         return ResponseEntity.status(status)

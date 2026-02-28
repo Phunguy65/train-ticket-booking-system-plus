@@ -38,6 +38,27 @@ public sealed interface SeatError {
         }
     }
 
+    record CoachNotFound() implements SeatError {
+        @Override
+        public String message() {
+            return "Coach not found";
+        }
+    }
+
+    record SeatNumbersAlreadyExist(List<String> conflictingNumbers) implements SeatError {
+        @Override
+        public String message() {
+            return "One or more seat numbers already exist on this coach: " + conflictingNumbers;
+        }
+    }
+
+    record DuplicateSeatNumbersInRequest(List<String> duplicates) implements SeatError {
+        @Override
+        public String message() {
+            return "Duplicate seat numbers in request: " + duplicates;
+        }
+    }
+
     /** Human-readable description suitable for a JSend {@code fail} data payload. */
     String message();
 }

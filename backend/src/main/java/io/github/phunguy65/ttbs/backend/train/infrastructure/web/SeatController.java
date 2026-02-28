@@ -5,6 +5,7 @@ import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.FailData;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.JsendResponse;
 import io.github.phunguy65.ttbs.backend.train.application.command.BulkSoftDeleteSeatsCommand;
 import io.github.phunguy65.ttbs.backend.train.application.command.SoftDeleteSeatCommand;
+import io.github.phunguy65.ttbs.backend.train.application.usecase.BulkCreateSeatsUseCase;
 import io.github.phunguy65.ttbs.backend.train.application.usecase.BulkSoftDeleteSeatsUseCase;
 import io.github.phunguy65.ttbs.backend.train.application.usecase.CreateSeatUseCase;
 import io.github.phunguy65.ttbs.backend.train.application.usecase.GetAvailableSeatsForRouteUseCase;
@@ -35,6 +36,7 @@ class SeatController {
     private final GetAvailableSeatsForRouteUseCase getAvailableSeatsForRouteUseCase;
     private final SoftDeleteSeatUseCase softDeleteSeatUseCase;
     private final BulkSoftDeleteSeatsUseCase bulkSoftDeleteSeatsUseCase;
+    private final BulkCreateSeatsUseCase bulkCreateSeatsUseCase;
     private final SeatRequestMapper mapper;
 
     SeatController(
@@ -43,12 +45,14 @@ class SeatController {
             GetAvailableSeatsForRouteUseCase getAvailableSeatsForRouteUseCase,
             SoftDeleteSeatUseCase softDeleteSeatUseCase,
             BulkSoftDeleteSeatsUseCase bulkSoftDeleteSeatsUseCase,
+            BulkCreateSeatsUseCase bulkCreateSeatsUseCase,
             SeatRequestMapper mapper) {
         this.createSeatUseCase = createSeatUseCase;
         this.getSeatsByTrainUseCase = getSeatsByTrainUseCase;
         this.getAvailableSeatsForRouteUseCase = getAvailableSeatsForRouteUseCase;
         this.softDeleteSeatUseCase = softDeleteSeatUseCase;
         this.bulkSoftDeleteSeatsUseCase = bulkSoftDeleteSeatsUseCase;
+        this.bulkCreateSeatsUseCase = bulkCreateSeatsUseCase;
         this.mapper = mapper;
     }
 
@@ -108,6 +112,18 @@ class SeatController {
                         this::seatErrorResponse);
     }
 
+    @PostMapping(value = "/{version}/coaches/{coachId}/seats:bulkCreate", version = "1.0")
+    @PreAuthorize("hasRole('ADMIN')")
+    ResponseEntity<JsendResponse<?>> bulkCreateSeats(
+            @PathVariable UUID coachId, @Valid @RequestBody BulkCreateSeatsHttpRequest request) {
+        return bulkCreateSeatsUseCase
+                .execute(mapper.toBulkCommand(coachId, request))
+                .fold(
+                        dtos -> ResponseEntity.status(HttpStatus.CREATED)
+                                .body(JsendResponse.success(mapper.toResponseList(dtos))),
+                        this::seatErrorResponse);
+    }
+
     private ResponseEntity<JsendResponse<?>> seatErrorResponse(SeatError error) {
         HttpStatus status =
                 switch (error) {
@@ -115,6 +131,10 @@ class SeatController {
                     case SeatError.TrainNotFound e -> HttpStatus.NOT_FOUND;
                     case SeatError.SeatNumberAlreadyExists e -> HttpStatus.CONFLICT;
                     case SeatError.SeatInUse e -> HttpStatus.UNPROCESSABLE_ENTITY;
+                    case SeatError.CoachNotFound e -> HttpStatus.NOT_FOUND;
+                    case SeatError.SeatNumbersAlreadyExist e -> HttpStatus.CONFLICT;
+                    case SeatError.DuplicateSeatNumbersInRequest e ->
+                        HttpStatus.UNPROCESSABLE_ENTITY;
                 };
         ErrorCode code =
                 switch (error) {
@@ -123,7 +143,29 @@ class SeatController {
                     case SeatError.SeatNumberAlreadyExists e ->
                         ErrorCode.SEAT_NUMBER_ALREADY_EXISTS;
                     case SeatError.SeatInUse e -> ErrorCode.SEAT_IN_USE;
+                    case SeatError.CoachNotFound e -> ErrorCode.COACH_NOT_FOUND;
+                    case SeatError.SeatNumbersAlreadyExist e ->
+                        ErrorCode.SEAT_NUMBERS_ALREADY_EXIST;
+                    case SeatError.DuplicateSeatNumbersInRequest e ->
+                        ErrorCode.SEAT_DUPLICATE_SEAT_NUMBERS_IN_REQUEST;
                 };
+
+        if (error instanceof SeatError.SeatNumbersAlreadyExist conflict) {
+            return ResponseEntity.status(status)
+                    .body(JsendResponse.fail(Map.of(
+                            "message", conflict.message(),
+                            "code", code,
+                            "conflictingNumbers", conflict.conflictingNumbers())));
+        }
+
+        if (error instanceof SeatError.DuplicateSeatNumbersInRequest dup) {
+            return ResponseEntity.status(status)
+                    .body(JsendResponse.fail(Map.of(
+                            "message", dup.message(),
+                            "code", code,
+                            "duplicates", dup.duplicates())));
+        }
+
         return ResponseEntity.status(status)
                 .body(JsendResponse.fail(new FailData(error.message(), code, List.of())));
     }

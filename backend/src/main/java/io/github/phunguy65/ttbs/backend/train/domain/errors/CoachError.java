@@ -38,6 +38,20 @@ public sealed interface CoachError {
         }
     }
 
+    record CarNumbersAlreadyExist(List<Integer> conflictingCarNumbers) implements CoachError {
+        @Override
+        public String message() {
+            return "One or more car numbers already exist on this train: " + conflictingCarNumbers;
+        }
+    }
+
+    record DuplicateCarNumbersInRequest(List<Integer> duplicates) implements CoachError {
+        @Override
+        public String message() {
+            return "Duplicate car numbers in request: " + duplicates;
+        }
+    }
+
     /** Human-readable description suitable for a JSend {@code fail} data payload. */
     String message();
 }

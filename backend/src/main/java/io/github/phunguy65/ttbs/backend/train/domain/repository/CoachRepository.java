@@ -16,6 +16,8 @@ public interface CoachRepository {
 
     Coach save(Coach coach);
 
+    List<Coach> saveAll(List<Coach> coaches);
+
     Optional<Coach> findById(CoachId id);
 
     List<Coach> findByTrainId(TrainId trainId);
