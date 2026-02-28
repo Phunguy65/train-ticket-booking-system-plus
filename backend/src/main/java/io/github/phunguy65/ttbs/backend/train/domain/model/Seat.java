@@ -5,7 +5,7 @@ import io.github.phunguy65.ttbs.backend.train.domain.event.SeatDeleted;
 import java.time.Instant;
 
 /**
- * Seat aggregate — represents a physical seat on a train.
+ * Seat aggregate — represents a physical seat on a train coach (toa tàu).
  *
  * <p>Seats are administrative reference data. A new {@code Seat} does NOT emit domain events
  * at creation time (see design decision 6).
@@ -13,15 +13,15 @@ import java.time.Instant;
 public class Seat extends AggregateRoot<SeatId> {
 
     private final SeatId id;
-    private final TrainId trainId;
+    private final CoachId coachId;
     private final String seatNumber;
     private final Instant createdAt;
     private Instant deletedAt;
 
     private Seat(
-            SeatId id, TrainId trainId, String seatNumber, Instant createdAt, Instant deletedAt) {
+            SeatId id, CoachId coachId, String seatNumber, Instant createdAt, Instant deletedAt) {
         this.id = id;
-        this.trainId = trainId;
+        this.coachId = coachId;
         this.seatNumber = seatNumber;
         this.createdAt = createdAt;
         this.deletedAt = deletedAt;
@@ -31,8 +31,8 @@ public class Seat extends AggregateRoot<SeatId> {
      * Factory method for creating a new seat.
      * Does NOT register domain events (seats are admin reference data).
      */
-    public static Seat create(SeatId id, TrainId trainId, String seatNumber) {
-        return new Seat(id, trainId, seatNumber, Instant.now(), null);
+    public static Seat create(SeatId id, CoachId coachId, String seatNumber) {
+        return new Seat(id, coachId, seatNumber, Instant.now(), null);
     }
 
     /**
@@ -40,8 +40,8 @@ public class Seat extends AggregateRoot<SeatId> {
      * Does NOT register domain events.
      */
     public static Seat reconstitute(
-            SeatId id, TrainId trainId, String seatNumber, Instant createdAt, Instant deletedAt) {
-        return new Seat(id, trainId, seatNumber, createdAt, deletedAt);
+            SeatId id, CoachId coachId, String seatNumber, Instant createdAt, Instant deletedAt) {
+        return new Seat(id, coachId, seatNumber, createdAt, deletedAt);
     }
 
     /**
@@ -66,8 +66,8 @@ public class Seat extends AggregateRoot<SeatId> {
         return id;
     }
 
-    public TrainId getTrainId() {
-        return trainId;
+    public CoachId getCoachId() {
+        return coachId;
     }
 
     public String getSeatNumber() {

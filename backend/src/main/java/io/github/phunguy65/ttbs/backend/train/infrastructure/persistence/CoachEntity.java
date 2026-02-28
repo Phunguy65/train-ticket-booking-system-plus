@@ -5,18 +5,21 @@ import java.time.Instant;
 import java.util.UUID;
 
 @Entity
-@Table(name = "seats")
-class SeatEntity {
+@Table(name = "coaches")
+class CoachEntity {
 
     @Id
     @Column(name = "id", nullable = false, updatable = false)
     private UUID id;
 
-    @Column(name = "coach_id", nullable = false, updatable = false)
-    private UUID coachId;
+    @Column(name = "train_id", nullable = false, updatable = false)
+    private UUID trainId;
 
-    @Column(name = "seat_number", nullable = false)
-    private String seatNumber;
+    @Column(name = "car_number", nullable = false)
+    private Integer carNumber;
+
+    @Column(name = "total_seats", nullable = false)
+    private Integer totalSeats;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
@@ -24,7 +27,7 @@ class SeatEntity {
     @Column(name = "deleted_at")
     private Instant deletedAt;
 
-    protected SeatEntity() {}
+    protected CoachEntity() {}
 
     UUID getId() {
         return id;
@@ -34,20 +37,28 @@ class SeatEntity {
         this.id = id;
     }
 
-    UUID getCoachId() {
-        return coachId;
+    UUID getTrainId() {
+        return trainId;
     }
 
-    void setCoachId(UUID coachId) {
-        this.coachId = coachId;
+    void setTrainId(UUID trainId) {
+        this.trainId = trainId;
     }
 
-    String getSeatNumber() {
-        return seatNumber;
+    Integer getCarNumber() {
+        return carNumber;
     }
 
-    void setSeatNumber(String seatNumber) {
-        this.seatNumber = seatNumber;
+    void setCarNumber(Integer carNumber) {
+        this.carNumber = carNumber;
+    }
+
+    Integer getTotalSeats() {
+        return totalSeats;
+    }
+
+    void setTotalSeats(Integer totalSeats) {
+        this.totalSeats = totalSeats;
     }
 
     Instant getCreatedAt() {

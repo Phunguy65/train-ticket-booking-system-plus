@@ -1,8 +1,8 @@
 package io.github.phunguy65.ttbs.backend.train.domain.repository;
 
+import io.github.phunguy65.ttbs.backend.train.domain.model.CoachId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.Seat;
 import io.github.phunguy65.ttbs.backend.train.domain.model.SeatId;
-import io.github.phunguy65.ttbs.backend.train.domain.model.TrainId;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -16,11 +16,11 @@ public interface SeatRepository {
 
     Seat save(Seat seat);
 
-    List<Seat> findByTrainId(TrainId trainId);
+    List<Seat> findByCoachId(CoachId coachId);
 
     Optional<Seat> findById(SeatId id);
 
-    boolean existsByTrainIdAndSeatNumber(TrainId trainId, String seatNumber);
+    boolean existsByCoachIdAndSeatNumber(CoachId coachId, String seatNumber);
 
     void softDeleteById(SeatId id, Instant deletedAt);
 

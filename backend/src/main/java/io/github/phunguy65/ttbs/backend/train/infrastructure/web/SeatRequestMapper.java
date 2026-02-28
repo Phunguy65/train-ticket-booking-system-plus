@@ -10,12 +10,12 @@ import org.springframework.stereotype.Component;
 @Component
 class SeatRequestMapper {
 
-    CreateSeatCommand toCommand(UUID trainId, CreateSeatHttpRequest request) {
-        return new CreateSeatCommand(trainId, request.seatNumber());
+    CreateSeatCommand toCommand(UUID coachId, CreateSeatHttpRequest request) {
+        return new CreateSeatCommand(coachId, request.seatNumber());
     }
 
     SeatHttpResponse toResponse(SeatDto dto) {
-        return new SeatHttpResponse(dto.id(), dto.trainId(), dto.seatNumber(), dto.createdAt());
+        return new SeatHttpResponse(dto.id(), dto.coachId(), dto.seatNumber(), dto.createdAt());
     }
 
     UpdateSeatCommand toUpdateCommand(UUID id, UpdateSeatHttpRequest request) {

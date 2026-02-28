@@ -30,7 +30,7 @@ public class UpdateSeatUseCase {
         if (seatNumberField.isPresent()) {
             String newSeatNumber = seatNumberField.get();
             if (newSeatNumber != null && !newSeatNumber.equals(seat.getSeatNumber())) {
-                if (seatRepository.existsByTrainIdAndSeatNumber(seat.getTrainId(), newSeatNumber)) {
+                if (seatRepository.existsByCoachIdAndSeatNumber(seat.getCoachId(), newSeatNumber)) {
                     return Result.failure(new SeatError.SeatNumberAlreadyExists(newSeatNumber));
                 }
             }
@@ -41,7 +41,7 @@ public class UpdateSeatUseCase {
 
         Seat updated = Seat.reconstitute(
                 seat.getId(),
-                seat.getTrainId(),
+                seat.getCoachId(),
                 newSeatNumber,
                 seat.getCreatedAt(),
                 seat.getDeletedAt());
@@ -53,7 +53,7 @@ public class UpdateSeatUseCase {
     private SeatDto toDto(Seat seat) {
         return new SeatDto(
                 seat.getId().value(),
-                seat.getTrainId().value(),
+                seat.getCoachId().value(),
                 seat.getSeatNumber(),
                 seat.getCreatedAt());
     }

@@ -1,8 +1,8 @@
 package io.github.phunguy65.ttbs.backend.train.infrastructure.persistence;
 
+import io.github.phunguy65.ttbs.backend.train.domain.model.CoachId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.Seat;
 import io.github.phunguy65.ttbs.backend.train.domain.model.SeatId;
-import io.github.phunguy65.ttbs.backend.train.domain.model.TrainId;
 import io.github.phunguy65.ttbs.backend.train.domain.repository.SeatRepository;
 import java.time.Instant;
 import java.util.List;
@@ -29,8 +29,8 @@ class SeatRepositoryAdapter implements SeatRepository {
     }
 
     @Override
-    public List<Seat> findByTrainId(TrainId trainId) {
-        return jpaRepository.findByTrainId(trainId.value()).stream()
+    public List<Seat> findByCoachId(CoachId coachId) {
+        return jpaRepository.findByCoachId(coachId.value()).stream()
                 .map(mapper::toDomain)
                 .toList();
     }
@@ -41,8 +41,8 @@ class SeatRepositoryAdapter implements SeatRepository {
     }
 
     @Override
-    public boolean existsByTrainIdAndSeatNumber(TrainId trainId, String seatNumber) {
-        return jpaRepository.existsByTrainIdAndSeatNumber(trainId.value(), seatNumber);
+    public boolean existsByCoachIdAndSeatNumber(CoachId coachId, String seatNumber) {
+        return jpaRepository.existsByCoachIdAndSeatNumber(coachId.value(), seatNumber);
     }
 
     @Override

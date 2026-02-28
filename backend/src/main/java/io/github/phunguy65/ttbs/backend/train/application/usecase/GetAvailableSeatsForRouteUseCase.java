@@ -40,7 +40,7 @@ public class GetAvailableSeatsForRouteUseCase {
     private SeatDto toDto(Seat seat) {
         return new SeatDto(
                 seat.getId().value(),
-                seat.getTrainId().value(),
+                seat.getCoachId().value(),
                 seat.getSeatNumber(),
                 seat.getCreatedAt());
     }

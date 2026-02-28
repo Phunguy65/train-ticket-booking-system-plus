@@ -2,6 +2,8 @@ package io.github.phunguy65.ttbs.backend.train.infrastructure.persistence;
 
 import static org.assertj.core.api.Assertions.*;
 
+import io.github.phunguy65.ttbs.backend.train.domain.model.Coach;
+import io.github.phunguy65.ttbs.backend.train.domain.model.CoachId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.Seat;
 import io.github.phunguy65.ttbs.backend.train.domain.model.SeatId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.Train;
@@ -21,6 +23,8 @@ import org.springframework.test.context.TestPropertySource;
 @Import({
     SeatRepositoryAdapter.class,
     SeatEntityMapper.class,
+    CoachRepositoryAdapter.class,
+    CoachEntityMapper.class,
     TrainRepositoryAdapter.class,
     TrainEntityMapper.class
 })
@@ -33,22 +37,29 @@ class SeatRepositoryAdapterTest {
     @Autowired
     private TrainRepositoryAdapter trainRepositoryAdapter;
 
-    private TrainId trainId;
+    @Autowired
+    private CoachRepositoryAdapter coachRepositoryAdapter;
+
+    private CoachId coachId;
 
     @BeforeEach
     void setUp() {
-        // We need an existing train to satisfy the FK constraint on seats.train_id
-        trainId = TrainId.of(UUID.randomUUID());
+        // We need an existing train + coach to satisfy the FK constraint on seats.coach_id
+        TrainId trainId = TrainId.of(UUID.randomUUID());
         Train train = Train.create(
                 trainId,
                 "SE-TEST-" + trainId.value().toString().substring(0, 8),
                 "Test Train",
                 100);
         trainRepositoryAdapter.save(train);
+
+        coachId = CoachId.of(UUID.randomUUID());
+        Coach coach = Coach.create(coachId, trainId, 1, 50);
+        coachRepositoryAdapter.save(coach);
     }
 
     private Seat newSeat(String seatNumber) {
-        return Seat.create(SeatId.of(UUID.randomUUID()), trainId, seatNumber);
+        return Seat.create(SeatId.of(UUID.randomUUID()), coachId, seatNumber);
     }
 
     @Test
@@ -59,16 +70,16 @@ class SeatRepositoryAdapterTest {
 
         assertThat(saved.getId()).isNotNull();
         assertThat(saved.getSeatNumber()).isEqualTo("1A");
-        assertThat(saved.getTrainId()).isEqualTo(trainId);
+        assertThat(saved.getCoachId()).isEqualTo(coachId);
     }
 
     @Test
-    void findByTrainId_shouldReturnAllSeatsForTrain() {
+    void findByCoachId_shouldReturnAllSeatsForCoach() {
         seatRepository.save(newSeat("1A"));
         seatRepository.save(newSeat("1B"));
         seatRepository.save(newSeat("2A"));
 
-        List<Seat> seats = seatRepository.findByTrainId(trainId);
+        List<Seat> seats = seatRepository.findByCoachId(coachId);
 
         assertThat(seats).hasSize(3);
         assertThat(seats)
@@ -77,10 +88,10 @@ class SeatRepositoryAdapterTest {
     }
 
     @Test
-    void findByTrainId_forDifferentTrain_shouldReturnEmpty() {
+    void findByCoachId_forDifferentCoach_shouldReturnEmpty() {
         seatRepository.save(newSeat("1A"));
 
-        List<Seat> seats = seatRepository.findByTrainId(TrainId.of(UUID.randomUUID()));
+        List<Seat> seats = seatRepository.findByCoachId(CoachId.of(UUID.randomUUID()));
 
         assertThat(seats).isEmpty();
     }
@@ -103,14 +114,14 @@ class SeatRepositoryAdapterTest {
     }
 
     @Test
-    void existsByTrainIdAndSeatNumber_whenExists_shouldReturnTrue() {
+    void existsByCoachIdAndSeatNumber_whenExists_shouldReturnTrue() {
         seatRepository.save(newSeat("5D"));
 
-        assertThat(seatRepository.existsByTrainIdAndSeatNumber(trainId, "5D")).isTrue();
+        assertThat(seatRepository.existsByCoachIdAndSeatNumber(coachId, "5D")).isTrue();
     }
 
     @Test
-    void existsByTrainIdAndSeatNumber_whenMissing_shouldReturnFalse() {
-        assertThat(seatRepository.existsByTrainIdAndSeatNumber(trainId, "99Z")).isFalse();
+    void existsByCoachIdAndSeatNumber_whenMissing_shouldReturnFalse() {
+        assertThat(seatRepository.existsByCoachIdAndSeatNumber(coachId, "99Z")).isFalse();
     }
 }

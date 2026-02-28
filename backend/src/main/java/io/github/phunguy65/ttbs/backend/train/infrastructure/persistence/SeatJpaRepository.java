@@ -11,10 +11,10 @@ import org.springframework.data.repository.query.Param;
 
 interface SeatJpaRepository extends JpaRepository<SeatEntity, UUID> {
 
-    @Query("SELECT s FROM SeatEntity s WHERE s.trainId = :trainId AND s.deletedAt IS NULL")
-    List<SeatEntity> findByTrainId(@Param("trainId") UUID trainId);
+    @Query("SELECT s FROM SeatEntity s WHERE s.coachId = :coachId AND s.deletedAt IS NULL")
+    List<SeatEntity> findByCoachId(@Param("coachId") UUID coachId);
 
-    boolean existsByTrainIdAndSeatNumber(UUID trainId, String seatNumber);
+    boolean existsByCoachIdAndSeatNumber(UUID coachId, String seatNumber);
 
     @Query("SELECT s FROM SeatEntity s WHERE s.id = :id AND s.deletedAt IS NULL")
     Optional<SeatEntity> findActiveById(@Param("id") UUID id);
