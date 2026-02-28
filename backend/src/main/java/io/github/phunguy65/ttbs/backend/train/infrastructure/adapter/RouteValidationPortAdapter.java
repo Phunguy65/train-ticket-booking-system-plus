@@ -1,7 +1,7 @@
 package io.github.phunguy65.ttbs.backend.train.infrastructure.adapter;
 
+import io.github.phunguy65.ttbs.backend.station.application.port.RouteValidationPort;
 import io.github.phunguy65.ttbs.backend.station.domain.model.StationId;
-import io.github.phunguy65.ttbs.backend.train.application.port.validation.RouteValidationPort;
 import io.github.phunguy65.ttbs.backend.train.domain.repository.RouteRepository;
 import org.springframework.stereotype.Component;
 

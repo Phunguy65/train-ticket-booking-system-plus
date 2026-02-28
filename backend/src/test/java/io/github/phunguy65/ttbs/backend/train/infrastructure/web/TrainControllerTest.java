@@ -12,9 +12,11 @@ import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.GlobalExceptio
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.JacksonConfig;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.WebConfig;
 import io.github.phunguy65.ttbs.backend.train.application.dto.TrainDto;
+import io.github.phunguy65.ttbs.backend.train.application.usecase.BulkSoftDeleteTrainsUseCase;
 import io.github.phunguy65.ttbs.backend.train.application.usecase.CreateTrainUseCase;
 import io.github.phunguy65.ttbs.backend.train.application.usecase.GetTrainByIdUseCase;
 import io.github.phunguy65.ttbs.backend.train.application.usecase.GetTrainsUseCase;
+import io.github.phunguy65.ttbs.backend.train.application.usecase.SoftDeleteTrainUseCase;
 import io.github.phunguy65.ttbs.backend.train.application.usecase.UpdateTrainUseCase;
 import io.github.phunguy65.ttbs.backend.train.domain.errors.TrainError;
 import io.github.phunguy65.ttbs.backend.user.application.port.TokenProvider;
@@ -57,6 +59,12 @@ class TrainControllerTest {
 
     @MockitoBean
     private UpdateTrainUseCase updateTrainUseCase;
+
+    @MockitoBean
+    private SoftDeleteTrainUseCase softDeleteTrainUseCase;
+
+    @MockitoBean
+    private BulkSoftDeleteTrainsUseCase bulkSoftDeleteTrainsUseCase;
 
     @MockitoBean
     private TokenProvider tokenProvider;

@@ -28,6 +28,7 @@ import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.test.context.support.WithAnonymousUser;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -233,6 +234,7 @@ class CoachControllerTest {
     }
 
     @Test
+    @WithAnonymousUser
     void deleteById_unauthenticated_shouldReturn401() throws Exception {
         mockMvc.perform(delete("/api/v1.0/trains/{trainId}/coaches/{id}", TRAIN_UUID, COACH_UUID)
                         .with(csrf()))
@@ -303,6 +305,7 @@ class CoachControllerTest {
     }
 
     @Test
+    @WithAnonymousUser
     void bulkDelete_unauthenticated_shouldReturn401() throws Exception {
         mockMvc.perform(delete("/api/v1.0/coaches")
                         .param("ids", COACH_UUID.toString())

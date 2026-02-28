@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.*;
 
 import io.github.phunguy65.ttbs.backend.booking.domain.model.BookedSeat;
 import io.github.phunguy65.ttbs.backend.station.domain.model.StationId;
+import io.github.phunguy65.ttbs.backend.train.domain.model.CoachId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.Route;
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteStatus;
@@ -44,7 +45,7 @@ class PricingServiceTest {
     private static Seat seatOf(String seatNumber) {
         return Seat.reconstitute(
                 SeatId.of(UUID.randomUUID()),
-                TrainId.of(UUID.randomUUID()),
+                CoachId.of(UUID.randomUUID()),
                 seatNumber,
                 Instant.now(),
                 null);

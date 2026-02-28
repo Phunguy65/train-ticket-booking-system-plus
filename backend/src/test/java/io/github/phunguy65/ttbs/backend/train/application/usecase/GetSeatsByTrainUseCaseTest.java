@@ -4,9 +4,9 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import io.github.phunguy65.ttbs.backend.train.application.dto.SeatDto;
+import io.github.phunguy65.ttbs.backend.train.domain.model.CoachId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.Seat;
 import io.github.phunguy65.ttbs.backend.train.domain.model.SeatId;
-import io.github.phunguy65.ttbs.backend.train.domain.model.TrainId;
 import io.github.phunguy65.ttbs.backend.train.domain.repository.SeatRepository;
 import java.time.Instant;
 import java.util.List;
@@ -25,7 +25,7 @@ class GetSeatsByTrainUseCaseTest {
 
     private GetSeatsByTrainUseCase useCase;
 
-    private static final UUID TRAIN_UUID = UUID.randomUUID();
+    private static final UUID COACH_UUID = UUID.randomUUID();
 
     @BeforeEach
     void setUp() {
@@ -34,14 +34,14 @@ class GetSeatsByTrainUseCaseTest {
 
     @Test
     void execute_withSeats_shouldReturnDtoList() {
-        TrainId trainId = TrainId.of(TRAIN_UUID);
+        CoachId coachId = CoachId.of(COACH_UUID);
         Seat seat1 =
-                Seat.reconstitute(SeatId.of(UUID.randomUUID()), trainId, "1A", Instant.now(), null);
+                Seat.reconstitute(SeatId.of(UUID.randomUUID()), coachId, "1A", Instant.now(), null);
         Seat seat2 =
-                Seat.reconstitute(SeatId.of(UUID.randomUUID()), trainId, "1B", Instant.now(), null);
-        when(seatRepository.findByTrainId(trainId)).thenReturn(List.of(seat1, seat2));
+                Seat.reconstitute(SeatId.of(UUID.randomUUID()), coachId, "1B", Instant.now(), null);
+        when(seatRepository.findByCoachId(coachId)).thenReturn(List.of(seat1, seat2));
 
-        List<SeatDto> result = useCase.execute(TRAIN_UUID);
+        List<SeatDto> result = useCase.execute(COACH_UUID);
 
         assertThat(result).hasSize(2);
         assertThat(result).extracting(SeatDto::seatNumber).containsExactly("1A", "1B");
@@ -49,9 +49,9 @@ class GetSeatsByTrainUseCaseTest {
 
     @Test
     void execute_withNoSeats_shouldReturnEmptyList() {
-        when(seatRepository.findByTrainId(any())).thenReturn(List.of());
+        when(seatRepository.findByCoachId(any())).thenReturn(List.of());
 
-        List<SeatDto> result = useCase.execute(TRAIN_UUID);
+        List<SeatDto> result = useCase.execute(COACH_UUID);
 
         assertThat(result).isEmpty();
     }

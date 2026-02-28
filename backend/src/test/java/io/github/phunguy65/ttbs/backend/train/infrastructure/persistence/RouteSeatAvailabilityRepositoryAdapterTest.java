@@ -2,6 +2,8 @@ package io.github.phunguy65.ttbs.backend.train.infrastructure.persistence;
 
 import static org.assertj.core.api.Assertions.*;
 
+import io.github.phunguy65.ttbs.backend.train.domain.model.Coach;
+import io.github.phunguy65.ttbs.backend.train.domain.model.CoachId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteSeatAvailability;
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteSeatAvailabilityStatus;
@@ -26,6 +28,8 @@ import org.springframework.test.context.TestPropertySource;
     RouteSeatAvailabilityEntityMapper.class,
     SeatRepositoryAdapter.class,
     SeatEntityMapper.class,
+    CoachRepositoryAdapter.class,
+    CoachEntityMapper.class,
     TrainRepositoryAdapter.class,
     TrainEntityMapper.class
 })
@@ -39,6 +43,9 @@ class RouteSeatAvailabilityRepositoryAdapterTest {
     private SeatRepositoryAdapter seatRepository;
 
     @Autowired
+    private CoachRepositoryAdapter coachRepository;
+
+    @Autowired
     private TrainRepositoryAdapter trainRepository;
 
     private RouteId routeId;
@@ -47,17 +54,20 @@ class RouteSeatAvailabilityRepositoryAdapterTest {
 
     @BeforeEach
     void setUp() {
-        // Save train + seats to satisfy FK constraints
+        // Save train + coach + seats to satisfy FK constraints
         TrainId trainId = TrainId.of(UUID.randomUUID());
         trainRepository.save(Train.create(
                 trainId, "RSA-TEST-" + trainId.value().toString().substring(0, 8), "Test", 100));
 
+        CoachId coachId = CoachId.of(UUID.randomUUID());
+        coachRepository.save(Coach.create(coachId, trainId, 1, 50));
+
         routeId = RouteId.of(UUID.randomUUID());
 
-        Seat seat1 = Seat.create(SeatId.of(UUID.randomUUID()), trainId, "1A");
+        Seat seat1 = Seat.create(SeatId.of(UUID.randomUUID()), coachId, "1A");
         seatId = seatRepository.save(seat1).getId();
 
-        Seat seat2 = Seat.create(SeatId.of(UUID.randomUUID()), trainId, "1B");
+        Seat seat2 = Seat.create(SeatId.of(UUID.randomUUID()), coachId, "1B");
         seatId2 = seatRepository.save(seat2).getId();
     }
 

@@ -18,6 +18,7 @@ import io.github.phunguy65.ttbs.backend.train.application.port.RoutePort;
 import io.github.phunguy65.ttbs.backend.train.application.port.RouteSeatAvailabilityPort;
 import io.github.phunguy65.ttbs.backend.train.application.port.SeatPort;
 import io.github.phunguy65.ttbs.backend.train.domain.errors.RouteSeatAvailabilityError;
+import io.github.phunguy65.ttbs.backend.train.domain.model.CoachId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.Route;
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteStatus;
@@ -89,7 +90,7 @@ class CreateSeatHoldUseCaseTest {
                 Instant.now());
 
         testSeat = Seat.reconstitute(
-                SeatId.of(SEAT_ID), testRoute.getTrainId(), "1A", Instant.now(), null);
+                SeatId.of(SEAT_ID), CoachId.of(UUID.randomUUID()), "1A", Instant.now(), null);
     }
 
     private CreateSeatHoldCommand createCommand() {

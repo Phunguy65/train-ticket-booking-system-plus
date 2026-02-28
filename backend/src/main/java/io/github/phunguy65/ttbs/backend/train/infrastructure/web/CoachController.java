@@ -101,7 +101,8 @@ class CoachController {
 
     @DeleteMapping(value = "/{version}/coaches", version = "1.0")
     @PreAuthorize("hasRole('ADMIN')")
-    ResponseEntity<JsendResponse<?>> bulkDelete(@RequestParam("ids") List<UUID> ids) {
+    ResponseEntity<JsendResponse<?>> bulkDelete(
+            @RequestParam(value = "ids", required = false) List<UUID> ids) {
         if (ids == null || ids.isEmpty()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(JsendResponse.fail(new FailData(

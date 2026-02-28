@@ -8,11 +8,12 @@ import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.train.application.command.CreateSeatCommand;
 import io.github.phunguy65.ttbs.backend.train.application.dto.SeatDto;
 import io.github.phunguy65.ttbs.backend.train.domain.errors.SeatError;
+import io.github.phunguy65.ttbs.backend.train.domain.model.Coach;
+import io.github.phunguy65.ttbs.backend.train.domain.model.CoachId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.Seat;
-import io.github.phunguy65.ttbs.backend.train.domain.model.Train;
 import io.github.phunguy65.ttbs.backend.train.domain.model.TrainId;
+import io.github.phunguy65.ttbs.backend.train.domain.repository.CoachRepository;
 import io.github.phunguy65.ttbs.backend.train.domain.repository.SeatRepository;
-import io.github.phunguy65.ttbs.backend.train.domain.repository.TrainRepository;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,50 +26,55 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class CreateSeatUseCaseTest {
 
     @Mock
-    private TrainRepository trainRepository;
+    private CoachRepository coachRepository;
 
     @Mock
     private SeatRepository seatRepository;
 
     private CreateSeatUseCase useCase;
 
-    private static final UUID TRAIN_UUID = UUID.randomUUID();
+    private static final UUID COACH_UUID = UUID.randomUUID();
     private static final String SEAT_NUMBER = "1A";
 
     @BeforeEach
     void setUp() {
-        useCase = new CreateSeatUseCase(trainRepository, seatRepository);
+        useCase = new CreateSeatUseCase(coachRepository, seatRepository);
     }
 
-    private Train sampleTrain() {
-        return Train.reconstitute(
-                TrainId.of(TRAIN_UUID), "SE001", "Express", 250, java.time.Instant.now(), null);
+    private Coach sampleCoach() {
+        return Coach.reconstitute(
+                CoachId.of(COACH_UUID),
+                TrainId.of(UUID.randomUUID()),
+                1,
+                50,
+                java.time.Instant.now(),
+                null);
     }
 
     @Test
     void execute_withValidCommand_shouldReturnSeatDto() {
-        when(trainRepository.findById(TrainId.of(TRAIN_UUID)))
-                .thenReturn(Optional.of(sampleTrain()));
-        when(seatRepository.existsByTrainIdAndSeatNumber(any(), eq(SEAT_NUMBER)))
+        when(coachRepository.findById(CoachId.of(COACH_UUID)))
+                .thenReturn(Optional.of(sampleCoach()));
+        when(seatRepository.existsByCoachIdAndSeatNumber(any(), eq(SEAT_NUMBER)))
                 .thenReturn(false);
         when(seatRepository.save(any(Seat.class))).thenAnswer(inv -> inv.getArgument(0));
 
         Result<SeatDto, SeatError> result =
-                useCase.execute(new CreateSeatCommand(TRAIN_UUID, SEAT_NUMBER));
+                useCase.execute(new CreateSeatCommand(COACH_UUID, SEAT_NUMBER));
 
         assertThat(result.isSuccess()).isTrue();
         SeatDto dto = ((Result.Success<SeatDto, SeatError>) result).value();
-        assertThat(dto.trainId()).isEqualTo(TRAIN_UUID);
+        assertThat(dto.coachId()).isEqualTo(COACH_UUID);
         assertThat(dto.seatNumber()).isEqualTo(SEAT_NUMBER);
         assertThat(dto.id()).isNotNull();
     }
 
     @Test
-    void execute_whenTrainNotFound_shouldReturnTrainNotFoundError() {
-        when(trainRepository.findById(TrainId.of(TRAIN_UUID))).thenReturn(Optional.empty());
+    void execute_whenCoachNotFound_shouldReturnTrainNotFoundError() {
+        when(coachRepository.findById(CoachId.of(COACH_UUID))).thenReturn(Optional.empty());
 
         Result<SeatDto, SeatError> result =
-                useCase.execute(new CreateSeatCommand(TRAIN_UUID, SEAT_NUMBER));
+                useCase.execute(new CreateSeatCommand(COACH_UUID, SEAT_NUMBER));
 
         assertThat(result.isFailure()).isTrue();
         assertThat(((Result.Failure<SeatDto, SeatError>) result).error())
@@ -78,13 +84,13 @@ class CreateSeatUseCaseTest {
 
     @Test
     void execute_whenDuplicateSeatNumber_shouldReturnSeatNumberAlreadyExistsError() {
-        when(trainRepository.findById(TrainId.of(TRAIN_UUID)))
-                .thenReturn(Optional.of(sampleTrain()));
-        when(seatRepository.existsByTrainIdAndSeatNumber(any(), eq(SEAT_NUMBER)))
+        when(coachRepository.findById(CoachId.of(COACH_UUID)))
+                .thenReturn(Optional.of(sampleCoach()));
+        when(seatRepository.existsByCoachIdAndSeatNumber(any(), eq(SEAT_NUMBER)))
                 .thenReturn(true);
 
         Result<SeatDto, SeatError> result =
-                useCase.execute(new CreateSeatCommand(TRAIN_UUID, SEAT_NUMBER));
+                useCase.execute(new CreateSeatCommand(COACH_UUID, SEAT_NUMBER));
 
         assertThat(result.isFailure()).isTrue();
         assertThat(((Result.Failure<SeatDto, SeatError>) result).error())

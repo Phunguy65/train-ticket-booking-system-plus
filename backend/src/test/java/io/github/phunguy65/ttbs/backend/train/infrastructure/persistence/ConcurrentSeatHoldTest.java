@@ -4,6 +4,8 @@ import static org.assertj.core.api.Assertions.*;
 
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.train.domain.errors.RouteSeatAvailabilityError;
+import io.github.phunguy65.ttbs.backend.train.domain.model.Coach;
+import io.github.phunguy65.ttbs.backend.train.domain.model.CoachId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteSeatAvailability;
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteSeatAvailabilityStatus;
@@ -48,6 +50,8 @@ import org.springframework.transaction.support.TransactionTemplate;
     RouteSeatAvailabilityEntityMapper.class,
     SeatRepositoryAdapter.class,
     SeatEntityMapper.class,
+    CoachRepositoryAdapter.class,
+    CoachEntityMapper.class,
     TrainRepositoryAdapter.class,
     TrainEntityMapper.class
 })
@@ -61,6 +65,9 @@ class ConcurrentSeatHoldTest {
 
     @Autowired
     private SeatRepositoryAdapter seatRepository;
+
+    @Autowired
+    private CoachRepositoryAdapter coachRepository;
 
     @Autowired
     private TrainRepositoryAdapter trainRepository;
@@ -82,9 +89,12 @@ class ConcurrentSeatHoldTest {
                     "Concurrent Test",
                     100));
 
+            CoachId coachId = CoachId.of(UUID.randomUUID());
+            coachRepository.save(Coach.create(coachId, trainId, 1, 50));
+
             routeId = RouteId.of(UUID.randomUUID());
 
-            Seat seat = Seat.create(SeatId.of(UUID.randomUUID()), trainId, "1A");
+            Seat seat = Seat.create(SeatId.of(UUID.randomUUID()), coachId, "1A");
             seatId = seatRepository.save(seat).getId();
 
             availabilityRepository.saveAll(List.of(RouteSeatAvailability.create(routeId, seatId)));

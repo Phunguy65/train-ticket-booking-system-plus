@@ -2,11 +2,11 @@ package io.github.phunguy65.ttbs.backend.station.application.usecase;
 
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.station.application.command.BulkSoftDeleteStationsCommand;
+import io.github.phunguy65.ttbs.backend.station.application.port.RouteValidationPort;
 import io.github.phunguy65.ttbs.backend.station.domain.errors.StationError;
 import io.github.phunguy65.ttbs.backend.station.domain.event.StationDeleted;
 import io.github.phunguy65.ttbs.backend.station.domain.model.StationId;
 import io.github.phunguy65.ttbs.backend.station.domain.repository.StationRepository;
-import io.github.phunguy65.ttbs.backend.train.application.port.validation.RouteValidationPort;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;

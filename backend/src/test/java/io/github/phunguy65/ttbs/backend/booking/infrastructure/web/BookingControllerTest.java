@@ -172,7 +172,7 @@ class BookingControllerTest {
 
         when(confirmSeatHoldUseCase.execute(any())).thenReturn(Result.success(dto));
 
-        mockMvc.perform(post("/api/v1.0/bookings/{id}/confirm", bookingId)
+        mockMvc.perform(post("/api/v1.0/bookings/{id}:confirm", bookingId)
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -189,7 +189,7 @@ class BookingControllerTest {
         when(confirmSeatHoldUseCase.execute(any()))
                 .thenReturn(Result.failure(new BookingError.HoldExpired()));
 
-        mockMvc.perform(post("/api/v1.0/bookings/{id}/confirm", bookingId)
+        mockMvc.perform(post("/api/v1.0/bookings/{id}:confirm", bookingId)
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -206,7 +206,7 @@ class BookingControllerTest {
         when(confirmSeatHoldUseCase.execute(any()))
                 .thenReturn(Result.failure(new BookingError.InvalidStatusTransition(null)));
 
-        mockMvc.perform(post("/api/v1.0/bookings/{id}/confirm", bookingId)
+        mockMvc.perform(post("/api/v1.0/bookings/{id}:confirm", bookingId)
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))

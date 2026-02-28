@@ -3,6 +3,7 @@ package io.github.phunguy65.ttbs.backend.station;
 import static org.assertj.core.api.Assertions.*;
 
 import io.github.phunguy65.ttbs.backend.station.application.command.CreateStationCommand;
+import io.github.phunguy65.ttbs.backend.station.application.port.RouteValidationPort;
 import io.github.phunguy65.ttbs.backend.station.application.usecase.CreateStationUseCase;
 import io.github.phunguy65.ttbs.backend.station.domain.event.StationCreated;
 import org.junit.jupiter.api.Test;
@@ -10,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.modulith.test.ApplicationModuleTest;
 import org.springframework.modulith.test.PublishedEvents;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 @ApplicationModuleTest
 @TestPropertySource(
@@ -19,6 +21,9 @@ import org.springframework.test.context.TestPropertySource;
             "jwt.refresh-token-expiry=604800"
         })
 class StationModuleTest {
+
+    @MockitoBean
+    private RouteValidationPort routeValidationPort;
 
     @Autowired
     private CreateStationUseCase createStationUseCase;

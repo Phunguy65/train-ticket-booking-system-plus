@@ -12,9 +12,11 @@ import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.GlobalExceptio
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.JacksonConfig;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.WebConfig;
 import io.github.phunguy65.ttbs.backend.station.application.dto.StationDto;
+import io.github.phunguy65.ttbs.backend.station.application.usecase.BulkSoftDeleteStationsUseCase;
 import io.github.phunguy65.ttbs.backend.station.application.usecase.CreateStationUseCase;
 import io.github.phunguy65.ttbs.backend.station.application.usecase.GetStationByIdUseCase;
 import io.github.phunguy65.ttbs.backend.station.application.usecase.GetStationsUseCase;
+import io.github.phunguy65.ttbs.backend.station.application.usecase.SoftDeleteStationUseCase;
 import io.github.phunguy65.ttbs.backend.station.application.usecase.UpdateStationUseCase;
 import io.github.phunguy65.ttbs.backend.station.domain.errors.StationError;
 import io.github.phunguy65.ttbs.backend.user.application.port.TokenProvider;
@@ -57,6 +59,12 @@ class StationControllerTest {
 
     @MockitoBean
     private UpdateStationUseCase updateStationUseCase;
+
+    @MockitoBean
+    private SoftDeleteStationUseCase softDeleteStationUseCase;
+
+    @MockitoBean
+    private BulkSoftDeleteStationsUseCase bulkSoftDeleteStationsUseCase;
 
     @MockitoBean
     private TokenProvider tokenProvider;
