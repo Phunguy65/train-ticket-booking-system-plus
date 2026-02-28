@@ -10,7 +10,6 @@ import io.github.phunguy65.ttbs.backend.train.application.usecase.CreateSeatUseC
 import io.github.phunguy65.ttbs.backend.train.application.usecase.GetAvailableSeatsForRouteUseCase;
 import io.github.phunguy65.ttbs.backend.train.application.usecase.GetSeatsByTrainUseCase;
 import io.github.phunguy65.ttbs.backend.train.application.usecase.SoftDeleteSeatUseCase;
-import io.github.phunguy65.ttbs.backend.train.application.usecase.UpdateSeatUseCase;
 import io.github.phunguy65.ttbs.backend.train.domain.errors.SeatError;
 import io.github.phunguy65.ttbs.backend.train.domain.model.SeatId;
 import jakarta.validation.Valid;
@@ -22,7 +21,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -35,7 +33,6 @@ class SeatController {
     private final CreateSeatUseCase createSeatUseCase;
     private final GetSeatsByTrainUseCase getSeatsByTrainUseCase;
     private final GetAvailableSeatsForRouteUseCase getAvailableSeatsForRouteUseCase;
-    private final UpdateSeatUseCase updateSeatUseCase;
     private final SoftDeleteSeatUseCase softDeleteSeatUseCase;
     private final BulkSoftDeleteSeatsUseCase bulkSoftDeleteSeatsUseCase;
     private final SeatRequestMapper mapper;
@@ -44,14 +41,12 @@ class SeatController {
             CreateSeatUseCase createSeatUseCase,
             GetSeatsByTrainUseCase getSeatsByTrainUseCase,
             GetAvailableSeatsForRouteUseCase getAvailableSeatsForRouteUseCase,
-            UpdateSeatUseCase updateSeatUseCase,
             SoftDeleteSeatUseCase softDeleteSeatUseCase,
             BulkSoftDeleteSeatsUseCase bulkSoftDeleteSeatsUseCase,
             SeatRequestMapper mapper) {
         this.createSeatUseCase = createSeatUseCase;
         this.getSeatsByTrainUseCase = getSeatsByTrainUseCase;
         this.getAvailableSeatsForRouteUseCase = getAvailableSeatsForRouteUseCase;
-        this.updateSeatUseCase = updateSeatUseCase;
         this.softDeleteSeatUseCase = softDeleteSeatUseCase;
         this.bulkSoftDeleteSeatsUseCase = bulkSoftDeleteSeatsUseCase;
         this.mapper = mapper;
@@ -90,17 +85,6 @@ class SeatController {
                         .map(mapper::toResponse)
                         .toList();
         return ResponseEntity.ok(JsendResponse.success(responses));
-    }
-
-    @PatchMapping(value = "/{version}/seats/{id}", version = "1.0")
-    @PreAuthorize("hasRole('ADMIN')")
-    ResponseEntity<JsendResponse<?>> patchById(
-            @PathVariable UUID id, @Valid @RequestBody UpdateSeatHttpRequest request) {
-        return updateSeatUseCase
-                .execute(mapper.toUpdateCommand(id, request))
-                .fold(
-                        dto -> ResponseEntity.ok(JsendResponse.success(mapper.toResponse(dto))),
-                        this::seatErrorResponse);
     }
 
     @DeleteMapping(value = "/{version}/seats/{id}", version = "1.0")
