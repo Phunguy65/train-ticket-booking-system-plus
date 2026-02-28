@@ -36,6 +36,9 @@ public enum ErrorCode {
     SEAT_NOT_AVAILABLE,
     SEAT_IN_USE,
     ROUTE_NOT_FOUND,
+    COACH_NOT_FOUND,
+    COACH_CAR_NUMBER_ALREADY_EXISTS,
+    COACH_TRAIN_NOT_FOUND,
 
     // ── Station module ────────────────────────────────────────────────────────
     STATION_NOT_FOUND,
