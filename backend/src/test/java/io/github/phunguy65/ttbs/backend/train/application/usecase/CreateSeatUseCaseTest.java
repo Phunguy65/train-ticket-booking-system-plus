@@ -42,7 +42,7 @@ class CreateSeatUseCaseTest {
 
     private Train sampleTrain() {
         return Train.reconstitute(
-                TrainId.of(TRAIN_UUID), "SE001", "Express", 250, java.time.Instant.now());
+                TrainId.of(TRAIN_UUID), "SE001", "Express", 250, java.time.Instant.now(), null);
     }
 
     @Test

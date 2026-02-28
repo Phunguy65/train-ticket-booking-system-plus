@@ -30,12 +30,15 @@ public enum ErrorCode {
     // ── Train module ──────────────────────────────────────────────────────────
     TRAIN_NUMBER_ALREADY_EXISTS,
     TRAIN_NOT_FOUND,
+    TRAIN_IN_USE,
     SEAT_NOT_FOUND,
     SEAT_NUMBER_ALREADY_EXISTS,
     SEAT_NOT_AVAILABLE,
+    SEAT_IN_USE,
     ROUTE_NOT_FOUND,
 
     // ── Station module ────────────────────────────────────────────────────────
     STATION_NOT_FOUND,
-    STATION_CODE_ALREADY_EXISTS
+    STATION_CODE_ALREADY_EXISTS,
+    STATION_IN_USE
 }

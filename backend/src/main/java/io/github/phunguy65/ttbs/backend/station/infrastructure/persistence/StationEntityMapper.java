@@ -14,7 +14,8 @@ class StationEntityMapper {
                 entity.getCode(),
                 entity.getName(),
                 entity.getCity(),
-                entity.getCreatedAt() != null ? entity.getCreatedAt() : Instant.now());
+                entity.getCreatedAt() != null ? entity.getCreatedAt() : Instant.now(),
+                entity.getDeletedAt());
     }
 
     StationEntity toEntity(Station station) {
@@ -24,6 +25,7 @@ class StationEntityMapper {
         entity.setName(station.getName());
         entity.setCity(station.getCity());
         entity.setCreatedAt(station.getCreatedAt());
+        entity.setDeletedAt(station.getDeletedAt());
         return entity;
     }
 }

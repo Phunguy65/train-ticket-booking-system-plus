@@ -46,7 +46,8 @@ class PricingServiceTest {
                 SeatId.of(UUID.randomUUID()),
                 TrainId.of(UUID.randomUUID()),
                 seatNumber,
-                Instant.now());
+                Instant.now(),
+                null);
     }
 
     @Test

@@ -23,4 +23,12 @@ interface RouteJpaRepository extends JpaRepository<RouteEntity, UUID> {
             @Param("departureDateFrom") Instant departureDateFrom,
             @Param("departureDateTo") Instant departureDateTo,
             Pageable pageable);
+
+    @Query(
+            "SELECT COUNT(r) > 0 FROM RouteEntity r WHERE r.trainId = :trainId AND r.deletedAt IS NULL")
+    boolean existsActiveRouteByTrainId(@Param("trainId") UUID trainId);
+
+    @Query(
+            "SELECT COUNT(r) > 0 FROM RouteEntity r WHERE (r.originStationId = :stationId OR r.destinationStationId = :stationId) AND r.deletedAt IS NULL")
+    boolean existsActiveRouteByStationId(@Param("stationId") UUID stationId);
 }

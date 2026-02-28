@@ -28,4 +28,8 @@ public interface RouteSeatAvailabilityRepository {
     List<RouteSeatAvailability> saveAll(List<RouteSeatAvailability> records);
 
     RouteSeatAvailability save(RouteSeatAvailability record);
+
+    boolean existsActiveBySeatId(SeatId seatId);
+
+    boolean existsActiveByAnyOfSeatIds(List<SeatId> seatIds);
 }

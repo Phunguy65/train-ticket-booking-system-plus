@@ -34,7 +34,8 @@ class GetStationByIdUseCaseTest {
     @Test
     void execute_stationFound_shouldReturnDto() {
         StationId id = StationId.of(UUID.randomUUID());
-        Station station = Station.reconstitute(id, "HN", "Hanoi Station", "Hanoi", Instant.now());
+        Station station =
+                Station.reconstitute(id, "HN", "Hanoi Station", "Hanoi", Instant.now(), null);
         when(stationRepository.findById(id)).thenReturn(Optional.of(station));
 
         Result<StationDto, StationError> result = useCase.execute(id);

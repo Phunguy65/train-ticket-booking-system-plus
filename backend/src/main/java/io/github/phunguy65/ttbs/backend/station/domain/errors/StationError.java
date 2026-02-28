@@ -1,5 +1,8 @@
 package io.github.phunguy65.ttbs.backend.station.domain.errors;
 
+import java.util.List;
+import java.util.UUID;
+
 /**
  * Typed business errors for the Station domain.
  *
@@ -18,6 +21,13 @@ public sealed interface StationError {
         @Override
         public String message() {
             return "A station with code '" + code + "' already exists";
+        }
+    }
+
+    record StationInUse(List<UUID> conflictingIds) implements StationError {
+        @Override
+        public String message() {
+            return "One or more stations are referenced by active routes and cannot be deleted";
         }
     }
 

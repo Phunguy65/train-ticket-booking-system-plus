@@ -4,6 +4,8 @@ import io.github.phunguy65.ttbs.backend.shared.domain.PageResult;
 import io.github.phunguy65.ttbs.backend.shared.domain.SortDirection;
 import io.github.phunguy65.ttbs.backend.train.domain.model.Train;
 import io.github.phunguy65.ttbs.backend.train.domain.model.TrainId;
+import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 
 public interface TrainRepository {
@@ -15,4 +17,8 @@ public interface TrainRepository {
     PageResult<Train> findAll(int page, int size, String sortField, SortDirection direction);
 
     boolean existsByTrainNumber(String trainNumber);
+
+    void softDeleteById(TrainId id, Instant deletedAt);
+
+    int softDeleteByIds(List<TrainId> ids, Instant deletedAt);
 }

@@ -39,7 +39,8 @@ class GetTrainByIdUseCaseTest {
                 "SE001",
                 "Reunification Express",
                 250,
-                Instant.parse("2024-01-01T00:00:00Z"));
+                Instant.parse("2024-01-01T00:00:00Z"),
+                null);
         when(trainRepository.findById(trainId)).thenReturn(Optional.of(train));
 
         Result<TrainDto, TrainError> result = useCase.execute(trainId);

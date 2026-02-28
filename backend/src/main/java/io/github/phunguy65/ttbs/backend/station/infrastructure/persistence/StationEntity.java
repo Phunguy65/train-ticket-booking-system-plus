@@ -24,6 +24,9 @@ class StationEntity {
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
+    @Column(name = "deleted_at")
+    private Instant deletedAt;
+
     protected StationEntity() {}
 
     UUID getId() {
@@ -64,5 +67,13 @@ class StationEntity {
 
     void setCreatedAt(Instant createdAt) {
         this.createdAt = createdAt;
+    }
+
+    Instant getDeletedAt() {
+        return deletedAt;
+    }
+
+    void setDeletedAt(Instant deletedAt) {
+        this.deletedAt = deletedAt;
     }
 }

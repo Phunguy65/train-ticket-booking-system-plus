@@ -2,9 +2,11 @@ package io.github.phunguy65.ttbs.backend.train.infrastructure.persistence;
 
 import io.github.phunguy65.ttbs.backend.shared.domain.PageResult;
 import io.github.phunguy65.ttbs.backend.shared.domain.SortDirection;
+import io.github.phunguy65.ttbs.backend.station.domain.model.StationId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.Route;
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteFilter;
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteId;
+import io.github.phunguy65.ttbs.backend.train.domain.model.TrainId;
 import io.github.phunguy65.ttbs.backend.train.domain.repository.RouteRepository;
 import java.util.List;
 import java.util.Optional;
@@ -50,5 +52,15 @@ class RouteRepositoryAdapter implements RouteRepository {
                 pageable);
         List<Route> items = slice.getContent().stream().map(mapper::toDomain).toList();
         return PageResult.of(items, page, size, slice.hasNext());
+    }
+
+    @Override
+    public boolean existsActiveByTrainId(TrainId trainId) {
+        return jpaRepository.existsActiveRouteByTrainId(trainId.value());
+    }
+
+    @Override
+    public boolean existsActiveByStationId(StationId stationId) {
+        return jpaRepository.existsActiveRouteByStationId(stationId.value());
     }
 }

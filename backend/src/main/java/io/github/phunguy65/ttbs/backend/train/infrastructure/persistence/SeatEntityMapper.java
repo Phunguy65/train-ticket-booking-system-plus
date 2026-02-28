@@ -14,7 +14,8 @@ class SeatEntityMapper {
                 SeatId.of(entity.getId()),
                 TrainId.of(entity.getTrainId()),
                 entity.getSeatNumber(),
-                entity.getCreatedAt() != null ? entity.getCreatedAt() : Instant.now());
+                entity.getCreatedAt() != null ? entity.getCreatedAt() : Instant.now(),
+                entity.getDeletedAt());
     }
 
     SeatEntity toEntity(Seat seat) {
@@ -23,6 +24,7 @@ class SeatEntityMapper {
         entity.setTrainId(seat.getTrainId().value());
         entity.setSeatNumber(seat.getSeatNumber());
         entity.setCreatedAt(seat.getCreatedAt());
+        entity.setDeletedAt(seat.getDeletedAt());
         return entity;
     }
 }

@@ -1,5 +1,8 @@
 package io.github.phunguy65.ttbs.backend.train.domain.errors;
 
+import java.util.List;
+import java.util.UUID;
+
 /**
  * Typed business errors for the Train domain.
  *
@@ -18,6 +21,13 @@ public sealed interface TrainError {
         @Override
         public String message() {
             return "Train not found";
+        }
+    }
+
+    record TrainInUse(List<UUID> conflictingIds) implements TrainError {
+        @Override
+        public String message() {
+            return "One or more trains are referenced by active routes and cannot be deleted";
         }
     }
 

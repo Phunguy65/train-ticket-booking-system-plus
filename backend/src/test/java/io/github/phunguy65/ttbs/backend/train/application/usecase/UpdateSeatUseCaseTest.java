@@ -39,7 +39,7 @@ class UpdateSeatUseCaseTest {
     }
 
     private Seat makeSeat() {
-        return Seat.reconstitute(SEAT_ID, TRAIN_ID, "1A", Instant.now());
+        return Seat.reconstitute(SEAT_ID, TRAIN_ID, "1A", Instant.now(), null);
     }
 
     @Test

@@ -5,6 +5,7 @@ import io.github.phunguy65.ttbs.backend.shared.domain.SortDirection;
 import io.github.phunguy65.ttbs.backend.train.domain.model.Train;
 import io.github.phunguy65.ttbs.backend.train.domain.model.TrainId;
 import io.github.phunguy65.ttbs.backend.train.domain.repository.TrainRepository;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.PageRequest;
@@ -32,7 +33,7 @@ class TrainRepositoryAdapter implements TrainRepository {
 
     @Override
     public Optional<Train> findById(TrainId id) {
-        return jpaRepository.findById(id.value()).map(mapper::toDomain);
+        return jpaRepository.findActiveById(id.value()).map(mapper::toDomain);
     }
 
     @Override
@@ -41,7 +42,7 @@ class TrainRepositoryAdapter implements TrainRepository {
         Sort.Direction sortDir =
                 direction == SortDirection.ASC ? Sort.Direction.ASC : Sort.Direction.DESC;
         PageRequest pageable = PageRequest.of(page, size, Sort.by(sortDir, sortField));
-        Slice<TrainEntity> slice = jpaRepository.findAll(pageable);
+        Slice<TrainEntity> slice = jpaRepository.findAllActive(pageable);
         List<Train> items = slice.getContent().stream().map(mapper::toDomain).toList();
         return PageResult.of(items, page, size, slice.hasNext());
     }
@@ -49,5 +50,16 @@ class TrainRepositoryAdapter implements TrainRepository {
     @Override
     public boolean existsByTrainNumber(String trainNumber) {
         return jpaRepository.existsByTrainNumber(trainNumber);
+    }
+
+    @Override
+    public void softDeleteById(TrainId id, Instant deletedAt) {
+        jpaRepository.softDeleteById(id.value(), deletedAt);
+    }
+
+    @Override
+    public int softDeleteByIds(List<TrainId> ids, Instant deletedAt) {
+        List<java.util.UUID> uuids = ids.stream().map(TrainId::value).toList();
+        return jpaRepository.softDeleteByIds(uuids, deletedAt);
     }
 }

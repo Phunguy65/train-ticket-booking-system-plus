@@ -34,9 +34,9 @@ class GetTrainsUseCaseTest {
     @Test
     void execute_shouldReturnPageResultWithCorrectMetadata() {
         Train train1 = Train.reconstitute(
-                TrainId.of(UUID.randomUUID()), "SE001", "Express 1", 200, Instant.now());
+                TrainId.of(UUID.randomUUID()), "SE001", "Express 1", 200, Instant.now(), null);
         Train train2 = Train.reconstitute(
-                TrainId.of(UUID.randomUUID()), "SE002", "Express 2", 300, Instant.now());
+                TrainId.of(UUID.randomUUID()), "SE002", "Express 2", 300, Instant.now(), null);
         PageResult<Train> trainPage = PageResult.of(List.of(train1, train2), 0, 20, false);
         when(trainRepository.findAll(0, 20, "createdAt", SortDirection.DESC)).thenReturn(trainPage);
 
@@ -67,7 +67,7 @@ class GetTrainsUseCaseTest {
     @Test
     void execute_hasNextTrue_shouldPropagateHasNext() {
         Train train = Train.reconstitute(
-                TrainId.of(UUID.randomUUID()), "SE001", "Express 1", 200, Instant.now());
+                TrainId.of(UUID.randomUUID()), "SE001", "Express 1", 200, Instant.now(), null);
         PageResult<Train> trainPage = PageResult.of(List.of(train), 0, 1, true);
         when(trainRepository.findAll(0, 1, "trainNumber", SortDirection.ASC)).thenReturn(trainPage);
 

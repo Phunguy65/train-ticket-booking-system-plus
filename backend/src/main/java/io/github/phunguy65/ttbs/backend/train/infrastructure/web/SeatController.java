@@ -3,17 +3,24 @@ package io.github.phunguy65.ttbs.backend.train.infrastructure.web;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.ErrorCode;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.FailData;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.JsendResponse;
+import io.github.phunguy65.ttbs.backend.train.application.command.BulkSoftDeleteSeatsCommand;
+import io.github.phunguy65.ttbs.backend.train.application.command.SoftDeleteSeatCommand;
+import io.github.phunguy65.ttbs.backend.train.application.usecase.BulkSoftDeleteSeatsUseCase;
 import io.github.phunguy65.ttbs.backend.train.application.usecase.CreateSeatUseCase;
 import io.github.phunguy65.ttbs.backend.train.application.usecase.GetAvailableSeatsForRouteUseCase;
 import io.github.phunguy65.ttbs.backend.train.application.usecase.GetSeatsByTrainUseCase;
+import io.github.phunguy65.ttbs.backend.train.application.usecase.SoftDeleteSeatUseCase;
 import io.github.phunguy65.ttbs.backend.train.application.usecase.UpdateSeatUseCase;
 import io.github.phunguy65.ttbs.backend.train.domain.errors.SeatError;
+import io.github.phunguy65.ttbs.backend.train.domain.model.SeatId;
 import jakarta.validation.Valid;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -29,6 +36,8 @@ class SeatController {
     private final GetSeatsByTrainUseCase getSeatsByTrainUseCase;
     private final GetAvailableSeatsForRouteUseCase getAvailableSeatsForRouteUseCase;
     private final UpdateSeatUseCase updateSeatUseCase;
+    private final SoftDeleteSeatUseCase softDeleteSeatUseCase;
+    private final BulkSoftDeleteSeatsUseCase bulkSoftDeleteSeatsUseCase;
     private final SeatRequestMapper mapper;
 
     SeatController(
@@ -36,11 +45,15 @@ class SeatController {
             GetSeatsByTrainUseCase getSeatsByTrainUseCase,
             GetAvailableSeatsForRouteUseCase getAvailableSeatsForRouteUseCase,
             UpdateSeatUseCase updateSeatUseCase,
+            SoftDeleteSeatUseCase softDeleteSeatUseCase,
+            BulkSoftDeleteSeatsUseCase bulkSoftDeleteSeatsUseCase,
             SeatRequestMapper mapper) {
         this.createSeatUseCase = createSeatUseCase;
         this.getSeatsByTrainUseCase = getSeatsByTrainUseCase;
         this.getAvailableSeatsForRouteUseCase = getAvailableSeatsForRouteUseCase;
         this.updateSeatUseCase = updateSeatUseCase;
+        this.softDeleteSeatUseCase = softDeleteSeatUseCase;
+        this.bulkSoftDeleteSeatsUseCase = bulkSoftDeleteSeatsUseCase;
         this.mapper = mapper;
     }
 
@@ -90,12 +103,34 @@ class SeatController {
                         this::seatErrorResponse);
     }
 
+    @DeleteMapping(value = "/{version}/seats/{id}", version = "1.0")
+    @PreAuthorize("hasRole('ADMIN')")
+    ResponseEntity<JsendResponse<?>> deleteById(@PathVariable UUID id) {
+        return softDeleteSeatUseCase
+                .execute(new SoftDeleteSeatCommand(SeatId.of(id)))
+                .fold(v -> ResponseEntity.ok(JsendResponse.success()), this::seatErrorResponse);
+    }
+
+    @DeleteMapping(value = "/{version}/seats", version = "1.0")
+    @PreAuthorize("hasRole('ADMIN')")
+    ResponseEntity<JsendResponse<?>> bulkDelete(
+            @Valid @RequestBody BulkSoftDeleteSeatsHttpRequest request) {
+        List<SeatId> seatIds = request.seatIds().stream().map(SeatId::of).toList();
+        return bulkSoftDeleteSeatsUseCase
+                .execute(new BulkSoftDeleteSeatsCommand(seatIds))
+                .fold(
+                        deletedCount -> ResponseEntity.ok(
+                                JsendResponse.success(Map.of("deletedCount", deletedCount))),
+                        this::seatErrorResponse);
+    }
+
     private ResponseEntity<JsendResponse<?>> seatErrorResponse(SeatError error) {
         HttpStatus status =
                 switch (error) {
                     case SeatError.SeatNotFound e -> HttpStatus.NOT_FOUND;
                     case SeatError.TrainNotFound e -> HttpStatus.NOT_FOUND;
                     case SeatError.SeatNumberAlreadyExists e -> HttpStatus.CONFLICT;
+                    case SeatError.SeatInUse e -> HttpStatus.UNPROCESSABLE_ENTITY;
                 };
         ErrorCode code =
                 switch (error) {
@@ -103,6 +138,7 @@ class SeatController {
                     case SeatError.TrainNotFound e -> ErrorCode.TRAIN_NOT_FOUND;
                     case SeatError.SeatNumberAlreadyExists e ->
                         ErrorCode.SEAT_NUMBER_ALREADY_EXISTS;
+                    case SeatError.SeatInUse e -> ErrorCode.SEAT_IN_USE;
                 };
         return ResponseEntity.status(status)
                 .body(JsendResponse.fail(new FailData(error.message(), code, List.of())));

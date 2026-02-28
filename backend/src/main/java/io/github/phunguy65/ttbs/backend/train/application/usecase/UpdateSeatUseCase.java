@@ -40,7 +40,11 @@ public class UpdateSeatUseCase {
                 seatNumberField.isPresent() ? seatNumberField.get() : seat.getSeatNumber();
 
         Seat updated = Seat.reconstitute(
-                seat.getId(), seat.getTrainId(), newSeatNumber, seat.getCreatedAt());
+                seat.getId(),
+                seat.getTrainId(),
+                newSeatNumber,
+                seat.getCreatedAt(),
+                seat.getDeletedAt());
 
         Seat saved = seatRepository.save(updated);
         return Result.success(toDto(saved));

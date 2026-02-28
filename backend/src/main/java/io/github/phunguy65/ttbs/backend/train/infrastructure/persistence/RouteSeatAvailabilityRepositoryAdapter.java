@@ -63,4 +63,15 @@ class RouteSeatAvailabilityRepositoryAdapter implements RouteSeatAvailabilityRep
         RouteSeatAvailabilityEntity entity = mapper.toEntity(record);
         return mapper.toDomain(jpaRepository.save(entity));
     }
+
+    @Override
+    public boolean existsActiveBySeatId(SeatId seatId) {
+        return jpaRepository.existsActiveBySeatId(seatId.value());
+    }
+
+    @Override
+    public boolean existsActiveByAnyOfSeatIds(List<SeatId> seatIds) {
+        List<UUID> uuids = seatIds.stream().map(SeatId::value).toList();
+        return jpaRepository.existsActiveByAnyOfSeatIds(uuids);
+    }
 }

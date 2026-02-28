@@ -14,7 +14,8 @@ class TrainEntityMapper {
                 entity.getTrainNumber(),
                 entity.getName(),
                 entity.getTotalSeats(),
-                entity.getCreatedAt() != null ? entity.getCreatedAt() : Instant.now());
+                entity.getCreatedAt() != null ? entity.getCreatedAt() : Instant.now(),
+                entity.getDeletedAt());
     }
 
     TrainEntity toEntity(Train train) {
@@ -24,6 +25,7 @@ class TrainEntityMapper {
         entity.setName(train.getName());
         entity.setTotalSeats(train.getTotalSeats());
         entity.setCreatedAt(train.getCreatedAt());
+        entity.setDeletedAt(train.getDeletedAt());
         return entity;
     }
 }

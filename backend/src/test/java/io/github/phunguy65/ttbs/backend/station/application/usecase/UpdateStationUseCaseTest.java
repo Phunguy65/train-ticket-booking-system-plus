@@ -37,7 +37,8 @@ class UpdateStationUseCaseTest {
     }
 
     private Station makeStation() {
-        return Station.reconstitute(STATION_ID, "HN", "Hanoi Station", "Hanoi", Instant.now());
+        return Station.reconstitute(
+                STATION_ID, "HN", "Hanoi Station", "Hanoi", Instant.now(), null);
     }
 
     @Test

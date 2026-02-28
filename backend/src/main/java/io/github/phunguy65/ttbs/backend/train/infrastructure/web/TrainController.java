@@ -6,20 +6,26 @@ import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.ErrorCode;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.FailData;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.JsendResponse;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.SliceHttpResponse;
+import io.github.phunguy65.ttbs.backend.train.application.command.BulkSoftDeleteTrainsCommand;
+import io.github.phunguy65.ttbs.backend.train.application.command.SoftDeleteTrainCommand;
 import io.github.phunguy65.ttbs.backend.train.application.dto.TrainDto;
+import io.github.phunguy65.ttbs.backend.train.application.usecase.BulkSoftDeleteTrainsUseCase;
 import io.github.phunguy65.ttbs.backend.train.application.usecase.CreateTrainUseCase;
 import io.github.phunguy65.ttbs.backend.train.application.usecase.GetTrainByIdUseCase;
 import io.github.phunguy65.ttbs.backend.train.application.usecase.GetTrainsUseCase;
+import io.github.phunguy65.ttbs.backend.train.application.usecase.SoftDeleteTrainUseCase;
 import io.github.phunguy65.ttbs.backend.train.application.usecase.UpdateTrainUseCase;
 import io.github.phunguy65.ttbs.backend.train.domain.errors.TrainError;
 import io.github.phunguy65.ttbs.backend.train.domain.model.TrainId;
 import jakarta.validation.Valid;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -41,6 +47,8 @@ class TrainController {
     private final GetTrainByIdUseCase getTrainByIdUseCase;
     private final GetTrainsUseCase getTrainsUseCase;
     private final UpdateTrainUseCase updateTrainUseCase;
+    private final SoftDeleteTrainUseCase softDeleteTrainUseCase;
+    private final BulkSoftDeleteTrainsUseCase bulkSoftDeleteTrainsUseCase;
     private final TrainRequestMapper mapper;
 
     TrainController(
@@ -48,11 +56,15 @@ class TrainController {
             GetTrainByIdUseCase getTrainByIdUseCase,
             GetTrainsUseCase getTrainsUseCase,
             UpdateTrainUseCase updateTrainUseCase,
+            SoftDeleteTrainUseCase softDeleteTrainUseCase,
+            BulkSoftDeleteTrainsUseCase bulkSoftDeleteTrainsUseCase,
             TrainRequestMapper mapper) {
         this.createTrainUseCase = createTrainUseCase;
         this.getTrainByIdUseCase = getTrainByIdUseCase;
         this.getTrainsUseCase = getTrainsUseCase;
         this.updateTrainUseCase = updateTrainUseCase;
+        this.softDeleteTrainUseCase = softDeleteTrainUseCase;
+        this.bulkSoftDeleteTrainsUseCase = bulkSoftDeleteTrainsUseCase;
         this.mapper = mapper;
     }
 
@@ -143,17 +155,42 @@ class TrainController {
                         error -> errorResponse(error));
     }
 
+    @DeleteMapping(value = "/{id}", version = "1.0")
+    @PreAuthorize("hasRole('ADMIN')")
+    ResponseEntity<JsendResponse<?>> deleteById(@PathVariable UUID id) {
+        return softDeleteTrainUseCase
+                .execute(new SoftDeleteTrainCommand(TrainId.of(id)))
+                .fold(
+                        v -> ResponseEntity.ok(JsendResponse.success()),
+                        error -> errorResponse(error));
+    }
+
+    @DeleteMapping(version = "1.0")
+    @PreAuthorize("hasRole('ADMIN')")
+    ResponseEntity<JsendResponse<?>> bulkDelete(
+            @Valid @RequestBody BulkSoftDeleteTrainsHttpRequest request) {
+        List<TrainId> trainIds = request.trainIds().stream().map(TrainId::of).toList();
+        return bulkSoftDeleteTrainsUseCase
+                .execute(new BulkSoftDeleteTrainsCommand(trainIds))
+                .fold(
+                        deletedCount -> ResponseEntity.ok(
+                                JsendResponse.success(Map.of("deletedCount", deletedCount))),
+                        error -> errorResponse(error));
+    }
+
     private ResponseEntity<JsendResponse<?>> errorResponse(TrainError error) {
         HttpStatus status =
                 switch (error) {
                     case TrainError.TrainNotFound e -> HttpStatus.NOT_FOUND;
                     case TrainError.TrainNumberAlreadyExists e -> HttpStatus.CONFLICT;
+                    case TrainError.TrainInUse e -> HttpStatus.UNPROCESSABLE_ENTITY;
                 };
         ErrorCode code =
                 switch (error) {
                     case TrainError.TrainNotFound e -> ErrorCode.TRAIN_NOT_FOUND;
                     case TrainError.TrainNumberAlreadyExists e ->
                         ErrorCode.TRAIN_NUMBER_ALREADY_EXISTS;
+                    case TrainError.TrainInUse e -> ErrorCode.TRAIN_IN_USE;
                 };
         return ResponseEntity.status(status)
                 .body(JsendResponse.fail(new FailData(error.message(), code, List.of())));

@@ -47,7 +47,8 @@ class TrainTest {
     void reconstitute_shouldNotRegisterDomainEvents() {
         Instant createdAt = Instant.parse("2024-01-15T10:00:00Z");
 
-        Train train = Train.reconstitute(TRAIN_ID, TRAIN_NUMBER, NAME, TOTAL_SEATS, createdAt);
+        Train train =
+                Train.reconstitute(TRAIN_ID, TRAIN_NUMBER, NAME, TOTAL_SEATS, createdAt, null);
 
         assertThat(train.getDomainEvents()).isEmpty();
     }
@@ -56,7 +57,8 @@ class TrainTest {
     void reconstitute_shouldRestoreAllFields() {
         Instant createdAt = Instant.parse("2024-01-15T10:00:00Z");
 
-        Train train = Train.reconstitute(TRAIN_ID, TRAIN_NUMBER, NAME, TOTAL_SEATS, createdAt);
+        Train train =
+                Train.reconstitute(TRAIN_ID, TRAIN_NUMBER, NAME, TOTAL_SEATS, createdAt, null);
 
         assertThat(train.getId()).isEqualTo(TRAIN_ID);
         assertThat(train.getTrainNumber()).isEqualTo(TRAIN_NUMBER);

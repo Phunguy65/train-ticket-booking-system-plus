@@ -33,7 +33,7 @@ class SeatTest {
     void reconstitute_shouldRestoreAllFields() {
         Instant createdAt = Instant.parse("2024-06-01T10:00:00Z");
 
-        Seat seat = Seat.reconstitute(SEAT_ID, TRAIN_ID, SEAT_NUMBER, createdAt);
+        Seat seat = Seat.reconstitute(SEAT_ID, TRAIN_ID, SEAT_NUMBER, createdAt, null);
 
         assertThat(seat.getId()).isEqualTo(SEAT_ID);
         assertThat(seat.getTrainId()).isEqualTo(TRAIN_ID);
@@ -45,7 +45,7 @@ class SeatTest {
     void reconstitute_shouldNotEmitDomainEvents() {
         Instant createdAt = Instant.now();
 
-        Seat seat = Seat.reconstitute(SEAT_ID, TRAIN_ID, SEAT_NUMBER, createdAt);
+        Seat seat = Seat.reconstitute(SEAT_ID, TRAIN_ID, SEAT_NUMBER, createdAt, null);
 
         assertThat(seat.getDomainEvents()).isEmpty();
     }

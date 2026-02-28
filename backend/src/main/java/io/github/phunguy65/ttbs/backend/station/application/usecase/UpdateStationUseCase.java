@@ -41,7 +41,12 @@ public class UpdateStationUseCase {
         String newCity = command.city().isPresent() ? command.city().get() : station.getCity();
 
         Station updated = Station.reconstitute(
-                station.getId(), newCode, newName, newCity, station.getCreatedAt());
+                station.getId(),
+                newCode,
+                newName,
+                newCity,
+                station.getCreatedAt(),
+                station.getDeletedAt());
 
         Station saved = stationRepository.save(updated);
         return Result.success(toDto(saved));

@@ -49,7 +49,7 @@ class StationTest {
     void reconstitute_shouldNotRegisterDomainEvents() {
         Instant createdAt = Instant.parse("2024-01-15T10:00:00Z");
 
-        Station station = Station.reconstitute(STATION_ID, CODE, NAME, CITY, createdAt);
+        Station station = Station.reconstitute(STATION_ID, CODE, NAME, CITY, createdAt, null);
 
         assertThat(station.getDomainEvents()).isEmpty();
     }
@@ -58,7 +58,7 @@ class StationTest {
     void reconstitute_shouldRestoreAllFields() {
         Instant createdAt = Instant.parse("2024-01-15T10:00:00Z");
 
-        Station station = Station.reconstitute(STATION_ID, CODE, NAME, CITY, createdAt);
+        Station station = Station.reconstitute(STATION_ID, CODE, NAME, CITY, createdAt, null);
 
         assertThat(station.getId()).isEqualTo(STATION_ID);
         assertThat(station.getCode()).isEqualTo(CODE);

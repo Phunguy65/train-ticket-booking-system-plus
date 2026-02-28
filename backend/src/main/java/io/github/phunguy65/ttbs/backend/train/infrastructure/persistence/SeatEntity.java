@@ -21,6 +21,9 @@ class SeatEntity {
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
+    @Column(name = "deleted_at")
+    private Instant deletedAt;
+
     protected SeatEntity() {}
 
     UUID getId() {
@@ -53,5 +56,13 @@ class SeatEntity {
 
     void setCreatedAt(Instant createdAt) {
         this.createdAt = createdAt;
+    }
+
+    Instant getDeletedAt() {
+        return deletedAt;
+    }
+
+    void setDeletedAt(Instant deletedAt) {
+        this.deletedAt = deletedAt;
     }
 }

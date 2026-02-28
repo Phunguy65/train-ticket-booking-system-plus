@@ -36,4 +36,12 @@ interface RouteSeatAvailabilityJpaRepository
     List<RouteSeatAvailabilityEntity> findByRouteIdAndSeatIdsForUpdate(
             @Param("routeId") java.util.UUID routeId,
             @Param("seatIds") List<java.util.UUID> seatIds);
+
+    @Query(
+            "SELECT COUNT(e) > 0 FROM RouteSeatAvailabilityEntity e WHERE e.id.seatId = :seatId AND e.status IN ('HELD', 'BOOKED')")
+    boolean existsActiveBySeatId(@Param("seatId") java.util.UUID seatId);
+
+    @Query(
+            "SELECT COUNT(e) > 0 FROM RouteSeatAvailabilityEntity e WHERE e.id.seatId IN :seatIds AND e.status IN ('HELD', 'BOOKED')")
+    boolean existsActiveByAnyOfSeatIds(@Param("seatIds") List<java.util.UUID> seatIds);
 }

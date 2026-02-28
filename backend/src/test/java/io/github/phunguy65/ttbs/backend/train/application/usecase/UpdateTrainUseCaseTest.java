@@ -37,7 +37,7 @@ class UpdateTrainUseCaseTest {
     }
 
     private Train makeTrain() {
-        return Train.reconstitute(TRAIN_ID, "SE001", "Express", 100, Instant.now());
+        return Train.reconstitute(TRAIN_ID, "SE001", "Express", 100, Instant.now(), null);
     }
 
     @Test

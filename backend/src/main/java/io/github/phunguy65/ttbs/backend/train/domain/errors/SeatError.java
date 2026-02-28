@@ -1,5 +1,8 @@
 package io.github.phunguy65.ttbs.backend.train.domain.errors;
 
+import java.util.List;
+import java.util.UUID;
+
 /**
  * Typed business errors for the Seat domain.
  *
@@ -25,6 +28,13 @@ public sealed interface SeatError {
         @Override
         public String message() {
             return "Train not found";
+        }
+    }
+
+    record SeatInUse(List<UUID> conflictingIds) implements SeatError {
+        @Override
+        public String message() {
+            return "One or more seats have active holds or bookings and cannot be deleted";
         }
     }
 

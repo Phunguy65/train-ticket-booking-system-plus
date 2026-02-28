@@ -88,8 +88,8 @@ class CreateSeatHoldUseCaseTest {
                 RouteStatus.SCHEDULED,
                 Instant.now());
 
-        testSeat =
-                Seat.reconstitute(SeatId.of(SEAT_ID), testRoute.getTrainId(), "1A", Instant.now());
+        testSeat = Seat.reconstitute(
+                SeatId.of(SEAT_ID), testRoute.getTrainId(), "1A", Instant.now(), null);
     }
 
     private CreateSeatHoldCommand createCommand() {

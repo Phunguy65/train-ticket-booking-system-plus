@@ -34,13 +34,19 @@ class GetStationsUseCaseTest {
     @Test
     void execute_shouldReturnPageResultWithCorrectMetadata() {
         Station s1 = Station.reconstitute(
-                StationId.of(UUID.randomUUID()), "HN", "Hanoi Station", "Hanoi", Instant.now());
+                StationId.of(UUID.randomUUID()),
+                "HN",
+                "Hanoi Station",
+                "Hanoi",
+                Instant.now(),
+                null);
         Station s2 = Station.reconstitute(
                 StationId.of(UUID.randomUUID()),
                 "SGN",
                 "Saigon Station",
                 "Ho Chi Minh City",
-                Instant.now());
+                Instant.now(),
+                null);
         PageResult<Station> stationPage = PageResult.of(List.of(s1, s2), 0, 20, false);
         when(stationRepository.findAll(0, 20, "createdAt", SortDirection.DESC))
                 .thenReturn(stationPage);
@@ -71,7 +77,12 @@ class GetStationsUseCaseTest {
     @Test
     void execute_hasNextTrue_shouldPropagateHasNext() {
         Station s1 = Station.reconstitute(
-                StationId.of(UUID.randomUUID()), "HN", "Hanoi Station", "Hanoi", Instant.now());
+                StationId.of(UUID.randomUUID()),
+                "HN",
+                "Hanoi Station",
+                "Hanoi",
+                Instant.now(),
+                null);
         PageResult<Station> stationPage = PageResult.of(List.of(s1), 0, 1, true);
         when(stationRepository.findAll(0, 1, "name", SortDirection.ASC)).thenReturn(stationPage);
 
