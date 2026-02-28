@@ -3,6 +3,7 @@ package io.github.phunguy65.ttbs.backend.booking.domain.repository;
 import io.github.phunguy65.ttbs.backend.booking.domain.model.Booking;
 import io.github.phunguy65.ttbs.backend.booking.domain.model.BookingId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteId;
+import io.github.phunguy65.ttbs.backend.train.domain.model.SeatId;
 import io.github.phunguy65.ttbs.backend.user.domain.model.UserId;
 import java.time.Instant;
 import java.util.List;
@@ -39,4 +40,21 @@ public interface BookingRepository {
      * @return the booking with seats loaded, or empty if not found
      */
     Optional<Booking> findByIdWithSeats(BookingId id);
+
+    /**
+     * Returns {@code true} if there are any non-cancelled bookings (HELD or CONFIRMED)
+     * belonging to the given user.
+     *
+     * @param userId the user to check
+     * @return {@code true} if deletion is blocked
+     */
+    boolean existsActiveByUserId(UserId userId);
+
+    /**
+     * Returns {@code true} if there are any historical bookings that reference the given seat.
+     *
+     * @param seatId the seat to check
+     * @return {@code true} if deletion is blocked
+     */
+    boolean existsBySeatId(SeatId seatId);
 }

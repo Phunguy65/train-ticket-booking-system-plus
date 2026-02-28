@@ -1,5 +1,6 @@
 package io.github.phunguy65.ttbs.backend.train.application.usecase;
 
+import io.github.phunguy65.ttbs.backend.booking.application.port.SeatValidationPort;
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.train.application.command.BulkSoftDeleteSeatsCommand;
 import io.github.phunguy65.ttbs.backend.train.domain.errors.SeatError;
@@ -19,14 +20,17 @@ public class BulkSoftDeleteSeatsUseCase {
 
     private final SeatRepository seatRepository;
     private final RouteSeatAvailabilityRepository availabilityRepository;
+    private final SeatValidationPort seatValidationPort;
     private final ApplicationEventPublisher eventPublisher;
 
     public BulkSoftDeleteSeatsUseCase(
             SeatRepository seatRepository,
             RouteSeatAvailabilityRepository availabilityRepository,
+            SeatValidationPort seatValidationPort,
             ApplicationEventPublisher eventPublisher) {
         this.seatRepository = seatRepository;
         this.availabilityRepository = availabilityRepository;
+        this.seatValidationPort = seatValidationPort;
         this.eventPublisher = eventPublisher;
     }
 
@@ -39,6 +43,15 @@ public class BulkSoftDeleteSeatsUseCase {
 
         if (!conflictingIds.isEmpty()) {
             return Result.failure(new SeatError.SeatInUse(conflictingIds));
+        }
+
+        List<UUID> bookingConflictIds = command.seatIds().stream()
+                .filter(seatValidationPort::hasBookingHistoryForSeat)
+                .map(SeatId::value)
+                .toList();
+
+        if (!bookingConflictIds.isEmpty()) {
+            return Result.failure(new SeatError.SeatHasBookingHistory(bookingConflictIds));
         }
 
         Instant now = Instant.now();

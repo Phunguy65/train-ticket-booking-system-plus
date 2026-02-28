@@ -90,6 +90,7 @@ class AuthController {
                     case UserError.InvalidRefreshToken e -> HttpStatus.UNAUTHORIZED;
                     case UserError.UserNotFound e -> HttpStatus.NOT_FOUND;
                     case UserError.UserAlreadyDeleted e -> HttpStatus.NOT_FOUND;
+                    case UserError.UserHasActiveBookings e -> HttpStatus.CONFLICT;
                 };
         ErrorCode code =
                 switch (error) {
@@ -98,6 +99,7 @@ class AuthController {
                     case UserError.InvalidRefreshToken e -> ErrorCode.USER_INVALID_REFRESH_TOKEN;
                     case UserError.UserNotFound e -> ErrorCode.USER_NOT_FOUND;
                     case UserError.UserAlreadyDeleted e -> ErrorCode.USER_NOT_FOUND;
+                    case UserError.UserHasActiveBookings e -> ErrorCode.USER_HAS_ACTIVE_BOOKINGS;
                 };
         return ResponseEntity.status(status)
                 .body(JsendResponse.fail(new FailData(error.message(), code, List.of())));

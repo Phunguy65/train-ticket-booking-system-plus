@@ -28,4 +28,9 @@ interface BookingJpaRepository extends JpaRepository<BookingEntity, UUID> {
 
     @Query("SELECT b FROM BookingEntity b LEFT JOIN FETCH b.seats WHERE b.id = :id")
     Optional<BookingEntity> findByIdWithSeats(@Param("id") UUID id);
+
+    @Query("SELECT COUNT(b) > 0 FROM BookingEntity b "
+            + "WHERE b.userId = :userId AND b.status IN :statuses")
+    boolean existsActiveByUserId(
+            @Param("userId") UUID userId, @Param("statuses") List<BookingStatus> statuses);
 }

@@ -32,7 +32,6 @@ public class BulkSoftDeleteTrainsUseCase {
 
     @Transactional
     public Result<Integer, TrainError> execute(BulkSoftDeleteTrainsCommand command) {
-        // Validate all IDs atomically — collect conflicting IDs first
         List<UUID> conflictingIds = command.trainIds().stream()
                 .filter(trainId -> routeRepository.existsActiveByTrainId(trainId))
                 .map(TrainId::value)

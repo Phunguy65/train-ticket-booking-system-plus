@@ -42,6 +42,13 @@ public sealed interface UserError {
         }
     }
 
+    record UserHasActiveBookings() implements UserError {
+        @Override
+        public String message() {
+            return "User has active bookings and cannot be deleted";
+        }
+    }
+
     /** Human-readable description suitable for a JSend {@code fail} data payload. */
     String message();
 }

@@ -3,6 +3,7 @@ package io.github.phunguy65.ttbs.backend.user.application.usecase;
 import io.github.phunguy65.ttbs.backend.shared.domain.DomainEvent;
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.user.application.command.SoftDeleteUserCommand;
+import io.github.phunguy65.ttbs.backend.user.application.port.BookingValidationPort;
 import io.github.phunguy65.ttbs.backend.user.domain.errors.UserError;
 import io.github.phunguy65.ttbs.backend.user.domain.model.User;
 import io.github.phunguy65.ttbs.backend.user.domain.repository.RefreshTokenRepository;
@@ -17,14 +18,17 @@ public class SoftDeleteUserUseCase {
 
     private final UserRepository userRepository;
     private final RefreshTokenRepository refreshTokenRepository;
+    private final BookingValidationPort bookingValidationPort;
     private final ApplicationEventPublisher eventPublisher;
 
     public SoftDeleteUserUseCase(
             UserRepository userRepository,
             RefreshTokenRepository refreshTokenRepository,
+            BookingValidationPort bookingValidationPort,
             ApplicationEventPublisher eventPublisher) {
         this.userRepository = userRepository;
         this.refreshTokenRepository = refreshTokenRepository;
+        this.bookingValidationPort = bookingValidationPort;
         this.eventPublisher = eventPublisher;
     }
 
@@ -40,6 +44,10 @@ public class SoftDeleteUserUseCase {
         // Idempotent: already deleted → return success immediately
         if (user.isDeleted()) {
             return Result.success();
+        }
+
+        if (bookingValidationPort.hasActiveBookingsForUser(command.userId())) {
+            return Result.failure(new UserError.UserHasActiveBookings());
         }
 
         Result<Void, UserError> deleteResult = user.softDelete();

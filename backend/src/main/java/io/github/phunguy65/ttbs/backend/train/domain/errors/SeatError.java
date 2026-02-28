@@ -59,6 +59,13 @@ public sealed interface SeatError {
         }
     }
 
+    record SeatHasBookingHistory(List<UUID> conflictingIds) implements SeatError {
+        @Override
+        public String message() {
+            return "One or more seats have historical bookings and cannot be deleted";
+        }
+    }
+
     /** Human-readable description suitable for a JSend {@code fail} data payload. */
     String message();
 }

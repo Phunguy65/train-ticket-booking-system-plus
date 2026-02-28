@@ -1,6 +1,7 @@
 package io.github.phunguy65.ttbs.backend.user.infrastructure.web;
 
 import io.github.phunguy65.ttbs.backend.shared.domain.PageResult;
+import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.shared.domain.SortDirection;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.ErrorCode;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.FailData;
@@ -219,17 +220,19 @@ class UserController {
         }
 
         List<UserId> userIds = request.userIds().stream().map(UserId::of).toList();
-        int deletedCount =
+        Result<Integer, UserError> result =
                 bulkSoftDeleteUsersUseCase.execute(new BulkSoftDeleteUsersCommand(userIds));
 
-        return ResponseEntity.ok(JsendResponse.success(Map.of("deletedCount", deletedCount)));
+        return switch (result) {
+            case Result.Success<Integer, UserError> s ->
+                ResponseEntity.ok(JsendResponse.success(Map.of("deletedCount", s.value())));
+            case Result.Failure<Integer, UserError> f -> errorResponse(f.error());
+        };
     }
 
     private ResponseEntity<JsendResponse<?>> errorResponse(UserError error) {
         return switch (error) {
-            case UserError.UserAlreadyDeleted e ->
-                // Idempotent: treat as success
-                ResponseEntity.ok(JsendResponse.success());
+            case UserError.UserAlreadyDeleted e -> ResponseEntity.ok(JsendResponse.success());
             default -> {
                 HttpStatus status =
                         switch (error) {
@@ -238,6 +241,7 @@ class UserController {
                             case UserError.InvalidCredentials e -> HttpStatus.UNAUTHORIZED;
                             case UserError.InvalidRefreshToken e -> HttpStatus.UNAUTHORIZED;
                             case UserError.UserAlreadyDeleted e -> HttpStatus.OK; // unreachable
+                            case UserError.UserHasActiveBookings e -> HttpStatus.CONFLICT;
                         };
                 ErrorCode code =
                         switch (error) {
@@ -250,6 +254,8 @@ class UserController {
                                 ErrorCode.USER_INVALID_REFRESH_TOKEN;
                             case UserError.UserAlreadyDeleted e ->
                                 ErrorCode.USER_NOT_FOUND; // unreachable
+                            case UserError.UserHasActiveBookings e ->
+                                ErrorCode.USER_HAS_ACTIVE_BOOKINGS;
                         };
                 yield ResponseEntity.status(status)
                         .body(JsendResponse.fail(new FailData(error.message(), code, List.of())));

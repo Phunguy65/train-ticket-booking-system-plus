@@ -5,6 +5,7 @@ import io.github.phunguy65.ttbs.backend.booking.domain.model.BookingId;
 import io.github.phunguy65.ttbs.backend.booking.domain.model.BookingStatus;
 import io.github.phunguy65.ttbs.backend.booking.domain.repository.BookingRepository;
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteId;
+import io.github.phunguy65.ttbs.backend.train.domain.model.SeatId;
 import io.github.phunguy65.ttbs.backend.user.domain.model.UserId;
 import java.time.Instant;
 import java.util.List;
@@ -14,11 +15,19 @@ import org.springframework.stereotype.Repository;
 @Repository
 class BookingRepositoryAdapter implements BookingRepository {
 
+    private static final List<BookingStatus> ACTIVE_STATUSES =
+            List.of(BookingStatus.HELD, BookingStatus.CONFIRMED);
+
     private final BookingJpaRepository jpaRepository;
+    private final BookingSeatsJpaRepository bookingSeatsRepository;
     private final BookingEntityMapper mapper;
 
-    BookingRepositoryAdapter(BookingJpaRepository jpaRepository, BookingEntityMapper mapper) {
+    BookingRepositoryAdapter(
+            BookingJpaRepository jpaRepository,
+            BookingSeatsJpaRepository bookingSeatsRepository,
+            BookingEntityMapper mapper) {
         this.jpaRepository = jpaRepository;
+        this.bookingSeatsRepository = bookingSeatsRepository;
         this.mapper = mapper;
     }
 
@@ -57,5 +66,15 @@ class BookingRepositoryAdapter implements BookingRepository {
     @Override
     public Optional<Booking> findByIdWithSeats(BookingId id) {
         return jpaRepository.findByIdWithSeats(id.value()).map(mapper::toDomain);
+    }
+
+    @Override
+    public boolean existsActiveByUserId(UserId userId) {
+        return jpaRepository.existsActiveByUserId(userId.value(), ACTIVE_STATUSES);
+    }
+
+    @Override
+    public boolean existsBySeatId(SeatId seatId) {
+        return bookingSeatsRepository.existsBySeatId(seatId.value());
     }
 }

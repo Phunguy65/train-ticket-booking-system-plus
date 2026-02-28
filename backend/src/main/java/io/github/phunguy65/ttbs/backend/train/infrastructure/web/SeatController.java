@@ -135,6 +135,7 @@ class SeatController {
                     case SeatError.SeatNumbersAlreadyExist e -> HttpStatus.CONFLICT;
                     case SeatError.DuplicateSeatNumbersInRequest e ->
                         HttpStatus.UNPROCESSABLE_ENTITY;
+                    case SeatError.SeatHasBookingHistory e -> HttpStatus.UNPROCESSABLE_ENTITY;
                 };
         ErrorCode code =
                 switch (error) {
@@ -148,6 +149,7 @@ class SeatController {
                         ErrorCode.SEAT_NUMBERS_ALREADY_EXIST;
                     case SeatError.DuplicateSeatNumbersInRequest e ->
                         ErrorCode.SEAT_DUPLICATE_SEAT_NUMBERS_IN_REQUEST;
+                    case SeatError.SeatHasBookingHistory e -> ErrorCode.SEAT_IN_USE;
                 };
 
         if (error instanceof SeatError.SeatNumbersAlreadyExist conflict) {
