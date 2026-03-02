@@ -9,7 +9,7 @@ class RouteSeatAvailabilityEntity {
     @EmbeddedId
     private RouteSeatAvailabilityId id;
 
-    @Column(name = "status", nullable = false)
+    @Column(name = "status", nullable = false, length = 20)
     private String status;
 
     protected RouteSeatAvailabilityEntity() {}

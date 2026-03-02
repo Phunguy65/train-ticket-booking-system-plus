@@ -22,16 +22,13 @@ class BookingEntity {
     @Column(name = "route_id", nullable = false)
     private UUID routeId;
 
-    @Column(name = "booking_reference", nullable = false, unique = true)
-    private String bookingReference;
-
-    @Column(name = "passenger_name", nullable = false)
+    @Column(name = "passenger_name", nullable = false, length = 255)
     private String passengerName;
 
-    @Column(name = "passenger_email", nullable = false)
+    @Column(name = "passenger_email", nullable = false, length = 255)
     private String passengerEmail;
 
-    @Column(name = "passenger_phone")
+    @Column(name = "passenger_phone", length = 20)
     private String passengerPhone;
 
     @Column(name = "total_price", nullable = false, precision = 10, scale = 2)
@@ -44,23 +41,17 @@ class BookingEntity {
     @Column(name = "status", nullable = false, length = 20)
     private BookingStatus status;
 
-    @Column(name = "payment_status", nullable = false, length = 20)
-    private String paymentStatus;
-
-    @Column(name = "idempotency_key", unique = true)
+    @Column(name = "idempotency_key", unique = true, length = 255)
     private String idempotencyKey;
 
-    @Column(name = "created_at")
+    @Column(name = "created_at", nullable = false)
     private Instant createdAt;
-
-    @Column(name = "updated_at")
-    private Instant updatedAt;
 
     @Column(name = "payment_deadline")
     private Instant paymentDeadline;
 
-    @Column(name = "payment_code", length = 50)
-    private String paymentCode;
+    @Column(name = "payment_reference", length = 255)
+    private String paymentReference;
 
     @OneToMany(
             mappedBy = "booking",
@@ -93,14 +84,6 @@ class BookingEntity {
 
     public void setRouteId(UUID routeId) {
         this.routeId = routeId;
-    }
-
-    public String getBookingReference() {
-        return bookingReference;
-    }
-
-    public void setBookingReference(String bookingReference) {
-        this.bookingReference = bookingReference;
     }
 
     public String getPassengerName() {
@@ -151,14 +134,6 @@ class BookingEntity {
         this.status = status;
     }
 
-    public String getPaymentStatus() {
-        return paymentStatus;
-    }
-
-    public void setPaymentStatus(String paymentStatus) {
-        this.paymentStatus = paymentStatus;
-    }
-
     public String getIdempotencyKey() {
         return idempotencyKey;
     }
@@ -175,14 +150,6 @@ class BookingEntity {
         this.createdAt = createdAt;
     }
 
-    public Instant getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(Instant updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
     public Instant getPaymentDeadline() {
         return paymentDeadline;
     }
@@ -191,12 +158,12 @@ class BookingEntity {
         this.paymentDeadline = paymentDeadline;
     }
 
-    public String getPaymentCode() {
-        return paymentCode;
+    public String getPaymentReference() {
+        return paymentReference;
     }
 
-    public void setPaymentCode(String paymentCode) {
-        this.paymentCode = paymentCode;
+    public void setPaymentReference(String paymentReference) {
+        this.paymentReference = paymentReference;
     }
 
     public List<BookingSeatsEntity> getSeats() {

@@ -12,10 +12,10 @@ class TrainEntity {
     @Column(name = "id", nullable = false, updatable = false)
     private UUID id;
 
-    @Column(name = "train_number", nullable = false, unique = true)
+    @Column(name = "train_number", nullable = false, unique = true, length = 20)
     private String trainNumber;
 
-    @Column(name = "name", nullable = false)
+    @Column(name = "name", nullable = false, length = 255)
     private String name;
 
     @Column(name = "total_seats", nullable = false)

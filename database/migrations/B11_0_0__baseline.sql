@@ -133,21 +133,17 @@ CREATE TABLE bookings (
     id UUID NOT NULL DEFAULT uuidv7(),
     user_id UUID NOT NULL,
     route_id UUID NOT NULL,
-    booking_reference VARCHAR(50) NOT NULL,
     passenger_name VARCHAR(255) NOT NULL,
     passenger_email VARCHAR(255) NOT NULL,
     passenger_phone VARCHAR(20),
     total_price DECIMAL(10, 2) NOT NULL,
+    currency VARCHAR(10) NOT NULL DEFAULT 'VND',
     status VARCHAR(20) NOT NULL,
-    payment_status VARCHAR(20) NOT NULL DEFAULT 'PENDING',
     idempotency_key VARCHAR(255),
     payment_deadline TIMESTAMPTZ,
-    payment_code VARCHAR(50),
+    payment_reference VARCHAR(255),
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    deleted_at TIMESTAMPTZ,
     CONSTRAINT pk_bookings PRIMARY KEY (id),
-    CONSTRAINT uq_bookings_reference UNIQUE (booking_reference),
     CONSTRAINT uq_bookings_idempotency UNIQUE (idempotency_key),
     CONSTRAINT bookings_user_id_fkey FOREIGN KEY (user_id) REFERENCES users (id),
     CONSTRAINT bookings_route_id_fkey FOREIGN KEY (route_id) REFERENCES routes (id),
@@ -157,10 +153,6 @@ CREATE TABLE bookings (
 COMMENT ON COLUMN bookings.payment_deadline IS 'Payment deadline with timezone (UTC)';
 
 COMMENT ON COLUMN bookings.created_at IS 'Timestamp with timezone (UTC)';
-
-COMMENT ON COLUMN bookings.updated_at IS 'Timestamp with timezone (UTC)';
-
-COMMENT ON COLUMN bookings.deleted_at IS 'Soft delete timestamp (UTC); NULL = active';
 
 -- ============================================================
 -- TABLE: booking_seats
@@ -300,16 +292,9 @@ CREATE INDEX idx_bookings_user ON bookings (user_id);
 CREATE INDEX idx_bookings_status_deadline ON bookings (status, payment_deadline);
 
 -- bookings: one active hold per user per route (business rule enforcement)
--- Excludes soft-deleted rows so a deleted HELD booking cannot block a new hold.
 CREATE UNIQUE INDEX idx_one_active_hold_per_user_route ON bookings (user_id, route_id)
 WHERE
-    status = 'HELD'
-    AND deleted_at IS NULL;
-
--- bookings: filter active rows quickly
-CREATE INDEX idx_bookings_deleted_at ON bookings (deleted_at)
-WHERE
-    deleted_at IS NULL;
+    status = 'HELD';
 
 -- routes: train lookup
 CREATE INDEX idx_routes_train ON routes (train_id);

@@ -15,7 +15,7 @@ class SeatEntity {
     @Column(name = "coach_id", nullable = false, updatable = false)
     private UUID coachId;
 
-    @Column(name = "seat_number", nullable = false)
+    @Column(name = "seat_number", nullable = false, length = 10)
     private String seatNumber;
 
     @Column(name = "created_at", nullable = false, updatable = false)

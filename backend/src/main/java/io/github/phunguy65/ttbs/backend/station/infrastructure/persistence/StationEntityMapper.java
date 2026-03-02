@@ -2,7 +2,6 @@ package io.github.phunguy65.ttbs.backend.station.infrastructure.persistence;
 
 import io.github.phunguy65.ttbs.backend.station.domain.model.Station;
 import io.github.phunguy65.ttbs.backend.station.domain.model.StationId;
-import java.time.Instant;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -14,7 +13,7 @@ class StationEntityMapper {
                 entity.getCode(),
                 entity.getName(),
                 entity.getCity(),
-                entity.getCreatedAt() != null ? entity.getCreatedAt() : Instant.now(),
+                entity.getCreatedAt(),
                 entity.getDeletedAt());
     }
 

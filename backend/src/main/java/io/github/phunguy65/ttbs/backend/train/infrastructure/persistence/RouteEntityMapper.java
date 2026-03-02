@@ -5,7 +5,6 @@ import io.github.phunguy65.ttbs.backend.train.domain.model.Route;
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteStatus;
 import io.github.phunguy65.ttbs.backend.train.domain.model.TrainId;
-import java.time.Instant;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -21,7 +20,7 @@ class RouteEntityMapper {
                 entity.getArrivalTime(),
                 entity.getBasePrice(),
                 RouteStatus.valueOf(entity.getStatus()),
-                entity.getCreatedAt() != null ? entity.getCreatedAt() : Instant.now());
+                entity.getCreatedAt());
     }
 
     RouteEntity toEntity(Route route) {
@@ -35,6 +34,8 @@ class RouteEntityMapper {
         entity.setBasePrice(route.getBasePrice());
         entity.setStatus(route.getStatus().name());
         entity.setCreatedAt(route.getCreatedAt());
+        //        TODO: need to fix
+        //        entity.setDeletedAt(route.getDeletedAt());
         return entity;
     }
 }

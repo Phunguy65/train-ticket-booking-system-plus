@@ -31,7 +31,7 @@ class RouteEntity {
     @Column(name = "base_price", nullable = false, precision = 10, scale = 2)
     private BigDecimal basePrice;
 
-    @Column(name = "status", nullable = false)
+    @Column(name = "status", nullable = false, length = 20)
     private String status;
 
     @Column(name = "created_at", nullable = false, updatable = false)

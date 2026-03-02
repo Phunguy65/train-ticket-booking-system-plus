@@ -3,14 +3,11 @@ package io.github.phunguy65.ttbs.backend.booking.infrastructure.persistence;
 import io.github.phunguy65.ttbs.backend.booking.domain.model.BookedSeat;
 import io.github.phunguy65.ttbs.backend.booking.domain.model.Booking;
 import io.github.phunguy65.ttbs.backend.train.domain.model.SeatId;
-import java.time.Instant;
 import java.util.List;
 import org.springframework.stereotype.Component;
 
 @Component
 class BookingEntityMapper {
-
-    private static final String DEFAULT_PAYMENT_STATUS = "PENDING";
 
     /**
      * Maps a {@link BookingEntity} (with its {@code seats} collection loaded) to a domain
@@ -30,9 +27,9 @@ class BookingEntityMapper {
                 entity.getCurrency(),
                 entity.getIdempotencyKey(),
                 entity.getStatus(),
-                entity.getCreatedAt() != null ? entity.getCreatedAt() : Instant.now(),
+                entity.getCreatedAt(),
                 entity.getPaymentDeadline(),
-                entity.getPaymentCode(),
+                entity.getPaymentReference(),
                 entity.getPassengerName(),
                 entity.getPassengerEmail(),
                 entity.getPassengerPhone());
@@ -52,23 +49,11 @@ class BookingEntityMapper {
         entity.setStatus(booking.getStatus());
         entity.setIdempotencyKey(booking.getIdempotencyKey());
         entity.setCreatedAt(booking.getCreatedAt());
-        entity.setUpdatedAt(Instant.now());
         entity.setPaymentDeadline(booking.getPaymentDeadline());
-        entity.setPaymentCode(booking.getPaymentReference());
-        entity.setPaymentStatus(DEFAULT_PAYMENT_STATUS);
-
-        entity.setPassengerName(
-                booking.getPassengerName() != null ? booking.getPassengerName() : "Unknown");
-        entity.setPassengerEmail(
-                booking.getPassengerEmail() != null
-                        ? booking.getPassengerEmail()
-                        : "unknown@example.com");
+        entity.setPaymentReference(booking.getPaymentReference());
+        entity.setPassengerName(booking.getPassengerName());
+        entity.setPassengerEmail(booking.getPassengerEmail());
         entity.setPassengerPhone(booking.getPassengerPhone());
-
-        entity.setBookingReference(
-                booking.getIdempotencyKey() != null
-                        ? booking.getIdempotencyKey()
-                        : booking.getId().toString());
 
         booking.getBookedSeats().forEach(bs -> {
             BookingSeatsEntity seatEntity = new BookingSeatsEntity(

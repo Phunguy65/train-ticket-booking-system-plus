@@ -3,7 +3,6 @@ package io.github.phunguy65.ttbs.backend.train.infrastructure.persistence;
 import io.github.phunguy65.ttbs.backend.train.domain.model.Coach;
 import io.github.phunguy65.ttbs.backend.train.domain.model.CoachId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.TrainId;
-import java.time.Instant;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -15,7 +14,7 @@ class CoachEntityMapper {
                 TrainId.of(entity.getTrainId()),
                 entity.getCarNumber(),
                 entity.getTotalSeats(),
-                entity.getCreatedAt() != null ? entity.getCreatedAt() : Instant.now(),
+                entity.getCreatedAt(),
                 entity.getDeletedAt());
     }
 

@@ -2,7 +2,6 @@ package io.github.phunguy65.ttbs.backend.user.infrastructure.persistence;
 
 import io.github.phunguy65.ttbs.backend.user.domain.model.User;
 import io.github.phunguy65.ttbs.backend.user.domain.model.UserId;
-import java.time.Instant;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -16,8 +15,8 @@ class UserEntityMapper {
                 entity.getFullName(),
                 entity.getPhone(),
                 entity.getRole(),
-                entity.getCreatedAt() != null ? entity.getCreatedAt() : Instant.now(),
-                entity.getUpdatedAt() != null ? entity.getUpdatedAt() : Instant.now(),
+                entity.getCreatedAt(),
+                entity.getUpdatedAt(),
                 entity.getDeletedAt());
     }
 

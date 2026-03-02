@@ -2,7 +2,6 @@ package io.github.phunguy65.ttbs.backend.train.infrastructure.persistence;
 
 import io.github.phunguy65.ttbs.backend.train.domain.model.Train;
 import io.github.phunguy65.ttbs.backend.train.domain.model.TrainId;
-import java.time.Instant;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -14,7 +13,7 @@ class TrainEntityMapper {
                 entity.getTrainNumber(),
                 entity.getName(),
                 entity.getTotalSeats(),
-                entity.getCreatedAt() != null ? entity.getCreatedAt() : Instant.now(),
+                entity.getCreatedAt(),
                 entity.getDeletedAt());
     }
 
