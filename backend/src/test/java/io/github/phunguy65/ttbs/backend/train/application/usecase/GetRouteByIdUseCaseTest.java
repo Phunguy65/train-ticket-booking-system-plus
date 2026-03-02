@@ -45,7 +45,8 @@ class GetRouteByIdUseCaseTest {
                 Instant.parse("2025-06-01T12:00:00Z"),
                 new BigDecimal("150.00"),
                 RouteStatus.SCHEDULED,
-                Instant.parse("2024-01-01T00:00:00Z"));
+                Instant.parse("2024-01-01T00:00:00Z"),
+                null);
     }
 
     @Test

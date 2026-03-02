@@ -7,6 +7,8 @@ import io.github.phunguy65.ttbs.backend.train.domain.model.Route;
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteFilter;
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.TrainId;
+import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 
 public interface RouteRepository {
@@ -21,4 +23,10 @@ public interface RouteRepository {
     boolean existsActiveByTrainId(TrainId trainId);
 
     boolean existsActiveByStationId(StationId stationId);
+
+    boolean existsById(RouteId id);
+
+    void softDeleteById(RouteId id, Instant deletedAt);
+
+    int softDeleteByIds(List<RouteId> ids, Instant deletedAt);
 }

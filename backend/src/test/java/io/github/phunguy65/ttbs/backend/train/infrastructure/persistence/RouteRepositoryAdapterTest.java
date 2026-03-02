@@ -12,6 +12,7 @@ import io.github.phunguy65.ttbs.backend.train.domain.model.TrainId;
 import io.github.phunguy65.ttbs.backend.train.domain.repository.RouteRepository;
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -176,5 +177,59 @@ class RouteRepositoryAdapterTest {
 
         assertThat(result.items()).hasSize(1);
         assertThat(result.items().getFirst().getDepartureTime()).isEqualTo(DEPARTURE_BASE);
+    }
+
+    // ── soft delete ──────────────────────────────────────────────────────────
+
+    @Test
+    void softDeleteById_shouldSetDeletedAtAndExcludeFromFindById() {
+        Route saved = routeRepository.save(newRoute());
+        Instant now = Instant.now();
+
+        routeRepository.softDeleteById(saved.getId(), now);
+
+        Optional<Route> found = routeRepository.findById(saved.getId());
+        assertThat(found).isEmpty();
+    }
+
+    @Test
+    void softDeleteByIds_shouldSetDeletedAtForAllIds() {
+        Route r1 = routeRepository.save(newRoute());
+        Route r2 = routeRepository.save(newRoute());
+        Instant now = Instant.now();
+
+        int affected = routeRepository.softDeleteByIds(List.of(r1.getId(), r2.getId()), now);
+
+        assertThat(affected).isEqualTo(2);
+        assertThat(routeRepository.findById(r1.getId())).isEmpty();
+        assertThat(routeRepository.findById(r2.getId())).isEmpty();
+    }
+
+    @Test
+    void existsById_activeRoute_shouldReturnTrue() {
+        Route saved = routeRepository.save(newRoute());
+
+        assertThat(routeRepository.existsById(saved.getId())).isTrue();
+    }
+
+    @Test
+    void existsById_deletedRoute_shouldReturnFalse() {
+        Route saved = routeRepository.save(newRoute());
+        routeRepository.softDeleteById(saved.getId(), Instant.now());
+
+        assertThat(routeRepository.existsById(saved.getId())).isFalse();
+    }
+
+    @Test
+    void findAll_shouldExcludeDeletedRoutes() {
+        routeRepository.save(newRoute()); // active
+        Route toDelete = routeRepository.save(newRoute());
+        routeRepository.softDeleteById(toDelete.getId(), Instant.now());
+
+        PageResult<Route> result = routeRepository.findAll(
+                0, 20, "createdAt", SortDirection.DESC, RouteFilter.empty());
+
+        assertThat(result.items()).hasSize(1);
+        assertThat(result.items().getFirst().getId()).isNotEqualTo(toDelete.getId());
     }
 }

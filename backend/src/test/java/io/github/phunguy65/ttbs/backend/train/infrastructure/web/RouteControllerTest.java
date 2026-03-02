@@ -12,9 +12,11 @@ import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.GlobalExceptio
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.JacksonConfig;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.WebConfig;
 import io.github.phunguy65.ttbs.backend.train.application.dto.RouteDto;
+import io.github.phunguy65.ttbs.backend.train.application.usecase.BulkSoftDeleteRoutesUseCase;
 import io.github.phunguy65.ttbs.backend.train.application.usecase.CreateRouteUseCase;
 import io.github.phunguy65.ttbs.backend.train.application.usecase.GetRouteByIdUseCase;
 import io.github.phunguy65.ttbs.backend.train.application.usecase.GetRoutesUseCase;
+import io.github.phunguy65.ttbs.backend.train.application.usecase.SoftDeleteRouteUseCase;
 import io.github.phunguy65.ttbs.backend.train.application.usecase.UpdateRouteUseCase;
 import io.github.phunguy65.ttbs.backend.train.domain.errors.RouteError;
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteStatus;
@@ -59,6 +61,12 @@ class RouteControllerTest {
 
     @MockitoBean
     private UpdateRouteUseCase updateRouteUseCase;
+
+    @MockitoBean
+    private SoftDeleteRouteUseCase softDeleteRouteUseCase;
+
+    @MockitoBean
+    private BulkSoftDeleteRoutesUseCase bulkSoftDeleteRoutesUseCase;
 
     @MockitoBean
     private TokenProvider tokenProvider;
@@ -261,5 +269,90 @@ class RouteControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.status").value("fail"))
                 .andExpect(jsonPath("$.data.code").value("VALIDATION_ERROR"));
+    }
+
+    // ── DELETE /api/v1.0/routes/{id} ─────────────────────────────────────────
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void deleteById_found_shouldReturn200() throws Exception {
+        when(softDeleteRouteUseCase.execute(any())).thenReturn(Result.success());
+
+        mockMvc.perform(delete("/api/v1.0/routes/{id}", ROUTE_UUID).with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("success"));
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void deleteById_notFound_shouldReturn404() throws Exception {
+        when(softDeleteRouteUseCase.execute(any()))
+                .thenReturn(Result.failure(new RouteError.RouteNotFound()));
+
+        mockMvc.perform(delete("/api/v1.0/routes/{id}", ROUTE_UUID).with(csrf()))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.status").value("fail"))
+                .andExpect(jsonPath("$.data.code").value("ROUTE_NOT_FOUND"));
+    }
+
+    @Test
+    @WithMockUser(roles = "CUSTOMER")
+    void deleteById_nonAdmin_shouldReturn403() throws Exception {
+        mockMvc.perform(delete("/api/v1.0/routes/{id}", ROUTE_UUID).with(csrf()))
+                .andExpect(status().isForbidden());
+    }
+
+    // ── POST /api/v1.0/routes:bulkDelete ─────────────────────────────────────
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void bulkDelete_validRequest_shouldReturn200() throws Exception {
+        when(bulkSoftDeleteRoutesUseCase.execute(any())).thenReturn(Result.success(2));
+
+        mockMvc.perform(post("/api/v1.0/routes:bulkDelete")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"routeIds\":[\"" + UUID.randomUUID() + "\",\""
+                                + UUID.randomUUID() + "\"]}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("success"))
+                .andExpect(jsonPath("$.data.deletedCount").value(2));
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void bulkDelete_emptyArray_shouldReturn400() throws Exception {
+        mockMvc.perform(post("/api/v1.0/routes:bulkDelete")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"routeIds\":[]}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value("fail"))
+                .andExpect(jsonPath("$.data.code").value("VALIDATION_ERROR"));
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void bulkDelete_invalidIds_shouldReturn422() throws Exception {
+        when(bulkSoftDeleteRoutesUseCase.execute(any()))
+                .thenReturn(Result.failure(new RouteError.RoutesNotFound(List.of(ROUTE_UUID))));
+
+        mockMvc.perform(post("/api/v1.0/routes:bulkDelete")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"routeIds\":[\"" + ROUTE_UUID + "\"]}"))
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.status").value("fail"))
+                .andExpect(jsonPath("$.data.code").value("ROUTES_NOT_FOUND"));
+    }
+
+    @Test
+    @WithMockUser(roles = "CUSTOMER")
+    void bulkDelete_nonAdmin_shouldReturn403() throws Exception {
+        mockMvc.perform(post("/api/v1.0/routes:bulkDelete")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"routeIds\":[\"" + UUID.randomUUID() + "\"]}"))
+                .andExpect(status().isForbidden());
     }
 }

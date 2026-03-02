@@ -8,6 +8,7 @@ import io.github.phunguy65.ttbs.backend.train.domain.model.RouteFilter;
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.TrainId;
 import io.github.phunguy65.ttbs.backend.train.domain.repository.RouteRepository;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.PageRequest;
@@ -35,7 +36,7 @@ class RouteRepositoryAdapter implements RouteRepository {
 
     @Override
     public Optional<Route> findById(RouteId id) {
-        return jpaRepository.findById(id.value()).map(mapper::toDomain);
+        return jpaRepository.findActiveById(id.value()).map(mapper::toDomain);
     }
 
     @Override
@@ -62,5 +63,21 @@ class RouteRepositoryAdapter implements RouteRepository {
     @Override
     public boolean existsActiveByStationId(StationId stationId) {
         return jpaRepository.existsActiveRouteByStationId(stationId.value());
+    }
+
+    @Override
+    public boolean existsById(RouteId id) {
+        return jpaRepository.existsActiveById(id.value());
+    }
+
+    @Override
+    public void softDeleteById(RouteId id, Instant deletedAt) {
+        jpaRepository.softDeleteById(id.value(), deletedAt);
+    }
+
+    @Override
+    public int softDeleteByIds(List<RouteId> ids, Instant deletedAt) {
+        List<java.util.UUID> uuids = ids.stream().map(RouteId::value).toList();
+        return jpaRepository.softDeleteByIds(uuids, deletedAt);
     }
 }

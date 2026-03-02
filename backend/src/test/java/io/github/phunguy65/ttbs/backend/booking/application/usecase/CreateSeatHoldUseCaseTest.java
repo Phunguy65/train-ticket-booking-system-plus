@@ -87,7 +87,8 @@ class CreateSeatHoldUseCaseTest {
                 Instant.now().plus(2, ChronoUnit.HOURS),
                 new BigDecimal("500000"),
                 RouteStatus.SCHEDULED,
-                Instant.now());
+                Instant.now(),
+                null);
 
         testSeat = Seat.reconstitute(
                 SeatId.of(SEAT_ID), CoachId.of(UUID.randomUUID()), "1A", Instant.now(), null);

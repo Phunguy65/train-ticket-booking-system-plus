@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -33,4 +34,15 @@ interface BookingJpaRepository extends JpaRepository<BookingEntity, UUID> {
             + "WHERE b.userId = :userId AND b.status IN :statuses")
     boolean existsActiveByUserId(
             @Param("userId") UUID userId, @Param("statuses") List<BookingStatus> statuses);
+
+    @Modifying
+    @Query("UPDATE BookingEntity b SET b.deletedAt = :deletedAt "
+            + "WHERE b.routeId = :routeId AND b.deletedAt IS NULL")
+    void softDeleteByRouteId(@Param("routeId") UUID routeId, @Param("deletedAt") Instant deletedAt);
+
+    @Modifying
+    @Query("UPDATE BookingEntity b SET b.deletedAt = :deletedAt "
+            + "WHERE b.routeId IN :routeIds AND b.deletedAt IS NULL")
+    void softDeleteByRouteIds(
+            @Param("routeIds") List<UUID> routeIds, @Param("deletedAt") Instant deletedAt);
 }

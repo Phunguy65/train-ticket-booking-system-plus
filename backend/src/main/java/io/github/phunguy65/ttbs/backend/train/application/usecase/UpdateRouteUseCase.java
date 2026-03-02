@@ -48,7 +48,8 @@ public class UpdateRouteUseCase {
                 newArrivalTime,
                 newBasePrice,
                 newStatus,
-                route.getCreatedAt());
+                route.getCreatedAt(),
+                route.getDeletedAt());
 
         Route saved = routeRepository.save(updated);
         return Result.success(toDto(saved));

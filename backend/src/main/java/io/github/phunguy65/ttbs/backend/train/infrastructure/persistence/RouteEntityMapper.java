@@ -20,7 +20,8 @@ class RouteEntityMapper {
                 entity.getArrivalTime(),
                 entity.getBasePrice(),
                 RouteStatus.valueOf(entity.getStatus()),
-                entity.getCreatedAt());
+                entity.getCreatedAt(),
+                entity.getDeletedAt());
     }
 
     RouteEntity toEntity(Route route) {
@@ -34,8 +35,7 @@ class RouteEntityMapper {
         entity.setBasePrice(route.getBasePrice());
         entity.setStatus(route.getStatus().name());
         entity.setCreatedAt(route.getCreatedAt());
-        //        TODO: need to fix
-        //        entity.setDeletedAt(route.getDeletedAt());
+        entity.setDeletedAt(route.getDeletedAt());
         return entity;
     }
 }

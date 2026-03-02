@@ -3,6 +3,7 @@ package io.github.phunguy65.ttbs.backend.train.domain.model;
 import io.github.phunguy65.ttbs.backend.shared.domain.AggregateRoot;
 import io.github.phunguy65.ttbs.backend.station.domain.model.StationId;
 import io.github.phunguy65.ttbs.backend.train.domain.event.RouteCreated;
+import io.github.phunguy65.ttbs.backend.train.domain.event.RouteDeleted;
 import java.math.BigDecimal;
 import java.time.Instant;
 
@@ -24,6 +25,7 @@ public class Route extends AggregateRoot<RouteId> {
     private final BigDecimal basePrice;
     private final RouteStatus status;
     private final Instant createdAt;
+    private Instant deletedAt;
 
     private Route(
             RouteId id,
@@ -34,7 +36,8 @@ public class Route extends AggregateRoot<RouteId> {
             Instant arrivalTime,
             BigDecimal basePrice,
             RouteStatus status,
-            Instant createdAt) {
+            Instant createdAt,
+            Instant deletedAt) {
         this.id = id;
         this.trainId = trainId;
         this.originStationId = originStationId;
@@ -44,6 +47,7 @@ public class Route extends AggregateRoot<RouteId> {
         this.basePrice = basePrice;
         this.status = status;
         this.createdAt = createdAt;
+        this.deletedAt = deletedAt;
     }
 
     /**
@@ -75,7 +79,8 @@ public class Route extends AggregateRoot<RouteId> {
                 arrivalTime,
                 basePrice,
                 RouteStatus.SCHEDULED,
-                now);
+                now,
+                null);
         route.registerEvent(RouteCreated.of(id, trainId));
         return route;
     }
@@ -93,7 +98,8 @@ public class Route extends AggregateRoot<RouteId> {
             Instant arrivalTime,
             BigDecimal basePrice,
             RouteStatus status,
-            Instant createdAt) {
+            Instant createdAt,
+            Instant deletedAt) {
         return new Route(
                 id,
                 trainId,
@@ -103,7 +109,25 @@ public class Route extends AggregateRoot<RouteId> {
                 arrivalTime,
                 basePrice,
                 status,
-                createdAt);
+                createdAt,
+                deletedAt);
+    }
+
+    /**
+     * Soft-deletes this route by setting {@code deletedAt} to now and registering a
+     * {@link RouteDeleted} domain event. Idempotent: if already deleted, returns immediately.
+     */
+    public void softDelete() {
+        if (isDeleted()) {
+            return;
+        }
+        this.deletedAt = Instant.now();
+        registerEvent(RouteDeleted.of(id));
+    }
+
+    /** Returns {@code true} if this route has been soft-deleted. */
+    public boolean isDeleted() {
+        return deletedAt != null;
     }
 
     @Override
@@ -141,5 +165,9 @@ public class Route extends AggregateRoot<RouteId> {
 
     public Instant getCreatedAt() {
         return createdAt;
+    }
+
+    public Instant getDeletedAt() {
+        return deletedAt;
     }
 }

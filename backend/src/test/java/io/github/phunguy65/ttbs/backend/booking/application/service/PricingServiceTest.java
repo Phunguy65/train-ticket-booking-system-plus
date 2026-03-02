@@ -39,7 +39,8 @@ class PricingServiceTest {
                 Instant.now().plus(2, ChronoUnit.HOURS),
                 BASE_PRICE,
                 RouteStatus.SCHEDULED,
-                Instant.now());
+                Instant.now(),
+                null);
     }
 
     private static Seat seatOf(String seatNumber) {
