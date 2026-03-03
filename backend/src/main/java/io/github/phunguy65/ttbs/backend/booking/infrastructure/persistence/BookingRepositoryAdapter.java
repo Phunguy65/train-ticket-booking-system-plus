@@ -77,15 +77,4 @@ class BookingRepositoryAdapter implements BookingRepository {
     public boolean existsBySeatId(SeatId seatId) {
         return bookingSeatsRepository.existsBySeatId(seatId.value());
     }
-
-    @Override
-    public void softDeleteByRouteId(RouteId routeId, Instant deletedAt) {
-        jpaRepository.softDeleteByRouteId(routeId.value(), deletedAt);
-    }
-
-    @Override
-    public void softDeleteByRouteIds(List<RouteId> routeIds, Instant deletedAt) {
-        List<java.util.UUID> uuids = routeIds.stream().map(RouteId::value).toList();
-        jpaRepository.softDeleteByRouteIds(uuids, deletedAt);
-    }
 }

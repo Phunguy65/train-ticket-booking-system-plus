@@ -53,9 +53,6 @@ class BookingEntity {
     @Column(name = "payment_reference", length = 255)
     private String paymentReference;
 
-    @Column(name = "deleted_at")
-    private Instant deletedAt;
-
     @OneToMany(
             mappedBy = "booking",
             cascade = CascadeType.ALL,
@@ -167,14 +164,6 @@ class BookingEntity {
 
     public void setPaymentReference(String paymentReference) {
         this.paymentReference = paymentReference;
-    }
-
-    public Instant getDeletedAt() {
-        return deletedAt;
-    }
-
-    public void setDeletedAt(Instant deletedAt) {
-        this.deletedAt = deletedAt;
     }
 
     public List<BookingSeatsEntity> getSeats() {

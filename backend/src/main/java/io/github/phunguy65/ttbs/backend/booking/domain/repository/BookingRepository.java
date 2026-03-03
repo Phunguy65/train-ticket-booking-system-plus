@@ -57,20 +57,4 @@ public interface BookingRepository {
      * @return {@code true} if deletion is blocked
      */
     boolean existsBySeatId(SeatId seatId);
-
-    /**
-     * Soft-deletes all non-deleted bookings for the given route.
-     *
-     * @param routeId   the route being deleted
-     * @param deletedAt the soft-delete timestamp
-     */
-    void softDeleteByRouteId(RouteId routeId, Instant deletedAt);
-
-    /**
-     * Soft-deletes all non-deleted bookings for the given list of routes.
-     *
-     * @param routeIds  the routes being deleted
-     * @param deletedAt the soft-delete timestamp
-     */
-    void softDeleteByRouteIds(List<RouteId> routeIds, Instant deletedAt);
 }
