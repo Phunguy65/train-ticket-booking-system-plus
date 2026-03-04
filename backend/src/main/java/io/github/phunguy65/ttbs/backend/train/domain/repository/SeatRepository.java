@@ -20,6 +20,8 @@ public interface SeatRepository {
 
     List<Seat> findByCoachId(CoachId coachId);
 
+    List<SeatId> findActiveIdsByCoachIds(List<CoachId> coachIds);
+
     Optional<Seat> findById(SeatId id);
 
     boolean existsByCoachIdAndSeatNumber(CoachId coachId, String seatNumber);

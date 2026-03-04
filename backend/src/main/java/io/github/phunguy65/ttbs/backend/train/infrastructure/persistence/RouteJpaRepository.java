@@ -51,4 +51,19 @@ interface RouteJpaRepository extends JpaRepository<RouteEntity, UUID> {
     @Query(
             "UPDATE RouteEntity r SET r.deletedAt = :deletedAt WHERE r.id IN :ids AND r.deletedAt IS NULL")
     int softDeleteByIds(@Param("ids") List<UUID> ids, @Param("deletedAt") Instant deletedAt);
+
+    @Query(
+            "SELECT r.id FROM RouteEntity r WHERE (r.originStationId = :stationId OR r.destinationStationId = :stationId) AND r.deletedAt IS NULL")
+    List<UUID> findActiveIdsByStationId(@Param("stationId") UUID stationId);
+
+    @Query(
+            "SELECT r.id FROM RouteEntity r WHERE (r.originStationId IN :stationIds OR r.destinationStationId IN :stationIds) AND r.deletedAt IS NULL")
+    List<UUID> findActiveIdsByStationIds(@Param("stationIds") List<UUID> stationIds);
+
+    @Query(
+            "SELECT DISTINCT r.trainId FROM RouteEntity r WHERE r.id IN :routeIds AND r.deletedAt IS NULL")
+    List<UUID> findDistinctActiveTrainIdsByRouteIds(@Param("routeIds") List<UUID> routeIds);
+
+    @Query("SELECT COUNT(r) FROM RouteEntity r WHERE r.trainId = :trainId AND r.deletedAt IS NULL")
+    long countActiveByTrainId(@Param("trainId") UUID trainId);
 }

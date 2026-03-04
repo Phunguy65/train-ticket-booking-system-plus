@@ -1,7 +1,7 @@
 package io.github.phunguy65.ttbs.backend.booking.infrastructure.adapter;
 
-import io.github.phunguy65.ttbs.backend.booking.application.port.SeatValidationPort;
 import io.github.phunguy65.ttbs.backend.booking.domain.repository.BookingRepository;
+import io.github.phunguy65.ttbs.backend.train.application.port.validation.SeatValidationPort;
 import io.github.phunguy65.ttbs.backend.train.domain.model.SeatId;
 import java.util.List;
 import org.springframework.stereotype.Component;

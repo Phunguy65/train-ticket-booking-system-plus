@@ -33,13 +33,11 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 @RestController
-@RequestMapping("/{version}/routes")
 class RouteController {
 
     private static final Set<String> ALLOWED_SORT_FIELDS =
@@ -70,7 +68,7 @@ class RouteController {
         this.mapper = mapper;
     }
 
-    @PostMapping(version = "1.0")
+    @PostMapping(value = "/{version}/routes", version = "1.0")
     @PreAuthorize("hasRole('ADMIN')")
     ResponseEntity<JsendResponse<?>> create(@Valid @RequestBody CreateRouteHttpRequest request) {
         return createRouteUseCase
@@ -87,7 +85,7 @@ class RouteController {
                         error -> errorResponse(error));
     }
 
-    @GetMapping(version = "1.0")
+    @GetMapping(value = "/{version}/routes", version = "1.0")
     ResponseEntity<JsendResponse<?>> list(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
@@ -144,7 +142,7 @@ class RouteController {
         return ResponseEntity.ok(JsendResponse.success(sliceResponse));
     }
 
-    @GetMapping(value = "/{id}", version = "1.0")
+    @GetMapping(value = "/{version}/routes/{id}", version = "1.0")
     ResponseEntity<JsendResponse<?>> getById(@PathVariable UUID id) {
         return getRouteByIdUseCase
                 .execute(RouteId.of(id))
@@ -153,7 +151,7 @@ class RouteController {
                         error -> errorResponse(error));
     }
 
-    @PatchMapping(value = "/{id}", version = "1.0")
+    @PatchMapping(value = "/{version}/routes/{id}", version = "1.0")
     @PreAuthorize("hasRole('ADMIN')")
     ResponseEntity<JsendResponse<?>> patchById(
             @PathVariable UUID id, @Valid @RequestBody UpdateRouteHttpRequest request) {
@@ -164,7 +162,7 @@ class RouteController {
                         error -> errorResponse(error));
     }
 
-    @DeleteMapping(value = "/{id}", version = "1.0")
+    @DeleteMapping(value = "/{version}/routes/{id}", version = "1.0")
     @PreAuthorize("hasRole('ADMIN')")
     ResponseEntity<JsendResponse<?>> deleteById(@PathVariable UUID id) {
         return softDeleteRouteUseCase
@@ -174,7 +172,7 @@ class RouteController {
                         error -> errorResponse(error));
     }
 
-    @PostMapping(value = ":bulkDelete", version = "1.0")
+    @PostMapping(value = "/{version}/routes:bulkDelete", version = "1.0")
     @PreAuthorize("hasRole('ADMIN')")
     ResponseEntity<JsendResponse<?>> bulkDelete(
             @Valid @RequestBody BulkSoftDeleteRoutesHttpRequest request) {

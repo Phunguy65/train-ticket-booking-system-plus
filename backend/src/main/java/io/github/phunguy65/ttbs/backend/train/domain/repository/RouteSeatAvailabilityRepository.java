@@ -32,4 +32,8 @@ public interface RouteSeatAvailabilityRepository {
     boolean existsActiveBySeatId(SeatId seatId);
 
     boolean existsActiveByAnyOfSeatIds(List<SeatId> seatIds);
+
+    void hardDeleteByRouteIds(List<RouteId> routeIds);
+
+    void hardDeleteBySeatIds(List<SeatId> seatIds);
 }

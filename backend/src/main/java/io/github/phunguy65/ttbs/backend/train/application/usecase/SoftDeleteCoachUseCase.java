@@ -6,8 +6,6 @@ import io.github.phunguy65.ttbs.backend.train.application.command.SoftDeleteCoac
 import io.github.phunguy65.ttbs.backend.train.domain.errors.CoachError;
 import io.github.phunguy65.ttbs.backend.train.domain.model.Coach;
 import io.github.phunguy65.ttbs.backend.train.domain.repository.CoachRepository;
-import io.github.phunguy65.ttbs.backend.train.domain.repository.SeatRepository;
-import java.util.List;
 import java.util.Optional;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -17,15 +15,11 @@ import org.springframework.transaction.annotation.Transactional;
 public class SoftDeleteCoachUseCase {
 
     private final CoachRepository coachRepository;
-    private final SeatRepository seatRepository;
     private final ApplicationEventPublisher eventPublisher;
 
     public SoftDeleteCoachUseCase(
-            CoachRepository coachRepository,
-            SeatRepository seatRepository,
-            ApplicationEventPublisher eventPublisher) {
+            CoachRepository coachRepository, ApplicationEventPublisher eventPublisher) {
         this.coachRepository = coachRepository;
-        this.seatRepository = seatRepository;
         this.eventPublisher = eventPublisher;
     }
 
@@ -44,11 +38,6 @@ public class SoftDeleteCoachUseCase {
 
         if (coach.isDeleted()) {
             return Result.success();
-        }
-
-        if (!seatRepository.findByCoachId(command.coachId()).isEmpty()) {
-            return Result.failure(
-                    new CoachError.CoachInUse(List.of(command.coachId().value())));
         }
 
         coach.softDelete();

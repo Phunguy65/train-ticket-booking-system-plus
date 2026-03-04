@@ -1,4 +1,4 @@
-package io.github.phunguy65.ttbs.backend.booking.application.port;
+package io.github.phunguy65.ttbs.backend.train.application.port.validation;
 
 import io.github.phunguy65.ttbs.backend.train.domain.model.SeatId;
 import java.util.List;
@@ -6,8 +6,9 @@ import java.util.List;
 /**
  * Cross-module port for validating seat constraints before deletion.
  *
- * <p>Exposed via the {@code booking::port} named interface — allows the {@code train} module to
- * check booking dependencies without coupling to booking JPA internals.
+ * <p>Exposed via the {@code train::validation} named interface — allows the {@code booking} module
+ * to implement this port without creating a circular dependency between {@code train} and
+ * {@code booking}.
  */
 public interface SeatValidationPort {
 

@@ -4,8 +4,10 @@ import jakarta.persistence.LockModeType;
 import jakarta.persistence.QueryHint;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.data.repository.query.Param;
@@ -44,4 +46,16 @@ interface RouteSeatAvailabilityJpaRepository
     @Query(
             "SELECT COUNT(e) > 0 FROM RouteSeatAvailabilityEntity e WHERE e.id.seatId IN :seatIds AND e.status IN ('HELD', 'BOOKED')")
     boolean existsActiveByAnyOfSeatIds(@Param("seatIds") List<java.util.UUID> seatIds);
+
+    @Modifying
+    @Query(
+            value = "DELETE FROM route_seat_availability WHERE route_id IN :routeIds",
+            nativeQuery = true)
+    void hardDeleteByRouteIds(@Param("routeIds") List<UUID> routeIds);
+
+    @Modifying
+    @Query(
+            value = "DELETE FROM route_seat_availability WHERE seat_id IN :seatIds",
+            nativeQuery = true)
+    void hardDeleteBySeatIds(@Param("seatIds") List<UUID> seatIds);
 }

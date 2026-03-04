@@ -1,0 +1,36 @@
+package io.github.phunguy65.ttbs.backend.train.application.listener;
+
+import io.github.phunguy65.ttbs.backend.station.domain.event.StationsDeleted;
+import io.github.phunguy65.ttbs.backend.train.domain.event.RoutesDeleted;
+import io.github.phunguy65.ttbs.backend.train.domain.model.RouteId;
+import io.github.phunguy65.ttbs.backend.train.domain.repository.RouteRepository;
+import java.time.Instant;
+import java.util.List;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.modulith.events.ApplicationModuleListener;
+import org.springframework.stereotype.Service;
+
+@Service
+public class CascadeOnStationsDeletedListener {
+
+    private final RouteRepository routeRepository;
+    private final ApplicationEventPublisher eventPublisher;
+
+    public CascadeOnStationsDeletedListener(
+            RouteRepository routeRepository, ApplicationEventPublisher eventPublisher) {
+        this.routeRepository = routeRepository;
+        this.eventPublisher = eventPublisher;
+    }
+
+    @ApplicationModuleListener
+    public void onStationsDeleted(StationsDeleted event) {
+        List<RouteId> routeIds = routeRepository.findActiveIdsByStationIds(event.stationIds());
+        if (routeIds.isEmpty()) {
+            return;
+        }
+
+        Instant now = Instant.now();
+        routeRepository.softDeleteByIds(routeIds, now);
+        eventPublisher.publishEvent(RoutesDeleted.of(routeIds, now));
+    }
+}

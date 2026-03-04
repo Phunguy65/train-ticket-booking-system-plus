@@ -26,6 +26,14 @@ public interface RouteRepository {
 
     boolean existsById(RouteId id);
 
+    List<RouteId> findActiveIdsByStationId(StationId stationId);
+
+    List<RouteId> findActiveIdsByStationIds(List<StationId> stationIds);
+
+    List<TrainId> findDistinctActiveTrainIdsByRouteIds(List<RouteId> routeIds);
+
+    long countActiveByTrainId(TrainId trainId);
+
     void softDeleteById(RouteId id, Instant deletedAt);
 
     int softDeleteByIds(List<RouteId> ids, Instant deletedAt);

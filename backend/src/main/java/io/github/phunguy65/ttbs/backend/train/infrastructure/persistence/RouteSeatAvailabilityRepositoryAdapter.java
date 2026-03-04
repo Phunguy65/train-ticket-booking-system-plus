@@ -74,4 +74,16 @@ class RouteSeatAvailabilityRepositoryAdapter implements RouteSeatAvailabilityRep
         List<UUID> uuids = seatIds.stream().map(SeatId::value).toList();
         return jpaRepository.existsActiveByAnyOfSeatIds(uuids);
     }
+
+    @Override
+    public void hardDeleteByRouteIds(List<RouteId> routeIds) {
+        List<UUID> uuids = routeIds.stream().map(RouteId::value).toList();
+        jpaRepository.hardDeleteByRouteIds(uuids);
+    }
+
+    @Override
+    public void hardDeleteBySeatIds(List<SeatId> seatIds) {
+        List<UUID> uuids = seatIds.stream().map(SeatId::value).toList();
+        jpaRepository.hardDeleteBySeatIds(uuids);
+    }
 }

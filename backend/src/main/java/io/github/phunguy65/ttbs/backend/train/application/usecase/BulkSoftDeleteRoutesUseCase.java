@@ -3,7 +3,7 @@ package io.github.phunguy65.ttbs.backend.train.application.usecase;
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.train.application.command.BulkSoftDeleteRoutesCommand;
 import io.github.phunguy65.ttbs.backend.train.domain.errors.RouteError;
-import io.github.phunguy65.ttbs.backend.train.domain.event.RouteDeleted;
+import io.github.phunguy65.ttbs.backend.train.domain.event.RoutesDeleted;
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteId;
 import io.github.phunguy65.ttbs.backend.train.domain.repository.RouteRepository;
 import java.time.Instant;
@@ -39,8 +39,8 @@ public class BulkSoftDeleteRoutesUseCase {
         Instant now = Instant.now();
         int affected = routeRepository.softDeleteByIds(command.routeIds(), now);
 
-        for (RouteId routeId : command.routeIds()) {
-            eventPublisher.publishEvent(RouteDeleted.of(routeId));
+        if (affected > 0) {
+            eventPublisher.publishEvent(RoutesDeleted.of(command.routeIds(), now));
         }
 
         return Result.success(affected);

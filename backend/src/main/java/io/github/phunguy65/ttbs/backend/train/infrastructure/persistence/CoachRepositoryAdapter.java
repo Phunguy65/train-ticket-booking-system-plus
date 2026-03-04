@@ -63,4 +63,12 @@ class CoachRepositoryAdapter implements CoachRepository {
         List<UUID> uuids = ids.stream().map(CoachId::value).toList();
         return jpaRepository.softDeleteByIds(uuids, deletedAt);
     }
+
+    @Override
+    public List<CoachId> findActiveIdsByTrainIds(List<TrainId> trainIds) {
+        List<UUID> uuids = trainIds.stream().map(TrainId::value).toList();
+        return jpaRepository.findActiveIdsByTrainIds(uuids).stream()
+                .map(CoachId::of)
+                .toList();
+    }
 }

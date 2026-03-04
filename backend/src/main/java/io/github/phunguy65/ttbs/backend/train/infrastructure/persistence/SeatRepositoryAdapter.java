@@ -62,4 +62,12 @@ class SeatRepositoryAdapter implements SeatRepository {
         List<UUID> uuids = ids.stream().map(SeatId::value).toList();
         return jpaRepository.softDeleteByIds(uuids, deletedAt);
     }
+
+    @Override
+    public List<SeatId> findActiveIdsByCoachIds(List<CoachId> coachIds) {
+        List<UUID> uuids = coachIds.stream().map(CoachId::value).toList();
+        return jpaRepository.findActiveIdsByCoachIds(uuids).stream()
+                .map(SeatId::of)
+                .toList();
+    }
 }

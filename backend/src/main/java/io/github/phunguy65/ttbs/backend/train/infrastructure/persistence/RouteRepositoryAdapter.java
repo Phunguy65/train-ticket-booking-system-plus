@@ -11,6 +11,7 @@ import io.github.phunguy65.ttbs.backend.train.domain.repository.RouteRepository;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
@@ -79,5 +80,33 @@ class RouteRepositoryAdapter implements RouteRepository {
     public int softDeleteByIds(List<RouteId> ids, Instant deletedAt) {
         List<java.util.UUID> uuids = ids.stream().map(RouteId::value).toList();
         return jpaRepository.softDeleteByIds(uuids, deletedAt);
+    }
+
+    @Override
+    public List<RouteId> findActiveIdsByStationId(StationId stationId) {
+        return jpaRepository.findActiveIdsByStationId(stationId.value()).stream()
+                .map(RouteId::of)
+                .toList();
+    }
+
+    @Override
+    public List<RouteId> findActiveIdsByStationIds(List<StationId> stationIds) {
+        List<UUID> uuids = stationIds.stream().map(StationId::value).toList();
+        return jpaRepository.findActiveIdsByStationIds(uuids).stream()
+                .map(RouteId::of)
+                .toList();
+    }
+
+    @Override
+    public List<TrainId> findDistinctActiveTrainIdsByRouteIds(List<RouteId> routeIds) {
+        List<UUID> uuids = routeIds.stream().map(RouteId::value).toList();
+        return jpaRepository.findDistinctActiveTrainIdsByRouteIds(uuids).stream()
+                .map(TrainId::of)
+                .toList();
+    }
+
+    @Override
+    public long countActiveByTrainId(TrainId trainId) {
+        return jpaRepository.countActiveByTrainId(trainId.value());
     }
 }

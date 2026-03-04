@@ -14,6 +14,9 @@ interface SeatJpaRepository extends JpaRepository<SeatEntity, UUID> {
     @Query("SELECT s FROM SeatEntity s WHERE s.coachId = :coachId AND s.deletedAt IS NULL")
     List<SeatEntity> findByCoachId(@Param("coachId") UUID coachId);
 
+    @Query("SELECT s.id FROM SeatEntity s WHERE s.coachId IN :coachIds AND s.deletedAt IS NULL")
+    List<UUID> findActiveIdsByCoachIds(@Param("coachIds") List<UUID> coachIds);
+
     boolean existsByCoachIdAndSeatNumber(UUID coachId, String seatNumber);
 
     @Query("SELECT s FROM SeatEntity s WHERE s.id = :id AND s.deletedAt IS NULL")

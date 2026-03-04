@@ -22,6 +22,8 @@ public interface CoachRepository {
 
     List<Coach> findByTrainId(TrainId trainId);
 
+    List<CoachId> findActiveIdsByTrainIds(List<TrainId> trainIds);
+
     boolean existsByTrainIdAndCarNumber(TrainId trainId, int carNumber);
 
     void softDeleteById(CoachId id, Instant deletedAt);

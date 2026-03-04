@@ -20,6 +20,9 @@ interface CoachJpaRepository extends JpaRepository<CoachEntity, UUID> {
 
     boolean existsByTrainIdAndCarNumberAndDeletedAtIsNull(UUID trainId, Integer carNumber);
 
+    @Query("SELECT c.id FROM CoachEntity c WHERE c.trainId IN :trainIds AND c.deletedAt IS NULL")
+    List<UUID> findActiveIdsByTrainIds(@Param("trainIds") List<UUID> trainIds);
+
     @Modifying
     @Query(
             "UPDATE CoachEntity c SET c.deletedAt = :deletedAt WHERE c.id = :id AND c.deletedAt IS NULL")

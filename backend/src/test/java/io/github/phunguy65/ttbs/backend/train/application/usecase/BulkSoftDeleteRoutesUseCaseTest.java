@@ -7,7 +7,7 @@ import static org.mockito.Mockito.*;
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.train.application.command.BulkSoftDeleteRoutesCommand;
 import io.github.phunguy65.ttbs.backend.train.domain.errors.RouteError;
-import io.github.phunguy65.ttbs.backend.train.domain.event.RouteDeleted;
+import io.github.phunguy65.ttbs.backend.train.domain.event.RoutesDeleted;
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteId;
 import io.github.phunguy65.ttbs.backend.train.domain.repository.RouteRepository;
 import java.util.List;
@@ -41,7 +41,7 @@ class BulkSoftDeleteRoutesUseCaseTest {
     }
 
     @Test
-    void execute_allValidIds_shouldSoftDeleteAndPublishEvents() {
+    void execute_allValidIds_shouldSoftDeleteAndPublishSingleBulkEvent() {
         List<RouteId> ids = List.of(ROUTE_ID_1, ROUTE_ID_2);
         when(routeRepository.existsById(ROUTE_ID_1)).thenReturn(true);
         when(routeRepository.existsById(ROUTE_ID_2)).thenReturn(true);
@@ -52,18 +52,20 @@ class BulkSoftDeleteRoutesUseCaseTest {
         assertThat(result.isSuccess()).isTrue();
         assertThat(((Result.Success<Integer, RouteError>) result).value()).isEqualTo(2);
 
-        // verify 2 RouteDeleted events were published
-        ArgumentCaptor<Object> eventCaptor = ArgumentCaptor.forClass(Object.class);
-        verify(eventPublisher, times(2)).publishEvent(eventCaptor.capture());
-        assertThat(eventCaptor.getAllValues()).allMatch(e -> e instanceof RouteDeleted);
+        // Exactly one RoutesDeleted bulk event
+        ArgumentCaptor<Object> captor = ArgumentCaptor.forClass(Object.class);
+        verify(eventPublisher, times(1)).publishEvent(captor.capture());
+        assertThat(captor.getValue()).isInstanceOf(RoutesDeleted.class);
+        RoutesDeleted event = (RoutesDeleted) captor.getValue();
+        assertThat(event.routeIds()).containsExactlyInAnyOrderElementsOf(ids);
     }
 
     @Test
     void execute_oneInvalidId_shouldFailAllAndPublishNoEvents() {
         List<RouteId> ids = List.of(ROUTE_ID_1, ROUTE_ID_2, ROUTE_ID_3);
         when(routeRepository.existsById(ROUTE_ID_1)).thenReturn(true);
-        when(routeRepository.existsById(ROUTE_ID_2)).thenReturn(false); // missing
-        when(routeRepository.existsById(ROUTE_ID_3)).thenReturn(false); // missing
+        when(routeRepository.existsById(ROUTE_ID_2)).thenReturn(false);
+        when(routeRepository.existsById(ROUTE_ID_3)).thenReturn(false);
 
         Result<Integer, RouteError> result = useCase.execute(new BulkSoftDeleteRoutesCommand(ids));
 
@@ -79,13 +81,13 @@ class BulkSoftDeleteRoutesUseCaseTest {
     }
 
     @Test
-    void execute_publishesCorrectNumberOfEvents() {
-        List<RouteId> ids = List.of(ROUTE_ID_1, ROUTE_ID_2, ROUTE_ID_3);
+    void execute_whenNothingAffected_shouldNotPublishEvent() {
+        List<RouteId> ids = List.of(ROUTE_ID_1);
         when(routeRepository.existsById(any())).thenReturn(true);
-        when(routeRepository.softDeleteByIds(any(), any())).thenReturn(3);
+        when(routeRepository.softDeleteByIds(any(), any())).thenReturn(0);
 
         useCase.execute(new BulkSoftDeleteRoutesCommand(ids));
 
-        verify(eventPublisher, times(3)).publishEvent(any(RouteDeleted.class));
+        verifyNoInteractions(eventPublisher);
     }
 }
