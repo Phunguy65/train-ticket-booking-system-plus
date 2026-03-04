@@ -16,8 +16,6 @@ import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.train.application.port.RouteSeatAvailabilityPort;
 import io.github.phunguy65.ttbs.backend.train.domain.model.SeatId;
 import java.math.BigDecimal;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -45,7 +43,6 @@ class ConfirmSeatHoldUseCaseTest {
     private static final UUID USER_ID = UUID.randomUUID();
     private static final UUID ROUTE_ID = UUID.randomUUID();
     private static final UUID SEAT_ID = UUID.randomUUID();
-    private static final String PAYMENT_REF = "PAY-REF-001";
 
     @BeforeEach
     void setUp() {
@@ -53,14 +50,14 @@ class ConfirmSeatHoldUseCaseTest {
                 new ConfirmSeatHoldUseCase(bookingRepository, eventPublisher, seatAvailabilityPort);
     }
 
-    private Booking makeHeldBooking(Instant deadline) {
+    private Booking makeHeldBooking() {
         return Booking.createHold(
                 USER_ID,
                 ROUTE_ID,
                 List.of(BookedSeat.of(SeatId.of(SEAT_ID), new BigDecimal("500000"))),
                 new BigDecimal("500000"),
                 "VND",
-                deadline,
+                null,
                 "idem-confirm",
                 "Test",
                 "test@test.com",
@@ -69,7 +66,7 @@ class ConfirmSeatHoldUseCaseTest {
 
     @Test
     void execute_success_shouldConfirmAndTransitionToConfirmed() {
-        Booking booking = makeHeldBooking(Instant.now().plus(15, ChronoUnit.MINUTES));
+        Booking booking = makeHeldBooking();
         UUID bookingId = booking.getId().value();
         when(bookingRepository.findByIdWithSeats(BookingId.of(bookingId)))
                 .thenReturn(Optional.of(booking));
@@ -77,31 +74,11 @@ class ConfirmSeatHoldUseCaseTest {
         when(bookingRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
         Result<HoldDto, BookingError> result =
-                useCase.execute(new ConfirmSeatHoldCommand(bookingId, PAYMENT_REF));
+                useCase.execute(new ConfirmSeatHoldCommand(bookingId));
 
         assertThat(result.isSuccess()).isTrue();
         HoldDto dto = ((Result.Success<HoldDto, BookingError>) result).value();
         assertThat(dto.status()).isEqualTo(BookingStatus.CONFIRMED.name());
-    }
-
-    @Test
-    void execute_whenHoldExpired_shouldReturnHoldExpiredError() {
-        // Create hold with deadline in the past
-        Booking booking = makeHeldBooking(Instant.now().minus(1, ChronoUnit.SECONDS));
-        UUID bookingId = booking.getId().value();
-        when(bookingRepository.findByIdWithSeats(BookingId.of(bookingId)))
-                .thenReturn(Optional.of(booking));
-        when(seatAvailabilityPort.releaseHeldSeats(any(), any())).thenReturn(Result.success());
-        when(bookingRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
-
-        Result<HoldDto, BookingError> result =
-                useCase.execute(new ConfirmSeatHoldCommand(bookingId, PAYMENT_REF));
-
-        assertThat(result.isFailure()).isTrue();
-        assertThat(((Result.Failure<HoldDto, BookingError>) result).error())
-                .isInstanceOf(BookingError.HoldExpired.class);
-        // Expiry flow should have been triggered
-        verify(seatAvailabilityPort).releaseHeldSeats(any(), any());
     }
 
     @Test
@@ -111,7 +88,24 @@ class ConfirmSeatHoldUseCaseTest {
                 .thenReturn(Optional.empty());
 
         Result<HoldDto, BookingError> result =
-                useCase.execute(new ConfirmSeatHoldCommand(bookingId, PAYMENT_REF));
+                useCase.execute(new ConfirmSeatHoldCommand(bookingId));
+
+        assertThat(result.isFailure()).isTrue();
+        assertThat(((Result.Failure<HoldDto, BookingError>) result).error())
+                .isInstanceOf(BookingError.InvalidStatusTransition.class);
+    }
+
+    @Test
+    void execute_whenAlreadyConfirmed_shouldReturnInvalidStatusTransition() {
+        Booking booking = makeHeldBooking();
+        booking.confirm();
+        booking.clearDomainEvents();
+        UUID bookingId = booking.getId().value();
+        when(bookingRepository.findByIdWithSeats(BookingId.of(bookingId)))
+                .thenReturn(Optional.of(booking));
+
+        Result<HoldDto, BookingError> result =
+                useCase.execute(new ConfirmSeatHoldCommand(bookingId));
 
         assertThat(result.isFailure()).isTrue();
         assertThat(((Result.Failure<HoldDto, BookingError>) result).error())

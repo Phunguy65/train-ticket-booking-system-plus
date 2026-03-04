@@ -11,8 +11,6 @@ import io.github.phunguy65.ttbs.backend.train.domain.model.RouteId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.SeatId;
 import io.github.phunguy65.ttbs.backend.user.domain.model.UserId;
 import java.math.BigDecimal;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -45,7 +43,7 @@ class BookingRepositoryAdapterTest {
                 oneEconomySeat(),
                 new BigDecimal("200000.00"),
                 "VND",
-                Instant.now().plus(15, ChronoUnit.MINUTES),
+                null,
                 idemKey,
                 "Test Passenger",
                 "test@example.com",
@@ -128,37 +126,5 @@ class BookingRepositoryAdapterTest {
                 UserId.of(UUID.randomUUID()), RouteId.of(UUID.randomUUID()));
 
         assertThat(found).isEmpty();
-    }
-
-    @Test
-    void findExpiredHolds_shouldReturnExpiredHolds() {
-        // Create a hold that has already expired (deadline in the past)
-        Booking expiredBooking = Booking.createHold(
-                USER_ID,
-                ROUTE_ID,
-                oneEconomySeat(),
-                new BigDecimal("200000.00"),
-                "VND",
-                Instant.now().minus(1, ChronoUnit.MINUTES),
-                "idem-expired",
-                "Test",
-                "test@test.com",
-                null);
-        bookingRepository.save(expiredBooking);
-
-        List<Booking> expired = bookingRepository.findExpiredHolds(Instant.now(), 100);
-
-        assertThat(expired).isNotEmpty();
-        assertThat(expired.getFirst().getStatus()).isEqualTo(BookingStatus.HELD);
-    }
-
-    @Test
-    void findExpiredHolds_shouldNotReturnActiveHolds() {
-        // Create a hold that expires in the future
-        bookingRepository.save(createHold("idem-not-expired"));
-
-        List<Booking> expired = bookingRepository.findExpiredHolds(Instant.now(), 100);
-
-        assertThat(expired).isEmpty();
     }
 }

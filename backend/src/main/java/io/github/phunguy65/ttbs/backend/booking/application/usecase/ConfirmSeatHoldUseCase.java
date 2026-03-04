@@ -42,14 +42,9 @@ public class ConfirmSeatHoldUseCase {
 
         Booking booking = found.get();
 
-        Result<Void, BookingError> confirmResult = booking.confirm(command.paymentReference());
+        Result<Void, BookingError> confirmResult = booking.confirm();
         if (confirmResult.isFailure()) {
             BookingError error = ((Result.Failure<Void, BookingError>) confirmResult).error();
-
-            if (error instanceof BookingError.HoldExpired) {
-                triggerExpiry(booking);
-            }
-
             return Result.failure(error);
         }
 
@@ -67,18 +62,6 @@ public class ConfirmSeatHoldUseCase {
         return Result.success(toHoldDto(saved));
     }
 
-    private void triggerExpiry(Booking booking) {
-        List<SeatId> seatIds =
-                booking.getBookedSeats().stream().map(bs -> bs.seatId()).toList();
-        seatAvailabilityPort.releaseHeldSeats(booking.getRouteId(), seatIds);
-        booking.expire();
-        bookingRepository.save(booking);
-        for (DomainEvent event : booking.getDomainEvents()) {
-            eventPublisher.publishEvent(event);
-        }
-        booking.clearDomainEvents();
-    }
-
     private HoldDto toHoldDto(Booking booking) {
         List<HoldDto.BookedSeatDto> seatDtos = booking.getBookedSeats().stream()
                 .map(bs -> new HoldDto.BookedSeatDto(bs.seatId().value(), bs.unitPrice()))
@@ -90,6 +73,8 @@ public class ConfirmSeatHoldUseCase {
                 seatDtos,
                 booking.getTotalPrice(),
                 booking.getCurrency(),
-                booking.getPaymentDeadline());
+                null,
+                null,
+                booking.getCheckoutSessionId());
     }
 }

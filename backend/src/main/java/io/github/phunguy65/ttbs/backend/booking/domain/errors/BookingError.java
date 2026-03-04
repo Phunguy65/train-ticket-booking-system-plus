@@ -14,19 +14,6 @@ import java.util.UUID;
 public sealed interface BookingError {
 
     /**
-     * Attempted to confirm a booking that is not in {@code HELD} status.
-     *
-     * @param currentStatus the actual status of the booking at the time of the attempt
-     */
-    record CannotConfirm(BookingStatus currentStatus) implements BookingError {
-        @Override
-        public String message() {
-            return "Cannot confirm booking in status " + currentStatus
-                    + ". Only HELD bookings can be confirmed.";
-        }
-    }
-
-    /**
      * Attempted to cancel a booking that is already {@code CANCELLED}.
      */
     record AlreadyCancelled() implements BookingError {
@@ -78,16 +65,6 @@ public sealed interface BookingError {
         public String message() {
             return "An active hold already exists for this user and route. "
                     + "Cancel or confirm the existing hold before creating a new one.";
-        }
-    }
-
-    /**
-     * The hold has expired — the payment deadline has passed.
-     */
-    record HoldExpired() implements BookingError {
-        @Override
-        public String message() {
-            return "The seat hold has expired. Please create a new hold.";
         }
     }
 

@@ -57,13 +57,6 @@ class BookingRepositoryAdapter implements BookingRepository {
     }
 
     @Override
-    public List<Booking> findExpiredHolds(Instant now, int limit) {
-        return jpaRepository.findExpiredHolds(now, limit).stream()
-                .map(mapper::toDomain)
-                .toList();
-    }
-
-    @Override
     public Optional<Booking> findByIdWithSeats(BookingId id) {
         return jpaRepository.findByIdWithSeats(id.value()).map(mapper::toDomain);
     }
@@ -71,6 +64,18 @@ class BookingRepositoryAdapter implements BookingRepository {
     @Override
     public boolean existsActiveByUserId(UserId userId) {
         return jpaRepository.existsActiveByUserId(userId.value(), ACTIVE_STATUSES);
+    }
+
+    @Override
+    public List<Booking> findStaleHoldsWithCheckoutSession(Instant threshold) {
+        return jpaRepository.findStaleHoldsWithCheckoutSession(threshold).stream()
+                .map(mapper::toDomain)
+                .toList();
+    }
+
+    @Override
+    public Optional<Booking> findByCheckoutSessionId(String checkoutSessionId) {
+        return jpaRepository.findByCheckoutSessionId(checkoutSessionId).map(mapper::toDomain);
     }
 
     @Override

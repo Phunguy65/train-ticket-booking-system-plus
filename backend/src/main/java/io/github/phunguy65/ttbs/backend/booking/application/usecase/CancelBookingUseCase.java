@@ -56,7 +56,11 @@ public class CancelBookingUseCase {
             seatAvailabilityPort.cancelBookedSeats(booking.getRouteId(), seatIds);
         }
 
-        booking.cancel();
+        Result<Void, BookingError> cancelResult = booking.cancel();
+        if (cancelResult.isFailure()) {
+            return Result.failure(((Result.Failure<Void, BookingError>) cancelResult).error());
+        }
+
         Booking saved = bookingRepository.save(booking);
 
         for (DomainEvent event : booking.getDomainEvents()) {
@@ -78,6 +82,8 @@ public class CancelBookingUseCase {
                 seatDtos,
                 booking.getTotalPrice(),
                 booking.getCurrency(),
-                booking.getPaymentDeadline());
+                null,
+                null,
+                booking.getCheckoutSessionId());
     }
 }

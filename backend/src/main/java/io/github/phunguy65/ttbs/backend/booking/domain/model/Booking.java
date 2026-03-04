@@ -3,7 +3,7 @@ package io.github.phunguy65.ttbs.backend.booking.domain.model;
 import io.github.phunguy65.ttbs.backend.booking.domain.errors.BookingError;
 import io.github.phunguy65.ttbs.backend.booking.domain.event.BookingCancelled;
 import io.github.phunguy65.ttbs.backend.booking.domain.event.BookingConfirmed;
-import io.github.phunguy65.ttbs.backend.booking.domain.event.SeatHoldCreated;
+import io.github.phunguy65.ttbs.backend.booking.domain.event.BookingHeld;
 import io.github.phunguy65.ttbs.backend.booking.domain.event.SeatHoldExpired;
 import io.github.phunguy65.ttbs.backend.shared.domain.AggregateRoot;
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
@@ -26,8 +26,7 @@ public class Booking extends AggregateRoot<BookingId> {
     private final String idempotencyKey;
     private BookingStatus status;
     private final Instant createdAt;
-    private final Instant paymentDeadline;
-    private String paymentReference;
+    private String checkoutSessionId;
 
     private final String passengerName;
     private final String passengerEmail;
@@ -43,8 +42,7 @@ public class Booking extends AggregateRoot<BookingId> {
             String idempotencyKey,
             BookingStatus status,
             Instant createdAt,
-            Instant paymentDeadline,
-            String paymentReference,
+            String checkoutSessionId,
             String passengerName,
             String passengerEmail,
             String passengerPhone) {
@@ -57,8 +55,7 @@ public class Booking extends AggregateRoot<BookingId> {
         this.idempotencyKey = idempotencyKey;
         this.status = status;
         this.createdAt = createdAt;
-        this.paymentDeadline = paymentDeadline;
-        this.paymentReference = paymentReference;
+        this.checkoutSessionId = checkoutSessionId;
         this.passengerName = passengerName;
         this.passengerEmail = passengerEmail;
         this.passengerPhone = passengerPhone;
@@ -66,18 +63,18 @@ public class Booking extends AggregateRoot<BookingId> {
 
     /**
      * Factory method for creating a new seat hold.
-     * Registers {@link SeatHoldCreated} domain event.
+     * Registers {@link BookingHeld} domain event.
      *
-     * @param userId          the user creating the hold
-     * @param routeId         the route for which the hold is created
-     * @param bookedSeats     list of seats with price snapshots
-     * @param totalPrice      sum of all unit prices
-     * @param currency        the currency code (e.g. "VND")
-     * @param paymentDeadline deadline for payment confirmation (typically NOW + 15 min)
-     * @param idempotencyKey  idempotency key for deduplication
-     * @param passengerName   passenger name
-     * @param passengerEmail  passenger email
-     * @param passengerPhone  passenger phone (nullable)
+     * @param userId             the user creating the hold
+     * @param routeId            the route for which the hold is created
+     * @param bookedSeats        list of seats with price snapshots
+     * @param totalPrice         sum of all unit prices
+     * @param currency           the currency code (e.g. "VND")
+     * @param checkoutSessionId  Stripe Checkout Session ID (set after session creation)
+     * @param idempotencyKey     idempotency key for deduplication
+     * @param passengerName      passenger name
+     * @param passengerEmail     passenger email
+     * @param passengerPhone     passenger phone (nullable)
      */
     public static Booking createHold(
             UUID userId,
@@ -85,7 +82,7 @@ public class Booking extends AggregateRoot<BookingId> {
             List<BookedSeat> bookedSeats,
             BigDecimal totalPrice,
             String currency,
-            Instant paymentDeadline,
+            String checkoutSessionId,
             String idempotencyKey,
             String passengerName,
             String passengerEmail,
@@ -102,17 +99,15 @@ public class Booking extends AggregateRoot<BookingId> {
                 idempotencyKey,
                 BookingStatus.HELD,
                 now,
-                paymentDeadline,
-                null,
+                checkoutSessionId,
                 passengerName,
                 passengerEmail,
                 passengerPhone);
-        booking.registerEvent(SeatHoldCreated.of(
+        booking.registerEvent(BookingHeld.of(
                 bookingId,
                 userId,
                 routeId,
-                bookedSeats.stream().map(bs -> bs.seatId().value()).toList(),
-                paymentDeadline));
+                bookedSeats.stream().map(bs -> bs.seatId().value()).toList()));
         return booking;
     }
 
@@ -130,8 +125,7 @@ public class Booking extends AggregateRoot<BookingId> {
             String idempotencyKey,
             BookingStatus status,
             Instant createdAt,
-            Instant paymentDeadline,
-            String paymentReference,
+            String checkoutSessionId,
             String passengerName,
             String passengerEmail,
             String passengerPhone) {
@@ -145,8 +139,7 @@ public class Booking extends AggregateRoot<BookingId> {
                 idempotencyKey,
                 status,
                 createdAt,
-                paymentDeadline,
-                paymentReference,
+                checkoutSessionId,
                 passengerName,
                 passengerEmail,
                 passengerPhone);
@@ -154,21 +147,15 @@ public class Booking extends AggregateRoot<BookingId> {
 
     /**
      * Confirms the hold after payment.
-     * Guard: status must be HELD and paymentDeadline must not have passed.
+     * Guard: status must be HELD.
      *
-     * @param paymentReference the payment reference from the payment provider
-     * @return success if confirmed; failure with {@link BookingError.HoldExpired} or
-     *         {@link BookingError.InvalidStatusTransition} otherwise
+     * @return success if confirmed; failure with {@link BookingError.InvalidStatusTransition} otherwise
      */
-    public Result<Void, BookingError> confirm(String paymentReference) {
+    public Result<Void, BookingError> confirm() {
         if (status != BookingStatus.HELD) {
             return Result.failure(new BookingError.InvalidStatusTransition(status));
         }
-        if (paymentDeadline != null && !Instant.now().isBefore(paymentDeadline)) {
-            return Result.failure(new BookingError.HoldExpired());
-        }
         this.status = BookingStatus.CONFIRMED;
-        this.paymentReference = paymentReference;
         registerEvent(BookingConfirmed.of(id));
         return Result.success();
     }
@@ -193,17 +180,15 @@ public class Booking extends AggregateRoot<BookingId> {
     }
 
     /**
-     * Cancels the booking (user-initiated).
-     * Idempotent: cancelling an already-CANCELLED booking returns success without modifying state.
-     *
-     * @return success; failure if already cancelled is a no-op
+     * Cancels the booking (user-initiated or system-initiated).
+     * Returns failure with {@link BookingError.AlreadyCancelled} if already cancelled.
      */
     public Result<Void, BookingError> cancel() {
         if (status == BookingStatus.CANCELLED) {
-            return Result.success();
+            return Result.failure(new BookingError.AlreadyCancelled());
         }
         this.status = BookingStatus.CANCELLED;
-        registerEvent(BookingCancelled.of(id));
+        registerEvent(BookingCancelled.of(id, checkoutSessionId));
         return Result.success();
     }
 
@@ -244,12 +229,12 @@ public class Booking extends AggregateRoot<BookingId> {
         return createdAt;
     }
 
-    public Instant getPaymentDeadline() {
-        return paymentDeadline;
+    public String getCheckoutSessionId() {
+        return checkoutSessionId;
     }
 
-    public String getPaymentReference() {
-        return paymentReference;
+    public void setCheckoutSessionId(String checkoutSessionId) {
+        this.checkoutSessionId = checkoutSessionId;
     }
 
     public String getPassengerName() {

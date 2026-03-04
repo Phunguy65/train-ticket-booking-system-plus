@@ -7,6 +7,9 @@ import io.github.phunguy65.ttbs.backend.booking.domain.errors.BookingError;
 import io.github.phunguy65.ttbs.backend.booking.domain.model.BookedSeat;
 import io.github.phunguy65.ttbs.backend.booking.domain.model.Booking;
 import io.github.phunguy65.ttbs.backend.booking.domain.repository.BookingRepository;
+import io.github.phunguy65.ttbs.backend.payment.application.dto.CheckoutSessionDto;
+import io.github.phunguy65.ttbs.backend.payment.application.dto.CreateCheckoutSessionCommand;
+import io.github.phunguy65.ttbs.backend.payment.application.port.CheckoutSessionPort;
 import io.github.phunguy65.ttbs.backend.shared.domain.DomainEvent;
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.train.application.port.RoutePort;
@@ -19,7 +22,6 @@ import io.github.phunguy65.ttbs.backend.train.domain.model.Seat;
 import io.github.phunguy65.ttbs.backend.train.domain.model.SeatId;
 import io.github.phunguy65.ttbs.backend.user.domain.model.UserId;
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -33,7 +35,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class CreateSeatHoldUseCase {
 
     private static final String DEFAULT_CURRENCY = "VND";
-    private static final int HOLD_DURATION_MINUTES = 15;
 
     private final BookingRepository bookingRepository;
     private final ApplicationEventPublisher eventPublisher;
@@ -41,6 +42,7 @@ public class CreateSeatHoldUseCase {
     private final RoutePort routePort;
     private final SeatPort seatPort;
     private final PricingService pricingService;
+    private final CheckoutSessionPort checkoutSessionPort;
 
     public CreateSeatHoldUseCase(
             BookingRepository bookingRepository,
@@ -48,13 +50,15 @@ public class CreateSeatHoldUseCase {
             RouteSeatAvailabilityPort seatAvailabilityPort,
             RoutePort routePort,
             SeatPort seatPort,
-            PricingService pricingService) {
+            PricingService pricingService,
+            CheckoutSessionPort checkoutSessionPort) {
         this.bookingRepository = bookingRepository;
         this.eventPublisher = eventPublisher;
         this.seatAvailabilityPort = seatAvailabilityPort;
         this.routePort = routePort;
         this.seatPort = seatPort;
         this.pricingService = pricingService;
+        this.checkoutSessionPort = checkoutSessionPort;
     }
 
     @Transactional
@@ -62,7 +66,7 @@ public class CreateSeatHoldUseCase {
         Optional<Booking> existing =
                 bookingRepository.findByIdempotencyKey(command.idempotencyKey());
         if (existing.isPresent()) {
-            return Result.success(toHoldDto(existing.get()));
+            return Result.success(toHoldDto(existing.get(), null, null));
         }
 
         boolean activeHoldExists = bookingRepository
@@ -79,7 +83,6 @@ public class CreateSeatHoldUseCase {
                         new IllegalArgumentException("Route not found: " + command.routeId()));
 
         List<Seat> seats = loadSeats(command.seatIds());
-
         List<BookedSeat> bookedSeats = pricingService.calculatePrices(route, seats);
         var totalPrice = pricingService.calculateTotalPrice(bookedSeats);
 
@@ -91,14 +94,14 @@ public class CreateSeatHoldUseCase {
             return Result.failure(new BookingError.SeatsNotAvailable(command.seatIds()));
         }
 
-        Instant paymentDeadline = Instant.now().plus(HOLD_DURATION_MINUTES, ChronoUnit.MINUTES);
+        // Create booking without checkoutSessionId first (will be set after Stripe call)
         Booking booking = Booking.createHold(
                 command.userId(),
                 command.routeId(),
                 bookedSeats,
                 totalPrice,
                 DEFAULT_CURRENCY,
-                paymentDeadline,
+                null,
                 command.idempotencyKey(),
                 command.passengerName(),
                 command.passengerEmail(),
@@ -107,12 +110,22 @@ public class CreateSeatHoldUseCase {
         try {
             Booking saved = bookingRepository.save(booking);
 
+            // Create Stripe Checkout Session within the same transaction
+            // If this fails, the transaction rolls back and no orphaned hold exists
+            CheckoutSessionDto sessionDto =
+                    checkoutSessionPort.createSession(new CreateCheckoutSessionCommand(
+                            saved.getId().value(), totalPrice, command.idempotencyKey()));
+
+            saved.setCheckoutSessionId(sessionDto.checkoutSessionId());
+            Booking finalSaved = bookingRepository.save(saved);
+
             for (DomainEvent event : booking.getDomainEvents()) {
                 eventPublisher.publishEvent(event);
             }
             booking.clearDomainEvents();
 
-            return Result.success(toHoldDto(saved));
+            return Result.success(
+                    toHoldDto(finalSaved, sessionDto.checkoutUrl(), sessionDto.expiresAt()));
         } catch (DataIntegrityViolationException ex) {
             return Result.failure(new BookingError.ActiveHoldExists());
         }
@@ -128,7 +141,7 @@ public class CreateSeatHoldUseCase {
         return seats;
     }
 
-    private HoldDto toHoldDto(Booking booking) {
+    private HoldDto toHoldDto(Booking booking, String checkoutUrl, Instant expiresAt) {
         List<HoldDto.BookedSeatDto> seatDtos = booking.getBookedSeats().stream()
                 .map(bs -> new HoldDto.BookedSeatDto(bs.seatId().value(), bs.unitPrice()))
                 .toList();
@@ -139,6 +152,8 @@ public class CreateSeatHoldUseCase {
                 seatDtos,
                 booking.getTotalPrice(),
                 booking.getCurrency(),
-                booking.getPaymentDeadline());
+                expiresAt,
+                checkoutUrl,
+                booking.getCheckoutSessionId());
     }
 }

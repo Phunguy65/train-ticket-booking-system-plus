@@ -4,6 +4,7 @@ import io.github.phunguy65.ttbs.backend.booking.application.usecase.CancelBookin
 import io.github.phunguy65.ttbs.backend.booking.application.usecase.ConfirmSeatHoldUseCase;
 import io.github.phunguy65.ttbs.backend.booking.application.usecase.CreateSeatHoldUseCase;
 import io.github.phunguy65.ttbs.backend.booking.application.usecase.GetBookingUseCase;
+import io.github.phunguy65.ttbs.backend.payment.infrastructure.config.StripeProperties;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.ErrorCode;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.FailData;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.JsendResponse;
@@ -25,18 +26,21 @@ class BookingController {
     private final CancelBookingUseCase cancelBookingUseCase;
     private final GetBookingUseCase getBookingUseCase;
     private final BookingRequestMapper mapper;
+    private final StripeProperties stripeProperties;
 
     BookingController(
             CreateSeatHoldUseCase createSeatHoldUseCase,
             ConfirmSeatHoldUseCase confirmSeatHoldUseCase,
             CancelBookingUseCase cancelBookingUseCase,
             GetBookingUseCase getBookingUseCase,
-            BookingRequestMapper mapper) {
+            BookingRequestMapper mapper,
+            StripeProperties stripeProperties) {
         this.createSeatHoldUseCase = createSeatHoldUseCase;
         this.confirmSeatHoldUseCase = confirmSeatHoldUseCase;
         this.cancelBookingUseCase = cancelBookingUseCase;
         this.getBookingUseCase = getBookingUseCase;
         this.mapper = mapper;
+        this.stripeProperties = stripeProperties;
     }
 
     /**
@@ -88,21 +92,12 @@ class BookingController {
      * Confirm a held booking after payment.
      */
     @PostMapping(value = "/{id}:confirm", version = "1.0")
-    ResponseEntity<JsendResponse<?>> confirmHold(
-            @PathVariable UUID id, @Valid @RequestBody ConfirmSeatHoldHttpRequest request) {
+    ResponseEntity<JsendResponse<?>> confirmHold(@PathVariable UUID id) {
         return confirmSeatHoldUseCase
-                .execute(mapper.toConfirmCommand(id, request))
+                .execute(mapper.toConfirmCommand(id))
                 .fold(
                         dto -> ResponseEntity.ok(JsendResponse.success(mapper.toResponse(dto))),
                         error -> switch (error) {
-                            case io.github.phunguy65.ttbs.backend.booking.domain.errors.BookingError
-                                            .HoldExpired
-                                    e ->
-                                ResponseEntity.status(HttpStatus.CONFLICT)
-                                        .body(JsendResponse.fail(new FailData(
-                                                e.message(),
-                                                ErrorCode.BOOKING_CANNOT_CONFIRM,
-                                                List.of())));
                             case io.github.phunguy65.ttbs.backend.booking.domain.errors.BookingError
                                             .InvalidStatusTransition
                                     e ->
@@ -148,5 +143,17 @@ class BookingController {
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND)
                         .body(JsendResponse.fail(new FailData(
                                 "Booking not found", ErrorCode.BOOKING_NOT_FOUND, List.of()))));
+    }
+
+    /**
+     * GET /api/{version}/bookings/{id}/cancel-redirect
+     * Called by Stripe cancel_url. Cancels the booking and redirects to the frontend cancel page.
+     */
+    @GetMapping(value = "/{id}/cancel-redirect", version = "1.0")
+    ResponseEntity<Void> cancelRedirect(@PathVariable UUID id) {
+        cancelBookingUseCase.execute(mapper.toCancelCommand(id));
+        return ResponseEntity.status(HttpStatus.FOUND)
+                .location(URI.create(stripeProperties.cancelUrl()))
+                .build();
     }
 }

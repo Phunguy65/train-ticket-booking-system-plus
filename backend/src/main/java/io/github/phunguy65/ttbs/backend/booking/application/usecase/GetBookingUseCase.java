@@ -35,6 +35,8 @@ public class GetBookingUseCase {
                 seats,
                 booking.getTotalPrice(),
                 booking.getCurrency(),
-                booking.getPaymentDeadline());
+                null,
+                null,
+                booking.getCheckoutSessionId());
     }
 }

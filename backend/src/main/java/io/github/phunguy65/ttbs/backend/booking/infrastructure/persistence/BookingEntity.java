@@ -47,11 +47,8 @@ class BookingEntity {
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
-    @Column(name = "payment_deadline")
-    private Instant paymentDeadline;
-
-    @Column(name = "payment_reference", length = 255)
-    private String paymentReference;
+    @Column(name = "checkout_session_id", length = 255)
+    private String checkoutSessionId;
 
     @OneToMany(
             mappedBy = "booking",
@@ -150,20 +147,12 @@ class BookingEntity {
         this.createdAt = createdAt;
     }
 
-    public Instant getPaymentDeadline() {
-        return paymentDeadline;
+    public String getCheckoutSessionId() {
+        return checkoutSessionId;
     }
 
-    public void setPaymentDeadline(Instant paymentDeadline) {
-        this.paymentDeadline = paymentDeadline;
-    }
-
-    public String getPaymentReference() {
-        return paymentReference;
-    }
-
-    public void setPaymentReference(String paymentReference) {
-        this.paymentReference = paymentReference;
+    public void setCheckoutSessionId(String checkoutSessionId) {
+        this.checkoutSessionId = checkoutSessionId;
     }
 
     public List<BookingSeatsEntity> getSeats() {

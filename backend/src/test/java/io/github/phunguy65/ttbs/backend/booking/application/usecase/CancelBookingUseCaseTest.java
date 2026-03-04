@@ -16,8 +16,6 @@ import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.train.application.port.RouteSeatAvailabilityPort;
 import io.github.phunguy65.ttbs.backend.train.domain.model.SeatId;
 import java.math.BigDecimal;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -58,7 +56,7 @@ class CancelBookingUseCaseTest {
                 List.of(BookedSeat.of(SeatId.of(SEAT_ID), new BigDecimal("500000"))),
                 new BigDecimal("500000"),
                 "VND",
-                Instant.now().plus(15, ChronoUnit.MINUTES),
+                null,
                 "idem-cancel-held",
                 "Test",
                 "test@test.com",
@@ -67,7 +65,7 @@ class CancelBookingUseCaseTest {
 
     private Booking makeConfirmedBooking() {
         Booking b = makeHeldBooking();
-        b.confirm("PAY-001");
+        b.confirm();
         b.clearDomainEvents();
         return b;
     }

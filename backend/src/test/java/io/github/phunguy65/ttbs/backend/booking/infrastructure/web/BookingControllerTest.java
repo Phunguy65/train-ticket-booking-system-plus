@@ -12,6 +12,7 @@ import io.github.phunguy65.ttbs.backend.booking.application.usecase.ConfirmSeatH
 import io.github.phunguy65.ttbs.backend.booking.application.usecase.CreateSeatHoldUseCase;
 import io.github.phunguy65.ttbs.backend.booking.application.usecase.GetBookingUseCase;
 import io.github.phunguy65.ttbs.backend.booking.domain.errors.BookingError;
+import io.github.phunguy65.ttbs.backend.payment.infrastructure.config.StripeProperties;
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.GlobalExceptionHandler;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.WebConfig;
@@ -61,6 +62,9 @@ class BookingControllerTest {
     @MockitoBean
     private UserDetailsService userDetailsService;
 
+    @MockitoBean
+    private StripeProperties stripeProperties;
+
     // ── Helpers ──────────────────────────────────────────────────────────────
 
     private HoldDto buildHoldDto(UUID bookingId, UUID routeId, String status) {
@@ -73,7 +77,9 @@ class BookingControllerTest {
                 seats,
                 BigDecimal.valueOf(100_000),
                 "VND",
-                status.equals("HELD") ? Instant.now().plusSeconds(900) : null);
+                status.equals("HELD") ? Instant.now().plusSeconds(900) : null,
+                null,
+                null);
     }
 
     // ── POST /hold ────────────────────────────────────────────────────────────
@@ -167,49 +173,24 @@ class BookingControllerTest {
         UUID bookingId = UUID.randomUUID();
         UUID routeId = UUID.randomUUID();
 
-        ConfirmSeatHoldHttpRequest request = new ConfirmSeatHoldHttpRequest("PAY-REF-123");
         HoldDto dto = buildHoldDto(bookingId, routeId, "CONFIRMED");
 
         when(confirmSeatHoldUseCase.execute(any())).thenReturn(Result.success(dto));
 
-        mockMvc.perform(post("/api/v1.0/bookings/{id}:confirm", bookingId)
-                        .with(csrf())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
+        mockMvc.perform(post("/api/v1.0/bookings/{id}:confirm", bookingId).with(csrf()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("success"))
                 .andExpect(jsonPath("$.data.status").value("CONFIRMED"));
     }
 
     @Test
-    void confirmHold_whenHoldExpired_shouldReturn409Conflict() throws Exception {
-        UUID bookingId = UUID.randomUUID();
-
-        ConfirmSeatHoldHttpRequest request = new ConfirmSeatHoldHttpRequest("PAY-REF-456");
-        when(confirmSeatHoldUseCase.execute(any()))
-                .thenReturn(Result.failure(new BookingError.HoldExpired()));
-
-        mockMvc.perform(post("/api/v1.0/bookings/{id}:confirm", bookingId)
-                        .with(csrf())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.status").value("fail"))
-                .andExpect(jsonPath("$.data.code").value("BOOKING_CANNOT_CONFIRM"));
-    }
-
-    @Test
     void confirmHold_whenBookingNotFound_shouldReturn404() throws Exception {
         UUID bookingId = UUID.randomUUID();
 
-        ConfirmSeatHoldHttpRequest request = new ConfirmSeatHoldHttpRequest("PAY-REF-789");
         when(confirmSeatHoldUseCase.execute(any()))
                 .thenReturn(Result.failure(new BookingError.InvalidStatusTransition(null)));
 
-        mockMvc.perform(post("/api/v1.0/bookings/{id}:confirm", bookingId)
-                        .with(csrf())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
+        mockMvc.perform(post("/api/v1.0/bookings/{id}:confirm", bookingId).with(csrf()))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.status").value("fail"))
                 .andExpect(jsonPath("$.data.code").value("BOOKING_NOT_FOUND"));

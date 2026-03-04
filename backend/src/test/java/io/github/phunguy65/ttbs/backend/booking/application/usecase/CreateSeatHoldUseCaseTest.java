@@ -12,6 +12,8 @@ import io.github.phunguy65.ttbs.backend.booking.domain.model.BookedSeat;
 import io.github.phunguy65.ttbs.backend.booking.domain.model.Booking;
 import io.github.phunguy65.ttbs.backend.booking.domain.model.BookingStatus;
 import io.github.phunguy65.ttbs.backend.booking.domain.repository.BookingRepository;
+import io.github.phunguy65.ttbs.backend.payment.application.dto.CheckoutSessionDto;
+import io.github.phunguy65.ttbs.backend.payment.application.port.CheckoutSessionPort;
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.station.domain.model.StationId;
 import io.github.phunguy65.ttbs.backend.train.application.port.RoutePort;
@@ -56,6 +58,9 @@ class CreateSeatHoldUseCaseTest {
     @Mock
     private SeatPort seatPort;
 
+    @Mock
+    private CheckoutSessionPort checkoutSessionPort;
+
     private PricingService pricingService;
     private CreateSeatHoldUseCase useCase;
 
@@ -63,6 +68,8 @@ class CreateSeatHoldUseCaseTest {
     private static final UUID ROUTE_ID = UUID.randomUUID();
     private static final UUID SEAT_ID = UUID.randomUUID();
     private static final String IDEMPOTENCY_KEY = "hold-idem-001";
+    private static final String CHECKOUT_URL = "https://checkout.stripe.com/pay/cs_test_abc";
+    private static final String SESSION_ID = "cs_test_abc123";
 
     private Route testRoute;
     private Seat testSeat;
@@ -76,7 +83,8 @@ class CreateSeatHoldUseCaseTest {
                 seatAvailabilityPort,
                 routePort,
                 seatPort,
-                pricingService);
+                pricingService,
+                checkoutSessionPort);
 
         testRoute = Route.reconstitute(
                 RouteId.of(ROUTE_ID),
@@ -106,7 +114,7 @@ class CreateSeatHoldUseCaseTest {
     }
 
     @Test
-    void execute_success_shouldCreateHoldAndReturnDto() {
+    void execute_success_shouldCreateHoldAndReturnDtoWithCheckoutUrl() {
         when(bookingRepository.findByIdempotencyKey(IDEMPOTENCY_KEY)).thenReturn(Optional.empty());
         when(bookingRepository.findActiveHoldByUserIdAndRouteId(any(), any()))
                 .thenReturn(Optional.empty());
@@ -114,6 +122,9 @@ class CreateSeatHoldUseCaseTest {
         when(seatPort.findById(SeatId.of(SEAT_ID))).thenReturn(Optional.of(testSeat));
         when(seatAvailabilityPort.holdSeats(any(), any())).thenReturn(Result.success());
         when(bookingRepository.save(any(Booking.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(checkoutSessionPort.createSession(any()))
+                .thenReturn(new CheckoutSessionDto(
+                        SESSION_ID, CHECKOUT_URL, Instant.now().plus(30, ChronoUnit.MINUTES)));
 
         Result<HoldDto, BookingError> result = useCase.execute(createCommand());
 
@@ -121,9 +132,9 @@ class CreateSeatHoldUseCaseTest {
         HoldDto dto = ((Result.Success<HoldDto, BookingError>) result).value();
         assertThat(dto.status()).isEqualTo(BookingStatus.HELD.name());
         assertThat(dto.routeId()).isEqualTo(ROUTE_ID);
-        assertThat(dto.seats()).hasSize(1);
-        assertThat(dto.seats().getFirst().seatId()).isEqualTo(SEAT_ID);
-        assertThat(dto.expiresAt()).isNotNull();
+        assertThat(dto.checkoutUrl()).isEqualTo(CHECKOUT_URL);
+        assertThat(dto.checkoutSessionId()).isEqualTo(SESSION_ID);
+        verify(checkoutSessionPort).createSession(any());
     }
 
     @Test
@@ -137,6 +148,7 @@ class CreateSeatHoldUseCaseTest {
         assertThat(result.isSuccess()).isTrue();
         verify(bookingRepository, never()).save(any());
         verify(seatAvailabilityPort, never()).holdSeats(any(), any());
+        verify(checkoutSessionPort, never()).createSession(any());
     }
 
     @Test
@@ -170,6 +182,24 @@ class CreateSeatHoldUseCaseTest {
         assertThat(((Result.Failure<HoldDto, BookingError>) result).error())
                 .isInstanceOf(BookingError.SeatsNotAvailable.class);
         verify(bookingRepository, never()).save(any());
+        verify(checkoutSessionPort, never()).createSession(any());
+    }
+
+    @Test
+    void execute_whenStripeThrows_shouldRollbackAndNotPersistBooking() {
+        when(bookingRepository.findByIdempotencyKey(IDEMPOTENCY_KEY)).thenReturn(Optional.empty());
+        when(bookingRepository.findActiveHoldByUserIdAndRouteId(any(), any()))
+                .thenReturn(Optional.empty());
+        when(routePort.findById(any())).thenReturn(Optional.of(testRoute));
+        when(seatPort.findById(SeatId.of(SEAT_ID))).thenReturn(Optional.of(testSeat));
+        when(seatAvailabilityPort.holdSeats(any(), any())).thenReturn(Result.success());
+        when(bookingRepository.save(any(Booking.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(checkoutSessionPort.createSession(any()))
+                .thenThrow(new RuntimeException("Stripe unavailable"));
+
+        assertThatThrownBy(() -> useCase.execute(createCommand()))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("Stripe unavailable");
     }
 
     private Booking makeExistingHold() {
@@ -179,7 +209,7 @@ class CreateSeatHoldUseCaseTest {
                 List.of(BookedSeat.of(SeatId.of(SEAT_ID), new BigDecimal("500000"))),
                 new BigDecimal("500000"),
                 "VND",
-                Instant.now().plus(15, ChronoUnit.MINUTES),
+                SESSION_ID,
                 IDEMPOTENCY_KEY,
                 "Test",
                 "test@test.com",

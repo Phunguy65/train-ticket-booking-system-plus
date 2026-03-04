@@ -28,8 +28,7 @@ class BookingEntityMapper {
                 entity.getIdempotencyKey(),
                 entity.getStatus(),
                 entity.getCreatedAt(),
-                entity.getPaymentDeadline(),
-                entity.getPaymentReference(),
+                entity.getCheckoutSessionId(),
                 entity.getPassengerName(),
                 entity.getPassengerEmail(),
                 entity.getPassengerPhone());
@@ -49,8 +48,7 @@ class BookingEntityMapper {
         entity.setStatus(booking.getStatus());
         entity.setIdempotencyKey(booking.getIdempotencyKey());
         entity.setCreatedAt(booking.getCreatedAt());
-        entity.setPaymentDeadline(booking.getPaymentDeadline());
-        entity.setPaymentReference(booking.getPaymentReference());
+        entity.setCheckoutSessionId(booking.getCheckoutSessionId());
         entity.setPassengerName(booking.getPassengerName());
         entity.setPassengerEmail(booking.getPassengerEmail());
         entity.setPassengerPhone(booking.getPassengerPhone());

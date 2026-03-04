@@ -47,7 +47,6 @@ class GetBookingUseCaseTest {
                 "key-001",
                 BookingStatus.HELD,
                 Instant.now(),
-                Instant.now().plusSeconds(900),
                 null,
                 "Nguyen Van A",
                 "a@example.com",

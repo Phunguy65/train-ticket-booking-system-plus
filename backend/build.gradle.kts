@@ -47,6 +47,7 @@ dependencies {
     implementation(libs.jjwt.api)
     implementation(libs.jackson.databind.nullable)
     compileOnly(libs.jspecify)
+    implementation(libs.stripe.java)
     runtimeOnly(libs.jjwt.impl)
     runtimeOnly(libs.jjwt.jackson)
     developmentOnly(libs.spring.boot.devtools)

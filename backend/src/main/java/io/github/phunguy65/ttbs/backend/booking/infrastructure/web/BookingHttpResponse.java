@@ -8,17 +8,17 @@ import java.util.UUID;
 /**
  * HTTP response body for booking endpoints.
  *
- * <p>Returned for GET, hold, confirm, and cancel operations.
- *
- * @param id             the booking identifier
- * @param userId         the user who owns the booking
- * @param routeId        the route for this booking
- * @param status         the booking status (HELD, CONFIRMED, CANCELLED)
- * @param seats          per-seat breakdown with price snapshots
- * @param totalPrice     sum of all unit prices
- * @param currency       currency code (e.g. "VND")
- * @param idempotencyKey the idempotency key used at creation
- * @param expiresAt      payment deadline for HELD bookings; null otherwise
+ * @param id                the booking identifier
+ * @param userId            the user who owns the booking
+ * @param routeId           the route for this booking
+ * @param status            the booking status (HELD, CONFIRMED, CANCELLED)
+ * @param seats             per-seat breakdown with price snapshots
+ * @param totalPrice        sum of all unit prices
+ * @param currency          currency code (e.g. "VND")
+ * @param idempotencyKey    the idempotency key used at creation
+ * @param expiresAt         Stripe session expiry for HELD bookings; null otherwise
+ * @param checkoutUrl       Stripe Checkout URL for HELD bookings; null otherwise
+ * @param checkoutSessionId Stripe Checkout Session ID; null for non-HELD bookings
  */
 public record BookingHttpResponse(
         UUID id,
@@ -29,13 +29,9 @@ public record BookingHttpResponse(
         BigDecimal totalPrice,
         String currency,
         String idempotencyKey,
-        Instant expiresAt) {
+        Instant expiresAt,
+        String checkoutUrl,
+        String checkoutSessionId) {
 
-    /**
-     * Per-seat data in the booking response.
-     *
-     * @param seatId    the seat identifier
-     * @param unitPrice the price for this specific seat
-     */
     public record BookedSeatResponse(UUID seatId, BigDecimal unitPrice) {}
 }

@@ -25,21 +25,22 @@ public interface BookingRepository {
     Optional<Booking> findActiveHoldByUserIdAndRouteId(UserId userId, RouteId routeId);
 
     /**
-     * Finds expired holds — bookings with status HELD and paymentDeadline before {@code now}.
-     * Results are ordered by paymentDeadline ascending (oldest expiry first).
-     *
-     * @param now   the reference time for expiry check
-     * @param limit maximum number of results to return
-     * @return list of expired holds (may be empty)
-     */
-    List<Booking> findExpiredHolds(Instant now, int limit);
-
-    /**
      * Finds a booking by ID, eagerly loading its booked seats.
      *
      * @return the booking with seats loaded, or empty if not found
      */
     Optional<Booking> findByIdWithSeats(BookingId id);
+
+    /**
+     * Finds HELD bookings that have a checkoutSessionId and were created before {@code threshold}.
+     * Used by the reconciliation job to detect stale holds whose webhooks may have been missed.
+     */
+    List<Booking> findStaleHoldsWithCheckoutSession(Instant threshold);
+
+    /**
+     * Finds a booking by its Stripe Checkout Session ID.
+     */
+    Optional<Booking> findByCheckoutSessionId(String checkoutSessionId);
 
     /**
      * Returns {@code true} if there are any non-cancelled bookings (HELD or CONFIRMED)

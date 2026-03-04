@@ -36,6 +36,7 @@ ktlintGradle = "14.0.1"
 ktlintComposeRules = "0.5.6"
 runtime = "1.10.3"
 jspecify = "1.0.0"
+stripeJava = "31.4.0"
 
 [libraries]
 # ─── Backend ─────────────────────────────────────────────────────────────────
@@ -76,6 +77,9 @@ spring-security-messaging = { module = "org.springframework.security:spring-secu
 
 # Jspecify
 jspecify = { module = "org.jspecify:jspecify", version.ref = "jspecify" }
+
+# Stripe
+stripe-java = { module = "com.stripe:stripe-java", version.ref = "stripeJava" }
 
 # JJWT
 jjwt-api = { module = "io.jsonwebtoken:jjwt-api", version.ref = "jjwt" }

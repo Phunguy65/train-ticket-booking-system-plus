@@ -13,18 +13,14 @@ interface BookingJpaRepository extends JpaRepository<BookingEntity, UUID> {
 
     Optional<BookingEntity> findByIdempotencyKey(String idempotencyKey);
 
+    Optional<BookingEntity> findByCheckoutSessionId(String checkoutSessionId);
+
     @Query("SELECT b FROM BookingEntity b "
             + "WHERE b.userId = :userId AND b.routeId = :routeId AND b.status = :status")
     Optional<BookingEntity> findByUserIdAndRouteIdAndStatus(
             @Param("userId") UUID userId,
             @Param("routeId") UUID routeId,
             @Param("status") BookingStatus status);
-
-    @Query("SELECT b FROM BookingEntity b "
-            + "WHERE b.status = 'HELD' AND b.paymentDeadline < :now "
-            + "ORDER BY b.paymentDeadline ASC "
-            + "LIMIT :limit")
-    List<BookingEntity> findExpiredHolds(@Param("now") Instant now, @Param("limit") int limit);
 
     @Query("SELECT b FROM BookingEntity b LEFT JOIN FETCH b.seats WHERE b.id = :id")
     Optional<BookingEntity> findByIdWithSeats(@Param("id") UUID id);
@@ -33,4 +29,9 @@ interface BookingJpaRepository extends JpaRepository<BookingEntity, UUID> {
             + "WHERE b.userId = :userId AND b.status IN :statuses")
     boolean existsActiveByUserId(
             @Param("userId") UUID userId, @Param("statuses") List<BookingStatus> statuses);
+
+    @Query("SELECT b FROM BookingEntity b LEFT JOIN FETCH b.seats "
+            + "WHERE b.status = 'HELD' AND b.checkoutSessionId IS NOT NULL "
+            + "AND b.createdAt < :threshold")
+    List<BookingEntity> findStaleHoldsWithCheckoutSession(@Param("threshold") Instant threshold);
 }
