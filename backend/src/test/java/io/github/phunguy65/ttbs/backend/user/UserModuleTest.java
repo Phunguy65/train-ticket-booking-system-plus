@@ -6,6 +6,7 @@ import io.github.phunguy65.ttbs.backend.shared.domain.PageResult;
 import io.github.phunguy65.ttbs.backend.shared.domain.SortDirection;
 import io.github.phunguy65.ttbs.backend.user.application.command.RegisterUserCommand;
 import io.github.phunguy65.ttbs.backend.user.application.dto.UserDto;
+import io.github.phunguy65.ttbs.backend.user.application.port.BookingValidationPort;
 import io.github.phunguy65.ttbs.backend.user.application.usecase.ListUsersUseCase;
 import io.github.phunguy65.ttbs.backend.user.application.usecase.RegisterUserUseCase;
 import io.github.phunguy65.ttbs.backend.user.domain.event.UserRegistered;
@@ -14,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.modulith.test.ApplicationModuleTest;
 import org.springframework.modulith.test.PublishedEvents;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 @ApplicationModuleTest
 @TestPropertySource(
@@ -23,6 +25,9 @@ import org.springframework.test.context.TestPropertySource;
             "jwt.refresh-token-expiry=604800"
         })
 class UserModuleTest {
+
+    @MockitoBean
+    private BookingValidationPort bookingValidationPort;
 
     @Autowired
     private RegisterUserUseCase registerUserUseCase;

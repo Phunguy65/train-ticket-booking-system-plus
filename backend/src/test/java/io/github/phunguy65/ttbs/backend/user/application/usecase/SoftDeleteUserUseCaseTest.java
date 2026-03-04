@@ -6,6 +6,7 @@ import static org.mockito.Mockito.*;
 
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.user.application.command.SoftDeleteUserCommand;
+import io.github.phunguy65.ttbs.backend.user.application.port.BookingValidationPort;
 import io.github.phunguy65.ttbs.backend.user.domain.errors.UserError;
 import io.github.phunguy65.ttbs.backend.user.domain.event.UserDeleted;
 import io.github.phunguy65.ttbs.backend.user.domain.model.User;
@@ -34,6 +35,9 @@ class SoftDeleteUserUseCaseTest {
     private RefreshTokenRepository refreshTokenRepository;
 
     @Mock
+    private BookingValidationPort bookingValidationPort;
+
+    @Mock
     private ApplicationEventPublisher eventPublisher;
 
     private SoftDeleteUserUseCase useCase;
@@ -42,7 +46,8 @@ class SoftDeleteUserUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        useCase = new SoftDeleteUserUseCase(userRepository, refreshTokenRepository, eventPublisher);
+        useCase = new SoftDeleteUserUseCase(
+                userRepository, refreshTokenRepository, bookingValidationPort, eventPublisher);
     }
 
     private User makeActiveUser() {
@@ -89,6 +94,7 @@ class SoftDeleteUserUseCaseTest {
         User user = makeActiveUser();
         when(userRepository.findById(USER_ID)).thenReturn(Optional.of(user));
         when(userRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        when(bookingValidationPort.hasActiveBookingsForUser(USER_ID)).thenReturn(false);
 
         Result<Void, UserError> result = useCase.execute(new SoftDeleteUserCommand(USER_ID));
 

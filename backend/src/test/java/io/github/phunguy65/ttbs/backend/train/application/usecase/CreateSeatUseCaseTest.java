@@ -70,7 +70,7 @@ class CreateSeatUseCaseTest {
     }
 
     @Test
-    void execute_whenCoachNotFound_shouldReturnTrainNotFoundError() {
+    void execute_whenCoachNotFound_shouldReturnCoachNotFoundError() {
         when(coachRepository.findById(CoachId.of(COACH_UUID))).thenReturn(Optional.empty());
 
         Result<SeatDto, SeatError> result =
@@ -78,7 +78,7 @@ class CreateSeatUseCaseTest {
 
         assertThat(result.isFailure()).isTrue();
         assertThat(((Result.Failure<SeatDto, SeatError>) result).error())
-                .isInstanceOf(SeatError.TrainNotFound.class);
+                .isInstanceOf(SeatError.CoachNotFound.class);
         verify(seatRepository, never()).save(any());
     }
 

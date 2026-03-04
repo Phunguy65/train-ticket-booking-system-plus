@@ -10,13 +10,9 @@ import io.github.phunguy65.ttbs.backend.train.domain.errors.CoachError;
 import io.github.phunguy65.ttbs.backend.train.domain.event.CoachDeleted;
 import io.github.phunguy65.ttbs.backend.train.domain.model.Coach;
 import io.github.phunguy65.ttbs.backend.train.domain.model.CoachId;
-import io.github.phunguy65.ttbs.backend.train.domain.model.Seat;
-import io.github.phunguy65.ttbs.backend.train.domain.model.SeatId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.TrainId;
 import io.github.phunguy65.ttbs.backend.train.domain.repository.CoachRepository;
-import io.github.phunguy65.ttbs.backend.train.domain.repository.SeatRepository;
 import java.time.Instant;
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
@@ -33,9 +29,6 @@ class SoftDeleteCoachUseCaseTest {
     private CoachRepository coachRepository;
 
     @Mock
-    private SeatRepository seatRepository;
-
-    @Mock
     private ApplicationEventPublisher eventPublisher;
 
     private SoftDeleteCoachUseCase useCase;
@@ -45,7 +38,7 @@ class SoftDeleteCoachUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        useCase = new SoftDeleteCoachUseCase(coachRepository, seatRepository, eventPublisher);
+        useCase = new SoftDeleteCoachUseCase(coachRepository, eventPublisher);
     }
 
     private Coach activeCoach() {
@@ -63,11 +56,6 @@ class SoftDeleteCoachUseCaseTest {
                 Instant.now());
     }
 
-    private Seat sampleSeat() {
-        return Seat.reconstitute(
-                SeatId.of(UUID.randomUUID()), CoachId.of(COACH_UUID), "1A", Instant.now(), null);
-    }
-
     private SoftDeleteCoachCommand command() {
         return new SoftDeleteCoachCommand(CoachId.of(COACH_UUID), TrainId.of(TRAIN_UUID));
     }
@@ -75,10 +63,9 @@ class SoftDeleteCoachUseCaseTest {
     // ── Happy path ────────────────────────────────────────────────────────────
 
     @Test
-    void execute_withNoSeats_shouldSoftDeleteAndPublishEvent() {
+    void execute_activeCoach_shouldSoftDeleteAndPublishEvent() {
         Coach coach = activeCoach();
         when(coachRepository.findById(CoachId.of(COACH_UUID))).thenReturn(Optional.of(coach));
-        when(seatRepository.findByCoachId(CoachId.of(COACH_UUID))).thenReturn(List.of());
         when(coachRepository.save(any(Coach.class))).thenAnswer(inv -> inv.getArgument(0));
 
         Result<Void, CoachError> result = useCase.execute(command());
@@ -132,25 +119,5 @@ class SoftDeleteCoachUseCaseTest {
         assertThat(((Result.Failure<Void, CoachError>) result).error())
                 .isInstanceOf(CoachError.CoachNotFound.class);
         verify(coachRepository, never()).save(any());
-    }
-
-    // ── In use ────────────────────────────────────────────────────────────────
-
-    @Test
-    void execute_whenCoachHasActiveSeats_shouldReturnCoachInUse() {
-        Coach coach = activeCoach();
-        when(coachRepository.findById(CoachId.of(COACH_UUID))).thenReturn(Optional.of(coach));
-        when(seatRepository.findByCoachId(CoachId.of(COACH_UUID)))
-                .thenReturn(List.of(sampleSeat()));
-
-        Result<Void, CoachError> result = useCase.execute(command());
-
-        assertThat(result.isFailure()).isTrue();
-        CoachError error = ((Result.Failure<Void, CoachError>) result).error();
-        assertThat(error).isInstanceOf(CoachError.CoachInUse.class);
-        CoachError.CoachInUse inUse = (CoachError.CoachInUse) error;
-        assertThat(inUse.conflictingIds()).containsExactly(COACH_UUID);
-        verify(coachRepository, never()).save(any());
-        verify(eventPublisher, never()).publishEvent(any());
     }
 }

@@ -441,7 +441,7 @@ class UserControllerTest {
     @WithMockUser(username = "00000000-0000-0000-0000-000000000001", roles = "ADMIN")
     void bulkDelete_asAdmin_shouldReturn200WithDeletedCount() throws Exception {
         UUID otherId = UUID.randomUUID();
-        when(bulkSoftDeleteUsersUseCase.execute(any())).thenReturn(1);
+        when(bulkSoftDeleteUsersUseCase.execute(any())).thenReturn(Result.success(1));
 
         mockMvc.perform(post("/api/v1.0/users:bulkDelete")
                         .with(csrf())
