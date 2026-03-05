@@ -1,29 +1,4 @@
 -- ============================================================
--- B14.0.0 — Baseline Schema
---
--- Complete consolidated schema representing the final state after
--- all migrations B11.0.0 through V13.0.0. This is the authoritative
--- starting point for new database instances.
---
--- Changes from B11.0.0:
---   - Added coaches table (V12.0.0): trains (1) ──< (N) coaches (1) ──< (N) seats
---   - seats.train_id removed, replaced by seats.coach_id (V12.0.0)
---   - Added payments table for Stripe Checkout (V13.0.0)
---   - Added bookings.checkout_session_id (V13.0.0)
---   - Removed transactions table (legacy SEPAY gateway, no longer used)
---
--- Key design decisions:
---   - UUID primary keys using uuidv7() (monotonic ordering for B-tree perf)
---   - All timestamps are TIMESTAMPTZ (timezone-aware, UTC)
---   - Per-route seat availability (not global seat status)
---   - Two-phase booking: HELD → CONFIRMED (no PENDING status)
---   - Multi-seat bookings via booking_seats join table
---   - Unified pricing: all seats share route.base_price (no seat class multiplier)
---   - JWT refresh token revocation tracking
---   - Soft delete via deleted_at TIMESTAMPTZ (NULL = active) on all
---     master-data and operational tables
--- ============================================================
--- ============================================================
 -- TABLE: users
 -- ============================================================
 CREATE TABLE users (
@@ -36,7 +11,8 @@ CREATE TABLE users (
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     deleted_at TIMESTAMPTZ,
-    CONSTRAINT pk_users PRIMARY KEY (id)
+    CONSTRAINT pk_users PRIMARY KEY (id),
+    CONSTRAINT chk_users_role CHECK (role IN ('CUSTOMER', 'ADMIN'))
 );
 
 COMMENT ON COLUMN users.created_at IS 'Timestamp with timezone (UTC)';
@@ -81,7 +57,6 @@ COMMENT ON COLUMN trains.deleted_at IS 'Soft delete timestamp (UTC); NULL = acti
 
 -- ============================================================
 -- TABLE: coaches
--- Intermediate layer between trains and seats (added V12.0.0).
 -- ============================================================
 CREATE TABLE coaches (
     id UUID NOT NULL DEFAULT uuidv7(),
@@ -116,14 +91,24 @@ CREATE TABLE routes (
     destination_station_id UUID NOT NULL,
     departure_time TIMESTAMPTZ NOT NULL,
     arrival_time TIMESTAMPTZ NOT NULL,
-    base_price DECIMAL(10, 2) NOT NULL,
+    base_price BIGINT NOT NULL,
     status VARCHAR(20) NOT NULL DEFAULT 'SCHEDULED',
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     deleted_at TIMESTAMPTZ,
     CONSTRAINT pk_routes PRIMARY KEY (id),
     CONSTRAINT routes_train_id_fkey FOREIGN KEY (train_id) REFERENCES trains (id),
     CONSTRAINT routes_origin_station_id_fkey FOREIGN KEY (origin_station_id) REFERENCES stations (id),
-    CONSTRAINT routes_destination_station_id_fkey FOREIGN KEY (destination_station_id) REFERENCES stations (id)
+    CONSTRAINT routes_destination_station_id_fkey FOREIGN KEY (destination_station_id) REFERENCES stations (id),
+    CONSTRAINT chk_routes_status CHECK (
+        status IN (
+            'SCHEDULED',
+            'BOARDING',
+            'DEPARTED',
+            'ARRIVED',
+            'CANCELLED'
+        )
+    ),
+    CONSTRAINT chk_routes_times CHECK (arrival_time > departure_time)
 );
 
 COMMENT ON COLUMN routes.departure_time IS 'Departure time with timezone (UTC)';
@@ -134,12 +119,10 @@ COMMENT ON COLUMN routes.created_at IS 'Timestamp with timezone (UTC)';
 
 COMMENT ON COLUMN routes.deleted_at IS 'Soft delete timestamp (UTC); NULL = active';
 
+COMMENT ON COLUMN routes.base_price IS 'Stored in lowest denomination (e.g., pure VND or USD cents)';
+
 -- ============================================================
 -- TABLE: seats
--- Dropped columns (not present in final state):
---   - status     (V1.0.0) → dropped V4.0.0: moved to route_seat_availability
---   - seat_class (V1.0.0) → dropped V8.1.0: unified pricing, no multiplier
---   - train_id   (V1.0.0) → dropped V12.0.0: replaced by coach_id
 -- ============================================================
 CREATE TABLE seats (
     id UUID NOT NULL DEFAULT uuidv7(),
@@ -151,14 +134,8 @@ CREATE TABLE seats (
     CONSTRAINT fk_seats_coach FOREIGN KEY (coach_id) REFERENCES coaches (id)
 );
 
-COMMENT ON COLUMN seats.created_at IS 'Timestamp with timezone (UTC)';
-
-COMMENT ON COLUMN seats.deleted_at IS 'Soft delete timestamp (UTC); NULL = active';
-
 -- ============================================================
 -- TABLE: bookings
--- Dropped columns (not present in final state):
---   - seat_id (V1.0.0) → dropped V7.0.0: replaced by booking_seats join table
 -- ============================================================
 CREATE TABLE bookings (
     id UUID NOT NULL DEFAULT uuidv7(),
@@ -167,13 +144,12 @@ CREATE TABLE bookings (
     passenger_name VARCHAR(255) NOT NULL,
     passenger_email VARCHAR(255) NOT NULL,
     passenger_phone VARCHAR(20),
-    total_price DECIMAL(10, 2) NOT NULL,
+    total_price BIGINT NOT NULL,
     currency VARCHAR(10) NOT NULL DEFAULT 'VND',
     status VARCHAR(20) NOT NULL,
     idempotency_key VARCHAR(255),
     payment_deadline TIMESTAMPTZ,
     payment_reference VARCHAR(255),
-    checkout_session_id VARCHAR(255),
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT pk_bookings PRIMARY KEY (id),
     CONSTRAINT uq_bookings_idempotency UNIQUE (idempotency_key),
@@ -186,37 +162,21 @@ COMMENT ON COLUMN bookings.payment_deadline IS 'Payment deadline with timezone (
 
 COMMENT ON COLUMN bookings.created_at IS 'Timestamp with timezone (UTC)';
 
-COMMENT ON COLUMN bookings.checkout_session_id IS 'Stripe Checkout Session ID; nullable for backward compat';
-
--- ============================================================
--- TABLE: booking_seats
--- Join table for multi-seat bookings with price snapshot.
--- Dropped columns (not present in final state):
---   - seat_class_at_booking (V7.0.0) → dropped V8.1.0: unified pricing
--- ============================================================
-CREATE TABLE booking_seats (
-    booking_id UUID NOT NULL,
-    seat_id UUID NOT NULL,
-    price_at_booking DECIMAL(10, 2) NOT NULL,
-    CONSTRAINT pk_booking_seats PRIMARY KEY (booking_id, seat_id),
-    CONSTRAINT fk_bs_booking FOREIGN KEY (booking_id) REFERENCES bookings (id),
-    CONSTRAINT fk_bs_seat FOREIGN KEY (seat_id) REFERENCES seats (id)
-);
-
 -- ============================================================
 -- TABLE: route_seat_availability
--- Per-route seat availability tracking (replaces global seats.status).
--- Dropped columns (not present in final state):
---   - version (V4.0.0) → dropped V10.0.0: pessimistic locking made
---     optimistic version check unreachable dead code
+-- Core table for concurrency, locking, and seating assignment
 -- ============================================================
 CREATE TABLE route_seat_availability (
     route_id UUID NOT NULL,
     seat_id UUID NOT NULL,
     status VARCHAR(20) NOT NULL DEFAULT 'AVAILABLE',
+    booking_id UUID,
+    price_at_booking BIGINT,
+    version INTEGER NOT NULL DEFAULT 1,
     CONSTRAINT pk_route_seat_availability PRIMARY KEY (route_id, seat_id),
     CONSTRAINT fk_rsa_route FOREIGN KEY (route_id) REFERENCES routes (id),
     CONSTRAINT fk_rsa_seat FOREIGN KEY (seat_id) REFERENCES seats (id),
+    CONSTRAINT fk_rsa_booking FOREIGN KEY (booking_id) REFERENCES bookings (id),
     CONSTRAINT chk_rsa_status CHECK (
         status IN ('AVAILABLE', 'HELD', 'BOOKED', 'CANCELLED')
     )
@@ -224,7 +184,6 @@ CREATE TABLE route_seat_availability (
 
 -- ============================================================
 -- TABLE: refresh_tokens
--- JWT refresh token management with revocation tracking.
 -- ============================================================
 CREATE TABLE refresh_tokens (
     id UUID NOT NULL DEFAULT uuidv7(),
@@ -237,39 +196,35 @@ CREATE TABLE refresh_tokens (
     CONSTRAINT refresh_tokens_user_id_fkey FOREIGN KEY (user_id) REFERENCES users (id)
 );
 
-COMMENT ON TABLE refresh_tokens IS 'Stores hashed JWT refresh tokens with expiration and revocation tracking';
-
-COMMENT ON COLUMN refresh_tokens.id IS 'Primary key (UUIDv7 for monotonic ordering)';
-
-COMMENT ON COLUMN refresh_tokens.user_id IS 'Foreign key to users table';
-
-COMMENT ON COLUMN refresh_tokens.token_hash IS 'SHA-256 hash of raw refresh token (64 hex chars), never store plain token';
-
-COMMENT ON COLUMN refresh_tokens.expires_at IS 'Token expiration timestamp (UTC)';
-
-COMMENT ON COLUMN refresh_tokens.revoked_at IS 'Token revocation timestamp (UTC); NULL means token is still active';
-
-COMMENT ON COLUMN refresh_tokens.created_at IS 'Token creation timestamp (UTC)';
-
 -- ============================================================
 -- TABLE: payments
--- Stripe Checkout Session payment records (added V13.0.0).
 -- ============================================================
 CREATE TABLE payments (
-    id UUID NOT NULL DEFAULT gen_random_uuid(),
+    id UUID NOT NULL DEFAULT uuidv7(),
     booking_id UUID NOT NULL,
     checkout_session_id VARCHAR(255) NOT NULL,
     stripe_event_id VARCHAR(255),
-    amount DECIMAL(10, 2) NOT NULL,
-    currency VARCHAR(10) NOT NULL DEFAULT 'vnd',
+    amount BIGINT NOT NULL,
+    currency VARCHAR(10) NOT NULL DEFAULT 'VND',
     status VARCHAR(20) NOT NULL,
+    stripe_payment_intent_id VARCHAR(255),
+    error_message TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT pk_payments PRIMARY KEY (id),
     CONSTRAINT fk_payments_booking FOREIGN KEY (booking_id) REFERENCES bookings (id),
     CONSTRAINT uq_payments_checkout_session_id UNIQUE (checkout_session_id),
     CONSTRAINT uq_payments_stripe_event_id UNIQUE (stripe_event_id),
-    CONSTRAINT chk_payments_status CHECK (status IN ('PENDING', 'PAID', 'CANCELLED'))
+    CONSTRAINT uq_payments_stripe_payment_intent_id UNIQUE (stripe_payment_intent_id),
+    CONSTRAINT chk_payments_status CHECK (
+        status IN (
+            'PENDING',
+            'PAID',
+            'CANCELLED',
+            'FAILED',
+            'REFUNDED'
+        )
+    )
 );
 
 COMMENT ON TABLE payments IS 'Stripe Checkout Session payment records';
@@ -283,110 +238,106 @@ COMMENT ON COLUMN payments.status IS 'Payment lifecycle: PENDING → PAID or CAN
 -- ============================================================
 -- INDEXES
 -- ============================================================
--- users: active e-mail uniqueness (soft-delete-aware)
+-- Users
 CREATE UNIQUE INDEX uq_users_email_active ON users (email)
 WHERE
     deleted_at IS NULL;
 
--- users: filter active rows quickly
 CREATE INDEX idx_users_deleted_at ON users (deleted_at)
 WHERE
     deleted_at IS NULL;
 
--- stations: active code uniqueness (soft-delete-aware)
+-- Stations
 CREATE UNIQUE INDEX uq_stations_code_active ON stations (code)
 WHERE
     deleted_at IS NULL;
 
--- stations: filter active rows quickly
 CREATE INDEX idx_stations_deleted_at ON stations (deleted_at)
 WHERE
     deleted_at IS NULL;
 
--- trains: active train_number uniqueness (soft-delete-aware)
+-- Trains
 CREATE UNIQUE INDEX uq_trains_train_number_active ON trains (train_number)
 WHERE
     deleted_at IS NULL;
 
--- trains: filter active rows quickly
 CREATE INDEX idx_trains_deleted_at ON trains (deleted_at)
 WHERE
     deleted_at IS NULL;
 
--- coaches: active (train_id, car_number) uniqueness (soft-delete-aware)
+-- Coaches
 CREATE UNIQUE INDEX uq_coaches_train_car_active ON coaches (train_id, car_number)
 WHERE
     deleted_at IS NULL;
 
--- coaches: fast lookup of all coaches for a given train
 CREATE INDEX idx_coaches_train_id ON coaches (train_id);
 
--- coaches: filter active rows quickly
 CREATE INDEX idx_coaches_deleted_at ON coaches (deleted_at)
 WHERE
     deleted_at IS NULL;
 
--- routes: filter active rows quickly
+-- Routes
 CREATE INDEX idx_routes_deleted_at ON routes (deleted_at)
 WHERE
     deleted_at IS NULL;
 
--- routes: train lookup
 CREATE INDEX idx_routes_train ON routes (train_id);
 
--- routes: departure time range queries
 CREATE INDEX idx_routes_departure ON routes (departure_time);
 
--- routes: composite index for search by origin + destination + departure date range
 CREATE INDEX idx_routes_origin_dest_departure ON routes (
     origin_station_id,
     destination_station_id,
     departure_time
 );
 
--- seats: active (coach_id, seat_number) uniqueness (soft-delete-aware)
+CREATE INDEX idx_routes_origin_station ON routes (origin_station_id);
+
+CREATE INDEX idx_routes_destination_station ON routes (destination_station_id);
+
+-- Seats
 CREATE UNIQUE INDEX uq_seats_coach_seat_active ON seats (coach_id, seat_number)
 WHERE
     deleted_at IS NULL;
 
--- seats: fast lookup of all seats for a given coach
 CREATE INDEX idx_seats_coach_id ON seats (coach_id);
 
--- seats: filter active rows quickly
 CREATE INDEX idx_seats_deleted_at ON seats (deleted_at)
 WHERE
     deleted_at IS NULL;
 
--- bookings: user lookup
+-- Bookings
 CREATE INDEX idx_bookings_user ON bookings (user_id);
 
--- bookings: hold expiry polling (status + deadline)
+CREATE INDEX idx_bookings_route ON bookings (route_id);
+
 CREATE INDEX idx_bookings_status_deadline ON bookings (status, payment_deadline);
 
--- bookings: one active hold per user per route (business rule enforcement)
 CREATE UNIQUE INDEX idx_one_active_hold_per_user_route ON bookings (user_id, route_id)
 WHERE
     status = 'HELD';
 
--- bookings: reconciliation job queries
 CREATE INDEX idx_bookings_checkout_session_id ON bookings (checkout_session_id)
 WHERE
     checkout_session_id IS NOT NULL;
 
--- route_seat_availability: find available seats for a route
+-- Route Seat Availability
 CREATE INDEX idx_route_seat_status ON route_seat_availability (route_id, status);
 
--- refresh_tokens: fast token lookup by hash (primary query pattern)
+CREATE INDEX idx_route_seat_seat_id ON route_seat_availability (seat_id);
+
+CREATE INDEX idx_route_seat_booking_id ON route_seat_availability (booking_id)
+WHERE
+    booking_id IS NOT NULL;
+
+-- Refresh Tokens
 CREATE UNIQUE INDEX idx_refresh_tokens_token_hash ON refresh_tokens (token_hash);
 
--- refresh_tokens: revoke all tokens for a user
 CREATE INDEX idx_refresh_tokens_user_id ON refresh_tokens (user_id);
 
--- refresh_tokens: active token queries (WHERE user_id = ? AND revoked_at IS NULL)
 CREATE INDEX idx_refresh_tokens_user_revoked ON refresh_tokens (user_id, revoked_at);
 
--- payments: webhook-to-payment lookup
+-- Payments
 CREATE INDEX idx_payments_checkout_session_id ON payments (checkout_session_id);
 
--- payments: booking-to-payment lookup
 CREATE INDEX idx_payments_booking_id ON payments (booking_id);
