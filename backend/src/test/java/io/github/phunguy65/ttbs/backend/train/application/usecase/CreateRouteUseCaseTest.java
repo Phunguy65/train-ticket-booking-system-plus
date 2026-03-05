@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+import io.github.phunguy65.ttbs.backend.shared.domain.Money;
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.train.application.command.CreateRouteCommand;
 import io.github.phunguy65.ttbs.backend.train.application.dto.RouteDto;
@@ -13,7 +14,6 @@ import io.github.phunguy65.ttbs.backend.train.domain.model.Route;
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteStatus;
 import io.github.phunguy65.ttbs.backend.train.domain.model.TrainId;
 import io.github.phunguy65.ttbs.backend.train.domain.repository.RouteRepository;
-import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
@@ -39,7 +39,7 @@ class CreateRouteUseCaseTest {
     private static final UUID DEST_UUID = UUID.randomUUID();
     private static final Instant DEPARTURE = Instant.parse("2025-06-01T08:00:00Z");
     private static final Instant ARRIVAL = Instant.parse("2025-06-01T12:00:00Z");
-    private static final BigDecimal PRICE = new BigDecimal("150.00");
+    private static final Money PRICE = Money.vnd(15000L);
 
     @BeforeEach
     void setUp() {
@@ -61,7 +61,7 @@ class CreateRouteUseCaseTest {
         assertThat(dto.destinationStationId()).isEqualTo(DEST_UUID);
         assertThat(dto.departureTime()).isEqualTo(DEPARTURE);
         assertThat(dto.arrivalTime()).isEqualTo(ARRIVAL);
-        assertThat(dto.basePrice()).isEqualByComparingTo(PRICE);
+        assertThat(dto.basePrice()).isEqualTo(PRICE.toLong());
         assertThat(dto.status()).isEqualTo(RouteStatus.SCHEDULED);
         verify(routeRepository).save(any(Route.class));
     }

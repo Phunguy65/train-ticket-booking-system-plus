@@ -2,7 +2,6 @@ package io.github.phunguy65.ttbs.backend.train.infrastructure.web;
 
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
-import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -17,4 +16,4 @@ record CreateRouteHttpRequest(
 
         @NotNull(message = "Arrival time is required") Instant arrivalTime,
 
-        @NotNull(message = "Base price is required") @Positive(message = "Base price must be positive") BigDecimal basePrice) {}
+        @NotNull(message = "Base price is required") @Positive(message = "Base price must be positive") Long basePrice) {}

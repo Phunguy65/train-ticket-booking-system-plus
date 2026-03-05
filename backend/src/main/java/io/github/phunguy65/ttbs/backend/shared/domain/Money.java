@@ -22,12 +22,26 @@ public final class Money implements ValueObject {
         return new Money(amount, Currency.getInstance("VND"));
     }
 
+    public static Money vnd(long amount) {
+        return new Money(BigDecimal.valueOf(amount), Currency.getInstance("VND"));
+    }
+
     public BigDecimal getAmount() {
         return amount;
     }
 
     public Currency getCurrency() {
         return currency;
+    }
+
+    /**
+     * Returns the amount as a {@code long} in the lowest denomination.
+     * Suitable for persisting to a {@code BIGINT} column.
+     *
+     * @throws ArithmeticException if the amount has a non-zero fractional part
+     */
+    public long toLong() {
+        return amount.longValueExact();
     }
 
     @Override

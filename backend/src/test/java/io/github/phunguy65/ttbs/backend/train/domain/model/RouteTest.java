@@ -2,10 +2,10 @@ package io.github.phunguy65.ttbs.backend.train.domain.model;
 
 import static org.assertj.core.api.Assertions.*;
 
+import io.github.phunguy65.ttbs.backend.shared.domain.Money;
 import io.github.phunguy65.ttbs.backend.station.domain.model.StationId;
 import io.github.phunguy65.ttbs.backend.train.domain.event.RouteCreated;
 import io.github.phunguy65.ttbs.backend.train.domain.event.RouteDeleted;
-import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -18,7 +18,7 @@ class RouteTest {
     private static final StationId DESTINATION = StationId.of(UUID.randomUUID());
     private static final Instant DEPARTURE = Instant.parse("2025-06-01T08:00:00Z");
     private static final Instant ARRIVAL = Instant.parse("2025-06-01T12:00:00Z");
-    private static final BigDecimal PRICE = new BigDecimal("150.00");
+    private static final Money PRICE = Money.vnd(15000L);
 
     private Route newRoute() {
         return Route.create(ROUTE_ID, TRAIN_ID, ORIGIN, DESTINATION, DEPARTURE, ARRIVAL, PRICE);
@@ -61,7 +61,7 @@ class RouteTest {
         assertThat(route.getDestinationStationId()).isEqualTo(DESTINATION);
         assertThat(route.getDepartureTime()).isEqualTo(DEPARTURE);
         assertThat(route.getArrivalTime()).isEqualTo(ARRIVAL);
-        assertThat(route.getBasePrice()).isEqualByComparingTo(PRICE);
+        assertThat(route.getBasePrice()).isEqualTo(PRICE);
         assertThat(route.getCreatedAt()).isNotNull();
     }
 
@@ -178,7 +178,7 @@ class RouteTest {
         assertThat(route.getDestinationStationId()).isEqualTo(DESTINATION);
         assertThat(route.getDepartureTime()).isEqualTo(DEPARTURE);
         assertThat(route.getArrivalTime()).isEqualTo(ARRIVAL);
-        assertThat(route.getBasePrice()).isEqualByComparingTo(PRICE);
+        assertThat(route.getBasePrice()).isEqualTo(PRICE);
         assertThat(route.getStatus()).isEqualTo(RouteStatus.SCHEDULED);
         assertThat(route.getCreatedAt()).isEqualTo(createdAt);
     }

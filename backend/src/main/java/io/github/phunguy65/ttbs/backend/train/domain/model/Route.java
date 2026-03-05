@@ -1,10 +1,10 @@
 package io.github.phunguy65.ttbs.backend.train.domain.model;
 
 import io.github.phunguy65.ttbs.backend.shared.domain.AggregateRoot;
+import io.github.phunguy65.ttbs.backend.shared.domain.Money;
 import io.github.phunguy65.ttbs.backend.station.domain.model.StationId;
 import io.github.phunguy65.ttbs.backend.train.domain.event.RouteCreated;
 import io.github.phunguy65.ttbs.backend.train.domain.event.RouteDeleted;
-import java.math.BigDecimal;
 import java.time.Instant;
 
 /**
@@ -22,7 +22,7 @@ public class Route extends AggregateRoot<RouteId> {
     private final StationId destinationStationId;
     private final Instant departureTime;
     private final Instant arrivalTime;
-    private final BigDecimal basePrice;
+    private final Money basePrice;
     private final RouteStatus status;
     private final Instant createdAt;
     private Instant deletedAt;
@@ -34,7 +34,7 @@ public class Route extends AggregateRoot<RouteId> {
             StationId destinationStationId,
             Instant departureTime,
             Instant arrivalTime,
-            BigDecimal basePrice,
+            Money basePrice,
             RouteStatus status,
             Instant createdAt,
             Instant deletedAt) {
@@ -65,7 +65,7 @@ public class Route extends AggregateRoot<RouteId> {
             StationId destinationStationId,
             Instant departureTime,
             Instant arrivalTime,
-            BigDecimal basePrice) {
+            Money basePrice) {
         if (!arrivalTime.isAfter(departureTime)) {
             throw new IllegalArgumentException("arrivalTime must be after departureTime");
         }
@@ -96,7 +96,7 @@ public class Route extends AggregateRoot<RouteId> {
             StationId destinationStationId,
             Instant departureTime,
             Instant arrivalTime,
-            BigDecimal basePrice,
+            Money basePrice,
             RouteStatus status,
             Instant createdAt,
             Instant deletedAt) {
@@ -155,7 +155,7 @@ public class Route extends AggregateRoot<RouteId> {
         return arrivalTime;
     }
 
-    public BigDecimal getBasePrice() {
+    public Money getBasePrice() {
         return basePrice;
     }
 

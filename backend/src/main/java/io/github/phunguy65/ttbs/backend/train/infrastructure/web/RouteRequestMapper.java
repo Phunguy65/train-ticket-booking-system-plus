@@ -1,10 +1,12 @@
 package io.github.phunguy65.ttbs.backend.train.infrastructure.web;
 
+import io.github.phunguy65.ttbs.backend.shared.domain.Money;
 import io.github.phunguy65.ttbs.backend.train.application.command.CreateRouteCommand;
 import io.github.phunguy65.ttbs.backend.train.application.command.UpdateRouteCommand;
 import io.github.phunguy65.ttbs.backend.train.application.dto.RouteDto;
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteId;
 import java.util.UUID;
+import org.openapitools.jackson.nullable.JsonNullable;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -17,7 +19,7 @@ class RouteRequestMapper {
                 request.destinationStationId(),
                 request.departureTime(),
                 request.arrivalTime(),
-                request.basePrice());
+                Money.vnd(request.basePrice()));
     }
 
     RouteHttpResponse toResponse(RouteDto dto) {
@@ -34,11 +36,14 @@ class RouteRequestMapper {
     }
 
     UpdateRouteCommand toUpdateCommand(UUID id, UpdateRouteHttpRequest request) {
+        JsonNullable<Money> basePrice = request.basePrice().isPresent()
+                ? JsonNullable.of(Money.vnd(request.basePrice().get()))
+                : JsonNullable.undefined();
         return new UpdateRouteCommand(
                 RouteId.of(id),
                 request.departureTime(),
                 request.arrivalTime(),
-                request.basePrice(),
+                basePrice,
                 request.status());
     }
 }

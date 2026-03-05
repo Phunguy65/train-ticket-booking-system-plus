@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+import io.github.phunguy65.ttbs.backend.shared.domain.Money;
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.station.domain.model.StationId;
 import io.github.phunguy65.ttbs.backend.train.application.command.SoftDeleteRouteCommand;
@@ -14,7 +15,6 @@ import io.github.phunguy65.ttbs.backend.train.domain.model.RouteId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteStatus;
 import io.github.phunguy65.ttbs.backend.train.domain.model.TrainId;
 import io.github.phunguy65.ttbs.backend.train.domain.repository.RouteRepository;
-import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
@@ -52,7 +52,7 @@ class SoftDeleteRouteUseCaseTest {
                 StationId.of(UUID.randomUUID()),
                 Instant.parse("2025-06-01T08:00:00Z"),
                 Instant.parse("2025-06-01T12:00:00Z"),
-                new BigDecimal("150.00"),
+                Money.vnd(15000L),
                 RouteStatus.SCHEDULED,
                 Instant.now(),
                 null);
@@ -66,7 +66,7 @@ class SoftDeleteRouteUseCaseTest {
                 StationId.of(UUID.randomUUID()),
                 Instant.parse("2025-06-01T08:00:00Z"),
                 Instant.parse("2025-06-01T12:00:00Z"),
-                new BigDecimal("150.00"),
+                Money.vnd(15000L),
                 RouteStatus.SCHEDULED,
                 Instant.now(),
                 Instant.now().minusSeconds(3600));

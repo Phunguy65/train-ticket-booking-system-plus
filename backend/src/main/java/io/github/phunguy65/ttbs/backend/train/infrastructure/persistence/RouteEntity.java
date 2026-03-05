@@ -1,7 +1,6 @@
 package io.github.phunguy65.ttbs.backend.train.infrastructure.persistence;
 
 import jakarta.persistence.*;
-import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -28,8 +27,8 @@ class RouteEntity {
     @Column(name = "arrival_time", nullable = false)
     private Instant arrivalTime;
 
-    @Column(name = "base_price", nullable = false, precision = 10, scale = 2)
-    private BigDecimal basePrice;
+    @Column(name = "base_price", nullable = false)
+    private long basePrice;
 
     @Column(name = "status", nullable = false, length = 20)
     private String status;
@@ -90,11 +89,11 @@ class RouteEntity {
         this.arrivalTime = arrivalTime;
     }
 
-    BigDecimal getBasePrice() {
+    long getBasePrice() {
         return basePrice;
     }
 
-    void setBasePrice(BigDecimal basePrice) {
+    void setBasePrice(long basePrice) {
         this.basePrice = basePrice;
     }
 

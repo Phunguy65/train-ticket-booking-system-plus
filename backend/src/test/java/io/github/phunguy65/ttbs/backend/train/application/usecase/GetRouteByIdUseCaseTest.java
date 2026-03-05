@@ -3,6 +3,7 @@ package io.github.phunguy65.ttbs.backend.train.application.usecase;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import io.github.phunguy65.ttbs.backend.shared.domain.Money;
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.station.domain.model.StationId;
 import io.github.phunguy65.ttbs.backend.train.application.dto.RouteDto;
@@ -12,7 +13,6 @@ import io.github.phunguy65.ttbs.backend.train.domain.model.RouteId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteStatus;
 import io.github.phunguy65.ttbs.backend.train.domain.model.TrainId;
 import io.github.phunguy65.ttbs.backend.train.domain.repository.RouteRepository;
-import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
@@ -43,7 +43,7 @@ class GetRouteByIdUseCaseTest {
                 StationId.of(UUID.randomUUID()),
                 Instant.parse("2025-06-01T08:00:00Z"),
                 Instant.parse("2025-06-01T12:00:00Z"),
-                new BigDecimal("150.00"),
+                Money.vnd(15000L),
                 RouteStatus.SCHEDULED,
                 Instant.parse("2024-01-01T00:00:00Z"),
                 null);
@@ -90,7 +90,7 @@ class GetRouteByIdUseCaseTest {
                 .isEqualTo(route.getDestinationStationId().value());
         assertThat(dto.departureTime()).isEqualTo(route.getDepartureTime());
         assertThat(dto.arrivalTime()).isEqualTo(route.getArrivalTime());
-        assertThat(dto.basePrice()).isEqualByComparingTo(route.getBasePrice());
+        assertThat(dto.basePrice()).isEqualTo(route.getBasePrice().toLong());
         assertThat(dto.createdAt()).isEqualTo(route.getCreatedAt());
     }
 }

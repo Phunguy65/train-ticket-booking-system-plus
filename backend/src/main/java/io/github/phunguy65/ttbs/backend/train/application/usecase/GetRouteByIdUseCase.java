@@ -34,7 +34,7 @@ public class GetRouteByIdUseCase {
                 route.getDestinationStationId().value(),
                 route.getDepartureTime(),
                 route.getArrivalTime(),
-                route.getBasePrice(),
+                route.getBasePrice().toLong(),
                 route.getStatus(),
                 route.getCreatedAt());
     }

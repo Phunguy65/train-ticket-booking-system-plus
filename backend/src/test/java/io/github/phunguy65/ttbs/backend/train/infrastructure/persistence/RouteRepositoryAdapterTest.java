@@ -2,6 +2,7 @@ package io.github.phunguy65.ttbs.backend.train.infrastructure.persistence;
 
 import static org.assertj.core.api.Assertions.*;
 
+import io.github.phunguy65.ttbs.backend.shared.domain.Money;
 import io.github.phunguy65.ttbs.backend.shared.domain.PageResult;
 import io.github.phunguy65.ttbs.backend.shared.domain.SortDirection;
 import io.github.phunguy65.ttbs.backend.station.domain.model.StationId;
@@ -10,7 +11,6 @@ import io.github.phunguy65.ttbs.backend.train.domain.model.RouteFilter;
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.TrainId;
 import io.github.phunguy65.ttbs.backend.train.domain.repository.RouteRepository;
-import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -43,7 +43,7 @@ class RouteRepositoryAdapterTest {
                 DEST_B,
                 DEPARTURE_BASE,
                 ARRIVAL_BASE,
-                new BigDecimal("150.00"));
+                Money.vnd(15000L));
     }
 
     private Route newRoute(StationId origin, StationId dest, Instant departure, Instant arrival) {
@@ -54,7 +54,7 @@ class RouteRepositoryAdapterTest {
                 dest,
                 departure,
                 arrival,
-                new BigDecimal("100.00"));
+                Money.vnd(10000L));
     }
 
     // ── save ────────────────────────────────────────────────────────────────────
@@ -69,7 +69,7 @@ class RouteRepositoryAdapterTest {
         assertThat(saved.getTrainId()).isEqualTo(TRAIN_ID);
         assertThat(saved.getOriginStationId()).isEqualTo(ORIGIN_A);
         assertThat(saved.getDestinationStationId()).isEqualTo(DEST_B);
-        assertThat(saved.getBasePrice()).isEqualByComparingTo("150.00");
+        assertThat(saved.getBasePrice().toLong()).isEqualTo(15000L);
         assertThat(saved.getDomainEvents()).isEmpty(); // reconstituted, no events
     }
 

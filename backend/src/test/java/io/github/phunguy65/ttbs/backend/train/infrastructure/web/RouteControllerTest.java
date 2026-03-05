@@ -22,7 +22,6 @@ import io.github.phunguy65.ttbs.backend.train.domain.errors.RouteError;
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteStatus;
 import io.github.phunguy65.ttbs.backend.user.application.port.TokenProvider;
 import io.github.phunguy65.ttbs.backend.user.infrastructure.security.SecurityConfig;
-import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -87,7 +86,7 @@ class RouteControllerTest {
                 DEST_UUID,
                 Instant.parse("2025-06-01T08:00:00Z"),
                 Instant.parse("2025-06-01T12:00:00Z"),
-                new BigDecimal("150.00"),
+                15000L,
                 RouteStatus.SCHEDULED,
                 Instant.now());
     }
@@ -96,7 +95,7 @@ class RouteControllerTest {
         return String.format(
                 "{\"trainId\":\"%s\",\"originStationId\":\"%s\",\"destinationStationId\":\"%s\","
                         + "\"departureTime\":\"2025-06-01T08:00:00Z\",\"arrivalTime\":\"2025-06-01T12:00:00Z\","
-                        + "\"basePrice\":150.00}",
+                        + "\"basePrice\":15000}",
                 TRAIN_UUID, ORIGIN_UUID, DEST_UUID);
     }
 
@@ -124,7 +123,7 @@ class RouteControllerTest {
         // Missing arrivalTime
         String badJson = String.format(
                 "{\"trainId\":\"%s\",\"originStationId\":\"%s\",\"destinationStationId\":\"%s\","
-                        + "\"departureTime\":\"2025-06-01T08:00:00Z\",\"basePrice\":150.00}",
+                        + "\"departureTime\":\"2025-06-01T08:00:00Z\",\"basePrice\":15000}",
                 TRAIN_UUID, ORIGIN_UUID, DEST_UUID);
 
         mockMvc.perform(post("/api/v1.0/routes")
@@ -228,7 +227,7 @@ class RouteControllerTest {
         mockMvc.perform(patch("/api/v1.0/routes/{id}", ROUTE_UUID)
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"basePrice\":200.00}"))
+                        .content("{\"basePrice\":20000}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("success"))
                 .andExpect(jsonPath("$.data.id").value(ROUTE_UUID.toString()));
@@ -243,7 +242,7 @@ class RouteControllerTest {
         mockMvc.perform(patch("/api/v1.0/routes/{id}", ROUTE_UUID)
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"basePrice\":200.00}"))
+                        .content("{\"basePrice\":20000}"))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.status").value("fail"))
                 .andExpect(jsonPath("$.data.code").value("ROUTE_NOT_FOUND"));
@@ -255,7 +254,7 @@ class RouteControllerTest {
         mockMvc.perform(patch("/api/v1.0/routes/{id}", ROUTE_UUID)
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"basePrice\":200.00}"))
+                        .content("{\"basePrice\":20000}"))
                 .andExpect(status().isForbidden());
     }
 
@@ -265,7 +264,7 @@ class RouteControllerTest {
         mockMvc.perform(patch("/api/v1.0/routes/{id}", ROUTE_UUID)
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"basePrice\":-10.00}"))
+                        .content("{\"basePrice\":-10}"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.status").value("fail"))
                 .andExpect(jsonPath("$.data.code").value("VALIDATION_ERROR"));

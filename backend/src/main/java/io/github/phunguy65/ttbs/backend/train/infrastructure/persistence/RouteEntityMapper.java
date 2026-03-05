@@ -1,5 +1,6 @@
 package io.github.phunguy65.ttbs.backend.train.infrastructure.persistence;
 
+import io.github.phunguy65.ttbs.backend.shared.domain.Money;
 import io.github.phunguy65.ttbs.backend.station.domain.model.StationId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.Route;
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteId;
@@ -18,7 +19,7 @@ class RouteEntityMapper {
                 StationId.of(entity.getDestinationStationId()),
                 entity.getDepartureTime(),
                 entity.getArrivalTime(),
-                entity.getBasePrice(),
+                Money.vnd(entity.getBasePrice()),
                 RouteStatus.valueOf(entity.getStatus()),
                 entity.getCreatedAt(),
                 entity.getDeletedAt());
@@ -32,7 +33,7 @@ class RouteEntityMapper {
         entity.setDestinationStationId(route.getDestinationStationId().value());
         entity.setDepartureTime(route.getDepartureTime());
         entity.setArrivalTime(route.getArrivalTime());
-        entity.setBasePrice(route.getBasePrice());
+        entity.setBasePrice(route.getBasePrice().toLong());
         entity.setStatus(route.getStatus().name());
         entity.setCreatedAt(route.getCreatedAt());
         entity.setDeletedAt(route.getDeletedAt());

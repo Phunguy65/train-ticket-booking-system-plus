@@ -12,7 +12,7 @@ context: |
     - application/ → Use case orchestrators (@Service @Transactional), command/result DTOs, infrastructure ports
     - infrastructure/ → Framework adapters: persistence (JPA), web (REST), and optionally security
 
-  Folder structure per vertical slice (e.g., booking/):
+  Folder structure per vertical slice (e.g., user/):
     {feature}/
     ├── package-info.java                   # @ApplicationModule - Spring Modulith module boundary
     │                                       # Use @NamedInterface("name") in sub-packages to export to other modules
