@@ -4,7 +4,7 @@ import io.github.phunguy65.ttbs.backend.shared.domain.DomainEvent;
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.train.application.command.CreateTrainCommand;
 import io.github.phunguy65.ttbs.backend.train.application.dto.TrainDto;
-import io.github.phunguy65.ttbs.backend.train.domain.errors.TrainError;
+import io.github.phunguy65.ttbs.backend.train.domain.error.TrainError;
 import io.github.phunguy65.ttbs.backend.train.domain.model.Train;
 import io.github.phunguy65.ttbs.backend.train.domain.model.TrainId;
 import io.github.phunguy65.ttbs.backend.train.domain.repository.TrainRepository;

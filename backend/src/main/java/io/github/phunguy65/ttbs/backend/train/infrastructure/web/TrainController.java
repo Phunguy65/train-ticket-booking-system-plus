@@ -15,7 +15,7 @@ import io.github.phunguy65.ttbs.backend.train.application.usecase.GetTrainByIdUs
 import io.github.phunguy65.ttbs.backend.train.application.usecase.GetTrainsUseCase;
 import io.github.phunguy65.ttbs.backend.train.application.usecase.SoftDeleteTrainUseCase;
 import io.github.phunguy65.ttbs.backend.train.application.usecase.UpdateTrainUseCase;
-import io.github.phunguy65.ttbs.backend.train.domain.errors.TrainError;
+import io.github.phunguy65.ttbs.backend.train.domain.error.TrainError;
 import io.github.phunguy65.ttbs.backend.train.domain.model.TrainId;
 import jakarta.validation.Valid;
 import java.util.List;

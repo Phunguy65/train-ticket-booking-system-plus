@@ -16,7 +16,7 @@ import io.github.phunguy65.ttbs.backend.user.application.usecase.LoginUserUseCas
 import io.github.phunguy65.ttbs.backend.user.application.usecase.LogoutUserUseCase;
 import io.github.phunguy65.ttbs.backend.user.application.usecase.RefreshTokenUseCase;
 import io.github.phunguy65.ttbs.backend.user.application.usecase.RegisterUserUseCase;
-import io.github.phunguy65.ttbs.backend.user.domain.errors.UserError;
+import io.github.phunguy65.ttbs.backend.user.domain.error.UserError;
 import io.github.phunguy65.ttbs.backend.user.domain.model.UserRole;
 import java.time.Instant;
 import java.util.UUID;

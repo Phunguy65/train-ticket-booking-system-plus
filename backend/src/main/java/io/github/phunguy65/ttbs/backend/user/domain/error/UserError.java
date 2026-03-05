@@ -1,4 +1,4 @@
-package io.github.phunguy65.ttbs.backend.user.domain.errors;
+package io.github.phunguy65.ttbs.backend.user.domain.error;
 
 /**
  * Typed business errors for the User domain.

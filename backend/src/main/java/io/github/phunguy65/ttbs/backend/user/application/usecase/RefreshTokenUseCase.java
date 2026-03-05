@@ -5,7 +5,7 @@ import io.github.phunguy65.ttbs.backend.user.application.command.RefreshTokenCom
 import io.github.phunguy65.ttbs.backend.user.application.dto.LoginResultDto;
 import io.github.phunguy65.ttbs.backend.user.application.dto.UserDto;
 import io.github.phunguy65.ttbs.backend.user.application.port.RefreshTokenManager;
-import io.github.phunguy65.ttbs.backend.user.domain.errors.UserError;
+import io.github.phunguy65.ttbs.backend.user.domain.error.UserError;
 import io.github.phunguy65.ttbs.backend.user.domain.model.User;
 import io.github.phunguy65.ttbs.backend.user.domain.repository.RefreshTokenRepository;
 import io.github.phunguy65.ttbs.backend.user.domain.repository.RefreshTokenRepository.RefreshTokenData;

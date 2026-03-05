@@ -1,4 +1,4 @@
-package io.github.phunguy65.ttbs.backend.train.domain.errors;
+package io.github.phunguy65.ttbs.backend.train.domain.error;
 
 /**
  * Typed business errors for the RouteSeatAvailability domain.

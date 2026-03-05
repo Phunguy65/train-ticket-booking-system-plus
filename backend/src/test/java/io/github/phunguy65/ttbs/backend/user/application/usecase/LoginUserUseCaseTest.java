@@ -9,7 +9,7 @@ import io.github.phunguy65.ttbs.backend.user.application.command.LoginCommand;
 import io.github.phunguy65.ttbs.backend.user.application.dto.LoginResultDto;
 import io.github.phunguy65.ttbs.backend.user.application.port.PasswordEncoder;
 import io.github.phunguy65.ttbs.backend.user.application.port.RefreshTokenManager;
-import io.github.phunguy65.ttbs.backend.user.domain.errors.UserError;
+import io.github.phunguy65.ttbs.backend.user.domain.error.UserError;
 import io.github.phunguy65.ttbs.backend.user.domain.model.User;
 import io.github.phunguy65.ttbs.backend.user.domain.model.UserId;
 import io.github.phunguy65.ttbs.backend.user.domain.repository.UserRepository;

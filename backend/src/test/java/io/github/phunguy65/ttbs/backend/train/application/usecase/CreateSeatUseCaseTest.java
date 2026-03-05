@@ -7,7 +7,7 @@ import static org.mockito.Mockito.*;
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.train.application.command.CreateSeatCommand;
 import io.github.phunguy65.ttbs.backend.train.application.dto.SeatDto;
-import io.github.phunguy65.ttbs.backend.train.domain.errors.SeatError;
+import io.github.phunguy65.ttbs.backend.train.domain.error.SeatError;
 import io.github.phunguy65.ttbs.backend.train.domain.model.Coach;
 import io.github.phunguy65.ttbs.backend.train.domain.model.CoachId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.Seat;

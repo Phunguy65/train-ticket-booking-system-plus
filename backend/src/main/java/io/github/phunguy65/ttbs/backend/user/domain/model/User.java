@@ -2,7 +2,7 @@ package io.github.phunguy65.ttbs.backend.user.domain.model;
 
 import io.github.phunguy65.ttbs.backend.shared.domain.AggregateRoot;
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
-import io.github.phunguy65.ttbs.backend.user.domain.errors.UserError;
+import io.github.phunguy65.ttbs.backend.user.domain.error.UserError;
 import io.github.phunguy65.ttbs.backend.user.domain.event.UserDeleted;
 import io.github.phunguy65.ttbs.backend.user.domain.event.UserRegistered;
 import java.time.Instant;

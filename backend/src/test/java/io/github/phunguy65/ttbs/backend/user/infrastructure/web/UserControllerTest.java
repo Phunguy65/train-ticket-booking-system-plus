@@ -20,7 +20,7 @@ import io.github.phunguy65.ttbs.backend.user.application.usecase.GetUserByIdUseC
 import io.github.phunguy65.ttbs.backend.user.application.usecase.ListUsersUseCase;
 import io.github.phunguy65.ttbs.backend.user.application.usecase.SoftDeleteUserUseCase;
 import io.github.phunguy65.ttbs.backend.user.application.usecase.UpdateUserUseCase;
-import io.github.phunguy65.ttbs.backend.user.domain.errors.UserError;
+import io.github.phunguy65.ttbs.backend.user.domain.error.UserError;
 import io.github.phunguy65.ttbs.backend.user.domain.model.UserRole;
 import io.github.phunguy65.ttbs.backend.user.infrastructure.security.SecurityConfig;
 import java.time.Instant;

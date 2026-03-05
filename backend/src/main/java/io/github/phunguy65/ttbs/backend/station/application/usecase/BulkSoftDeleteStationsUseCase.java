@@ -2,7 +2,7 @@ package io.github.phunguy65.ttbs.backend.station.application.usecase;
 
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.station.application.command.BulkSoftDeleteStationsCommand;
-import io.github.phunguy65.ttbs.backend.station.domain.errors.StationError;
+import io.github.phunguy65.ttbs.backend.station.domain.error.StationError;
 import io.github.phunguy65.ttbs.backend.station.domain.event.StationsDeleted;
 import io.github.phunguy65.ttbs.backend.station.domain.repository.StationRepository;
 import java.time.Instant;

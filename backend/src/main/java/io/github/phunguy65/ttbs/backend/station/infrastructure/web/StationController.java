@@ -15,7 +15,7 @@ import io.github.phunguy65.ttbs.backend.station.application.usecase.GetStationBy
 import io.github.phunguy65.ttbs.backend.station.application.usecase.GetStationsUseCase;
 import io.github.phunguy65.ttbs.backend.station.application.usecase.SoftDeleteStationUseCase;
 import io.github.phunguy65.ttbs.backend.station.application.usecase.UpdateStationUseCase;
-import io.github.phunguy65.ttbs.backend.station.domain.errors.StationError;
+import io.github.phunguy65.ttbs.backend.station.domain.error.StationError;
 import io.github.phunguy65.ttbs.backend.station.domain.model.StationId;
 import jakarta.validation.Valid;
 import java.util.List;

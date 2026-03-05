@@ -1,4 +1,4 @@
-package io.github.phunguy65.ttbs.backend.train.domain.errors;
+package io.github.phunguy65.ttbs.backend.train.domain.error;
 
 import java.util.List;
 import java.util.UUID;

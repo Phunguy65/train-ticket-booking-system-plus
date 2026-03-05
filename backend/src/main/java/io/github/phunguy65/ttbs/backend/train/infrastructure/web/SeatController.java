@@ -11,7 +11,7 @@ import io.github.phunguy65.ttbs.backend.train.application.usecase.CreateSeatUseC
 import io.github.phunguy65.ttbs.backend.train.application.usecase.GetAvailableSeatsForRouteUseCase;
 import io.github.phunguy65.ttbs.backend.train.application.usecase.GetSeatsByTrainUseCase;
 import io.github.phunguy65.ttbs.backend.train.application.usecase.SoftDeleteSeatUseCase;
-import io.github.phunguy65.ttbs.backend.train.domain.errors.SeatError;
+import io.github.phunguy65.ttbs.backend.train.domain.error.SeatError;
 import io.github.phunguy65.ttbs.backend.train.domain.model.SeatId;
 import jakarta.validation.Valid;
 import java.util.List;

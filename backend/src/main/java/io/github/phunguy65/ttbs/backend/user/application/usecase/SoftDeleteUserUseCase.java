@@ -4,7 +4,7 @@ import io.github.phunguy65.ttbs.backend.shared.domain.DomainEvent;
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.user.application.command.SoftDeleteUserCommand;
 import io.github.phunguy65.ttbs.backend.user.application.port.BookingValidationPort;
-import io.github.phunguy65.ttbs.backend.user.domain.errors.UserError;
+import io.github.phunguy65.ttbs.backend.user.domain.error.UserError;
 import io.github.phunguy65.ttbs.backend.user.domain.model.User;
 import io.github.phunguy65.ttbs.backend.user.domain.repository.RefreshTokenRepository;
 import io.github.phunguy65.ttbs.backend.user.domain.repository.UserRepository;

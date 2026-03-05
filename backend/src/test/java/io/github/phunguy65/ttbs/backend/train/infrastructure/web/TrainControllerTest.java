@@ -18,7 +18,7 @@ import io.github.phunguy65.ttbs.backend.train.application.usecase.GetTrainByIdUs
 import io.github.phunguy65.ttbs.backend.train.application.usecase.GetTrainsUseCase;
 import io.github.phunguy65.ttbs.backend.train.application.usecase.SoftDeleteTrainUseCase;
 import io.github.phunguy65.ttbs.backend.train.application.usecase.UpdateTrainUseCase;
-import io.github.phunguy65.ttbs.backend.train.domain.errors.TrainError;
+import io.github.phunguy65.ttbs.backend.train.domain.error.TrainError;
 import io.github.phunguy65.ttbs.backend.user.application.port.TokenProvider;
 import io.github.phunguy65.ttbs.backend.user.infrastructure.security.SecurityConfig;
 import java.time.Instant;

@@ -29,7 +29,7 @@ context: |
     │   │   └── {Entity}Cancelled.java
     │   ├── repository/                     # Repository port (interface only - no impl here)
     │   │   └── {Entity}Repository.java
-    │   └── errors/                         # Typed business errors as sealed interfaces (not exceptions)
+    │   └── error/                         # Typed business errors as sealed interfaces (not exceptions)
     │       └── {Entity}Error.java
     ├── application/
     │   ├── usecase/                        # One use case class per operation (SRP)
@@ -41,13 +41,15 @@ context: |
     │   │   └── {Entity}Dto.java            # Output DTO returned by use cases
     │   └── port/                           # Ports for infrastructure concerns (optional)
     │       └── {Capability}Port.java       # Interface abstracting infrastructure (e.g., PasswordEncoder, TokenProvider)
+    │   └── listener/                       # Application event listeners (e.g., for domain events)
+    │       └── On{Event}Listener.java         # @Component - listens to domain events and triggers side effects
     └── infrastructure/
         ├── persistence/                    # JPA adapter layer
         │   ├── {Entity}Entity.java         # @Entity - JPA mapping (NOT in domain)
         │   ├── {Entity}JpaRepository.java  # Spring Data JPA interface (package-private)
         │   ├── {Entity}RepositoryAdapter.java  # @Repository - implements domain repository port
         │   └── {Entity}EntityMapper.java   # @Component - maps JPA entity <-> domain model
-        ├── security/                       # Security adapter layer (only for modules owning auth) 
+        ├── security/                       # Security adapter layer (only for modules owning auth)
         └── web/                            # REST adapter layer
             ├── {Entity}Controller.java     # @RestController - REST endpoints, returns JsendResponse
             ├── Create{Entity}HttpRequest.java  # HTTP request DTO (public API contract)

@@ -4,7 +4,7 @@ import io.github.phunguy65.ttbs.backend.shared.domain.Money;
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.train.application.command.UpdateRouteCommand;
 import io.github.phunguy65.ttbs.backend.train.application.dto.RouteDto;
-import io.github.phunguy65.ttbs.backend.train.domain.errors.RouteError;
+import io.github.phunguy65.ttbs.backend.train.domain.error.RouteError;
 import io.github.phunguy65.ttbs.backend.train.domain.model.Route;
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteStatus;
 import io.github.phunguy65.ttbs.backend.train.domain.repository.RouteRepository;

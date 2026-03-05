@@ -2,7 +2,7 @@ package io.github.phunguy65.ttbs.backend.train.infrastructure.adapter;
 
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.train.application.port.RouteSeatAvailabilityPort;
-import io.github.phunguy65.ttbs.backend.train.domain.errors.RouteSeatAvailabilityError;
+import io.github.phunguy65.ttbs.backend.train.domain.error.RouteSeatAvailabilityError;
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteSeatAvailability;
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteSeatAvailabilityStatus;

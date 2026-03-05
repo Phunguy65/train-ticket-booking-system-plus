@@ -3,7 +3,7 @@ package io.github.phunguy65.ttbs.backend.train.domain.model;
 import static org.assertj.core.api.Assertions.*;
 
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
-import io.github.phunguy65.ttbs.backend.train.domain.errors.RouteSeatAvailabilityError;
+import io.github.phunguy65.ttbs.backend.train.domain.error.RouteSeatAvailabilityError;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 

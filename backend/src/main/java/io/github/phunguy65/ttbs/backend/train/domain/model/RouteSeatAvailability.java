@@ -1,7 +1,7 @@
 package io.github.phunguy65.ttbs.backend.train.domain.model;
 
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
-import io.github.phunguy65.ttbs.backend.train.domain.errors.RouteSeatAvailabilityError;
+import io.github.phunguy65.ttbs.backend.train.domain.error.RouteSeatAvailabilityError;
 
 /**
  * Domain entity tracking the availability of a specific seat on a specific route.

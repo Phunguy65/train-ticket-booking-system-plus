@@ -17,7 +17,7 @@ import io.github.phunguy65.ttbs.backend.train.application.usecase.CreateCoachUse
 import io.github.phunguy65.ttbs.backend.train.application.usecase.GetCoachByIdUseCase;
 import io.github.phunguy65.ttbs.backend.train.application.usecase.GetCoachesByTrainUseCase;
 import io.github.phunguy65.ttbs.backend.train.application.usecase.SoftDeleteCoachUseCase;
-import io.github.phunguy65.ttbs.backend.train.domain.errors.CoachError;
+import io.github.phunguy65.ttbs.backend.train.domain.error.CoachError;
 import io.github.phunguy65.ttbs.backend.user.application.port.TokenProvider;
 import io.github.phunguy65.ttbs.backend.user.infrastructure.security.SecurityConfig;
 import java.time.Instant;

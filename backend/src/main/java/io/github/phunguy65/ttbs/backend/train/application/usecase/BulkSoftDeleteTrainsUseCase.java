@@ -2,7 +2,7 @@ package io.github.phunguy65.ttbs.backend.train.application.usecase;
 
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.train.application.command.BulkSoftDeleteTrainsCommand;
-import io.github.phunguy65.ttbs.backend.train.domain.errors.TrainError;
+import io.github.phunguy65.ttbs.backend.train.domain.error.TrainError;
 import io.github.phunguy65.ttbs.backend.train.domain.event.TrainsDeleted;
 import io.github.phunguy65.ttbs.backend.train.domain.repository.TrainRepository;
 import java.time.Instant;

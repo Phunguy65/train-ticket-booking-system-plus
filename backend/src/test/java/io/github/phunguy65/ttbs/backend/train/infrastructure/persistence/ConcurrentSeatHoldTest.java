@@ -3,7 +3,7 @@ package io.github.phunguy65.ttbs.backend.train.infrastructure.persistence;
 import static org.assertj.core.api.Assertions.*;
 
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
-import io.github.phunguy65.ttbs.backend.train.domain.errors.RouteSeatAvailabilityError;
+import io.github.phunguy65.ttbs.backend.train.domain.error.RouteSeatAvailabilityError;
 import io.github.phunguy65.ttbs.backend.train.domain.model.Coach;
 import io.github.phunguy65.ttbs.backend.train.domain.model.CoachId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteId;

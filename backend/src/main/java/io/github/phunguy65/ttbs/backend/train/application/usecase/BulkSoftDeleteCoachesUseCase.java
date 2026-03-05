@@ -2,7 +2,7 @@ package io.github.phunguy65.ttbs.backend.train.application.usecase;
 
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.train.application.command.BulkSoftDeleteCoachesCommand;
-import io.github.phunguy65.ttbs.backend.train.domain.errors.CoachError;
+import io.github.phunguy65.ttbs.backend.train.domain.error.CoachError;
 import io.github.phunguy65.ttbs.backend.train.domain.event.CoachesDeleted;
 import io.github.phunguy65.ttbs.backend.train.domain.repository.CoachRepository;
 import java.time.Instant;

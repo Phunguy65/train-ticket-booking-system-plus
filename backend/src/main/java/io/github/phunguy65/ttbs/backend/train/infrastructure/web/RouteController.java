@@ -15,7 +15,7 @@ import io.github.phunguy65.ttbs.backend.train.application.usecase.GetRouteByIdUs
 import io.github.phunguy65.ttbs.backend.train.application.usecase.GetRoutesUseCase;
 import io.github.phunguy65.ttbs.backend.train.application.usecase.SoftDeleteRouteUseCase;
 import io.github.phunguy65.ttbs.backend.train.application.usecase.UpdateRouteUseCase;
-import io.github.phunguy65.ttbs.backend.train.domain.errors.RouteError;
+import io.github.phunguy65.ttbs.backend.train.domain.error.RouteError;
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteFilter;
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteId;
 import jakarta.validation.Valid;
