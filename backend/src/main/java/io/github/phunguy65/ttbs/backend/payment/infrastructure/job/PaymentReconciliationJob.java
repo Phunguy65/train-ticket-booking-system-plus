@@ -1,8 +1,7 @@
 package io.github.phunguy65.ttbs.backend.payment.infrastructure.job;
 
-import io.github.phunguy65.ttbs.backend.booking.domain.model.Booking;
-import io.github.phunguy65.ttbs.backend.booking.domain.repository.BookingRepository;
-import io.github.phunguy65.ttbs.backend.payment.application.port.CheckoutSessionPort;
+import io.github.phunguy65.ttbs.backend.booking.application.port.StaleHoldQueryPort;
+import io.github.phunguy65.ttbs.backend.payment.application.port.PaymentCheckoutSessionPort;
 import io.github.phunguy65.ttbs.backend.payment.application.usecase.CancelBookingOnExpiryUseCase;
 import io.github.phunguy65.ttbs.backend.payment.application.usecase.ConfirmBookingOnPaymentUseCase;
 import io.github.phunguy65.ttbs.backend.payment.domain.model.CheckoutSessionId;
@@ -21,17 +20,17 @@ public class PaymentReconciliationJob {
     private static final Logger log = LoggerFactory.getLogger(PaymentReconciliationJob.class);
     private static final int STALE_THRESHOLD_MINUTES = 35;
 
-    private final BookingRepository bookingRepository;
-    private final CheckoutSessionPort checkoutSessionPort;
+    private final StaleHoldQueryPort staleHoldQueryPort;
+    private final PaymentCheckoutSessionPort checkoutSessionPort;
     private final ConfirmBookingOnPaymentUseCase confirmBookingOnPaymentUseCase;
     private final CancelBookingOnExpiryUseCase cancelBookingOnExpiryUseCase;
 
     public PaymentReconciliationJob(
-            BookingRepository bookingRepository,
-            CheckoutSessionPort checkoutSessionPort,
+            StaleHoldQueryPort staleHoldQueryPort,
+            PaymentCheckoutSessionPort checkoutSessionPort,
             ConfirmBookingOnPaymentUseCase confirmBookingOnPaymentUseCase,
             CancelBookingOnExpiryUseCase cancelBookingOnExpiryUseCase) {
-        this.bookingRepository = bookingRepository;
+        this.staleHoldQueryPort = staleHoldQueryPort;
         this.checkoutSessionPort = checkoutSessionPort;
         this.confirmBookingOnPaymentUseCase = confirmBookingOnPaymentUseCase;
         this.cancelBookingOnExpiryUseCase = cancelBookingOnExpiryUseCase;
@@ -40,7 +39,8 @@ public class PaymentReconciliationJob {
     @Scheduled(fixedDelay = 300_000)
     public void reconcileStaleHolds() {
         Instant threshold = Instant.now().minus(STALE_THRESHOLD_MINUTES, ChronoUnit.MINUTES);
-        List<Booking> staleHolds = bookingRepository.findStaleHoldsWithCheckoutSession(threshold);
+        List<StaleHoldQueryPort.StaleHoldView> staleHolds =
+                staleHoldQueryPort.findStaleHoldsWithCheckoutSession(threshold);
 
         if (staleHolds.isEmpty()) {
             return;
@@ -48,21 +48,21 @@ public class PaymentReconciliationJob {
 
         log.info("Reconciliation: found {} stale HELD bookings to check", staleHolds.size());
 
-        for (Booking booking : staleHolds) {
+        for (StaleHoldQueryPort.StaleHoldView hold : staleHolds) {
             try {
-                reconcile(booking);
+                reconcile(hold);
             } catch (Exception ex) {
                 log.error(
                         "Reconciliation failed for bookingId={}: {}",
-                        booking.getId().value(),
+                        hold.bookingId(),
                         ex.getMessage(),
                         ex);
             }
         }
     }
 
-    private void reconcile(Booking booking) {
-        String sessionId = booking.getCheckoutSessionId();
+    private void reconcile(StaleHoldQueryPort.StaleHoldView hold) {
+        String sessionId = hold.checkoutSessionId();
         if (sessionId == null || sessionId.isBlank()) {
             return;
         }
@@ -74,21 +74,21 @@ public class PaymentReconciliationJob {
             case COMPLETE -> {
                 log.info(
                         "Reconciliation: confirming bookingId={} (session={})",
-                        booking.getId().value(),
+                        hold.bookingId(),
                         sessionId);
-                confirmBookingOnPaymentUseCase.execute(booking.getId().value(), null);
+                confirmBookingOnPaymentUseCase.execute(hold.bookingId(), null);
             }
             case EXPIRED -> {
                 log.info(
                         "Reconciliation: cancelling bookingId={} (session={})",
-                        booking.getId().value(),
+                        hold.bookingId(),
                         sessionId);
-                cancelBookingOnExpiryUseCase.execute(booking.getId().value(), null);
+                cancelBookingOnExpiryUseCase.execute(hold.bookingId(), null);
             }
             case OPEN ->
                 log.debug(
                         "Reconciliation: session still OPEN for bookingId={}, skipping",
-                        booking.getId().value());
+                        hold.bookingId());
         }
     }
 }

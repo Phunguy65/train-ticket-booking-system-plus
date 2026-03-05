@@ -6,14 +6,14 @@ import static org.mockito.Mockito.*;
 
 import io.github.phunguy65.ttbs.backend.booking.application.command.CreateSeatHoldCommand;
 import io.github.phunguy65.ttbs.backend.booking.application.dto.HoldDto;
+import io.github.phunguy65.ttbs.backend.booking.application.port.CheckoutSessionDto;
+import io.github.phunguy65.ttbs.backend.booking.application.port.CheckoutSessionPort;
 import io.github.phunguy65.ttbs.backend.booking.application.service.PricingService;
 import io.github.phunguy65.ttbs.backend.booking.domain.errors.BookingError;
 import io.github.phunguy65.ttbs.backend.booking.domain.model.BookedSeat;
 import io.github.phunguy65.ttbs.backend.booking.domain.model.Booking;
 import io.github.phunguy65.ttbs.backend.booking.domain.model.BookingStatus;
 import io.github.phunguy65.ttbs.backend.booking.domain.repository.BookingRepository;
-import io.github.phunguy65.ttbs.backend.payment.application.dto.CheckoutSessionDto;
-import io.github.phunguy65.ttbs.backend.payment.application.port.CheckoutSessionPort;
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.station.domain.model.StationId;
 import io.github.phunguy65.ttbs.backend.train.application.port.RoutePort;

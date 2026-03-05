@@ -1,4 +1,4 @@
-package io.github.phunguy65.ttbs.backend.payment.application.dto;
+package io.github.phunguy65.ttbs.backend.payment.application.command;
 
 import java.math.BigDecimal;
 import java.util.UUID;

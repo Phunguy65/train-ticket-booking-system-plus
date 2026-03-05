@@ -1,7 +1,7 @@
 package io.github.phunguy65.ttbs.backend.payment.application.usecase;
 
 import io.github.phunguy65.ttbs.backend.booking.domain.event.BookingCancelled;
-import io.github.phunguy65.ttbs.backend.payment.application.port.CheckoutSessionPort;
+import io.github.phunguy65.ttbs.backend.payment.application.port.PaymentCheckoutSessionPort;
 import io.github.phunguy65.ttbs.backend.payment.domain.model.CheckoutSessionId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,9 +14,9 @@ public class ExpireCheckoutSessionOnCancelListener {
     private static final Logger log =
             LoggerFactory.getLogger(ExpireCheckoutSessionOnCancelListener.class);
 
-    private final CheckoutSessionPort checkoutSessionPort;
+    private final PaymentCheckoutSessionPort checkoutSessionPort;
 
-    public ExpireCheckoutSessionOnCancelListener(CheckoutSessionPort checkoutSessionPort) {
+    public ExpireCheckoutSessionOnCancelListener(PaymentCheckoutSessionPort checkoutSessionPort) {
         this.checkoutSessionPort = checkoutSessionPort;
     }
 

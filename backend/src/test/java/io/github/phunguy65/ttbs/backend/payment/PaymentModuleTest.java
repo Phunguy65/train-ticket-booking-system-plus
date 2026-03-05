@@ -2,8 +2,9 @@ package io.github.phunguy65.ttbs.backend.payment;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.modulith.test.ApplicationModuleTest;
+import org.springframework.modulith.test.ApplicationModuleTest.BootstrapMode;
 
-@ApplicationModuleTest
+@ApplicationModuleTest(mode = BootstrapMode.ALL_DEPENDENCIES)
 class PaymentModuleTest {
 
     @Test

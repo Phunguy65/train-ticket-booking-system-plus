@@ -2,3 +2,12 @@ jwt:
   secret: test-secret-key-that-is-long-enough-for-hs256-algorithm-for-testing
   access-token-expiry: 900
   refresh-token-expiry: 604800
+
+stripe:
+  api-key: sk_test_dummy_key_for_testing
+  webhook-secret: whsec_dummy_webhook_secret_for_testing
+  success-url: http://localhost:3000/success
+  cancel-url: http://localhost:3000/cancel
+
+booking:
+  cancel-url: http://localhost:3000/cancel

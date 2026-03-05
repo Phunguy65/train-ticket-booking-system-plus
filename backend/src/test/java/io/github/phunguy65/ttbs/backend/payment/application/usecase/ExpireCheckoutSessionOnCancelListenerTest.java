@@ -5,7 +5,7 @@ import static org.mockito.Mockito.*;
 
 import io.github.phunguy65.ttbs.backend.booking.domain.event.BookingCancelled;
 import io.github.phunguy65.ttbs.backend.booking.domain.model.BookingId;
-import io.github.phunguy65.ttbs.backend.payment.application.port.CheckoutSessionPort;
+import io.github.phunguy65.ttbs.backend.payment.application.port.PaymentCheckoutSessionPort;
 import io.github.phunguy65.ttbs.backend.payment.domain.model.CheckoutSessionId;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -18,7 +18,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class ExpireCheckoutSessionOnCancelListenerTest {
 
     @Mock
-    private CheckoutSessionPort checkoutSessionPort;
+    private PaymentCheckoutSessionPort checkoutSessionPort;
 
     @InjectMocks
     private ExpireCheckoutSessionOnCancelListener listener;

@@ -2,14 +2,13 @@ package io.github.phunguy65.ttbs.backend.booking.application.usecase;
 
 import io.github.phunguy65.ttbs.backend.booking.application.command.CreateSeatHoldCommand;
 import io.github.phunguy65.ttbs.backend.booking.application.dto.HoldDto;
+import io.github.phunguy65.ttbs.backend.booking.application.port.CheckoutSessionDto;
+import io.github.phunguy65.ttbs.backend.booking.application.port.CheckoutSessionPort;
 import io.github.phunguy65.ttbs.backend.booking.application.service.PricingService;
 import io.github.phunguy65.ttbs.backend.booking.domain.errors.BookingError;
 import io.github.phunguy65.ttbs.backend.booking.domain.model.BookedSeat;
 import io.github.phunguy65.ttbs.backend.booking.domain.model.Booking;
 import io.github.phunguy65.ttbs.backend.booking.domain.repository.BookingRepository;
-import io.github.phunguy65.ttbs.backend.payment.application.dto.CheckoutSessionDto;
-import io.github.phunguy65.ttbs.backend.payment.application.dto.CreateCheckoutSessionCommand;
-import io.github.phunguy65.ttbs.backend.payment.application.port.CheckoutSessionPort;
 import io.github.phunguy65.ttbs.backend.shared.domain.DomainEvent;
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.train.application.port.RoutePort;
@@ -113,7 +112,7 @@ public class CreateSeatHoldUseCase {
             // Create Stripe Checkout Session within the same transaction
             // If this fails, the transaction rolls back and no orphaned hold exists
             CheckoutSessionDto sessionDto =
-                    checkoutSessionPort.createSession(new CreateCheckoutSessionCommand(
+                    checkoutSessionPort.createSession(new CheckoutSessionDto.CreateCommand(
                             saved.getId().value(), totalPrice, command.idempotencyKey()));
 
             saved.setCheckoutSessionId(sessionDto.checkoutSessionId());

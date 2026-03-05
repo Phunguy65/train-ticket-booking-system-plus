@@ -5,8 +5,10 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import io.github.phunguy65.ttbs.backend.booking.application.command.CreateSeatHoldCommand;
+import io.github.phunguy65.ttbs.backend.booking.application.port.CheckoutSessionDto;
+import io.github.phunguy65.ttbs.backend.booking.application.port.CheckoutSessionPort;
 import io.github.phunguy65.ttbs.backend.booking.application.usecase.CreateSeatHoldUseCase;
-import io.github.phunguy65.ttbs.backend.booking.domain.event.SeatHoldCreated;
+import io.github.phunguy65.ttbs.backend.booking.domain.event.BookingHeld;
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.train.application.port.RoutePort;
 import io.github.phunguy65.ttbs.backend.train.application.port.RouteSeatAvailabilityPort;
@@ -35,6 +37,9 @@ class BookingModuleTest {
     @MockitoBean
     private SeatPort seatPort;
 
+    @MockitoBean
+    private CheckoutSessionPort checkoutSessionPort;
+
     @Autowired
     private CreateSeatHoldUseCase createSeatHoldUseCase;
 
@@ -45,7 +50,7 @@ class BookingModuleTest {
     }
 
     @Test
-    void createSeatHold_publishesSeatHoldCreatedEvent(PublishedEvents events) {
+    void createSeatHold_publishesBookingHeldEvent(PublishedEvents events) {
         UUID userId = UUID.randomUUID();
         UUID routeId = UUID.randomUUID();
         UUID seatId = UUID.randomUUID();
@@ -70,13 +75,20 @@ class BookingModuleTest {
         // Mock seat availability port — successful hold
         when(routeSeatAvailabilityPort.holdSeats(any(), any())).thenReturn(Result.success(null));
 
+        // Mock checkout session port
+        when(checkoutSessionPort.createSession(any()))
+                .thenReturn(new CheckoutSessionDto(
+                        "cs_test",
+                        "https://checkout.stripe.com/test",
+                        java.time.Instant.now().plusSeconds(1800)));
+
         createSeatHoldUseCase.execute(command);
 
-        var seatHoldCreatedEvents = events.ofType(SeatHoldCreated.class);
+        var bookingHeldEvents = events.ofType(BookingHeld.class);
 
-        assertThat(seatHoldCreatedEvents)
-                .as("Expected SeatHoldCreated event to be published")
+        assertThat(bookingHeldEvents)
+                .as("Expected BookingHeld event to be published")
                 .hasSize(1);
-        assertThat(seatHoldCreatedEvents.iterator().next().userId()).isEqualTo(userId);
+        assertThat(bookingHeldEvents.iterator().next().userId()).isEqualTo(userId);
     }
 }

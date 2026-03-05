@@ -7,9 +7,9 @@ import com.stripe.model.checkout.Session;
 import com.stripe.net.RequestOptions;
 import com.stripe.param.checkout.SessionCreateParams;
 import com.stripe.param.checkout.SessionExpireParams;
-import io.github.phunguy65.ttbs.backend.payment.application.dto.CheckoutSessionDto;
-import io.github.phunguy65.ttbs.backend.payment.application.dto.CreateCheckoutSessionCommand;
-import io.github.phunguy65.ttbs.backend.payment.application.port.CheckoutSessionPort;
+import io.github.phunguy65.ttbs.backend.booking.application.port.CheckoutSessionDto;
+import io.github.phunguy65.ttbs.backend.booking.application.port.CheckoutSessionPort;
+import io.github.phunguy65.ttbs.backend.payment.application.port.PaymentCheckoutSessionPort;
 import io.github.phunguy65.ttbs.backend.payment.domain.model.CheckoutSessionId;
 import io.github.phunguy65.ttbs.backend.payment.domain.model.CheckoutSessionStatus;
 import io.github.phunguy65.ttbs.backend.payment.infrastructure.config.StripeProperties;
@@ -21,7 +21,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 @Component
-class StripeCheckoutAdapter implements CheckoutSessionPort {
+class StripeCheckoutAdapter implements CheckoutSessionPort, PaymentCheckoutSessionPort {
 
     private static final Logger log = LoggerFactory.getLogger(StripeCheckoutAdapter.class);
     private static final String CURRENCY_VND = "vnd";
@@ -39,7 +39,7 @@ class StripeCheckoutAdapter implements CheckoutSessionPort {
     }
 
     @Override
-    public CheckoutSessionDto createSession(CreateCheckoutSessionCommand command) {
+    public CheckoutSessionDto createSession(CheckoutSessionDto.CreateCommand command) {
         long expiresAt =
                 Instant.now().plus(SESSION_EXPIRY_MINUTES, ChronoUnit.MINUTES).getEpochSecond();
 

@@ -1,3 +1,3 @@
 @org.springframework.modulith.ApplicationModule(
-        allowedDependencies = {"train::validation", "shared"})
+        allowedDependencies = {"train::application::port::", "shared"})
 package io.github.phunguy65.ttbs.backend.station;

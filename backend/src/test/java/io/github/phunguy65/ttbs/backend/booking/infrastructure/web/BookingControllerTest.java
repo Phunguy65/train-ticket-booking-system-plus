@@ -12,7 +12,7 @@ import io.github.phunguy65.ttbs.backend.booking.application.usecase.ConfirmSeatH
 import io.github.phunguy65.ttbs.backend.booking.application.usecase.CreateSeatHoldUseCase;
 import io.github.phunguy65.ttbs.backend.booking.application.usecase.GetBookingUseCase;
 import io.github.phunguy65.ttbs.backend.booking.domain.errors.BookingError;
-import io.github.phunguy65.ttbs.backend.payment.infrastructure.config.StripeProperties;
+import io.github.phunguy65.ttbs.backend.booking.infrastructure.config.BookingProperties;
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.GlobalExceptionHandler;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.WebConfig;
@@ -63,7 +63,7 @@ class BookingControllerTest {
     private UserDetailsService userDetailsService;
 
     @MockitoBean
-    private StripeProperties stripeProperties;
+    private BookingProperties bookingProperties;
 
     // ── Helpers ──────────────────────────────────────────────────────────────
 

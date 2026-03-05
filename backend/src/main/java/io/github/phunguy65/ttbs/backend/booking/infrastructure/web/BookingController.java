@@ -4,7 +4,7 @@ import io.github.phunguy65.ttbs.backend.booking.application.usecase.CancelBookin
 import io.github.phunguy65.ttbs.backend.booking.application.usecase.ConfirmSeatHoldUseCase;
 import io.github.phunguy65.ttbs.backend.booking.application.usecase.CreateSeatHoldUseCase;
 import io.github.phunguy65.ttbs.backend.booking.application.usecase.GetBookingUseCase;
-import io.github.phunguy65.ttbs.backend.payment.infrastructure.config.StripeProperties;
+import io.github.phunguy65.ttbs.backend.booking.infrastructure.config.BookingProperties;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.ErrorCode;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.FailData;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.JsendResponse;
@@ -26,7 +26,7 @@ class BookingController {
     private final CancelBookingUseCase cancelBookingUseCase;
     private final GetBookingUseCase getBookingUseCase;
     private final BookingRequestMapper mapper;
-    private final StripeProperties stripeProperties;
+    private final BookingProperties bookingProperties;
 
     BookingController(
             CreateSeatHoldUseCase createSeatHoldUseCase,
@@ -34,13 +34,13 @@ class BookingController {
             CancelBookingUseCase cancelBookingUseCase,
             GetBookingUseCase getBookingUseCase,
             BookingRequestMapper mapper,
-            StripeProperties stripeProperties) {
+            BookingProperties bookingProperties) {
         this.createSeatHoldUseCase = createSeatHoldUseCase;
         this.confirmSeatHoldUseCase = confirmSeatHoldUseCase;
         this.cancelBookingUseCase = cancelBookingUseCase;
         this.getBookingUseCase = getBookingUseCase;
         this.mapper = mapper;
-        this.stripeProperties = stripeProperties;
+        this.bookingProperties = bookingProperties;
     }
 
     /**
@@ -153,7 +153,7 @@ class BookingController {
     ResponseEntity<Void> cancelRedirect(@PathVariable UUID id) {
         cancelBookingUseCase.execute(mapper.toCancelCommand(id));
         return ResponseEntity.status(HttpStatus.FOUND)
-                .location(URI.create(stripeProperties.cancelUrl()))
+                .location(URI.create(bookingProperties.cancelUrl()))
                 .build();
     }
 }
