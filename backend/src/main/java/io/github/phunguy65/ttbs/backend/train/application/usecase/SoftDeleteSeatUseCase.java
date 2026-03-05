@@ -3,7 +3,6 @@ package io.github.phunguy65.ttbs.backend.train.application.usecase;
 import io.github.phunguy65.ttbs.backend.shared.domain.DomainEvent;
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.train.application.command.SoftDeleteSeatCommand;
-import io.github.phunguy65.ttbs.backend.train.application.port.validation.SeatValidationPort;
 import io.github.phunguy65.ttbs.backend.train.domain.errors.SeatError;
 import io.github.phunguy65.ttbs.backend.train.domain.model.Seat;
 import io.github.phunguy65.ttbs.backend.train.domain.repository.RouteSeatAvailabilityRepository;
@@ -19,17 +18,14 @@ public class SoftDeleteSeatUseCase {
 
     private final SeatRepository seatRepository;
     private final RouteSeatAvailabilityRepository availabilityRepository;
-    private final SeatValidationPort seatValidationPort;
     private final ApplicationEventPublisher eventPublisher;
 
     public SoftDeleteSeatUseCase(
             SeatRepository seatRepository,
             RouteSeatAvailabilityRepository availabilityRepository,
-            SeatValidationPort seatValidationPort,
             ApplicationEventPublisher eventPublisher) {
         this.seatRepository = seatRepository;
         this.availabilityRepository = availabilityRepository;
-        this.seatValidationPort = seatValidationPort;
         this.eventPublisher = eventPublisher;
     }
 
@@ -49,11 +45,6 @@ public class SoftDeleteSeatUseCase {
         if (availabilityRepository.existsActiveBySeatId(command.seatId())) {
             return Result.failure(
                     new SeatError.SeatInUse(List.of(command.seatId().value())));
-        }
-
-        if (seatValidationPort.hasBookingHistoryForSeat(command.seatId())) {
-            return Result.failure(
-                    new SeatError.SeatHasBookingHistory(List.of(command.seatId().value())));
         }
 
         seat.softDelete();

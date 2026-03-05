@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.*;
 
 import io.github.phunguy65.ttbs.backend.train.application.command.CreateTrainCommand;
 import io.github.phunguy65.ttbs.backend.train.application.port.RouteSeatAvailabilityPort;
-import io.github.phunguy65.ttbs.backend.train.application.port.validation.SeatValidationPort;
 import io.github.phunguy65.ttbs.backend.train.application.usecase.CreateSeatUseCase;
 import io.github.phunguy65.ttbs.backend.train.application.usecase.CreateTrainUseCase;
 import io.github.phunguy65.ttbs.backend.train.domain.event.TrainCreated;
@@ -13,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.modulith.test.ApplicationModuleTest;
 import org.springframework.modulith.test.PublishedEvents;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 @ApplicationModuleTest
 @TestPropertySource(
@@ -23,9 +21,6 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
             "jwt.refresh-token-expiry=604800"
         })
 class TrainModuleTest {
-
-    @MockitoBean
-    private SeatValidationPort seatValidationPort;
 
     @Autowired
     private CreateTrainUseCase createTrainUseCase;

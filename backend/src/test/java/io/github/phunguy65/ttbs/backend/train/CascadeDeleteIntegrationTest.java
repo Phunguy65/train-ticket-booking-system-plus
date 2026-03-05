@@ -6,7 +6,6 @@ import static org.mockito.Mockito.*;
 
 import io.github.phunguy65.ttbs.backend.station.domain.event.StationsDeleted;
 import io.github.phunguy65.ttbs.backend.station.domain.model.StationId;
-import io.github.phunguy65.ttbs.backend.train.application.port.validation.SeatValidationPort;
 import io.github.phunguy65.ttbs.backend.train.domain.event.RoutesDeleted;
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteId;
 import io.github.phunguy65.ttbs.backend.train.domain.repository.RouteRepository;
@@ -30,9 +29,6 @@ class CascadeDeleteIntegrationTest {
 
     @MockitoBean
     private RouteRepository routeRepository;
-
-    @MockitoBean
-    private SeatValidationPort seatValidationPort;
 
     @Test
     void whenStationsDeletedPublished_cascadeListenerShouldPublishRoutesDeleted(Scenario scenario) {

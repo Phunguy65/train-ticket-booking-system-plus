@@ -130,12 +130,11 @@ class SeatController {
                     case SeatError.SeatNotFound e -> HttpStatus.NOT_FOUND;
                     case SeatError.TrainNotFound e -> HttpStatus.NOT_FOUND;
                     case SeatError.SeatNumberAlreadyExists e -> HttpStatus.CONFLICT;
-                    case SeatError.SeatInUse e -> HttpStatus.UNPROCESSABLE_ENTITY;
+                    case SeatError.SeatInUse e -> HttpStatus.UNPROCESSABLE_CONTENT;
                     case SeatError.CoachNotFound e -> HttpStatus.NOT_FOUND;
                     case SeatError.SeatNumbersAlreadyExist e -> HttpStatus.CONFLICT;
                     case SeatError.DuplicateSeatNumbersInRequest e ->
-                        HttpStatus.UNPROCESSABLE_ENTITY;
-                    case SeatError.SeatHasBookingHistory e -> HttpStatus.UNPROCESSABLE_ENTITY;
+                        HttpStatus.UNPROCESSABLE_CONTENT;
                 };
         ErrorCode code =
                 switch (error) {
