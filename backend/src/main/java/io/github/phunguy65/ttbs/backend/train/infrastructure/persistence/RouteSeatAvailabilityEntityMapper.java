@@ -13,7 +13,8 @@ class RouteSeatAvailabilityEntityMapper {
         return RouteSeatAvailability.reconstitute(
                 RouteId.of(entity.getId().getRouteId()),
                 SeatId.of(entity.getId().getSeatId()),
-                RouteSeatAvailabilityStatus.valueOf(entity.getStatus()));
+                RouteSeatAvailabilityStatus.valueOf(entity.getStatus()),
+                entity.getVersion());
     }
 
     RouteSeatAvailabilityEntity toEntity(RouteSeatAvailability domain) {
@@ -21,6 +22,7 @@ class RouteSeatAvailabilityEntityMapper {
         entity.setId(new RouteSeatAvailabilityId(
                 domain.getRouteId().value(), domain.getSeatId().value()));
         entity.setStatus(domain.getStatus().name());
+        entity.setVersion(domain.getVersion());
         return entity;
     }
 }

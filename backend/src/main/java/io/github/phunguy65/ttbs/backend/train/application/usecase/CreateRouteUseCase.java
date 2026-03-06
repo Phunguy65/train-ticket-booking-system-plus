@@ -2,6 +2,7 @@ package io.github.phunguy65.ttbs.backend.train.application.usecase;
 
 import io.github.phunguy65.ttbs.backend.shared.domain.DomainEvent;
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
+import io.github.phunguy65.ttbs.backend.shared.domain.UuidGenerator;
 import io.github.phunguy65.ttbs.backend.station.domain.model.StationId;
 import io.github.phunguy65.ttbs.backend.train.application.command.CreateRouteCommand;
 import io.github.phunguy65.ttbs.backend.train.application.dto.RouteDto;
@@ -10,7 +11,6 @@ import io.github.phunguy65.ttbs.backend.train.domain.model.Route;
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.TrainId;
 import io.github.phunguy65.ttbs.backend.train.domain.repository.RouteRepository;
-import java.util.UUID;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,7 +29,7 @@ public class CreateRouteUseCase {
 
     @Transactional
     public Result<RouteDto, RouteError> execute(CreateRouteCommand command) {
-        RouteId routeId = RouteId.of(UUID.randomUUID());
+        RouteId routeId = RouteId.of(UuidGenerator.generate());
         Route route = Route.create(
                 routeId,
                 TrainId.of(command.trainId()),

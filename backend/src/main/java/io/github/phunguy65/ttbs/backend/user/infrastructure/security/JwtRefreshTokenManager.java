@@ -1,5 +1,6 @@
 package io.github.phunguy65.ttbs.backend.user.infrastructure.security;
 
+import io.github.phunguy65.ttbs.backend.shared.domain.UuidGenerator;
 import io.github.phunguy65.ttbs.backend.user.application.port.RefreshTokenManager;
 import io.github.phunguy65.ttbs.backend.user.application.port.TokenProvider;
 import io.github.phunguy65.ttbs.backend.user.domain.model.User;
@@ -9,7 +10,6 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.UUID;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -35,7 +35,7 @@ public class JwtRefreshTokenManager implements RefreshTokenManager {
 
         String tokenHash = hashToken(rawRefreshToken);
         Instant expiresAt = Instant.now().plus(refreshTokenExpirySeconds, ChronoUnit.SECONDS);
-        refreshTokenRepository.save(UUID.randomUUID(), user.getId(), tokenHash, expiresAt);
+        refreshTokenRepository.save(UuidGenerator.generate(), user.getId(), tokenHash, expiresAt);
 
         return new TokenPair(accessToken, rawRefreshToken);
     }

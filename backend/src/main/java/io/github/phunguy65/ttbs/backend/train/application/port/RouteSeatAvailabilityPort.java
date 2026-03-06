@@ -17,16 +17,6 @@ import java.util.List;
 public interface RouteSeatAvailabilityPort {
 
     /**
-     * Atomically marks the seat as {@code BOOKED} for the given route.
-     *
-     * @param routeId the route on which to reserve the seat
-     * @param seatId  the seat to reserve
-     * @return success if the seat was AVAILABLE and is now BOOKED;
-     * failure with {@link RouteSeatAvailabilityError.SeatNotAvailable} otherwise
-     */
-    Result<Void, RouteSeatAvailabilityError> reserveSeat(RouteId routeId, SeatId seatId);
-
-    /**
      * Atomically transitions all specified seats from {@code AVAILABLE} to {@code HELD}.
      * Seat IDs are sorted ascending before locking to prevent deadlocks.
      * All-or-nothing: if any seat is not AVAILABLE, no seats are modified.
@@ -37,17 +27,6 @@ public interface RouteSeatAvailabilityPort {
      * failure with {@link RouteSeatAvailabilityError.SeatNotAvailable} otherwise
      */
     Result<Void, RouteSeatAvailabilityError> holdSeats(RouteId routeId, List<SeatId> seatIds);
-
-    /**
-     * Atomically transitions all specified seats from {@code HELD} to {@code BOOKED}.
-     *
-     * @param routeId the route
-     * @param seatIds the seats to confirm
-     * @return success if all seats were HELD and are now BOOKED;
-     * failure otherwise
-     */
-    Result<Void, RouteSeatAvailabilityError> confirmHeldSeats(
-            RouteId routeId, List<SeatId> seatIds);
 
     /**
      * Atomically transitions all specified seats from {@code HELD} back to {@code AVAILABLE}.
@@ -72,4 +51,12 @@ public interface RouteSeatAvailabilityPort {
      */
     Result<Void, RouteSeatAvailabilityError> cancelBookedSeats(
             RouteId routeId, List<SeatId> seatIds);
+
+    /**
+     * Returns the seat IDs associated with the given booking.
+     *
+     * @param bookingId the booking UUID
+     * @return list of seat IDs linked to this booking via {@code route_seat_availability.booking_id}
+     */
+    List<SeatId> findSeatIdsByBookingId(java.util.UUID bookingId);
 }

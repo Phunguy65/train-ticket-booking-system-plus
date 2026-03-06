@@ -1,6 +1,7 @@
 package io.github.phunguy65.ttbs.backend.shared.infrastructure.web;
 
 import jakarta.persistence.LockTimeoutException;
+import jakarta.persistence.OptimisticLockException;
 import jakarta.persistence.PessimisticLockException;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.constraints.Email;
@@ -54,6 +55,23 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(JsendResponse.fail(
                         new FailData("Validation failed", ErrorCode.VALIDATION_ERROR, violations)));
+    }
+
+    /**
+     * Handles JPA optimistic locking failures — concurrent modification detected via {@code @Version}.
+     * Returns JSend {@code fail} with HTTP 409 Conflict and error code {@code SEAT_CONFLICT}.
+     * The client should retry the request.
+     */
+    @ExceptionHandler({
+        OptimisticLockException.class,
+        org.springframework.dao.OptimisticLockingFailureException.class
+    })
+    ResponseEntity<JsendResponse<FailData>> handleOptimisticLock(Exception ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(JsendResponse.fail(new FailData(
+                        "A concurrent modification was detected. Please retry.",
+                        ErrorCode.SEAT_NOT_AVAILABLE,
+                        List.of())));
     }
 
     /**

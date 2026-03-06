@@ -2,13 +2,13 @@ package io.github.phunguy65.ttbs.backend.station.application.usecase;
 
 import io.github.phunguy65.ttbs.backend.shared.domain.DomainEvent;
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
+import io.github.phunguy65.ttbs.backend.shared.domain.UuidGenerator;
 import io.github.phunguy65.ttbs.backend.station.application.command.CreateStationCommand;
 import io.github.phunguy65.ttbs.backend.station.application.dto.StationDto;
 import io.github.phunguy65.ttbs.backend.station.domain.error.StationError;
 import io.github.phunguy65.ttbs.backend.station.domain.model.Station;
 import io.github.phunguy65.ttbs.backend.station.domain.model.StationId;
 import io.github.phunguy65.ttbs.backend.station.domain.repository.StationRepository;
-import java.util.UUID;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,7 +31,7 @@ public class CreateStationUseCase {
             return Result.failure(new StationError.StationCodeAlreadyExists(command.code()));
         }
 
-        StationId stationId = StationId.of(UUID.randomUUID());
+        StationId stationId = StationId.of(UuidGenerator.generate());
         Station station = Station.create(stationId, command.code(), command.name(), command.city());
         Station saved = stationRepository.save(station);
 

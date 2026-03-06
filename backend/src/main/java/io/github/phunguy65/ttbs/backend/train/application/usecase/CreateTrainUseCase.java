@@ -2,13 +2,13 @@ package io.github.phunguy65.ttbs.backend.train.application.usecase;
 
 import io.github.phunguy65.ttbs.backend.shared.domain.DomainEvent;
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
+import io.github.phunguy65.ttbs.backend.shared.domain.UuidGenerator;
 import io.github.phunguy65.ttbs.backend.train.application.command.CreateTrainCommand;
 import io.github.phunguy65.ttbs.backend.train.application.dto.TrainDto;
 import io.github.phunguy65.ttbs.backend.train.domain.error.TrainError;
 import io.github.phunguy65.ttbs.backend.train.domain.model.Train;
 import io.github.phunguy65.ttbs.backend.train.domain.model.TrainId;
 import io.github.phunguy65.ttbs.backend.train.domain.repository.TrainRepository;
-import java.util.UUID;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,7 +31,7 @@ public class CreateTrainUseCase {
             return Result.failure(new TrainError.TrainNumberAlreadyExists(command.trainNumber()));
         }
 
-        TrainId trainId = TrainId.of(UUID.randomUUID());
+        TrainId trainId = TrainId.of(UuidGenerator.generate());
         Train train =
                 Train.create(trainId, command.trainNumber(), command.name(), command.totalSeats());
         Train saved = trainRepository.save(train);

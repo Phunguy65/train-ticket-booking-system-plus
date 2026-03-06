@@ -1,6 +1,7 @@
 package io.github.phunguy65.ttbs.backend.train.application.usecase;
 
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
+import io.github.phunguy65.ttbs.backend.shared.domain.UuidGenerator;
 import io.github.phunguy65.ttbs.backend.train.application.command.CreateCoachCommand;
 import io.github.phunguy65.ttbs.backend.train.application.dto.CoachDto;
 import io.github.phunguy65.ttbs.backend.train.domain.error.CoachError;
@@ -9,7 +10,6 @@ import io.github.phunguy65.ttbs.backend.train.domain.model.CoachId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.TrainId;
 import io.github.phunguy65.ttbs.backend.train.domain.repository.CoachRepository;
 import io.github.phunguy65.ttbs.backend.train.domain.repository.TrainRepository;
-import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,7 +37,10 @@ public class CreateCoachUseCase {
         }
 
         Coach coach = Coach.create(
-                CoachId.of(UUID.randomUUID()), trainId, command.carNumber(), command.totalSeats());
+                CoachId.of(UuidGenerator.generate()),
+                trainId,
+                command.carNumber(),
+                command.totalSeats());
         Coach saved = coachRepository.save(coach);
 
         return Result.success(toDto(saved));

@@ -6,6 +6,7 @@ java = "25"
 # ─── Backend ─────────────────────────────────────────────────────────────────
 springBoot = "4.0.3"
 jjwt = "0.13.0"
+uuidCreator = "6.1.1"
 springDependencyManagement = "1.1.7"
 springModulith = "2.0.3"
 hibernateOrm = "7.2.1.Final"
@@ -80,6 +81,9 @@ jspecify = { module = "org.jspecify:jspecify", version.ref = "jspecify" }
 
 # Stripe
 stripe-java = { module = "com.stripe:stripe-java", version.ref = "stripeJava" }
+
+# UUID Creator
+uuid-creator = { module = "com.github.f4b6a3:uuid-creator", version.ref = "uuidCreator" }
 
 # JJWT
 jjwt-api = { module = "io.jsonwebtoken:jjwt-api", version.ref = "jjwt" }

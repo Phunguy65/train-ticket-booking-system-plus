@@ -35,14 +35,15 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
 /**
- * Integration test that validates pessimistic locking (SELECT FOR UPDATE NOWAIT) is the sole
- * concurrency guard for {@code route_seat_availability} rows after {@code @Version} removal.
+ * Integration test that validates optimistic locking ({@code @Version}) is the concurrency guard
+ * for {@code route_seat_availability} rows.
  *
- * <p>Two threads race to hold the same seat. Exactly one must succeed; the other must receive a
- * seat-unavailable or lock-related failure. No double-hold inconsistency must remain.
+ * <p>Two threads race to hold the same seat. Exactly one must succeed; the other must receive an
+ * {@code OptimisticLockException} (surfaced as a Spring data exception or a failure result).
+ * No double-hold inconsistency must remain.
  *
  * <p>Test runs without an enclosing transaction ({@code NOT_SUPPORTED}) so that each thread can
- * commit its own independent transaction and the pessimistic lock is exercised properly.
+ * commit its own independent transaction and the optimistic lock is exercised properly.
  */
 @DataJpaTest
 @Import({
@@ -104,8 +105,8 @@ class ConcurrentSeatHoldTest {
 
     /**
      * Two threads simultaneously attempt to hold the same seat.
-     * Exactly one MUST succeed; the other MUST receive a failure result.
-     * After both threads complete, the seat MUST NOT be double-held.
+     * Exactly one MUST succeed; the other MUST receive a failure (OptimisticLockException or
+     * seat-unavailable result). After both threads complete, the seat MUST NOT be double-held.
      */
     @Test
     void concurrentHold_onSameSeat_exactlyOneSucceeds() throws Exception {
@@ -126,13 +127,13 @@ class ConcurrentSeatHoldTest {
             }
             try {
                 Result<Void, RouteSeatAvailabilityError> result = txTemplate.execute(status -> {
-                    List<RouteSeatAvailability> locked =
-                            availabilityRepository.findByRouteIdAndSeatIdsForUpdate(
+                    List<RouteSeatAvailability> seats =
+                            availabilityRepository.findByRouteIdAndSeatIds(
                                     routeId, List.of(seatId));
-                    if (locked.size() != 1) {
+                    if (seats.size() != 1) {
                         return Result.failure(new RouteSeatAvailabilityError.SeatNotAvailable());
                     }
-                    RouteSeatAvailability seat = locked.getFirst();
+                    RouteSeatAvailability seat = seats.getFirst();
                     Result<Void, RouteSeatAvailabilityError> holdResult = seat.hold();
                     if (holdResult.isFailure()) {
                         return holdResult;
@@ -147,7 +148,8 @@ class ConcurrentSeatHoldTest {
                     failureCount.incrementAndGet();
                 }
             } catch (Exception ex) {
-                // Lock timeout or any concurrency exception counts as a failure (expected)
+                // OptimisticLockException or any concurrency exception counts as a failure
+                // (expected)
                 failureCount.incrementAndGet();
             }
         };
@@ -174,8 +176,7 @@ class ConcurrentSeatHoldTest {
         TransactionTemplate readTx = new TransactionTemplate(transactionManager);
         readTx.execute(status -> {
             List<RouteSeatAvailability> all =
-                    availabilityRepository.findByRouteIdAndSeatIdsForUpdate(
-                            routeId, List.of(seatId));
+                    availabilityRepository.findByRouteIdAndSeatIds(routeId, List.of(seatId));
             assertThat(all).hasSize(1);
             assertThat(all.getFirst().getStatus())
                     .as("Seat must be HELD (not double-held or still AVAILABLE)")

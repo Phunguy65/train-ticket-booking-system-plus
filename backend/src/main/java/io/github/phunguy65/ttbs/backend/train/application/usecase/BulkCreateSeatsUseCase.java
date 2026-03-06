@@ -1,6 +1,7 @@
 package io.github.phunguy65.ttbs.backend.train.application.usecase;
 
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
+import io.github.phunguy65.ttbs.backend.shared.domain.UuidGenerator;
 import io.github.phunguy65.ttbs.backend.train.application.command.BulkCreateSeatsCommand;
 import io.github.phunguy65.ttbs.backend.train.application.dto.SeatDto;
 import io.github.phunguy65.ttbs.backend.train.domain.error.SeatError;
@@ -13,7 +14,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -60,7 +60,8 @@ public class BulkCreateSeatsUseCase {
         }
 
         List<Seat> seats = command.seats().stream()
-                .map(item -> Seat.create(SeatId.of(UUID.randomUUID()), coachId, item.seatNumber()))
+                .map(item -> Seat.create(
+                        SeatId.of(UuidGenerator.generate()), coachId, item.seatNumber()))
                 .toList();
 
         List<Seat> saved = seatRepository.saveAll(seats);

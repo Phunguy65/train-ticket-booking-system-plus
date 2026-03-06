@@ -1,6 +1,7 @@
 package io.github.phunguy65.ttbs.backend.train.application.usecase;
 
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
+import io.github.phunguy65.ttbs.backend.shared.domain.UuidGenerator;
 import io.github.phunguy65.ttbs.backend.train.application.command.BulkCreateCoachesCommand;
 import io.github.phunguy65.ttbs.backend.train.application.dto.CoachDto;
 import io.github.phunguy65.ttbs.backend.train.domain.error.CoachError;
@@ -13,7 +14,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -62,7 +62,7 @@ public class BulkCreateCoachesUseCase {
 
         List<Coach> coaches = command.coaches().stream()
                 .map(item -> Coach.create(
-                        CoachId.of(UUID.randomUUID()),
+                        CoachId.of(UuidGenerator.generate()),
                         trainId,
                         item.carNumber(),
                         item.totalSeats()))

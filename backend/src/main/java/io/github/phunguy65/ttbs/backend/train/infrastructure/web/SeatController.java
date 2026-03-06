@@ -148,7 +148,6 @@ class SeatController {
                         ErrorCode.SEAT_NUMBERS_ALREADY_EXIST;
                     case SeatError.DuplicateSeatNumbersInRequest e ->
                         ErrorCode.SEAT_DUPLICATE_SEAT_NUMBERS_IN_REQUEST;
-                    case SeatError.SeatHasBookingHistory e -> ErrorCode.SEAT_IN_USE;
                 };
 
         if (error instanceof SeatError.SeatNumbersAlreadyExist conflict) {

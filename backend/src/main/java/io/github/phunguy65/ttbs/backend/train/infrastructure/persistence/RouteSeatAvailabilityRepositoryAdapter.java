@@ -38,15 +38,20 @@ class RouteSeatAvailabilityRepositoryAdapter implements RouteSeatAvailabilityRep
     }
 
     @Override
-    public List<RouteSeatAvailability> findByRouteIdAndSeatIdsForUpdate(
+    public List<RouteSeatAvailability> findByRouteIdAndSeatIds(
             RouteId routeId, List<SeatId> seatIds) {
         List<UUID> sortedSeatUuids = seatIds.stream()
                 .map(SeatId::value)
                 .sorted(Comparator.naturalOrder())
                 .toList();
-        return jpaRepository
-                .findByRouteIdAndSeatIdsForUpdate(routeId.value(), sortedSeatUuids)
-                .stream()
+        return jpaRepository.findByRouteIdAndSeatIds(routeId.value(), sortedSeatUuids).stream()
+                .map(mapper::toDomain)
+                .toList();
+    }
+
+    @Override
+    public List<RouteSeatAvailability> findByBookingId(java.util.UUID bookingId) {
+        return jpaRepository.findByBookingId(bookingId).stream()
                 .map(mapper::toDomain)
                 .toList();
     }

@@ -12,6 +12,13 @@ class RouteSeatAvailabilityEntity {
     @Column(name = "status", nullable = false, length = 20)
     private String status;
 
+    @Column(name = "booking_id")
+    private java.util.UUID bookingId;
+
+    @Version
+    @Column(name = "version", nullable = false)
+    private Integer version;
+
     protected RouteSeatAvailabilityEntity() {}
 
     RouteSeatAvailabilityId getId() {
@@ -28,5 +35,21 @@ class RouteSeatAvailabilityEntity {
 
     void setStatus(String status) {
         this.status = status;
+    }
+
+    Integer getVersion() {
+        return version;
+    }
+
+    void setVersion(Integer version) {
+        this.version = version;
+    }
+
+    java.util.UUID getBookingId() {
+        return bookingId;
+    }
+
+    void setBookingId(java.util.UUID bookingId) {
+        this.bookingId = bookingId;
     }
 }

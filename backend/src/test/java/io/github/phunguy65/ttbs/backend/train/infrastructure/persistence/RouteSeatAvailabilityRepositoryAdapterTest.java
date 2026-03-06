@@ -128,47 +128,44 @@ class RouteSeatAvailabilityRepositoryAdapterTest {
         assertThat(updated.getStatus()).isEqualTo(RouteSeatAvailabilityStatus.BOOKED);
     }
 
-    // ── findByRouteIdAndSeatIdsForUpdate ─────────────────────────────────────
+    // ── findByRouteIdAndSeatIds ───────────────────────────────────────────────
 
     @Test
-    void findByRouteIdAndSeatIdsForUpdate_whenAllAvailable_shouldReturnAllLocked() {
+    void findByRouteIdAndSeatIds_whenAllAvailable_shouldReturnAll() {
         availabilityRepository.saveAll(List.of(
                 RouteSeatAvailability.create(routeId, seatId),
                 RouteSeatAvailability.create(routeId, seatId2)));
 
-        List<RouteSeatAvailability> locked =
-                availabilityRepository.findByRouteIdAndSeatIdsForUpdate(
-                        routeId, List.of(seatId, seatId2));
+        List<RouteSeatAvailability> seats =
+                availabilityRepository.findByRouteIdAndSeatIds(routeId, List.of(seatId, seatId2));
 
-        assertThat(locked).hasSize(2);
-        assertThat(locked).allMatch(a -> a.getStatus() == RouteSeatAvailabilityStatus.AVAILABLE);
+        assertThat(seats).hasSize(2);
+        assertThat(seats).allMatch(a -> a.getStatus() == RouteSeatAvailabilityStatus.AVAILABLE);
     }
 
     @Test
-    void findByRouteIdAndSeatIdsForUpdate_whenPartialMatch_shouldReturnFewerRecords() {
+    void findByRouteIdAndSeatIds_whenPartialMatch_shouldReturnFewerRecords() {
         // Only save one seat availability record
         availabilityRepository.saveAll(List.of(RouteSeatAvailability.create(routeId, seatId)));
 
-        List<RouteSeatAvailability> locked =
-                availabilityRepository.findByRouteIdAndSeatIdsForUpdate(
-                        routeId, List.of(seatId, seatId2));
+        List<RouteSeatAvailability> seats =
+                availabilityRepository.findByRouteIdAndSeatIds(routeId, List.of(seatId, seatId2));
 
         // Only 1 found instead of 2 — callers treat this as unavailable
-        assertThat(locked).hasSize(1);
+        assertThat(seats).hasSize(1);
     }
 
     @Test
-    void findByRouteIdAndSeatIdsForUpdate_afterHold_shouldTransitionToHeld() {
+    void findByRouteIdAndSeatIds_afterHold_shouldTransitionToHeld() {
         availabilityRepository.saveAll(List.of(
                 RouteSeatAvailability.create(routeId, seatId),
                 RouteSeatAvailability.create(routeId, seatId2)));
 
-        List<RouteSeatAvailability> locked =
-                availabilityRepository.findByRouteIdAndSeatIdsForUpdate(
-                        routeId, List.of(seatId, seatId2));
+        List<RouteSeatAvailability> seats =
+                availabilityRepository.findByRouteIdAndSeatIds(routeId, List.of(seatId, seatId2));
 
-        locked.forEach(a -> a.hold());
-        availabilityRepository.saveAll(locked);
+        seats.forEach(a -> a.hold());
+        availabilityRepository.saveAll(seats);
 
         // Verify persisted as HELD
         RouteSeatAvailability updated1 =

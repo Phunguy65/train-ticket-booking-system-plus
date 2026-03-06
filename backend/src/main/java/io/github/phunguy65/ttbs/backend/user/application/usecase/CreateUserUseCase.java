@@ -2,6 +2,7 @@ package io.github.phunguy65.ttbs.backend.user.application.usecase;
 
 import io.github.phunguy65.ttbs.backend.shared.domain.DomainEvent;
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
+import io.github.phunguy65.ttbs.backend.shared.domain.UuidGenerator;
 import io.github.phunguy65.ttbs.backend.user.application.command.CreateUserCommand;
 import io.github.phunguy65.ttbs.backend.user.application.dto.CreateUserResult;
 import io.github.phunguy65.ttbs.backend.user.application.dto.UserDto;
@@ -39,7 +40,7 @@ public class CreateUserUseCase {
 
         String temporaryPassword = UUID.randomUUID().toString().replace("-", "");
         String passwordHash = passwordEncoder.encode(temporaryPassword);
-        UserId userId = UserId.of(UUID.randomUUID());
+        UserId userId = UserId.of(UuidGenerator.generate());
         User user = User.create(
                 userId, command.email(), passwordHash, command.fullName(), command.phone());
         User saved = userRepository.save(user);

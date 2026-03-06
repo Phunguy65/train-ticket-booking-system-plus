@@ -6,8 +6,7 @@ import org.jspecify.annotations.NonNull;
 /**
  * Type-safe value object wrapping the UUID primary key of a route.
  *
- * <p>Mirrors {@code booking.domain.model.RouteId} — kept separate to avoid cross-module
- * domain-type leakage. Used in {@code route_seat_availability} and for event handling.
+ * <p>Shared across the train and booking modules as the canonical route identifier.
  */
 public record RouteId(UUID value) {
 

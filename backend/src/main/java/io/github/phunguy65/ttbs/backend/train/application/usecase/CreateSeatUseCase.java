@@ -1,6 +1,7 @@
 package io.github.phunguy65.ttbs.backend.train.application.usecase;
 
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
+import io.github.phunguy65.ttbs.backend.shared.domain.UuidGenerator;
 import io.github.phunguy65.ttbs.backend.train.application.command.CreateSeatCommand;
 import io.github.phunguy65.ttbs.backend.train.application.dto.SeatDto;
 import io.github.phunguy65.ttbs.backend.train.domain.error.SeatError;
@@ -9,7 +10,6 @@ import io.github.phunguy65.ttbs.backend.train.domain.model.Seat;
 import io.github.phunguy65.ttbs.backend.train.domain.model.SeatId;
 import io.github.phunguy65.ttbs.backend.train.domain.repository.CoachRepository;
 import io.github.phunguy65.ttbs.backend.train.domain.repository.SeatRepository;
-import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,7 +36,7 @@ public class CreateSeatUseCase {
             return Result.failure(new SeatError.SeatNumberAlreadyExists(command.seatNumber()));
         }
 
-        SeatId seatId = SeatId.of(UUID.randomUUID());
+        SeatId seatId = SeatId.of(UuidGenerator.generate());
         Seat seat = Seat.create(seatId, coachId, command.seatNumber());
         Seat saved = seatRepository.save(seat);
 

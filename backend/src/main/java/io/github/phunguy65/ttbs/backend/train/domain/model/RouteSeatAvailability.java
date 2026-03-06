@@ -7,8 +7,8 @@ import io.github.phunguy65.ttbs.backend.train.domain.error.RouteSeatAvailability
  * Domain entity tracking the availability of a specific seat on a specific route.
  *
  * <p>This entity is NOT an AggregateRoot — it is managed within the seat management context.
- * Concurrency safety is enforced exclusively via pessimistic locking ({@code SELECT FOR UPDATE
- * NOWAIT}) at the database layer — no optimistic locking ({@code @Version}) is used.
+ * Concurrency safety is enforced via JPA {@code @Version} optimistic locking at the database
+ * layer. Any concurrent modification will result in an {@code OptimisticLockException}.
  *
  * <p>Allowed state transitions:
  * <ul>
@@ -25,19 +25,22 @@ public class RouteSeatAvailability {
     private final RouteId routeId;
     private final SeatId seatId;
     private RouteSeatAvailabilityStatus status;
+    private final Integer version;
 
     private RouteSeatAvailability(
-            RouteId routeId, SeatId seatId, RouteSeatAvailabilityStatus status) {
+            RouteId routeId, SeatId seatId, RouteSeatAvailabilityStatus status, Integer version) {
         this.routeId = routeId;
         this.seatId = seatId;
         this.status = status;
+        this.version = version;
     }
 
     /**
      * Factory method for creating a new availability record with status {@code AVAILABLE}.
      */
     public static RouteSeatAvailability create(RouteId routeId, SeatId seatId) {
-        return new RouteSeatAvailability(routeId, seatId, RouteSeatAvailabilityStatus.AVAILABLE);
+        return new RouteSeatAvailability(
+                routeId, seatId, RouteSeatAvailabilityStatus.AVAILABLE, null);
     }
 
     /**
@@ -45,7 +48,15 @@ public class RouteSeatAvailability {
      */
     public static RouteSeatAvailability reconstitute(
             RouteId routeId, SeatId seatId, RouteSeatAvailabilityStatus status) {
-        return new RouteSeatAvailability(routeId, seatId, status);
+        return new RouteSeatAvailability(routeId, seatId, status, null);
+    }
+
+    /**
+     * Factory method for reconstituting from persistence with version.
+     */
+    public static RouteSeatAvailability reconstitute(
+            RouteId routeId, SeatId seatId, RouteSeatAvailabilityStatus status, Integer version) {
+        return new RouteSeatAvailability(routeId, seatId, status, version);
     }
 
     /**
@@ -136,5 +147,9 @@ public class RouteSeatAvailability {
 
     public RouteSeatAvailabilityStatus getStatus() {
         return status;
+    }
+
+    public Integer getVersion() {
+        return version;
     }
 }
