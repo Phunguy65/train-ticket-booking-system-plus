@@ -42,6 +42,13 @@ public sealed interface BookingError {
         }
     }
 
+    record RouteNotFound() implements BookingError {
+        @Override
+        public String message() {
+            return "Route not found";
+        }
+    }
+
     /** Human-readable description suitable for a JSend {@code fail} data payload. */
     String message();
 }

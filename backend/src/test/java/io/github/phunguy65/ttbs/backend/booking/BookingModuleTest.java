@@ -1,5 +1,6 @@
 package io.github.phunguy65.ttbs.backend.booking;
 
+import io.github.phunguy65.ttbs.backend.train.application.port.RouteQueryPort;
 import io.github.phunguy65.ttbs.backend.train.application.port.RouteSeatAvailabilityPort;
 import org.junit.jupiter.api.Test;
 import org.springframework.modulith.test.ApplicationModuleTest;
@@ -17,6 +18,9 @@ class BookingModuleTest {
 
     @MockitoBean
     private RouteSeatAvailabilityPort routeSeatAvailabilityPort;
+
+    @MockitoBean
+    private RouteQueryPort routeQueryPort;
 
     @Test
     void bookingModule_isStructurallyValid() {

@@ -11,6 +11,7 @@ import io.github.phunguy65.ttbs.backend.shared.domain.DomainEvent;
 import io.github.phunguy65.ttbs.backend.shared.domain.Money;
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.shared.domain.UuidGenerator;
+import io.github.phunguy65.ttbs.backend.train.application.port.RouteQueryPort;
 import io.github.phunguy65.ttbs.backend.train.application.port.RouteSeatAvailabilityPort;
 import io.github.phunguy65.ttbs.backend.train.domain.error.RouteSeatAvailabilityError;
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteId;
@@ -26,14 +27,17 @@ public class CreateBookingUseCase {
 
     private final BookingRepository bookingRepository;
     private final RouteSeatAvailabilityPort seatAvailabilityPort;
+    private final RouteQueryPort routeQueryPort;
     private final ApplicationEventPublisher eventPublisher;
 
     public CreateBookingUseCase(
             BookingRepository bookingRepository,
             RouteSeatAvailabilityPort seatAvailabilityPort,
+            RouteQueryPort routeQueryPort,
             ApplicationEventPublisher eventPublisher) {
         this.bookingRepository = bookingRepository;
         this.seatAvailabilityPort = seatAvailabilityPort;
+        this.routeQueryPort = routeQueryPort;
         this.eventPublisher = eventPublisher;
     }
 
@@ -58,8 +62,12 @@ public class CreateBookingUseCase {
             return Result.failure(new BookingError.SeatNotAvailable());
         }
 
-        long totalPriceAmount = command.seatIds().size() * 100_000L; // placeholder
-        Money totalPrice = Money.vnd(totalPriceAmount);
+        var routeOpt = routeQueryPort.findById(routeId);
+        if (routeOpt.isEmpty()) {
+            return Result.failure(new BookingError.RouteNotFound());
+        }
+        Money totalPrice = Money.vnd(
+                routeOpt.get().getBasePrice().toLong() * command.seatIds().size());
 
         Instant paymentDeadline = Instant.now().plusSeconds(HOLD_DURATION_SECONDS);
         Booking booking = Booking.create(

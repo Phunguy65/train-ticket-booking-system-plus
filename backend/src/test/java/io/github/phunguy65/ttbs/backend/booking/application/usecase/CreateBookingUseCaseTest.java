@@ -14,8 +14,10 @@ import io.github.phunguy65.ttbs.backend.booking.domain.model.UserId;
 import io.github.phunguy65.ttbs.backend.booking.domain.repository.BookingRepository;
 import io.github.phunguy65.ttbs.backend.shared.domain.Money;
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
+import io.github.phunguy65.ttbs.backend.train.application.port.RouteQueryPort;
 import io.github.phunguy65.ttbs.backend.train.application.port.RouteSeatAvailabilityPort;
 import io.github.phunguy65.ttbs.backend.train.domain.error.RouteSeatAvailabilityError;
+import io.github.phunguy65.ttbs.backend.train.domain.model.Route;
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.SeatId;
 import java.time.Instant;
@@ -39,6 +41,9 @@ class CreateBookingUseCaseTest {
     private RouteSeatAvailabilityPort seatAvailabilityPort;
 
     @Mock
+    private RouteQueryPort routeQueryPort;
+
+    @Mock
     private ApplicationEventPublisher eventPublisher;
 
     private CreateBookingUseCase useCase;
@@ -52,7 +57,8 @@ class CreateBookingUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        useCase = new CreateBookingUseCase(bookingRepository, seatAvailabilityPort, eventPublisher);
+        useCase = new CreateBookingUseCase(
+                bookingRepository, seatAvailabilityPort, routeQueryPort, eventPublisher);
         command = new CreateBookingCommand(
                 USER_UUID,
                 ROUTE_UUID,
@@ -69,6 +75,9 @@ class CreateBookingUseCaseTest {
         when(bookingRepository.findActiveHoldByUserAndRoute(any(), any()))
                 .thenReturn(Optional.empty());
         when(seatAvailabilityPort.holdSeats(any(), any())).thenReturn(Result.success());
+        Route mockRoute = mock(Route.class);
+        when(mockRoute.getBasePrice()).thenReturn(Money.vnd(100_000L));
+        when(routeQueryPort.findById(any())).thenReturn(Optional.of(mockRoute));
         when(bookingRepository.save(any(Booking.class))).thenAnswer(inv -> inv.getArgument(0));
 
         Result<BookingDto, BookingError> result = useCase.execute(command);

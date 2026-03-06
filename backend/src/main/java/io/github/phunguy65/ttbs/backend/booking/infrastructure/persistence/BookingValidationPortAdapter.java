@@ -1,7 +1,6 @@
-package io.github.phunguy65.ttbs.backend.booking.infrastructure.adapter;
+package io.github.phunguy65.ttbs.backend.booking.infrastructure.persistence;
 
 import io.github.phunguy65.ttbs.backend.booking.domain.model.BookingStatus;
-import io.github.phunguy65.ttbs.backend.booking.infrastructure.persistence.BookingJpaRepository;
 import io.github.phunguy65.ttbs.backend.user.application.port.BookingValidationPort;
 import java.util.UUID;
 import org.springframework.stereotype.Component;
