@@ -5,10 +5,10 @@ import static org.assertj.core.api.Assertions.*;
 import io.github.phunguy65.ttbs.backend.booking.domain.model.Booking;
 import io.github.phunguy65.ttbs.backend.booking.domain.model.BookingId;
 import io.github.phunguy65.ttbs.backend.booking.domain.model.BookingStatus;
-import io.github.phunguy65.ttbs.backend.booking.domain.model.UserId;
 import io.github.phunguy65.ttbs.backend.booking.domain.repository.BookingRepository;
 import io.github.phunguy65.ttbs.backend.shared.domain.Money;
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteId;
+import io.github.phunguy65.ttbs.backend.user.domain.model.UserId;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -40,7 +40,6 @@ class BookingRepositoryAdapterTest {
         userId = UUID.randomUUID();
         routeId = UUID.randomUUID();
 
-        // Insert prerequisite user (FK constraint)
         jdbcTemplate.update(
                 "INSERT INTO users (id, email, password_hash, full_name, role, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
                 userId,
@@ -51,7 +50,6 @@ class BookingRepositoryAdapterTest {
                 java.sql.Timestamp.from(Instant.now()),
                 java.sql.Timestamp.from(Instant.now()));
 
-        // Insert prerequisite train + station + route (FK constraints)
         UUID trainId = UUID.randomUUID();
         jdbcTemplate.update(
                 "INSERT INTO trains (id, train_number, name, total_seats, created_at) VALUES (?, ?, ?, ?, ?)",

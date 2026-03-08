@@ -50,5 +50,10 @@ public enum ErrorCode {
     // ── Station module ────────────────────────────────────────────────────────
     STATION_NOT_FOUND,
     STATION_CODE_ALREADY_EXISTS,
-    STATION_IN_USE
+    STATION_IN_USE,
+
+    // ── Payment module ────────────────────────────────────────────────────────
+    PAYMENT_NOT_FOUND,
+    PAYMENT_ALREADY_PROCESSED,
+    PAYMENT_REFUND_FAILED
 }

@@ -2,9 +2,9 @@ package io.github.phunguy65.ttbs.backend.booking.infrastructure.persistence;
 
 import io.github.phunguy65.ttbs.backend.booking.domain.model.Booking;
 import io.github.phunguy65.ttbs.backend.booking.domain.model.BookingId;
-import io.github.phunguy65.ttbs.backend.booking.domain.model.UserId;
 import io.github.phunguy65.ttbs.backend.booking.domain.repository.BookingRepository;
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteId;
+import io.github.phunguy65.ttbs.backend.user.domain.model.UserId;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;

@@ -18,7 +18,7 @@ public class ApiVersionParser extends SemanticApiVersionParser {
 
     @Override
     public Version parseVersion(String version) {
-        if (version != null && (version.startsWith("v") || version.startsWith("V"))) {
+        if (version.startsWith("v") || version.startsWith("V")) {
             version = version.substring(1);
         }
         return super.parseVersion(version);

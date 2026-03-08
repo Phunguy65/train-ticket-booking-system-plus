@@ -8,6 +8,7 @@ import io.github.phunguy65.ttbs.backend.shared.domain.AggregateRoot;
 import io.github.phunguy65.ttbs.backend.shared.domain.Money;
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteId;
+import io.github.phunguy65.ttbs.backend.user.domain.model.UserId;
 import java.time.Instant;
 
 /**
@@ -89,7 +90,7 @@ public class Booking extends AggregateRoot<BookingId> {
                 idempotencyKey,
                 paymentDeadline,
                 Instant.now());
-        booking.registerEvent(new BookingCreated(bookingId, userId, routeId));
+        booking.registerEvent(new BookingCreated(bookingId, userId, routeId, totalPrice, currency));
         return booking;
     }
 

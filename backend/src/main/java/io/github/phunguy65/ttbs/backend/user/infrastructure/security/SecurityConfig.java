@@ -44,6 +44,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth.requestMatchers(
                                 HttpMethod.POST, "/api/*/auth/**")
                         .permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/*/webhooks/stripe")
+                        .permitAll()
                         .requestMatchers("/actuator/**")
                         .permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/*/users")

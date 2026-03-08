@@ -1,5 +1,6 @@
 package io.github.phunguy65.ttbs.backend.shared.infrastructure.web;
 
+import io.github.phunguy65.ttbs.backend.payment.StripeGatewayException;
 import jakarta.persistence.LockTimeoutException;
 import jakarta.persistence.OptimisticLockException;
 import jakarta.persistence.PessimisticLockException;
@@ -19,6 +20,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -113,6 +115,33 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.FORBIDDEN)
                 .body(JsendResponse.fail(
                         new FailData("Access denied", ErrorCode.ACCESS_DENIED, List.of())));
+    }
+
+    /**
+     * Handles missing required request headers.
+     * Returns JSend {@code fail} with HTTP 400.
+     */
+    @ExceptionHandler(MissingRequestHeaderException.class)
+    ResponseEntity<JsendResponse<FailData>> handleMissingRequestHeader(
+            MissingRequestHeaderException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(JsendResponse.fail(new FailData(
+                        "Required header '" + ex.getHeaderName() + "' is missing",
+                        ErrorCode.VALIDATION_ERROR,
+                        List.of())));
+    }
+
+    /**
+     * Handles Stripe gateway failures (network errors, API errors, rate limits).
+     * Returns JSend {@code error} with HTTP 502 Bad Gateway so the client knows
+     * the payment provider is unavailable rather than seeing a generic 500.
+     */
+    @ExceptionHandler(StripeGatewayException.class)
+    ResponseEntity<JsendResponse<Void>> handleStripeGateway(StripeGatewayException ex) {
+        log.error("Stripe gateway error", ex);
+        return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
+                .body(JsendResponse.error(
+                        "Payment service is temporarily unavailable. Please try again."));
     }
 
     /**

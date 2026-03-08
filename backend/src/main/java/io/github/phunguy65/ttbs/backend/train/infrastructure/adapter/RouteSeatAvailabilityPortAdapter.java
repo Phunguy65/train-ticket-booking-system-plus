@@ -104,4 +104,26 @@ public class RouteSeatAvailabilityPortAdapter implements RouteSeatAvailabilityPo
                 .map(RouteSeatAvailability::getSeatId)
                 .toList();
     }
+
+    @Override
+    @Transactional
+    public Result<Void, RouteSeatAvailabilityError> confirmHeldSeats(java.util.UUID bookingId) {
+        List<RouteSeatAvailability> seats = repository.findByBookingId(bookingId);
+
+        List<RouteSeatAvailability> toSave = new ArrayList<>();
+        for (RouteSeatAvailability domain : seats) {
+            if (domain.getStatus() == RouteSeatAvailabilityStatus.HELD) {
+                Result<Void, RouteSeatAvailabilityError> result = domain.confirmHold();
+                if (result.isFailure()) {
+                    return result;
+                }
+                toSave.add(domain);
+            }
+        }
+
+        if (!toSave.isEmpty()) {
+            repository.saveAll(toSave);
+        }
+        return Result.success();
+    }
 }

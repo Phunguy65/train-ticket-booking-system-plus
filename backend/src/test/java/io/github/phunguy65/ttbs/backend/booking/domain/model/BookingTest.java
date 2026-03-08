@@ -9,6 +9,7 @@ import io.github.phunguy65.ttbs.backend.booking.domain.event.BookingCreated;
 import io.github.phunguy65.ttbs.backend.shared.domain.Money;
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteId;
+import io.github.phunguy65.ttbs.backend.user.domain.model.UserId;
 import java.time.Instant;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;

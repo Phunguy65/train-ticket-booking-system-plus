@@ -53,6 +53,16 @@ public interface RouteSeatAvailabilityPort {
             RouteId routeId, List<SeatId> seatIds);
 
     /**
+     * Atomically transitions all seats for the given booking from {@code HELD} to {@code BOOKED}.
+     * Called after successful payment confirmation.
+     *
+     * @param bookingId the booking whose held seats should be confirmed
+     * @return success if all seats were HELD and are now BOOKED;
+     * failure with {@link RouteSeatAvailabilityError.SeatNotAvailable} otherwise
+     */
+    Result<Void, RouteSeatAvailabilityError> confirmHeldSeats(java.util.UUID bookingId);
+
+    /**
      * Returns the seat IDs associated with the given booking.
      *
      * @param bookingId the booking UUID
