@@ -29,33 +29,43 @@ configurations {
 }
 
 dependencies {
-    implementation("org.springframework.boot:spring-boot-starter-actuator")
-    implementation("org.springframework.boot:spring-boot-starter-amqp")
-    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
-    implementation("org.springframework.boot:spring-boot-starter-integration")
-    implementation("org.springframework.boot:spring-boot-starter-security")
-    implementation("org.springframework.boot:spring-boot-starter-webmvc")
-    implementation("org.springframework.amqp:spring-rabbit-stream")
-    implementation("org.springframework.integration:spring-integration-amqp")
-    implementation("org.springframework.integration:spring-integration-http")
-    implementation("org.springframework.integration:spring-integration-jpa")
-    implementation("org.springframework.modulith:spring-modulith-events-api")
-    implementation("org.springframework.modulith:spring-modulith-starter-core")
-    implementation("org.springframework.modulith:spring-modulith-starter-jpa")
-    implementation("org.springframework.security:spring-security-messaging")
-    developmentOnly("org.springframework.boot:spring-boot-devtools")
-    runtimeOnly("org.postgresql:postgresql")
-    runtimeOnly("org.springframework.modulith:spring-modulith-actuator")
-    runtimeOnly("org.springframework.modulith:spring-modulith-events-amqp")
-    runtimeOnly("org.springframework.modulith:spring-modulith-observability")
-    annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
-    testImplementation("org.springframework.boot:spring-boot-starter-actuator-test")
-    testImplementation("org.springframework.boot:spring-boot-starter-data-jpa-test")
-    testImplementation("org.springframework.boot:spring-boot-starter-security-test")
-    testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
-    testImplementation("org.springframework.integration:spring-integration-test")
-    testImplementation("org.springframework.modulith:spring-modulith-starter-test")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    implementation(libs.spring.boot.starter.actuator)
+    implementation(libs.spring.boot.starter.amqp)
+    implementation(libs.spring.boot.starter.data.jpa)
+    implementation(libs.spring.boot.starter.integration)
+    implementation(libs.spring.boot.starter.security)
+    implementation(libs.spring.boot.starter.webmvc)
+    implementation(libs.spring.boot.starter.validation)
+    implementation(libs.spring.rabbit.stream)
+    implementation(libs.spring.integration.amqp)
+    implementation(libs.spring.integration.http)
+    implementation(libs.spring.integration.jpa)
+    implementation(libs.spring.modulith.events.api)
+    implementation(libs.spring.modulith.starter.core)
+    implementation(libs.spring.modulith.starter.jpa)
+    implementation(libs.spring.security.messaging)
+    implementation(libs.jjwt.api)
+    implementation(libs.jackson.databind.nullable)
+    compileOnly(libs.jspecify)
+    implementation(libs.stripe.java)
+    implementation(libs.uuid.creator)
+    runtimeOnly(libs.jjwt.impl)
+    runtimeOnly(libs.jjwt.jackson)
+    developmentOnly(libs.spring.boot.devtools)
+    runtimeOnly(libs.postgresql)
+    runtimeOnly(libs.spring.modulith.actuator)
+    runtimeOnly(libs.spring.modulith.events.amqp)
+    runtimeOnly(libs.spring.modulith.observability)
+    annotationProcessor(libs.spring.boot.configuration.processor)
+    testImplementation(libs.spring.boot.starter.actuator.test)
+    testImplementation(libs.spring.boot.starter.data.jpa.test)
+    testImplementation(libs.spring.boot.starter.security.test)
+    testImplementation(libs.spring.boot.starter.webmvc.test)
+    testImplementation(libs.spring.integration.test)
+    testImplementation(libs.spring.modulith.starter.test)
+    testRuntimeOnly(libs.junit.platform.launcher)
+    testRuntimeOnly(libs.h2)
+    testImplementation(libs.archunit.junit5)
 }
 
 dependencyManagement {
@@ -76,4 +86,10 @@ hibernate {
 
 tasks.withType<Test> {
     useJUnitPlatform()
+}
+
+// Disable AOT test processing to allow regular JVM test execution.
+// Native image test compilation (nativeTest) can still be run explicitly.
+tasks.named("processTestAot") {
+    enabled = false
 }

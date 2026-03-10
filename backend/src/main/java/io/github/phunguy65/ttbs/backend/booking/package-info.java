@@ -1,4 +1,4 @@
 @org.springframework.modulith.ApplicationModule(
-        displayName = "Booking Module",
-        allowedDependencies = {"route", "user"})
+        allowedDependencies = {"train::port", "train::model", "user::model", "user::port", "shared"
+        })
 package io.github.phunguy65.ttbs.backend.booking;

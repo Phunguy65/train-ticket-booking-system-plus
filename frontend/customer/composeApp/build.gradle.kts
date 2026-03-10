@@ -11,7 +11,7 @@ plugins {
 
 kotlin {
     androidLibrary {
-        namespace = "io.github.phunguy65.ttbs.customer"
+        namespace = "io.github.phunguy65.ttbs.customer.androidApp"
         compileSdk = libs.versions.androidCompileSdk.get().toInt()
         minSdk = libs.versions.androidMinSdk.get().toInt()
         compilerOptions {

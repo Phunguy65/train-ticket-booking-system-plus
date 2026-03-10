@@ -49,4 +49,5 @@ android {
 }
 dependencies {
     implementation(libs.androidx.runtime)
+    implementation(projects.composeApp)
 }

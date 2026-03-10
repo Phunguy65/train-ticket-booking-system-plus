@@ -1,0 +1,34 @@
+version: 2
+
+updates:
+  # GitHub Actions
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: "ci"
+
+  # Root workspace (pnpm)
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: "chore"
+
+  # Frontend Admin (Bun / npm ecosystem)
+  - package-ecosystem: npm
+    directory: /frontend/admin
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: "chore(admin)"
+
+  # Backend (Gradle)
+  - package-ecosystem: gradle
+    directory: /backend
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: "chore(backend)"

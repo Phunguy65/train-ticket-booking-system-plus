@@ -19,6 +19,7 @@ kotlin {
 
 dependencies {
     implementation(plugin(libs.plugins.spotless))
+    implementation(plugin(libs.plugins.ktlint))
     implementation(plugin(libs.plugins.composeCompiler))
     implementation(files(libs.javaClass.superclass.protectionDomain.codeSource.location))
 }

@@ -9,15 +9,45 @@ pre-commit:
                 found, skipping (install via:
                 https://github.com/gitleaks/gitleaks)"
 
-        # ── Backend, Frontend-Customer, Build-Logic (Spotless) ──────────────────────────────────
-        spotless-lint:
-            glob: '**/*.java'
+        # ── Backend ──────────────────────────────────
+        backend-lint:
+            root: 'backend/'
+            glob: '**/*.{java,kt,kts}'
+            exclude:
+                - 'third_party/**'
             run: ./gradlew spotlessCheck
             stage_fixed: false
 
-        spotless-format:
-            glob: '**/*.java'
+        backend-format:
+            root: 'backend/'
+            glob: '**/*.{java,kt,kts}'
+            exclude:
+                - 'third_party/**'
             run: ./gradlew spotlessApply
+            stage_fixed: true
+
+        # ── Build logic ──────────────────────────────────
+        build-logic-lint:
+            glob: 'build-logic/**/*.{kt,kts}'
+            run: ./gradlew ktlintCheck
+            stage_fixed: false
+
+        build-logic-format:
+            glob: 'build-logic/**/*.{kt,kts}'
+            run: ./gradlew ktlintFormat
+            stage_fixed: true
+
+        # ── Frontend / Customer ──────────────────────────────────
+        customer-lint:
+            root: 'frontend/customer/'
+            glob: '**/*.{kt,kts}'
+            run: ./gradlew ktlintCheck
+            stage_fixed: false
+
+        customer-format:
+            root: 'frontend/customer/'
+            glob: '**/*.{kt,kts}'
+            run: ./gradlew ktlintFormat
             stage_fixed: true
 
         # ── Frontend / Admin – TypeScript (Biome) ─────────────────────

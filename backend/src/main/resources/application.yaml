@@ -1,3 +1,27 @@
 spring:
   application:
     name: backend
+  threads:
+    virtual:
+        enabled: true
+  mvc:
+    apiversion:
+      use:
+        path-segment: 1
+      supported: 1.0
+      default: 1.0
+
+jwt:
+  secret: ${JWT_SECRET}
+  access-token-expiry: ${JWT_ACCESS_TOKEN_EXPIRY:900}
+  refresh-token-expiry: ${JWT_REFRESH_TOKEN_EXPIRY:604800}
+
+stripe:
+  api-key: ${STRIPE_SECRET_KEY}
+  webhook-secret: ${STRIPE_WEBHOOK_SECRET}
+  success-url: ${STRIPE_SUCCESS_URL}
+  cancel-url: ${STRIPE_CANCEL_URL}
+
+booking:
+  cancel-url: ${STRIPE_CANCEL_URL}
+

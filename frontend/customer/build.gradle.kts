@@ -7,4 +7,9 @@ plugins {
     alias(libs.plugins.kotlinMultiplatform) apply false
     alias(libs.plugins.kotlinJvm) apply false
     alias(libs.plugins.spotlessConvention)
+    alias(libs.plugins.ktlintConvention)
+}
+
+ktlint {
+    android.set(true)
 }

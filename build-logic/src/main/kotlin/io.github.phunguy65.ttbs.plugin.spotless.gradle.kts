@@ -1,7 +1,4 @@
-import com.diffplug.gradle.spotless.SpotlessExtension
-import com.diffplug.gradle.spotless.SpotlessExtensionImpl
 import org.gradle.accessors.dm.LibrariesForLibs
-import org.gradle.kotlin.dsl.the
 
 plugins {
     id("com.diffplug.spotless")
@@ -14,24 +11,23 @@ val libs = the<LibrariesForLibs>()
 
 spotless {
     java {
-        target("**/*.java")
-        targetExclude("**/build/**", "**/generated/**")
+        target("**/src/**/*.java")
+        targetExclude("**/build/**", "**/generated/**", "**/third-party/**")
         palantirJavaFormat(libs.versions.palantirJavaFormat.get()).style("AOSP")
         formatAnnotations()
         trimTrailingWhitespace()
         endWithNewline()
         importOrder()
         removeUnusedImports()
-        licenseHeader("")
     }
 
     kotlin {
         target("**/*.kt")
-        targetExclude("**/build/**", "**/generated/**")
+        targetExclude("**/build/**", "**/generated/**", "**/gradle/**", "**/bin/**", "**/third-party/**")
         ktlint(libs.versions.ktlint.get()).editorConfigOverride(
             mapOf(
                 "indent_size" to "4",
-                "continuation_indent_size" to "4",
+                "indent_style" to "space",
                 "insert_final_newline" to "true",
                 "ktlint_standard_trailing-comma-on-call-site" to "disabled",
                 "ktlint_standard_trailing-comma-on-declaration-site" to "disabled"
@@ -43,16 +39,15 @@ spotless {
         )
         trimTrailingWhitespace()
         endWithNewline()
-        licenseHeader("")
     }
 
     kotlinGradle {
         target("**/*.gradle.kts")
-        targetExclude("**/build/**", "**/generated/**")
+        targetExclude("**/build/**", "**/generated/**", "**/gradle/**", "**/bin/**", "**/third-party/**")
         ktlint(libs.versions.ktlint.get()).editorConfigOverride(
             mapOf(
                 "indent_size" to "4",
-                "continuation_indent_size" to "4",
+                "indent_style" to "space",
                 "insert_final_newline" to "true",
                 "ktlint_standard_trailing-comma-on-call-site" to "disabled",
                 "ktlint_standard_trailing-comma-on-declaration-site" to "disabled"

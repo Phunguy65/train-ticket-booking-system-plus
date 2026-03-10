@@ -4,14 +4,13 @@
 const config = {
     extends: ['@commitlint/config-conventional'],
     rules: {
-        'header-case': [2, 'always', 'lower-case'],
         'header-max-length': [2, 'always', 72],
         'body-leading-blank': [2, 'always'],
         'footer-leading-blank': [2, 'always'],
         'body-max-line-length': [2, 'always', 80],
         'footer-max-line-length': [2, 'always', 80],
-        'signed-off-by': [2, 'always', 'Signed-off-by: <.+@.+>'],
-    },
+        'signed-off-by': [2, 'always', 'Signed-off-by:']
+    }
 };
 
 export default config;

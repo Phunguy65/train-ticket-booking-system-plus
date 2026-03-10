@@ -17,5 +17,6 @@
     "embeddedLanguageFormatting": "auto",
     "plugins": [
         "prettier-plugin-sql"
-    ]
+    ],
+	"language": "postgresql"
 }
