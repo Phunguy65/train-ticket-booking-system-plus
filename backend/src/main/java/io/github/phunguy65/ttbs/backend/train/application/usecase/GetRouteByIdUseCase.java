@@ -1,7 +1,7 @@
 package io.github.phunguy65.ttbs.backend.train.application.usecase;
 
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
-import io.github.phunguy65.ttbs.backend.train.application.dto.RouteDto;
+import io.github.phunguy65.ttbs.backend.train.application.response.RouteResponse;
 import io.github.phunguy65.ttbs.backend.train.domain.error.RouteError;
 import io.github.phunguy65.ttbs.backend.train.domain.model.Route;
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteId;
@@ -19,15 +19,15 @@ public class GetRouteByIdUseCase {
     }
 
     @Transactional(readOnly = true)
-    public Result<RouteDto, RouteError> execute(RouteId routeId) {
+    public Result<RouteResponse, RouteError> execute(RouteId routeId) {
         return routeRepository
                 .findById(routeId)
-                .map(route -> Result.<RouteDto, RouteError>success(toDto(route)))
+                .map(route -> Result.<RouteResponse, RouteError>success(toDto(route)))
                 .orElseGet(() -> Result.failure(new RouteError.RouteNotFound()));
     }
 
-    private RouteDto toDto(Route route) {
-        return new RouteDto(
+    private RouteResponse toDto(Route route) {
+        return new RouteResponse(
                 route.getId().value(),
                 route.getTrainId().value(),
                 route.getOriginStationId().value(),

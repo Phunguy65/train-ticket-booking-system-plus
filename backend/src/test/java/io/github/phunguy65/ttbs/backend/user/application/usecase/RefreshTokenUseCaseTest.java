@@ -6,8 +6,8 @@ import static org.mockito.Mockito.*;
 
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.user.application.command.RefreshTokenCommand;
-import io.github.phunguy65.ttbs.backend.user.application.dto.LoginResultDto;
 import io.github.phunguy65.ttbs.backend.user.application.port.RefreshTokenManager;
+import io.github.phunguy65.ttbs.backend.user.application.response.LoginResultResponse;
 import io.github.phunguy65.ttbs.backend.user.domain.error.UserError;
 import io.github.phunguy65.ttbs.backend.user.domain.model.User;
 import io.github.phunguy65.ttbs.backend.user.domain.model.UserId;
@@ -91,11 +91,11 @@ class RefreshTokenUseCaseTest {
                 .thenReturn(new RefreshTokenManager.TokenPair(
                         "new-access-token", "new-raw-refresh-token"));
 
-        Result<LoginResultDto, UserError> result =
+        Result<LoginResultResponse, UserError> result =
                 useCase.execute(new RefreshTokenCommand(RAW_TOKEN));
 
         assertThat(result.isSuccess()).isTrue();
-        LoginResultDto dto = ((Result.Success<LoginResultDto, UserError>) result).value();
+        LoginResultResponse dto = ((Result.Success<LoginResultResponse, UserError>) result).value();
         assertThat(dto.accessToken()).isEqualTo("new-access-token");
         assertThat(dto.refreshToken()).isEqualTo("new-raw-refresh-token");
         verify(refreshTokenRepository).revokeById(TOKEN_ID);
@@ -113,11 +113,11 @@ class RefreshTokenUseCaseTest {
         when(refreshTokenRepository.findActiveByTokenHash(tokenHash))
                 .thenReturn(Optional.of(expiredToken));
 
-        Result<LoginResultDto, UserError> result =
+        Result<LoginResultResponse, UserError> result =
                 useCase.execute(new RefreshTokenCommand(RAW_TOKEN));
 
         assertThat(result.isFailure()).isTrue();
-        assertThat(((Result.Failure<LoginResultDto, UserError>) result).error())
+        assertThat(((Result.Failure<LoginResultResponse, UserError>) result).error())
                 .isInstanceOf(UserError.InvalidRefreshToken.class);
         verify(refreshTokenRepository).revokeById(TOKEN_ID);
     }
@@ -128,11 +128,11 @@ class RefreshTokenUseCaseTest {
         when(refreshTokenManager.hashToken(RAW_TOKEN)).thenReturn(tokenHash);
         when(refreshTokenRepository.findActiveByTokenHash(tokenHash)).thenReturn(Optional.empty());
 
-        Result<LoginResultDto, UserError> result =
+        Result<LoginResultResponse, UserError> result =
                 useCase.execute(new RefreshTokenCommand(RAW_TOKEN));
 
         assertThat(result.isFailure()).isTrue();
-        assertThat(((Result.Failure<LoginResultDto, UserError>) result).error())
+        assertThat(((Result.Failure<LoginResultResponse, UserError>) result).error())
                 .isInstanceOf(UserError.InvalidRefreshToken.class);
     }
 }

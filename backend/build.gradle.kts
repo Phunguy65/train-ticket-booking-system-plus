@@ -80,7 +80,7 @@ dependencyManagement {
 
 hibernate {
     enhancement {
-        enableAssociationManagement = true
+        enableAssociationManagement = false
     }
 }
 
@@ -88,8 +88,6 @@ tasks.withType<Test> {
     useJUnitPlatform()
 }
 
-// Disable AOT test processing to allow regular JVM test execution.
-// Native image test compilation (nativeTest) can still be run explicitly.
-tasks.named("processTestAot") {
-    enabled = false
+tasks.withType<JavaCompile>().configureEach {
+    options.compilerArgs.add("-parameters")
 }

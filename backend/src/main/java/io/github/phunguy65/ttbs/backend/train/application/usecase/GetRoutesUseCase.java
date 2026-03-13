@@ -2,7 +2,7 @@ package io.github.phunguy65.ttbs.backend.train.application.usecase;
 
 import io.github.phunguy65.ttbs.backend.shared.domain.PageResult;
 import io.github.phunguy65.ttbs.backend.shared.domain.SortDirection;
-import io.github.phunguy65.ttbs.backend.train.application.dto.RouteDto;
+import io.github.phunguy65.ttbs.backend.train.application.response.RouteResponse;
 import io.github.phunguy65.ttbs.backend.train.domain.model.Route;
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteFilter;
 import io.github.phunguy65.ttbs.backend.train.domain.repository.RouteRepository;
@@ -19,7 +19,7 @@ public class GetRoutesUseCase {
     }
 
     @Transactional(readOnly = true)
-    public PageResult<RouteDto> execute(
+    public PageResult<RouteResponse> execute(
             int page, int size, String sortField, SortDirection direction, RouteFilter filter) {
         PageResult<Route> routes =
                 routeRepository.findAll(page, size, sortField, direction, filter);
@@ -30,8 +30,8 @@ public class GetRoutesUseCase {
                 routes.hasNext());
     }
 
-    private RouteDto toDto(Route route) {
-        return new RouteDto(
+    private RouteResponse toDto(Route route) {
+        return new RouteResponse(
                 route.getId().value(),
                 route.getTrainId().value(),
                 route.getOriginStationId().value(),

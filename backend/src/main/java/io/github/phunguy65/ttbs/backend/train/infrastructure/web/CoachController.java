@@ -14,6 +14,9 @@ import io.github.phunguy65.ttbs.backend.train.application.usecase.SoftDeleteCoac
 import io.github.phunguy65.ttbs.backend.train.domain.error.CoachError;
 import io.github.phunguy65.ttbs.backend.train.domain.model.CoachId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.TrainId;
+import io.github.phunguy65.ttbs.backend.train.infrastructure.web.request.BulkCreateCoachesHttpRequest;
+import io.github.phunguy65.ttbs.backend.train.infrastructure.web.request.BulkSoftDeleteCoachesHttpRequest;
+import io.github.phunguy65.ttbs.backend.train.infrastructure.web.request.CreateCoachHttpRequest;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Map;

@@ -7,7 +7,7 @@ import static org.mockito.Mockito.*;
 import io.github.phunguy65.ttbs.backend.shared.domain.Money;
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.train.application.command.CreateRouteCommand;
-import io.github.phunguy65.ttbs.backend.train.application.dto.RouteDto;
+import io.github.phunguy65.ttbs.backend.train.application.response.RouteResponse;
 import io.github.phunguy65.ttbs.backend.train.domain.error.RouteError;
 import io.github.phunguy65.ttbs.backend.train.domain.event.RouteCreated;
 import io.github.phunguy65.ttbs.backend.train.domain.model.Route;
@@ -52,10 +52,10 @@ class CreateRouteUseCaseTest {
                 TRAIN_UUID, ORIGIN_UUID, DEST_UUID, DEPARTURE, ARRIVAL, PRICE);
         when(routeRepository.save(any(Route.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        Result<RouteDto, RouteError> result = useCase.execute(command);
+        Result<RouteResponse, RouteError> result = useCase.execute(command);
 
         assertThat(result.isSuccess()).isTrue();
-        RouteDto dto = ((Result.Success<RouteDto, RouteError>) result).value();
+        RouteResponse dto = ((Result.Success<RouteResponse, RouteError>) result).value();
         assertThat(dto.trainId()).isEqualTo(TRAIN_UUID);
         assertThat(dto.originStationId()).isEqualTo(ORIGIN_UUID);
         assertThat(dto.destinationStationId()).isEqualTo(DEST_UUID);

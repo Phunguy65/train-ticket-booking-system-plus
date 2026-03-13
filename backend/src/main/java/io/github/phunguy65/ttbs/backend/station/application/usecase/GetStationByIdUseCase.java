@@ -1,7 +1,7 @@
 package io.github.phunguy65.ttbs.backend.station.application.usecase;
 
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
-import io.github.phunguy65.ttbs.backend.station.application.dto.StationDto;
+import io.github.phunguy65.ttbs.backend.station.application.response.StationResponse;
 import io.github.phunguy65.ttbs.backend.station.domain.error.StationError;
 import io.github.phunguy65.ttbs.backend.station.domain.model.Station;
 import io.github.phunguy65.ttbs.backend.station.domain.model.StationId;
@@ -19,15 +19,15 @@ public class GetStationByIdUseCase {
     }
 
     @Transactional(readOnly = true)
-    public Result<StationDto, StationError> execute(StationId stationId) {
+    public Result<StationResponse, StationError> execute(StationId stationId) {
         return stationRepository
                 .findById(stationId)
-                .map(station -> Result.<StationDto, StationError>success(toDto(station)))
+                .map(station -> Result.<StationResponse, StationError>success(toDto(station)))
                 .orElseGet(() -> Result.failure(new StationError.StationNotFound()));
     }
 
-    private StationDto toDto(Station station) {
-        return new StationDto(
+    private StationResponse toDto(Station station) {
+        return new StationResponse(
                 station.getId().value(),
                 station.getCode(),
                 station.getName(),

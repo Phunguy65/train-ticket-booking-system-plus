@@ -3,7 +3,7 @@ package io.github.phunguy65.ttbs.backend.train.application.usecase;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import io.github.phunguy65.ttbs.backend.train.application.dto.CoachDto;
+import io.github.phunguy65.ttbs.backend.train.application.response.CoachDto;
 import io.github.phunguy65.ttbs.backend.train.domain.model.Coach;
 import io.github.phunguy65.ttbs.backend.train.domain.model.CoachId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.TrainId;

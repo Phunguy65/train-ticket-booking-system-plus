@@ -3,7 +3,7 @@ package io.github.phunguy65.ttbs.backend.train.application.usecase;
 import io.github.phunguy65.ttbs.backend.shared.domain.Money;
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.train.application.command.UpdateRouteCommand;
-import io.github.phunguy65.ttbs.backend.train.application.dto.RouteDto;
+import io.github.phunguy65.ttbs.backend.train.application.response.RouteResponse;
 import io.github.phunguy65.ttbs.backend.train.domain.error.RouteError;
 import io.github.phunguy65.ttbs.backend.train.domain.model.Route;
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteStatus;
@@ -22,7 +22,7 @@ public class UpdateRouteUseCase {
     }
 
     @Transactional
-    public Result<RouteDto, RouteError> execute(UpdateRouteCommand command) {
+    public Result<RouteResponse, RouteError> execute(UpdateRouteCommand command) {
         Route route = routeRepository.findById(command.routeId()).orElse(null);
         if (route == null) {
             return Result.failure(new RouteError.RouteNotFound());
@@ -55,8 +55,8 @@ public class UpdateRouteUseCase {
         return Result.success(toDto(saved));
     }
 
-    private RouteDto toDto(Route route) {
-        return new RouteDto(
+    private RouteResponse toDto(Route route) {
+        return new RouteResponse(
                 route.getId().value(),
                 route.getTrainId().value(),
                 route.getOriginStationId().value(),

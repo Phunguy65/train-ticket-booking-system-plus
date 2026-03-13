@@ -11,7 +11,7 @@ import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.GlobalExceptionHandler;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.JacksonConfig;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.WebConfig;
-import io.github.phunguy65.ttbs.backend.station.application.dto.StationDto;
+import io.github.phunguy65.ttbs.backend.station.application.response.StationResponse;
 import io.github.phunguy65.ttbs.backend.station.application.usecase.BulkSoftDeleteStationsUseCase;
 import io.github.phunguy65.ttbs.backend.station.application.usecase.CreateStationUseCase;
 import io.github.phunguy65.ttbs.backend.station.application.usecase.GetStationByIdUseCase;
@@ -74,8 +74,8 @@ class StationControllerTest {
 
     private static final UUID STATION_UUID = UUID.randomUUID();
 
-    private StationDto sampleStationDto() {
-        return new StationDto(STATION_UUID, "HN", "Hanoi Station", "Hanoi", Instant.now());
+    private StationResponse sampleStationDto() {
+        return new StationResponse(STATION_UUID, "HN", "Hanoi Station", "Hanoi", Instant.now());
     }
 
     // ── POST /api/v1.0/stations ──────────────────────────────────────────────
@@ -137,8 +137,8 @@ class StationControllerTest {
 
     @Test
     void listStations_defaultParams_shouldReturn200WithSliceStructure() throws Exception {
-        StationDto dto = sampleStationDto();
-        PageResult<StationDto> pageResult = PageResult.of(List.of(dto), 0, 20, false);
+        StationResponse dto = sampleStationDto();
+        PageResult<StationResponse> pageResult = PageResult.of(List.of(dto), 0, 20, false);
         when(getStationsUseCase.execute(anyInt(), anyInt(), anyString(), any()))
                 .thenReturn(pageResult);
 

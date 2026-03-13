@@ -2,7 +2,7 @@ package io.github.phunguy65.ttbs.backend.user.application.usecase;
 
 import io.github.phunguy65.ttbs.backend.shared.domain.PageResult;
 import io.github.phunguy65.ttbs.backend.shared.domain.SortDirection;
-import io.github.phunguy65.ttbs.backend.user.application.dto.UserDto;
+import io.github.phunguy65.ttbs.backend.user.application.response.UserResponse;
 import io.github.phunguy65.ttbs.backend.user.domain.model.User;
 import io.github.phunguy65.ttbs.backend.user.domain.repository.UserRepository;
 import org.springframework.stereotype.Service;
@@ -18,7 +18,7 @@ public class ListUsersUseCase {
     }
 
     @Transactional(readOnly = true)
-    public PageResult<UserDto> execute(
+    public PageResult<UserResponse> execute(
             int page, int size, String sortField, SortDirection direction) {
         PageResult<User> users = userRepository.findAll(page, size, sortField, direction);
         return PageResult.of(
@@ -28,8 +28,8 @@ public class ListUsersUseCase {
                 users.hasNext());
     }
 
-    private UserDto toDto(User user) {
-        return new UserDto(
+    private UserResponse toDto(User user) {
+        return new UserResponse(
                 user.getId().value(),
                 user.getEmail(),
                 user.getFullName(),

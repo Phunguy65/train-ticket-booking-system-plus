@@ -8,7 +8,7 @@ import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.JsendResponse;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.SliceHttpResponse;
 import io.github.phunguy65.ttbs.backend.station.application.command.BulkSoftDeleteStationsCommand;
 import io.github.phunguy65.ttbs.backend.station.application.command.SoftDeleteStationCommand;
-import io.github.phunguy65.ttbs.backend.station.application.dto.StationDto;
+import io.github.phunguy65.ttbs.backend.station.application.response.StationDto;
 import io.github.phunguy65.ttbs.backend.station.application.usecase.BulkSoftDeleteStationsUseCase;
 import io.github.phunguy65.ttbs.backend.station.application.usecase.CreateStationUseCase;
 import io.github.phunguy65.ttbs.backend.station.application.usecase.GetStationByIdUseCase;
@@ -17,6 +17,9 @@ import io.github.phunguy65.ttbs.backend.station.application.usecase.SoftDeleteSt
 import io.github.phunguy65.ttbs.backend.station.application.usecase.UpdateStationUseCase;
 import io.github.phunguy65.ttbs.backend.station.domain.error.StationError;
 import io.github.phunguy65.ttbs.backend.station.domain.model.StationId;
+import io.github.phunguy65.ttbs.backend.station.infrastructure.web.request.BulkSoftDeleteStationsHttpRequest;
+import io.github.phunguy65.ttbs.backend.station.infrastructure.web.request.CreateStationHttpRequest;
+import io.github.phunguy65.ttbs.backend.station.infrastructure.web.request.UpdateStationHttpRequest;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Map;

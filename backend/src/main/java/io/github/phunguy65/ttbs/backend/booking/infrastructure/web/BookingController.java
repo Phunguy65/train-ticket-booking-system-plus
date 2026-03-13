@@ -4,6 +4,7 @@ import io.github.phunguy65.ttbs.backend.booking.application.command.CancelBookin
 import io.github.phunguy65.ttbs.backend.booking.application.usecase.CancelBookingUseCase;
 import io.github.phunguy65.ttbs.backend.booking.application.usecase.CreateBookingUseCase;
 import io.github.phunguy65.ttbs.backend.booking.domain.error.BookingError;
+import io.github.phunguy65.ttbs.backend.booking.infrastructure.web.request.CreateBookingRequest;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.ErrorCode;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.FailData;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.JsendResponse;
@@ -39,7 +40,7 @@ class BookingController {
 
     @PostMapping(value = "/{version}/bookings", version = "1.0")
     @PreAuthorize("isAuthenticated()")
-    ResponseEntity<JsendResponse<?>> create(@Valid @RequestBody CreateBookingHttpRequest request) {
+    ResponseEntity<JsendResponse<?>> create(@Valid @RequestBody CreateBookingRequest request) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         UUID userId = UUID.fromString(auth.getName());
 

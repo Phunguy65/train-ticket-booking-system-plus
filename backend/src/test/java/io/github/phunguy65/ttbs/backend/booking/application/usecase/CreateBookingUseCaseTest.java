@@ -5,7 +5,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 import io.github.phunguy65.ttbs.backend.booking.application.command.CreateBookingCommand;
-import io.github.phunguy65.ttbs.backend.booking.application.dto.BookingDto;
+import io.github.phunguy65.ttbs.backend.booking.application.response.BookingResponse;
 import io.github.phunguy65.ttbs.backend.booking.domain.error.BookingError;
 import io.github.phunguy65.ttbs.backend.booking.domain.model.Booking;
 import io.github.phunguy65.ttbs.backend.booking.domain.model.BookingId;
@@ -80,10 +80,10 @@ class CreateBookingUseCaseTest {
         when(routeQueryPort.findById(any())).thenReturn(Optional.of(mockRoute));
         when(bookingRepository.save(any(Booking.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        Result<BookingDto, BookingError> result = useCase.execute(command);
+        Result<BookingResponse, BookingError> result = useCase.execute(command);
 
         assertThat(result.isSuccess()).isTrue();
-        BookingDto dto = ((Result.Success<BookingDto, BookingError>) result).value();
+        BookingResponse dto = ((Result.Success<BookingResponse, BookingError>) result).value();
         assertThat(dto.userId()).isEqualTo(USER_UUID);
         assertThat(dto.routeId()).isEqualTo(ROUTE_UUID);
         assertThat(dto.status()).isEqualTo(BookingStatus.HELD);
@@ -107,7 +107,7 @@ class CreateBookingUseCaseTest {
                 Instant.now());
         when(bookingRepository.findByIdempotencyKey(IDEM_KEY)).thenReturn(Optional.of(existing));
 
-        Result<BookingDto, BookingError> result = useCase.execute(command);
+        Result<BookingResponse, BookingError> result = useCase.execute(command);
 
         assertThat(result.isSuccess()).isTrue();
         verify(bookingRepository, never()).save(any());
@@ -133,10 +133,10 @@ class CreateBookingUseCaseTest {
         when(bookingRepository.findActiveHoldByUserAndRoute(any(), any()))
                 .thenReturn(Optional.of(activeHold));
 
-        Result<BookingDto, BookingError> result = useCase.execute(command);
+        Result<BookingResponse, BookingError> result = useCase.execute(command);
 
         assertThat(result.isFailure()).isTrue();
-        assertThat(((Result.Failure<BookingDto, BookingError>) result).error())
+        assertThat(((Result.Failure<BookingResponse, BookingError>) result).error())
                 .isInstanceOf(BookingError.ActiveHoldExists.class);
     }
 
@@ -148,10 +148,10 @@ class CreateBookingUseCaseTest {
         when(seatAvailabilityPort.holdSeats(any(), any()))
                 .thenReturn(Result.failure(new RouteSeatAvailabilityError.SeatNotAvailable()));
 
-        Result<BookingDto, BookingError> result = useCase.execute(command);
+        Result<BookingResponse, BookingError> result = useCase.execute(command);
 
         assertThat(result.isFailure()).isTrue();
-        assertThat(((Result.Failure<BookingDto, BookingError>) result).error())
+        assertThat(((Result.Failure<BookingResponse, BookingError>) result).error())
                 .isInstanceOf(BookingError.SeatNotAvailable.class);
     }
 }

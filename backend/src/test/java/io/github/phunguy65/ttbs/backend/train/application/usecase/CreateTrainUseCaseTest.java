@@ -6,7 +6,7 @@ import static org.mockito.Mockito.*;
 
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.train.application.command.CreateTrainCommand;
-import io.github.phunguy65.ttbs.backend.train.application.dto.TrainDto;
+import io.github.phunguy65.ttbs.backend.train.application.response.TrainResponse;
 import io.github.phunguy65.ttbs.backend.train.domain.error.TrainError;
 import io.github.phunguy65.ttbs.backend.train.domain.event.TrainCreated;
 import io.github.phunguy65.ttbs.backend.train.domain.model.Train;
@@ -40,10 +40,10 @@ class CreateTrainUseCaseTest {
         when(trainRepository.existsByTrainNumber("SE001")).thenReturn(false);
         when(trainRepository.save(any(Train.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        Result<TrainDto, TrainError> result = useCase.execute(command);
+        Result<TrainResponse, TrainError> result = useCase.execute(command);
 
         assertThat(result.isSuccess()).isTrue();
-        TrainDto dto = ((Result.Success<TrainDto, TrainError>) result).value();
+        TrainResponse dto = ((Result.Success<TrainResponse, TrainError>) result).value();
         assertThat(dto.trainNumber()).isEqualTo("SE001");
         assertThat(dto.name()).isEqualTo("Reunification Express");
         assertThat(dto.totalSeats()).isEqualTo(250);
@@ -55,10 +55,10 @@ class CreateTrainUseCaseTest {
         CreateTrainCommand command = new CreateTrainCommand("SE001", "Duplicate Train", 100);
         when(trainRepository.existsByTrainNumber("SE001")).thenReturn(true);
 
-        Result<TrainDto, TrainError> result = useCase.execute(command);
+        Result<TrainResponse, TrainError> result = useCase.execute(command);
 
         assertThat(result.isFailure()).isTrue();
-        TrainError error = ((Result.Failure<TrainDto, TrainError>) result).error();
+        TrainError error = ((Result.Failure<TrainResponse, TrainError>) result).error();
         assertThat(error).isInstanceOf(TrainError.TrainNumberAlreadyExists.class);
         assertThat(((TrainError.TrainNumberAlreadyExists) error).trainNumber()).isEqualTo("SE001");
         verify(trainRepository, never()).save(any());

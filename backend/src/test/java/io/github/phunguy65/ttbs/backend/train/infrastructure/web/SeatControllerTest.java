@@ -10,7 +10,7 @@ import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.GlobalExceptionHandler;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.JacksonConfig;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.WebConfig;
-import io.github.phunguy65.ttbs.backend.train.application.dto.SeatDto;
+import io.github.phunguy65.ttbs.backend.train.application.response.SeatResponse;
 import io.github.phunguy65.ttbs.backend.train.application.usecase.BulkCreateSeatsUseCase;
 import io.github.phunguy65.ttbs.backend.train.application.usecase.BulkSoftDeleteSeatsUseCase;
 import io.github.phunguy65.ttbs.backend.train.application.usecase.CreateSeatUseCase;
@@ -75,8 +75,8 @@ class SeatControllerTest {
     private static final UUID ROUTE_UUID = UUID.randomUUID();
     private static final UUID SEAT_UUID = UUID.randomUUID();
 
-    private SeatDto sampleSeatDto() {
-        return new SeatDto(SEAT_UUID, TRAIN_UUID, "1A", Instant.now());
+    private SeatResponse sampleSeatDto() {
+        return new SeatResponse(SEAT_UUID, TRAIN_UUID, "1A", Instant.now());
     }
 
     // ── POST /api/v1.0/trains/{trainId}/seats ───────────────────────────────

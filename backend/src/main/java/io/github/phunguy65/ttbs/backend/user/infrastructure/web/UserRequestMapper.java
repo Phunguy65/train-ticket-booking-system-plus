@@ -2,8 +2,8 @@ package io.github.phunguy65.ttbs.backend.user.infrastructure.web;
 
 import io.github.phunguy65.ttbs.backend.user.application.command.CreateUserCommand;
 import io.github.phunguy65.ttbs.backend.user.application.command.UpdateUserCommand;
-import io.github.phunguy65.ttbs.backend.user.application.dto.CreateUserResult;
-import io.github.phunguy65.ttbs.backend.user.application.dto.UserDto;
+import io.github.phunguy65.ttbs.backend.user.application.response.CreateUserResult;
+import io.github.phunguy65.ttbs.backend.user.application.response.UserDto;
 import io.github.phunguy65.ttbs.backend.user.domain.model.UserId;
 import java.util.UUID;
 import org.springframework.stereotype.Component;

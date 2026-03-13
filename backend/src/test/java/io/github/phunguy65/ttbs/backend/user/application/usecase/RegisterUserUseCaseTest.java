@@ -6,8 +6,8 @@ import static org.mockito.Mockito.*;
 
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.user.application.command.RegisterUserCommand;
-import io.github.phunguy65.ttbs.backend.user.application.dto.UserDto;
 import io.github.phunguy65.ttbs.backend.user.application.port.PasswordEncoder;
+import io.github.phunguy65.ttbs.backend.user.application.response.UserResponse;
 import io.github.phunguy65.ttbs.backend.user.domain.error.UserError;
 import io.github.phunguy65.ttbs.backend.user.domain.model.User;
 import io.github.phunguy65.ttbs.backend.user.domain.repository.UserRepository;
@@ -46,10 +46,10 @@ class RegisterUserUseCaseTest {
         when(passwordEncoder.encode("password123")).thenReturn("$2a$12$hashed");
         when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        Result<UserDto, UserError> result = useCase.execute(command);
+        Result<UserResponse, UserError> result = useCase.execute(command);
 
         assertThat(result.isSuccess()).isTrue();
-        UserDto dto = ((Result.Success<UserDto, UserError>) result).value();
+        UserResponse dto = ((Result.Success<UserResponse, UserError>) result).value();
         assertThat(dto.email()).isEqualTo("bob@example.com");
         assertThat(dto.fullName()).isEqualTo("Bob Nguyen");
         verify(userRepository).save(any(User.class));
@@ -69,10 +69,10 @@ class RegisterUserUseCaseTest {
         when(userRepository.findByEmail("existing@example.com"))
                 .thenReturn(Optional.of(existingUser));
 
-        Result<UserDto, UserError> result = useCase.execute(command);
+        Result<UserResponse, UserError> result = useCase.execute(command);
 
         assertThat(result.isFailure()).isTrue();
-        UserError error = ((Result.Failure<UserDto, UserError>) result).error();
+        UserError error = ((Result.Failure<UserResponse, UserError>) result).error();
         assertThat(error).isInstanceOf(UserError.EmailAlreadyExists.class);
         verify(userRepository, never()).save(any());
     }

@@ -4,7 +4,7 @@ import io.github.phunguy65.ttbs.backend.shared.domain.DomainEvent;
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.shared.domain.UuidGenerator;
 import io.github.phunguy65.ttbs.backend.station.application.command.CreateStationCommand;
-import io.github.phunguy65.ttbs.backend.station.application.dto.StationDto;
+import io.github.phunguy65.ttbs.backend.station.application.response.StationResponse;
 import io.github.phunguy65.ttbs.backend.station.domain.error.StationError;
 import io.github.phunguy65.ttbs.backend.station.domain.model.Station;
 import io.github.phunguy65.ttbs.backend.station.domain.model.StationId;
@@ -26,7 +26,7 @@ public class CreateStationUseCase {
     }
 
     @Transactional
-    public Result<StationDto, StationError> execute(CreateStationCommand command) {
+    public Result<StationResponse, StationError> execute(CreateStationCommand command) {
         if (stationRepository.existsByCode(command.code())) {
             return Result.failure(new StationError.StationCodeAlreadyExists(command.code()));
         }
@@ -43,8 +43,8 @@ public class CreateStationUseCase {
         return Result.success(toDto(saved));
     }
 
-    private StationDto toDto(Station station) {
-        return new StationDto(
+    private StationResponse toDto(Station station) {
+        return new StationResponse(
                 station.getId().value(),
                 station.getCode(),
                 station.getName(),

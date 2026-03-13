@@ -4,7 +4,7 @@ import io.github.phunguy65.ttbs.backend.shared.domain.DomainEvent;
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.shared.domain.UuidGenerator;
 import io.github.phunguy65.ttbs.backend.train.application.command.CreateTrainCommand;
-import io.github.phunguy65.ttbs.backend.train.application.dto.TrainDto;
+import io.github.phunguy65.ttbs.backend.train.application.response.TrainResponse;
 import io.github.phunguy65.ttbs.backend.train.domain.error.TrainError;
 import io.github.phunguy65.ttbs.backend.train.domain.model.Train;
 import io.github.phunguy65.ttbs.backend.train.domain.model.TrainId;
@@ -26,7 +26,7 @@ public class CreateTrainUseCase {
     }
 
     @Transactional
-    public Result<TrainDto, TrainError> execute(CreateTrainCommand command) {
+    public Result<TrainResponse, TrainError> execute(CreateTrainCommand command) {
         if (trainRepository.existsByTrainNumber(command.trainNumber())) {
             return Result.failure(new TrainError.TrainNumberAlreadyExists(command.trainNumber()));
         }
@@ -44,8 +44,8 @@ public class CreateTrainUseCase {
         return Result.success(toDto(saved));
     }
 
-    private TrainDto toDto(Train train) {
-        return new TrainDto(
+    private TrainResponse toDto(Train train) {
+        return new TrainResponse(
                 train.getId().value(),
                 train.getTrainNumber(),
                 train.getName(),

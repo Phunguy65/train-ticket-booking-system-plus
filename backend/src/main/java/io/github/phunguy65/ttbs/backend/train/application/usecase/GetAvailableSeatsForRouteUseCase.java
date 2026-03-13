@@ -1,6 +1,6 @@
 package io.github.phunguy65.ttbs.backend.train.application.usecase;
 
-import io.github.phunguy65.ttbs.backend.train.application.dto.SeatDto;
+import io.github.phunguy65.ttbs.backend.train.application.response.SeatResponse;
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteSeatAvailability;
 import io.github.phunguy65.ttbs.backend.train.domain.model.Seat;
@@ -25,7 +25,7 @@ public class GetAvailableSeatsForRouteUseCase {
     }
 
     @Transactional(readOnly = true)
-    public List<SeatDto> execute(UUID routeId) {
+    public List<SeatResponse> execute(UUID routeId) {
         List<RouteSeatAvailability> available =
                 availabilityRepository.findAvailableByRouteId(RouteId.of(routeId));
 
@@ -37,8 +37,8 @@ public class GetAvailableSeatsForRouteUseCase {
                 .toList();
     }
 
-    private SeatDto toDto(Seat seat) {
-        return new SeatDto(
+    private SeatResponse toDto(Seat seat) {
+        return new SeatResponse(
                 seat.getId().value(),
                 seat.getCoachId().value(),
                 seat.getSeatNumber(),

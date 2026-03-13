@@ -1,7 +1,7 @@
 package io.github.phunguy65.ttbs.backend.user.application.usecase;
 
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
-import io.github.phunguy65.ttbs.backend.user.application.dto.UserDto;
+import io.github.phunguy65.ttbs.backend.user.application.response.UserResponse;
 import io.github.phunguy65.ttbs.backend.user.domain.error.UserError;
 import io.github.phunguy65.ttbs.backend.user.domain.model.User;
 import io.github.phunguy65.ttbs.backend.user.domain.model.UserId;
@@ -19,15 +19,15 @@ public class GetUserByIdUseCase {
     }
 
     @Transactional(readOnly = true)
-    public Result<UserDto, UserError> execute(UserId userId) {
+    public Result<UserResponse, UserError> execute(UserId userId) {
         return userRepository
                 .findById(userId)
-                .map(user -> Result.<UserDto, UserError>success(toDto(user)))
+                .map(user -> Result.<UserResponse, UserError>success(toDto(user)))
                 .orElseGet(() -> Result.failure(new UserError.UserNotFound()));
     }
 
-    private UserDto toDto(User user) {
-        return new UserDto(
+    private UserResponse toDto(User user) {
+        return new UserResponse(
                 user.getId().value(),
                 user.getEmail(),
                 user.getFullName(),

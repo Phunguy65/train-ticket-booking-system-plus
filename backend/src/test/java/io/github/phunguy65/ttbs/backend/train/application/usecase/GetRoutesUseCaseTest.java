@@ -7,7 +7,7 @@ import io.github.phunguy65.ttbs.backend.shared.domain.Money;
 import io.github.phunguy65.ttbs.backend.shared.domain.PageResult;
 import io.github.phunguy65.ttbs.backend.shared.domain.SortDirection;
 import io.github.phunguy65.ttbs.backend.station.domain.model.StationId;
-import io.github.phunguy65.ttbs.backend.train.application.dto.RouteDto;
+import io.github.phunguy65.ttbs.backend.train.application.response.RouteResponse;
 import io.github.phunguy65.ttbs.backend.train.domain.model.Route;
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteFilter;
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteId;
@@ -59,7 +59,7 @@ class GetRoutesUseCaseTest {
         when(routeRepository.findAll(0, 20, "createdAt", SortDirection.DESC, filter))
                 .thenReturn(routePage);
 
-        PageResult<RouteDto> result =
+        PageResult<RouteResponse> result =
                 useCase.execute(0, 20, "createdAt", SortDirection.DESC, filter);
 
         assertThat(result.items()).hasSize(2);
@@ -76,7 +76,7 @@ class GetRoutesUseCaseTest {
         when(routeRepository.findAll(0, 20, "departureTime", SortDirection.ASC, filter))
                 .thenReturn(emptyPage);
 
-        PageResult<RouteDto> result =
+        PageResult<RouteResponse> result =
                 useCase.execute(0, 20, "departureTime", SortDirection.ASC, filter);
 
         assertThat(result.items()).isEmpty();
@@ -91,7 +91,7 @@ class GetRoutesUseCaseTest {
         when(routeRepository.findAll(0, 1, "createdAt", SortDirection.DESC, filter))
                 .thenReturn(routePage);
 
-        PageResult<RouteDto> result =
+        PageResult<RouteResponse> result =
                 useCase.execute(0, 1, "createdAt", SortDirection.DESC, filter);
 
         assertThat(result.items()).hasSize(1);

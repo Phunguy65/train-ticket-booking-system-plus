@@ -4,8 +4,8 @@ import io.github.phunguy65.ttbs.backend.shared.domain.DomainEvent;
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.shared.domain.UuidGenerator;
 import io.github.phunguy65.ttbs.backend.user.application.command.RegisterUserCommand;
-import io.github.phunguy65.ttbs.backend.user.application.dto.UserDto;
 import io.github.phunguy65.ttbs.backend.user.application.port.PasswordEncoder;
+import io.github.phunguy65.ttbs.backend.user.application.response.UserResponse;
 import io.github.phunguy65.ttbs.backend.user.domain.error.UserError;
 import io.github.phunguy65.ttbs.backend.user.domain.model.User;
 import io.github.phunguy65.ttbs.backend.user.domain.model.UserId;
@@ -31,7 +31,7 @@ public class RegisterUserUseCase {
     }
 
     @Transactional
-    public Result<UserDto, UserError> execute(RegisterUserCommand command) {
+    public Result<UserResponse, UserError> execute(RegisterUserCommand command) {
         if (userRepository.findByEmail(command.email()).isPresent()) {
             return Result.failure(new UserError.EmailAlreadyExists());
         }
@@ -50,8 +50,8 @@ public class RegisterUserUseCase {
         return Result.success(toDto(saved));
     }
 
-    private UserDto toDto(User user) {
-        return new UserDto(
+    private UserResponse toDto(User user) {
+        return new UserResponse(
                 user.getId().value(),
                 user.getEmail(),
                 user.getFullName(),

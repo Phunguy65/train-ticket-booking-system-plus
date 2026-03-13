@@ -4,7 +4,7 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
-import io.github.phunguy65.ttbs.backend.user.application.dto.UserDto;
+import io.github.phunguy65.ttbs.backend.user.application.response.UserResponse;
 import io.github.phunguy65.ttbs.backend.user.domain.error.UserError;
 import io.github.phunguy65.ttbs.backend.user.domain.model.User;
 import io.github.phunguy65.ttbs.backend.user.domain.model.UserId;
@@ -51,10 +51,10 @@ class GetUserByIdUseCaseTest {
     void execute_userFound_shouldReturnSuccessWithUserDto() {
         when(userRepository.findById(USER_ID)).thenReturn(Optional.of(makeUser()));
 
-        Result<UserDto, UserError> result = useCase.execute(USER_ID);
+        Result<UserResponse, UserError> result = useCase.execute(USER_ID);
 
         assertThat(result.isSuccess()).isTrue();
-        UserDto dto = ((Result.Success<UserDto, UserError>) result).value();
+        UserResponse dto = ((Result.Success<UserResponse, UserError>) result).value();
         assertThat(dto.id()).isEqualTo(USER_ID.value());
         assertThat(dto.email()).isEqualTo("alice@example.com");
         assertThat(dto.fullName()).isEqualTo("Alice");
@@ -65,10 +65,10 @@ class GetUserByIdUseCaseTest {
     void execute_userNotFound_shouldReturnFailureWithUserNotFound() {
         when(userRepository.findById(USER_ID)).thenReturn(Optional.empty());
 
-        Result<UserDto, UserError> result = useCase.execute(USER_ID);
+        Result<UserResponse, UserError> result = useCase.execute(USER_ID);
 
         assertThat(result.isFailure()).isTrue();
-        UserError error = ((Result.Failure<UserDto, UserError>) result).error();
+        UserError error = ((Result.Failure<UserResponse, UserError>) result).error();
         assertThat(error).isInstanceOf(UserError.UserNotFound.class);
     }
 }

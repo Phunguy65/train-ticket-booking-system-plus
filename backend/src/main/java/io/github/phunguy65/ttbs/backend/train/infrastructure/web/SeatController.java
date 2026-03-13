@@ -13,6 +13,9 @@ import io.github.phunguy65.ttbs.backend.train.application.usecase.GetSeatsByTrai
 import io.github.phunguy65.ttbs.backend.train.application.usecase.SoftDeleteSeatUseCase;
 import io.github.phunguy65.ttbs.backend.train.domain.error.SeatError;
 import io.github.phunguy65.ttbs.backend.train.domain.model.SeatId;
+import io.github.phunguy65.ttbs.backend.train.infrastructure.web.request.BulkCreateSeatsHttpRequest;
+import io.github.phunguy65.ttbs.backend.train.infrastructure.web.request.BulkSoftDeleteSeatsHttpRequest;
+import io.github.phunguy65.ttbs.backend.train.infrastructure.web.request.CreateSeatHttpRequest;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Map;

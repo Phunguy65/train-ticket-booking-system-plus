@@ -3,8 +3,8 @@ package io.github.phunguy65.ttbs.backend.user.infrastructure.web;
 import io.github.phunguy65.ttbs.backend.user.application.command.LoginCommand;
 import io.github.phunguy65.ttbs.backend.user.application.command.RefreshTokenCommand;
 import io.github.phunguy65.ttbs.backend.user.application.command.RegisterUserCommand;
-import io.github.phunguy65.ttbs.backend.user.application.dto.LoginResultDto;
-import io.github.phunguy65.ttbs.backend.user.application.dto.UserDto;
+import io.github.phunguy65.ttbs.backend.user.application.response.LoginResultResponse;
+import io.github.phunguy65.ttbs.backend.user.application.response.UserResponse;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -23,7 +23,7 @@ class AuthRequestMapper {
         return new RefreshTokenCommand(request.refreshToken());
     }
 
-    UserHttpResponse toResponse(UserDto dto) {
+    UserHttpResponse toResponse(UserResponse dto) {
         return new UserHttpResponse(
                 dto.id(),
                 dto.email(),
@@ -33,7 +33,7 @@ class AuthRequestMapper {
                 dto.createdAt());
     }
 
-    LoginHttpResponse toLoginResponse(LoginResultDto dto) {
+    LoginHttpResponse toLoginResponse(LoginResultResponse dto) {
         return new LoginHttpResponse(dto.accessToken(), dto.refreshToken(), toResponse(dto.user()));
     }
 }

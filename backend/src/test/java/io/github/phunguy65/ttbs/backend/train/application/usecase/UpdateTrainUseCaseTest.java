@@ -6,7 +6,7 @@ import static org.mockito.Mockito.*;
 
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.train.application.command.UpdateTrainCommand;
-import io.github.phunguy65.ttbs.backend.train.application.dto.TrainDto;
+import io.github.phunguy65.ttbs.backend.train.application.response.TrainResponse;
 import io.github.phunguy65.ttbs.backend.train.domain.error.TrainError;
 import io.github.phunguy65.ttbs.backend.train.domain.model.Train;
 import io.github.phunguy65.ttbs.backend.train.domain.model.TrainId;
@@ -52,10 +52,10 @@ class UpdateTrainUseCaseTest {
                 JsonNullable.of("New Express"),
                 JsonNullable.undefined());
 
-        Result<TrainDto, TrainError> result = useCase.execute(command);
+        Result<TrainResponse, TrainError> result = useCase.execute(command);
 
         assertThat(result.isSuccess()).isTrue();
-        TrainDto dto = ((Result.Success<TrainDto, TrainError>) result).value();
+        TrainResponse dto = ((Result.Success<TrainResponse, TrainError>) result).value();
         assertThat(dto.name()).isEqualTo("New Express");
         assertThat(dto.trainNumber()).isEqualTo("SE001");
         assertThat(dto.totalSeats()).isEqualTo(100);
@@ -71,10 +71,10 @@ class UpdateTrainUseCaseTest {
                 JsonNullable.undefined(),
                 JsonNullable.undefined());
 
-        Result<TrainDto, TrainError> result = useCase.execute(command);
+        Result<TrainResponse, TrainError> result = useCase.execute(command);
 
         assertThat(result.isFailure()).isTrue();
-        assertThat(((Result.Failure<TrainDto, TrainError>) result).error())
+        assertThat(((Result.Failure<TrainResponse, TrainError>) result).error())
                 .isInstanceOf(TrainError.TrainNotFound.class);
         verify(trainRepository, never()).save(any());
     }
@@ -91,10 +91,10 @@ class UpdateTrainUseCaseTest {
                 JsonNullable.undefined(),
                 JsonNullable.undefined());
 
-        Result<TrainDto, TrainError> result = useCase.execute(command);
+        Result<TrainResponse, TrainError> result = useCase.execute(command);
 
         assertThat(result.isFailure()).isTrue();
-        assertThat(((Result.Failure<TrainDto, TrainError>) result).error())
+        assertThat(((Result.Failure<TrainResponse, TrainError>) result).error())
                 .isInstanceOf(TrainError.TrainNumberAlreadyExists.class);
         verify(trainRepository, never()).save(any());
     }
@@ -111,7 +111,7 @@ class UpdateTrainUseCaseTest {
                 JsonNullable.undefined(),
                 JsonNullable.undefined());
 
-        Result<TrainDto, TrainError> result = useCase.execute(command);
+        Result<TrainResponse, TrainError> result = useCase.execute(command);
 
         assertThat(result.isSuccess()).isTrue();
         verify(trainRepository, never()).existsByTrainNumber(anyString());

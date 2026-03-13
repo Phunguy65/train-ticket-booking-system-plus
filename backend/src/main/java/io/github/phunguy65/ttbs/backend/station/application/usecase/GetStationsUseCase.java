@@ -2,7 +2,7 @@ package io.github.phunguy65.ttbs.backend.station.application.usecase;
 
 import io.github.phunguy65.ttbs.backend.shared.domain.PageResult;
 import io.github.phunguy65.ttbs.backend.shared.domain.SortDirection;
-import io.github.phunguy65.ttbs.backend.station.application.dto.StationDto;
+import io.github.phunguy65.ttbs.backend.station.application.response.StationResponse;
 import io.github.phunguy65.ttbs.backend.station.domain.model.Station;
 import io.github.phunguy65.ttbs.backend.station.domain.repository.StationRepository;
 import org.springframework.stereotype.Service;
@@ -18,7 +18,7 @@ public class GetStationsUseCase {
     }
 
     @Transactional(readOnly = true)
-    public PageResult<StationDto> execute(
+    public PageResult<StationResponse> execute(
             int page, int size, String sortField, SortDirection direction) {
         PageResult<Station> stations = stationRepository.findAll(page, size, sortField, direction);
         return PageResult.of(
@@ -28,8 +28,8 @@ public class GetStationsUseCase {
                 stations.hasNext());
     }
 
-    private StationDto toDto(Station station) {
-        return new StationDto(
+    private StationResponse toDto(Station station) {
+        return new StationResponse(
                 station.getId().value(),
                 station.getCode(),
                 station.getName(),

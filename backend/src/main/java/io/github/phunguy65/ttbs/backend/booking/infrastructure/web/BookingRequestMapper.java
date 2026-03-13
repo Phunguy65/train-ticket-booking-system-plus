@@ -1,7 +1,8 @@
 package io.github.phunguy65.ttbs.backend.booking.infrastructure.web;
 
 import io.github.phunguy65.ttbs.backend.booking.application.command.CreateBookingCommand;
-import io.github.phunguy65.ttbs.backend.booking.application.dto.BookingDto;
+import io.github.phunguy65.ttbs.backend.booking.application.response.BookingResponse;
+import io.github.phunguy65.ttbs.backend.booking.infrastructure.web.request.CreateBookingRequest;
 import io.github.phunguy65.ttbs.backend.train.domain.model.SeatId;
 import java.util.UUID;
 import org.springframework.stereotype.Component;
@@ -9,7 +10,7 @@ import org.springframework.stereotype.Component;
 @Component
 class BookingRequestMapper {
 
-    CreateBookingCommand toCommand(CreateBookingHttpRequest request, UUID userId) {
+    CreateBookingCommand toCommand(CreateBookingRequest request, UUID userId) {
         return new CreateBookingCommand(
                 userId,
                 request.routeId(),
@@ -20,7 +21,7 @@ class BookingRequestMapper {
                 request.idempotencyKey());
     }
 
-    BookingHttpResponse toResponse(BookingDto dto) {
+    BookingHttpResponse toResponse(BookingResponse dto) {
         return new BookingHttpResponse(
                 dto.id(),
                 dto.userId(),

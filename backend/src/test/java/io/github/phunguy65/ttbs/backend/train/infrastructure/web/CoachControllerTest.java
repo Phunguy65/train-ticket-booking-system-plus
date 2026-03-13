@@ -10,7 +10,7 @@ import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.GlobalExceptionHandler;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.JacksonConfig;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.WebConfig;
-import io.github.phunguy65.ttbs.backend.train.application.dto.CoachDto;
+import io.github.phunguy65.ttbs.backend.train.application.response.CoachResponse;
 import io.github.phunguy65.ttbs.backend.train.application.usecase.BulkCreateCoachesUseCase;
 import io.github.phunguy65.ttbs.backend.train.application.usecase.BulkSoftDeleteCoachesUseCase;
 import io.github.phunguy65.ttbs.backend.train.application.usecase.CreateCoachUseCase;
@@ -75,8 +75,8 @@ class CoachControllerTest {
     private static final UUID TRAIN_UUID = UUID.randomUUID();
     private static final UUID COACH_UUID = UUID.randomUUID();
 
-    private CoachDto sampleCoachDto() {
-        return new CoachDto(COACH_UUID, TRAIN_UUID, 1, 50, Instant.now());
+    private CoachResponse sampleCoachDto() {
+        return new CoachResponse(COACH_UUID, TRAIN_UUID, 1, 50, Instant.now());
     }
 
     // ── POST /api/v1.0/trains/{trainId}/coaches ──────────────────────────────

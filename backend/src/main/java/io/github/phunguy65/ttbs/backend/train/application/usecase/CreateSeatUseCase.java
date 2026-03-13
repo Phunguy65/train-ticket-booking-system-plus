@@ -3,7 +3,7 @@ package io.github.phunguy65.ttbs.backend.train.application.usecase;
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.shared.domain.UuidGenerator;
 import io.github.phunguy65.ttbs.backend.train.application.command.CreateSeatCommand;
-import io.github.phunguy65.ttbs.backend.train.application.dto.SeatDto;
+import io.github.phunguy65.ttbs.backend.train.application.response.SeatResponse;
 import io.github.phunguy65.ttbs.backend.train.domain.error.SeatError;
 import io.github.phunguy65.ttbs.backend.train.domain.model.CoachId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.Seat;
@@ -25,7 +25,7 @@ public class CreateSeatUseCase {
     }
 
     @Transactional
-    public Result<SeatDto, SeatError> execute(CreateSeatCommand command) {
+    public Result<SeatResponse, SeatError> execute(CreateSeatCommand command) {
         CoachId coachId = CoachId.of(command.coachId());
 
         if (coachRepository.findById(coachId).isEmpty()) {
@@ -43,8 +43,8 @@ public class CreateSeatUseCase {
         return Result.success(toDto(saved));
     }
 
-    private SeatDto toDto(Seat seat) {
-        return new SeatDto(
+    private SeatResponse toDto(Seat seat) {
+        return new SeatResponse(
                 seat.getId().value(),
                 seat.getCoachId().value(),
                 seat.getSeatNumber(),

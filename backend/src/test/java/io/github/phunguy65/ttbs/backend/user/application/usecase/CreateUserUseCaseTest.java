@@ -6,8 +6,8 @@ import static org.mockito.Mockito.*;
 
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.user.application.command.CreateUserCommand;
-import io.github.phunguy65.ttbs.backend.user.application.dto.CreateUserResult;
 import io.github.phunguy65.ttbs.backend.user.application.port.PasswordEncoder;
+import io.github.phunguy65.ttbs.backend.user.application.response.CreateUserResponse;
 import io.github.phunguy65.ttbs.backend.user.domain.error.UserError;
 import io.github.phunguy65.ttbs.backend.user.domain.event.UserRegistered;
 import io.github.phunguy65.ttbs.backend.user.domain.model.User;
@@ -48,11 +48,11 @@ class CreateUserUseCaseTest {
         when(passwordEncoder.encode(anyString())).thenReturn("$2a$12$hashed");
         when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        Result<CreateUserResult, UserError> result = useCase.execute(command);
+        Result<CreateUserResponse, UserError> result = useCase.execute(command);
 
         assertThat(result.isSuccess()).isTrue();
-        CreateUserResult createResult =
-                ((Result.Success<CreateUserResult, UserError>) result).value();
+        CreateUserResponse createResult =
+                ((Result.Success<CreateUserResponse, UserError>) result).value();
         assertThat(createResult.temporaryPassword()).isNotBlank();
         assertThat(createResult.user().email()).isEqualTo("alice@example.com");
         assertThat(createResult.user().fullName()).isEqualTo("Alice Nguyen");
@@ -66,11 +66,12 @@ class CreateUserUseCaseTest {
         when(passwordEncoder.encode(anyString())).thenReturn("$2a$12$hashed");
         when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        Result<CreateUserResult, UserError> result = useCase.execute(command);
+        Result<CreateUserResponse, UserError> result = useCase.execute(command);
 
         assertThat(result.isSuccess()).isTrue();
-        String returnedTempPassword =
-                ((Result.Success<CreateUserResult, UserError>) result).value().temporaryPassword();
+        String returnedTempPassword = ((Result.Success<CreateUserResponse, UserError>) result)
+                .value()
+                .temporaryPassword();
         verify(passwordEncoder, times(1)).encode(returnedTempPassword);
     }
 
@@ -104,10 +105,10 @@ class CreateUserUseCaseTest {
         when(userRepository.findByEmail("existing@example.com"))
                 .thenReturn(Optional.of(existingUser));
 
-        Result<CreateUserResult, UserError> result = useCase.execute(command);
+        Result<CreateUserResponse, UserError> result = useCase.execute(command);
 
         assertThat(result.isFailure()).isTrue();
-        UserError error = ((Result.Failure<CreateUserResult, UserError>) result).error();
+        UserError error = ((Result.Failure<CreateUserResponse, UserError>) result).error();
         assertThat(error).isInstanceOf(UserError.EmailAlreadyExists.class);
         verify(userRepository, never()).save(any());
     }

@@ -3,7 +3,7 @@ package io.github.phunguy65.ttbs.backend.train.application.usecase;
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.shared.domain.UuidGenerator;
 import io.github.phunguy65.ttbs.backend.train.application.command.BulkCreateCoachesCommand;
-import io.github.phunguy65.ttbs.backend.train.application.dto.CoachDto;
+import io.github.phunguy65.ttbs.backend.train.application.response.CoachResponse;
 import io.github.phunguy65.ttbs.backend.train.domain.error.CoachError;
 import io.github.phunguy65.ttbs.backend.train.domain.model.Coach;
 import io.github.phunguy65.ttbs.backend.train.domain.model.CoachId;
@@ -30,15 +30,13 @@ public class BulkCreateCoachesUseCase {
     }
 
     @Transactional
-    public Result<List<CoachDto>, CoachError> execute(BulkCreateCoachesCommand command) {
+    public Result<List<CoachResponse>, CoachError> execute(BulkCreateCoachesCommand command) {
         TrainId trainId = TrainId.of(command.trainId());
 
-        // Gate 1: parent train must exist
         if (trainRepository.findById(trainId).isEmpty()) {
             return Result.failure(new CoachError.TrainNotFound());
         }
 
-        // Gate 2: detect in-request duplicates
         List<Integer> requestedCarNumbers = command.coaches().stream()
                 .map(BulkCreateCoachesCommand.CoachItem::carNumber)
                 .toList();
@@ -47,7 +45,6 @@ public class BulkCreateCoachesUseCase {
             return Result.failure(new CoachError.DuplicateCarNumbersInRequest(inRequestDuplicates));
         }
 
-        // Gate 3: detect DB conflicts via single batch query
         Set<Integer> existingCarNumbers = new HashSet<>();
         coachRepository
                 .findByTrainId(trainId)
@@ -84,8 +81,8 @@ public class BulkCreateCoachesUseCase {
         return duplicates;
     }
 
-    private CoachDto toDto(Coach coach) {
-        return new CoachDto(
+    private CoachResponse toDto(Coach coach) {
+        return new CoachResponse(
                 coach.getId().value(),
                 coach.getTrainId().value(),
                 coach.getCarNumber(),

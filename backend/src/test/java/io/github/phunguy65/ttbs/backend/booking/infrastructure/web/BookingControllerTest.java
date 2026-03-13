@@ -6,7 +6,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-import io.github.phunguy65.ttbs.backend.booking.application.dto.BookingDto;
+import io.github.phunguy65.ttbs.backend.booking.application.response.BookingResponse;
 import io.github.phunguy65.ttbs.backend.booking.application.usecase.CancelBookingUseCase;
 import io.github.phunguy65.ttbs.backend.booking.application.usecase.CreateBookingUseCase;
 import io.github.phunguy65.ttbs.backend.booking.domain.error.BookingError;
@@ -59,8 +59,8 @@ class BookingControllerTest {
     @MockitoBean
     private UserDetailsService userDetailsService;
 
-    private BookingDto sampleDto() {
-        return new BookingDto(
+    private BookingResponse sampleDto() {
+        return new BookingResponse(
                 BOOKING_UUID,
                 UUID.fromString(USER_UUID_STR),
                 ROUTE_UUID,

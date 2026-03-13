@@ -5,8 +5,8 @@ import static org.assertj.core.api.Assertions.*;
 import io.github.phunguy65.ttbs.backend.shared.domain.PageResult;
 import io.github.phunguy65.ttbs.backend.shared.domain.SortDirection;
 import io.github.phunguy65.ttbs.backend.user.application.command.RegisterUserCommand;
-import io.github.phunguy65.ttbs.backend.user.application.dto.UserDto;
 import io.github.phunguy65.ttbs.backend.user.application.port.BookingValidationPort;
+import io.github.phunguy65.ttbs.backend.user.application.response.UserResponse;
 import io.github.phunguy65.ttbs.backend.user.application.usecase.ListUsersUseCase;
 import io.github.phunguy65.ttbs.backend.user.application.usecase.RegisterUserUseCase;
 import io.github.phunguy65.ttbs.backend.user.domain.event.UserRegistered;
@@ -58,7 +58,7 @@ class UserModuleTest {
 
     @Test
     void listUsers_emptyDatabase_returnsEmptySlice() {
-        PageResult<UserDto> result =
+        PageResult<UserResponse> result =
                 listUsersUseCase.execute(0, 20, "createdAt", SortDirection.DESC);
 
         assertThat(result.items()).isEmpty();
@@ -75,11 +75,12 @@ class UserModuleTest {
         registerUserUseCase.execute(
                 new RegisterUserCommand("list2@example.com", "password456", "List User Two", null));
 
-        PageResult<UserDto> result = listUsersUseCase.execute(0, 10, "email", SortDirection.ASC);
+        PageResult<UserResponse> result =
+                listUsersUseCase.execute(0, 10, "email", SortDirection.ASC);
 
         assertThat(result.items())
                 .hasSizeGreaterThanOrEqualTo(2)
-                .extracting(UserDto::email)
+                .extracting(UserResponse::email)
                 .contains("list1@example.com", "list2@example.com");
         assertThat(result.hasPrevious()).isFalse();
     }
@@ -91,7 +92,8 @@ class UserModuleTest {
         registerUserUseCase.execute(
                 new RegisterUserCommand("page2@example.com", "password456", "Page User Two", null));
 
-        PageResult<UserDto> result = listUsersUseCase.execute(0, 1, "email", SortDirection.ASC);
+        PageResult<UserResponse> result =
+                listUsersUseCase.execute(0, 1, "email", SortDirection.ASC);
 
         assertThat(result.items()).hasSize(1);
         assertThat(result.hasNext()).isTrue();

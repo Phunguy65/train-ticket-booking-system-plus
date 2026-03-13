@@ -11,9 +11,9 @@ import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.GlobalExceptionHandler;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.JacksonConfig;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.WebConfig;
-import io.github.phunguy65.ttbs.backend.user.application.dto.CreateUserResult;
-import io.github.phunguy65.ttbs.backend.user.application.dto.UserDto;
 import io.github.phunguy65.ttbs.backend.user.application.port.TokenProvider;
+import io.github.phunguy65.ttbs.backend.user.application.response.CreateUserResponse;
+import io.github.phunguy65.ttbs.backend.user.application.response.UserResponse;
 import io.github.phunguy65.ttbs.backend.user.application.usecase.BulkSoftDeleteUsersUseCase;
 import io.github.phunguy65.ttbs.backend.user.application.usecase.CreateUserUseCase;
 import io.github.phunguy65.ttbs.backend.user.application.usecase.GetUserByIdUseCase;
@@ -76,8 +76,8 @@ class UserControllerTest {
 
     private static final UUID USER_UUID = UUID.randomUUID();
 
-    private UserDto sampleUserDto() {
-        return new UserDto(
+    private UserResponse sampleUserDto() {
+        return new UserResponse(
                 USER_UUID, "alice@example.com", "Alice", "090", UserRole.CUSTOMER, Instant.now());
     }
 
@@ -85,8 +85,8 @@ class UserControllerTest {
 
     @Test
     void createUser_validRequest_shouldReturn201WithTemporaryPassword() throws Exception {
-        CreateUserResult createResult =
-                new CreateUserResult(sampleUserDto(), "abc123temporarypassword");
+        CreateUserResponse createResult =
+                new CreateUserResponse(sampleUserDto(), "abc123temporarypassword");
         when(createUserUseCase.execute(any())).thenReturn(Result.success(createResult));
 
         mockMvc.perform(post("/api/v1.0/users")
@@ -180,8 +180,8 @@ class UserControllerTest {
     @Test
     @WithMockUser(roles = "ADMIN")
     void listUsers_admin_defaultParams_shouldReturn200WithSliceStructure() throws Exception {
-        UserDto dto = sampleUserDto();
-        PageResult<UserDto> pageResult = PageResult.of(List.of(dto), 0, 20, false);
+        UserResponse dto = sampleUserDto();
+        PageResult<UserResponse> pageResult = PageResult.of(List.of(dto), 0, 20, false);
         when(listUsersUseCase.execute(anyInt(), anyInt(), anyString(), any()))
                 .thenReturn(pageResult);
 
@@ -202,8 +202,8 @@ class UserControllerTest {
     @Test
     @WithMockUser(roles = "ADMIN")
     void listUsers_admin_hasNext_shouldReturnHasNextTrue() throws Exception {
-        UserDto dto = sampleUserDto();
-        PageResult<UserDto> pageResult = PageResult.of(List.of(dto), 0, 5, true);
+        UserResponse dto = sampleUserDto();
+        PageResult<UserResponse> pageResult = PageResult.of(List.of(dto), 0, 5, true);
         when(listUsersUseCase.execute(anyInt(), anyInt(), anyString(), any()))
                 .thenReturn(pageResult);
 
@@ -265,7 +265,7 @@ class UserControllerTest {
     @Test
     @WithMockUser(roles = "ADMIN")
     void listUsers_validSortField_email_shouldReturn200() throws Exception {
-        PageResult<UserDto> pageResult = PageResult.of(List.of(sampleUserDto()), 0, 20, false);
+        PageResult<UserResponse> pageResult = PageResult.of(List.of(sampleUserDto()), 0, 20, false);
         when(listUsersUseCase.execute(anyInt(), anyInt(), anyString(), any()))
                 .thenReturn(pageResult);
 
@@ -279,7 +279,7 @@ class UserControllerTest {
     @Test
     @WithMockUser(username = "00000000-0000-0000-0000-000000000001")
     void patchMe_validPartialBody_shouldReturn200WithUpdatedUser() throws Exception {
-        UserDto updated = new UserDto(
+        UserResponse updated = new UserResponse(
                 USER_UUID,
                 "alice@example.com",
                 "New Name",

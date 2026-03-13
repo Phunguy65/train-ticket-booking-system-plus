@@ -5,7 +5,7 @@ import static org.mockito.Mockito.*;
 
 import io.github.phunguy65.ttbs.backend.shared.domain.PageResult;
 import io.github.phunguy65.ttbs.backend.shared.domain.SortDirection;
-import io.github.phunguy65.ttbs.backend.train.application.dto.TrainDto;
+import io.github.phunguy65.ttbs.backend.train.application.response.TrainResponse;
 import io.github.phunguy65.ttbs.backend.train.domain.model.Train;
 import io.github.phunguy65.ttbs.backend.train.domain.model.TrainId;
 import io.github.phunguy65.ttbs.backend.train.domain.repository.TrainRepository;
@@ -40,7 +40,7 @@ class GetTrainsUseCaseTest {
         PageResult<Train> trainPage = PageResult.of(List.of(train1, train2), 0, 20, false);
         when(trainRepository.findAll(0, 20, "createdAt", SortDirection.DESC)).thenReturn(trainPage);
 
-        PageResult<TrainDto> result = useCase.execute(0, 20, "createdAt", SortDirection.DESC);
+        PageResult<TrainResponse> result = useCase.execute(0, 20, "createdAt", SortDirection.DESC);
 
         assertThat(result.items()).hasSize(2);
         assertThat(result.pageNumber()).isEqualTo(0);
@@ -48,7 +48,7 @@ class GetTrainsUseCaseTest {
         assertThat(result.hasNext()).isFalse();
         assertThat(result.hasPrevious()).isFalse();
         assertThat(result.items())
-                .extracting(TrainDto::trainNumber)
+                .extracting(TrainResponse::trainNumber)
                 .containsExactlyInAnyOrder("SE001", "SE002");
     }
 
@@ -58,7 +58,7 @@ class GetTrainsUseCaseTest {
         when(trainRepository.findAll(0, 20, "trainNumber", SortDirection.ASC))
                 .thenReturn(emptyPage);
 
-        PageResult<TrainDto> result = useCase.execute(0, 20, "trainNumber", SortDirection.ASC);
+        PageResult<TrainResponse> result = useCase.execute(0, 20, "trainNumber", SortDirection.ASC);
 
         assertThat(result.items()).isEmpty();
         assertThat(result.hasNext()).isFalse();
@@ -71,7 +71,7 @@ class GetTrainsUseCaseTest {
         PageResult<Train> trainPage = PageResult.of(List.of(train), 0, 1, true);
         when(trainRepository.findAll(0, 1, "trainNumber", SortDirection.ASC)).thenReturn(trainPage);
 
-        PageResult<TrainDto> result = useCase.execute(0, 1, "trainNumber", SortDirection.ASC);
+        PageResult<TrainResponse> result = useCase.execute(0, 1, "trainNumber", SortDirection.ASC);
 
         assertThat(result.items()).hasSize(1);
         assertThat(result.hasNext()).isTrue();

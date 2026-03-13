@@ -6,7 +6,7 @@ import static org.mockito.Mockito.*;
 
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.station.application.command.CreateStationCommand;
-import io.github.phunguy65.ttbs.backend.station.application.dto.StationDto;
+import io.github.phunguy65.ttbs.backend.station.application.response.StationResponse;
 import io.github.phunguy65.ttbs.backend.station.domain.error.StationError;
 import io.github.phunguy65.ttbs.backend.station.domain.event.StationCreated;
 import io.github.phunguy65.ttbs.backend.station.domain.model.Station;
@@ -40,10 +40,10 @@ class CreateStationUseCaseTest {
         when(stationRepository.existsByCode("HN")).thenReturn(false);
         when(stationRepository.save(any(Station.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        Result<StationDto, StationError> result = useCase.execute(command);
+        Result<StationResponse, StationError> result = useCase.execute(command);
 
         assertThat(result.isSuccess()).isTrue();
-        StationDto dto = ((Result.Success<StationDto, StationError>) result).value();
+        StationResponse dto = ((Result.Success<StationResponse, StationError>) result).value();
         assertThat(dto.code()).isEqualTo("HN");
         assertThat(dto.name()).isEqualTo("Hanoi Station");
         assertThat(dto.city()).isEqualTo("Hanoi");
@@ -55,10 +55,10 @@ class CreateStationUseCaseTest {
         CreateStationCommand command = new CreateStationCommand("HN", "Duplicate", "Hanoi");
         when(stationRepository.existsByCode("HN")).thenReturn(true);
 
-        Result<StationDto, StationError> result = useCase.execute(command);
+        Result<StationResponse, StationError> result = useCase.execute(command);
 
         assertThat(result.isFailure()).isTrue();
-        StationError error = ((Result.Failure<StationDto, StationError>) result).error();
+        StationError error = ((Result.Failure<StationResponse, StationError>) result).error();
         assertThat(error).isInstanceOf(StationError.StationCodeAlreadyExists.class);
         assertThat(((StationError.StationCodeAlreadyExists) error).code()).isEqualTo("HN");
         verify(stationRepository, never()).save(any());

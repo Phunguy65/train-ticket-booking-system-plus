@@ -2,7 +2,7 @@ package io.github.phunguy65.ttbs.backend.train.application.usecase;
 
 import io.github.phunguy65.ttbs.backend.shared.domain.PageResult;
 import io.github.phunguy65.ttbs.backend.shared.domain.SortDirection;
-import io.github.phunguy65.ttbs.backend.train.application.dto.TrainDto;
+import io.github.phunguy65.ttbs.backend.train.application.response.TrainResponse;
 import io.github.phunguy65.ttbs.backend.train.domain.model.Train;
 import io.github.phunguy65.ttbs.backend.train.domain.repository.TrainRepository;
 import org.springframework.stereotype.Service;
@@ -18,7 +18,7 @@ public class GetTrainsUseCase {
     }
 
     @Transactional(readOnly = true)
-    public PageResult<TrainDto> execute(
+    public PageResult<TrainResponse> execute(
             int page, int size, String sortField, SortDirection direction) {
         PageResult<Train> trains = trainRepository.findAll(page, size, sortField, direction);
         return PageResult.of(
@@ -28,8 +28,8 @@ public class GetTrainsUseCase {
                 trains.hasNext());
     }
 
-    private TrainDto toDto(Train train) {
-        return new TrainDto(
+    private TrainResponse toDto(Train train) {
+        return new TrainResponse(
                 train.getId().value(),
                 train.getTrainNumber(),
                 train.getName(),

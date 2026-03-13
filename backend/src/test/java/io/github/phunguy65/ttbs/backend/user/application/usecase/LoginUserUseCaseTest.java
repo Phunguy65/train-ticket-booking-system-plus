@@ -6,9 +6,9 @@ import static org.mockito.Mockito.*;
 
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.user.application.command.LoginCommand;
-import io.github.phunguy65.ttbs.backend.user.application.dto.LoginResultDto;
 import io.github.phunguy65.ttbs.backend.user.application.port.PasswordEncoder;
 import io.github.phunguy65.ttbs.backend.user.application.port.RefreshTokenManager;
+import io.github.phunguy65.ttbs.backend.user.application.response.LoginResultResponse;
 import io.github.phunguy65.ttbs.backend.user.domain.error.UserError;
 import io.github.phunguy65.ttbs.backend.user.domain.model.User;
 import io.github.phunguy65.ttbs.backend.user.domain.model.UserId;
@@ -65,11 +65,11 @@ class LoginUserUseCaseTest {
         when(refreshTokenManager.generateAndSaveTokens(any()))
                 .thenReturn(new RefreshTokenManager.TokenPair("access-token", "raw-refresh-token"));
 
-        Result<LoginResultDto, UserError> result =
+        Result<LoginResultResponse, UserError> result =
                 useCase.execute(new LoginCommand(EMAIL, CORRECT_PASSWORD));
 
         assertThat(result.isSuccess()).isTrue();
-        LoginResultDto dto = ((Result.Success<LoginResultDto, UserError>) result).value();
+        LoginResultResponse dto = ((Result.Success<LoginResultResponse, UserError>) result).value();
         assertThat(dto.accessToken()).isEqualTo("access-token");
         assertThat(dto.refreshToken()).isEqualTo("raw-refresh-token");
         assertThat(dto.user().email()).isEqualTo(EMAIL);
@@ -81,11 +81,11 @@ class LoginUserUseCaseTest {
         when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.of(makeUser()));
         when(passwordEncoder.matches("wrongPassword", PASSWORD_HASH)).thenReturn(false);
 
-        Result<LoginResultDto, UserError> result =
+        Result<LoginResultResponse, UserError> result =
                 useCase.execute(new LoginCommand(EMAIL, "wrongPassword"));
 
         assertThat(result.isFailure()).isTrue();
-        UserError error = ((Result.Failure<LoginResultDto, UserError>) result).error();
+        UserError error = ((Result.Failure<LoginResultResponse, UserError>) result).error();
         assertThat(error).isInstanceOf(UserError.InvalidCredentials.class);
     }
 
@@ -93,11 +93,11 @@ class LoginUserUseCaseTest {
     void execute_unknownEmail_shouldReturnInvalidCredentials() {
         when(userRepository.findByEmail("unknown@example.com")).thenReturn(Optional.empty());
 
-        Result<LoginResultDto, UserError> result =
+        Result<LoginResultResponse, UserError> result =
                 useCase.execute(new LoginCommand("unknown@example.com", "anyPassword"));
 
         assertThat(result.isFailure()).isTrue();
-        UserError error = ((Result.Failure<LoginResultDto, UserError>) result).error();
+        UserError error = ((Result.Failure<LoginResultResponse, UserError>) result).error();
         assertThat(error).isInstanceOf(UserError.InvalidCredentials.class);
     }
 }

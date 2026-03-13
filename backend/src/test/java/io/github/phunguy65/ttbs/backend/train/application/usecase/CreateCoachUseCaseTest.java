@@ -6,7 +6,7 @@ import static org.mockito.Mockito.*;
 
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.train.application.command.CreateCoachCommand;
-import io.github.phunguy65.ttbs.backend.train.application.dto.CoachDto;
+import io.github.phunguy65.ttbs.backend.train.application.response.CoachResponse;
 import io.github.phunguy65.ttbs.backend.train.domain.error.CoachError;
 import io.github.phunguy65.ttbs.backend.train.domain.model.Coach;
 import io.github.phunguy65.ttbs.backend.train.domain.model.CoachId;
@@ -65,11 +65,11 @@ class CreateCoachUseCaseTest {
         when(coachRepository.existsByTrainIdAndCarNumber(any(), eq(CAR_NUMBER))).thenReturn(false);
         when(coachRepository.save(any(Coach.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        Result<CoachDto, CoachError> result =
+        Result<CoachResponse, CoachError> result =
                 useCase.execute(new CreateCoachCommand(TRAIN_UUID, CAR_NUMBER, TOTAL_SEATS));
 
         assertThat(result.isSuccess()).isTrue();
-        CoachDto dto = ((Result.Success<CoachDto, CoachError>) result).value();
+        CoachResponse dto = ((Result.Success<CoachResponse, CoachError>) result).value();
         assertThat(dto.trainId()).isEqualTo(TRAIN_UUID);
         assertThat(dto.carNumber()).isEqualTo(CAR_NUMBER);
         assertThat(dto.totalSeats()).isEqualTo(TOTAL_SEATS);
@@ -80,11 +80,11 @@ class CreateCoachUseCaseTest {
     void execute_whenTrainNotFound_shouldReturnTrainNotFoundError() {
         when(trainRepository.findById(TrainId.of(TRAIN_UUID))).thenReturn(Optional.empty());
 
-        Result<CoachDto, CoachError> result =
+        Result<CoachResponse, CoachError> result =
                 useCase.execute(new CreateCoachCommand(TRAIN_UUID, CAR_NUMBER, TOTAL_SEATS));
 
         assertThat(result.isFailure()).isTrue();
-        assertThat(((Result.Failure<CoachDto, CoachError>) result).error())
+        assertThat(((Result.Failure<CoachResponse, CoachError>) result).error())
                 .isInstanceOf(CoachError.TrainNotFound.class);
         verify(coachRepository, never()).save(any());
     }
@@ -95,11 +95,11 @@ class CreateCoachUseCaseTest {
                 .thenReturn(Optional.of(sampleTrain()));
         when(coachRepository.existsByTrainIdAndCarNumber(any(), eq(CAR_NUMBER))).thenReturn(true);
 
-        Result<CoachDto, CoachError> result =
+        Result<CoachResponse, CoachError> result =
                 useCase.execute(new CreateCoachCommand(TRAIN_UUID, CAR_NUMBER, TOTAL_SEATS));
 
         assertThat(result.isFailure()).isTrue();
-        CoachError error = ((Result.Failure<CoachDto, CoachError>) result).error();
+        CoachError error = ((Result.Failure<CoachResponse, CoachError>) result).error();
         assertThat(error).isInstanceOf(CoachError.CarNumberAlreadyExists.class);
         assertThat(((CoachError.CarNumberAlreadyExists) error).carNumber()).isEqualTo(CAR_NUMBER);
         verify(coachRepository, never()).save(any());

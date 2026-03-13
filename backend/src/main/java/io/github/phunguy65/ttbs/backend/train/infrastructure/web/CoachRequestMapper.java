@@ -2,7 +2,9 @@ package io.github.phunguy65.ttbs.backend.train.infrastructure.web;
 
 import io.github.phunguy65.ttbs.backend.train.application.command.BulkCreateCoachesCommand;
 import io.github.phunguy65.ttbs.backend.train.application.command.CreateCoachCommand;
-import io.github.phunguy65.ttbs.backend.train.application.dto.CoachDto;
+import io.github.phunguy65.ttbs.backend.train.application.response.CoachResponse;
+import io.github.phunguy65.ttbs.backend.train.infrastructure.web.request.BulkCreateCoachesHttpRequest;
+import io.github.phunguy65.ttbs.backend.train.infrastructure.web.request.CreateCoachHttpRequest;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.stereotype.Component;
@@ -21,12 +23,12 @@ class CoachRequestMapper {
         return new BulkCreateCoachesCommand(trainId, items);
     }
 
-    CoachHttpResponse toResponse(CoachDto dto) {
+    CoachHttpResponse toResponse(CoachResponse dto) {
         return new CoachHttpResponse(
                 dto.id(), dto.trainId(), dto.carNumber(), dto.totalSeats(), dto.createdAt());
     }
 
-    List<CoachHttpResponse> toResponseList(List<CoachDto> dtos) {
+    List<CoachHttpResponse> toResponseList(List<CoachResponse> dtos) {
         return dtos.stream().map(this::toResponse).toList();
     }
 }

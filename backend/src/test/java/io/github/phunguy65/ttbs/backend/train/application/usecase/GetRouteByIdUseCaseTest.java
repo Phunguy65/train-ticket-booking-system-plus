@@ -6,7 +6,7 @@ import static org.mockito.Mockito.*;
 import io.github.phunguy65.ttbs.backend.shared.domain.Money;
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.station.domain.model.StationId;
-import io.github.phunguy65.ttbs.backend.train.application.dto.RouteDto;
+import io.github.phunguy65.ttbs.backend.train.application.response.RouteResponse;
 import io.github.phunguy65.ttbs.backend.train.domain.error.RouteError;
 import io.github.phunguy65.ttbs.backend.train.domain.model.Route;
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteId;
@@ -55,10 +55,10 @@ class GetRouteByIdUseCaseTest {
         Route route = sampleRoute(routeId);
         when(routeRepository.findById(routeId)).thenReturn(Optional.of(route));
 
-        Result<RouteDto, RouteError> result = useCase.execute(routeId);
+        Result<RouteResponse, RouteError> result = useCase.execute(routeId);
 
         assertThat(result.isSuccess()).isTrue();
-        RouteDto dto = ((Result.Success<RouteDto, RouteError>) result).value();
+        RouteResponse dto = ((Result.Success<RouteResponse, RouteError>) result).value();
         assertThat(dto.id()).isEqualTo(routeId.value());
         assertThat(dto.status()).isEqualTo(RouteStatus.SCHEDULED);
     }
@@ -68,10 +68,10 @@ class GetRouteByIdUseCaseTest {
         RouteId routeId = RouteId.of(UUID.randomUUID());
         when(routeRepository.findById(routeId)).thenReturn(Optional.empty());
 
-        Result<RouteDto, RouteError> result = useCase.execute(routeId);
+        Result<RouteResponse, RouteError> result = useCase.execute(routeId);
 
         assertThat(result.isFailure()).isTrue();
-        RouteError error = ((Result.Failure<RouteDto, RouteError>) result).error();
+        RouteError error = ((Result.Failure<RouteResponse, RouteError>) result).error();
         assertThat(error).isInstanceOf(RouteError.RouteNotFound.class);
     }
 
@@ -81,9 +81,9 @@ class GetRouteByIdUseCaseTest {
         Route route = sampleRoute(routeId);
         when(routeRepository.findById(routeId)).thenReturn(Optional.of(route));
 
-        Result<RouteDto, RouteError> result = useCase.execute(routeId);
+        Result<RouteResponse, RouteError> result = useCase.execute(routeId);
 
-        RouteDto dto = ((Result.Success<RouteDto, RouteError>) result).value();
+        RouteResponse dto = ((Result.Success<RouteResponse, RouteError>) result).value();
         assertThat(dto.trainId()).isEqualTo(route.getTrainId().value());
         assertThat(dto.originStationId()).isEqualTo(route.getOriginStationId().value());
         assertThat(dto.destinationStationId())

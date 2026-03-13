@@ -3,7 +3,7 @@ package io.github.phunguy65.ttbs.backend.train.application.usecase;
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.shared.domain.UuidGenerator;
 import io.github.phunguy65.ttbs.backend.train.application.command.CreateCoachCommand;
-import io.github.phunguy65.ttbs.backend.train.application.dto.CoachDto;
+import io.github.phunguy65.ttbs.backend.train.application.response.CoachResponse;
 import io.github.phunguy65.ttbs.backend.train.domain.error.CoachError;
 import io.github.phunguy65.ttbs.backend.train.domain.model.Coach;
 import io.github.phunguy65.ttbs.backend.train.domain.model.CoachId;
@@ -25,7 +25,7 @@ public class CreateCoachUseCase {
     }
 
     @Transactional
-    public Result<CoachDto, CoachError> execute(CreateCoachCommand command) {
+    public Result<CoachResponse, CoachError> execute(CreateCoachCommand command) {
         TrainId trainId = TrainId.of(command.trainId());
 
         if (trainRepository.findById(trainId).isEmpty()) {
@@ -46,8 +46,8 @@ public class CreateCoachUseCase {
         return Result.success(toDto(saved));
     }
 
-    private CoachDto toDto(Coach coach) {
-        return new CoachDto(
+    private CoachResponse toDto(Coach coach) {
+        return new CoachResponse(
                 coach.getId().value(),
                 coach.getTrainId().value(),
                 coach.getCarNumber(),

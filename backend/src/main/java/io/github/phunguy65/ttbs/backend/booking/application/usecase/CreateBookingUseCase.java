@@ -1,7 +1,7 @@
 package io.github.phunguy65.ttbs.backend.booking.application.usecase;
 
 import io.github.phunguy65.ttbs.backend.booking.application.command.CreateBookingCommand;
-import io.github.phunguy65.ttbs.backend.booking.application.dto.BookingDto;
+import io.github.phunguy65.ttbs.backend.booking.application.response.BookingResponse;
 import io.github.phunguy65.ttbs.backend.booking.domain.error.BookingError;
 import io.github.phunguy65.ttbs.backend.booking.domain.model.Booking;
 import io.github.phunguy65.ttbs.backend.booking.domain.model.BookingId;
@@ -42,7 +42,7 @@ public class CreateBookingUseCase {
     }
 
     @Transactional
-    public Result<BookingDto, BookingError> execute(CreateBookingCommand command) {
+    public Result<BookingResponse, BookingError> execute(CreateBookingCommand command) {
         var existing = bookingRepository.findByIdempotencyKey(command.idempotencyKey());
         if (existing.isPresent()) {
             return Result.success(toDto(existing.get()));
@@ -92,8 +92,8 @@ public class CreateBookingUseCase {
         return Result.success(toDto(saved));
     }
 
-    private BookingDto toDto(Booking booking) {
-        return new BookingDto(
+    private BookingResponse toDto(Booking booking) {
+        return new BookingResponse(
                 booking.getBookingId().value(),
                 booking.getUserId().value(),
                 booking.getRouteId().value(),

@@ -6,7 +6,7 @@ import static org.mockito.Mockito.*;
 
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.train.application.command.CreateSeatCommand;
-import io.github.phunguy65.ttbs.backend.train.application.dto.SeatDto;
+import io.github.phunguy65.ttbs.backend.train.application.response.SeatResponse;
 import io.github.phunguy65.ttbs.backend.train.domain.error.SeatError;
 import io.github.phunguy65.ttbs.backend.train.domain.model.Coach;
 import io.github.phunguy65.ttbs.backend.train.domain.model.CoachId;
@@ -59,11 +59,11 @@ class CreateSeatUseCaseTest {
                 .thenReturn(false);
         when(seatRepository.save(any(Seat.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        Result<SeatDto, SeatError> result =
+        Result<SeatResponse, SeatError> result =
                 useCase.execute(new CreateSeatCommand(COACH_UUID, SEAT_NUMBER));
 
         assertThat(result.isSuccess()).isTrue();
-        SeatDto dto = ((Result.Success<SeatDto, SeatError>) result).value();
+        SeatResponse dto = ((Result.Success<SeatResponse, SeatError>) result).value();
         assertThat(dto.coachId()).isEqualTo(COACH_UUID);
         assertThat(dto.seatNumber()).isEqualTo(SEAT_NUMBER);
         assertThat(dto.id()).isNotNull();
@@ -73,11 +73,11 @@ class CreateSeatUseCaseTest {
     void execute_whenCoachNotFound_shouldReturnCoachNotFoundError() {
         when(coachRepository.findById(CoachId.of(COACH_UUID))).thenReturn(Optional.empty());
 
-        Result<SeatDto, SeatError> result =
+        Result<SeatResponse, SeatError> result =
                 useCase.execute(new CreateSeatCommand(COACH_UUID, SEAT_NUMBER));
 
         assertThat(result.isFailure()).isTrue();
-        assertThat(((Result.Failure<SeatDto, SeatError>) result).error())
+        assertThat(((Result.Failure<SeatResponse, SeatError>) result).error())
                 .isInstanceOf(SeatError.CoachNotFound.class);
         verify(seatRepository, never()).save(any());
     }
@@ -89,11 +89,11 @@ class CreateSeatUseCaseTest {
         when(seatRepository.existsByCoachIdAndSeatNumber(any(), eq(SEAT_NUMBER)))
                 .thenReturn(true);
 
-        Result<SeatDto, SeatError> result =
+        Result<SeatResponse, SeatError> result =
                 useCase.execute(new CreateSeatCommand(COACH_UUID, SEAT_NUMBER));
 
         assertThat(result.isFailure()).isTrue();
-        assertThat(((Result.Failure<SeatDto, SeatError>) result).error())
+        assertThat(((Result.Failure<SeatResponse, SeatError>) result).error())
                 .isInstanceOf(SeatError.SeatNumberAlreadyExists.class);
         verify(seatRepository, never()).save(any());
     }

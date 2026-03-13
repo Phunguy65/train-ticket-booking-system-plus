@@ -2,7 +2,9 @@ package io.github.phunguy65.ttbs.backend.train.infrastructure.web;
 
 import io.github.phunguy65.ttbs.backend.train.application.command.BulkCreateSeatsCommand;
 import io.github.phunguy65.ttbs.backend.train.application.command.CreateSeatCommand;
-import io.github.phunguy65.ttbs.backend.train.application.dto.SeatDto;
+import io.github.phunguy65.ttbs.backend.train.application.response.SeatResponse;
+import io.github.phunguy65.ttbs.backend.train.infrastructure.web.request.BulkCreateSeatsHttpRequest;
+import io.github.phunguy65.ttbs.backend.train.infrastructure.web.request.CreateSeatHttpRequest;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.stereotype.Component;
@@ -21,11 +23,11 @@ class SeatRequestMapper {
         return new BulkCreateSeatsCommand(coachId, items);
     }
 
-    SeatHttpResponse toResponse(SeatDto dto) {
+    SeatHttpResponse toResponse(SeatResponse dto) {
         return new SeatHttpResponse(dto.id(), dto.coachId(), dto.seatNumber(), dto.createdAt());
     }
 
-    List<SeatHttpResponse> toResponseList(List<SeatDto> dtos) {
+    List<SeatHttpResponse> toResponseList(List<SeatResponse> dtos) {
         return dtos.stream().map(this::toResponse).toList();
     }
 }

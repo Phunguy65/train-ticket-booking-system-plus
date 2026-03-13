@@ -4,7 +4,7 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
-import io.github.phunguy65.ttbs.backend.train.application.dto.TrainDto;
+import io.github.phunguy65.ttbs.backend.train.application.response.TrainResponse;
 import io.github.phunguy65.ttbs.backend.train.domain.error.TrainError;
 import io.github.phunguy65.ttbs.backend.train.domain.model.Train;
 import io.github.phunguy65.ttbs.backend.train.domain.model.TrainId;
@@ -43,10 +43,10 @@ class GetTrainByIdUseCaseTest {
                 null);
         when(trainRepository.findById(trainId)).thenReturn(Optional.of(train));
 
-        Result<TrainDto, TrainError> result = useCase.execute(trainId);
+        Result<TrainResponse, TrainError> result = useCase.execute(trainId);
 
         assertThat(result.isSuccess()).isTrue();
-        TrainDto dto = ((Result.Success<TrainDto, TrainError>) result).value();
+        TrainResponse dto = ((Result.Success<TrainResponse, TrainError>) result).value();
         assertThat(dto.id()).isEqualTo(trainId.value());
         assertThat(dto.trainNumber()).isEqualTo("SE001");
         assertThat(dto.name()).isEqualTo("Reunification Express");
@@ -58,10 +58,10 @@ class GetTrainByIdUseCaseTest {
         TrainId trainId = TrainId.of(UUID.randomUUID());
         when(trainRepository.findById(trainId)).thenReturn(Optional.empty());
 
-        Result<TrainDto, TrainError> result = useCase.execute(trainId);
+        Result<TrainResponse, TrainError> result = useCase.execute(trainId);
 
         assertThat(result.isFailure()).isTrue();
-        TrainError error = ((Result.Failure<TrainDto, TrainError>) result).error();
+        TrainError error = ((Result.Failure<TrainResponse, TrainError>) result).error();
         assertThat(error).isInstanceOf(TrainError.TrainNotFound.class);
     }
 }

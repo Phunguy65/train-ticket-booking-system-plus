@@ -9,7 +9,7 @@ import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.JsendResponse;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.SliceHttpResponse;
 import io.github.phunguy65.ttbs.backend.user.application.command.BulkSoftDeleteUsersCommand;
 import io.github.phunguy65.ttbs.backend.user.application.command.SoftDeleteUserCommand;
-import io.github.phunguy65.ttbs.backend.user.application.dto.UserDto;
+import io.github.phunguy65.ttbs.backend.user.application.response.UserResponse;
 import io.github.phunguy65.ttbs.backend.user.application.usecase.BulkSoftDeleteUsersUseCase;
 import io.github.phunguy65.ttbs.backend.user.application.usecase.CreateUserUseCase;
 import io.github.phunguy65.ttbs.backend.user.application.usecase.GetUserByIdUseCase;
@@ -142,7 +142,8 @@ class UserController {
                             List.of())));
         }
 
-        PageResult<UserDto> result = listUsersUseCase.execute(page, size, sortField, direction);
+        PageResult<UserResponse> result =
+                listUsersUseCase.execute(page, size, sortField, direction);
 
         List<UserListHttpResponse> content = result.items().stream()
                 .map(dto -> new UserListHttpResponse(

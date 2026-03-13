@@ -11,7 +11,7 @@ import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.GlobalExceptionHandler;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.JacksonConfig;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.WebConfig;
-import io.github.phunguy65.ttbs.backend.train.application.dto.RouteDto;
+import io.github.phunguy65.ttbs.backend.train.application.response.RouteResponse;
 import io.github.phunguy65.ttbs.backend.train.application.usecase.BulkSoftDeleteRoutesUseCase;
 import io.github.phunguy65.ttbs.backend.train.application.usecase.CreateRouteUseCase;
 import io.github.phunguy65.ttbs.backend.train.application.usecase.GetRouteByIdUseCase;
@@ -78,8 +78,8 @@ class RouteControllerTest {
     private static final UUID ORIGIN_UUID = UUID.randomUUID();
     private static final UUID DEST_UUID = UUID.randomUUID();
 
-    private RouteDto sampleRouteDto() {
-        return new RouteDto(
+    private RouteResponse sampleRouteDto() {
+        return new RouteResponse(
                 ROUTE_UUID,
                 TRAIN_UUID,
                 ORIGIN_UUID,
@@ -174,8 +174,8 @@ class RouteControllerTest {
 
     @Test
     void listRoutes_defaultParams_shouldReturn200WithSliceStructure() throws Exception {
-        RouteDto dto = sampleRouteDto();
-        PageResult<RouteDto> pageResult = PageResult.of(List.of(dto), 0, 20, false);
+        RouteResponse dto = sampleRouteDto();
+        PageResult<RouteResponse> pageResult = PageResult.of(List.of(dto), 0, 20, false);
         when(getRoutesUseCase.execute(anyInt(), anyInt(), anyString(), any(), any()))
                 .thenReturn(pageResult);
 

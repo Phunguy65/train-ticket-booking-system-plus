@@ -2,7 +2,7 @@ package io.github.phunguy65.ttbs.backend.train.application.usecase;
 
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.train.application.command.UpdateTrainCommand;
-import io.github.phunguy65.ttbs.backend.train.application.dto.TrainDto;
+import io.github.phunguy65.ttbs.backend.train.application.response.TrainResponse;
 import io.github.phunguy65.ttbs.backend.train.domain.error.TrainError;
 import io.github.phunguy65.ttbs.backend.train.domain.model.Train;
 import io.github.phunguy65.ttbs.backend.train.domain.repository.TrainRepository;
@@ -20,7 +20,7 @@ public class UpdateTrainUseCase {
     }
 
     @Transactional
-    public Result<TrainDto, TrainError> execute(UpdateTrainCommand command) {
+    public Result<TrainResponse, TrainError> execute(UpdateTrainCommand command) {
         Train train = trainRepository.findById(command.trainId()).orElse(null);
         if (train == null) {
             return Result.failure(new TrainError.TrainNotFound());
@@ -55,8 +55,8 @@ public class UpdateTrainUseCase {
         return Result.success(toDto(saved));
     }
 
-    private TrainDto toDto(Train train) {
-        return new TrainDto(
+    private TrainResponse toDto(Train train) {
+        return new TrainResponse(
                 train.getId().value(),
                 train.getTrainNumber(),
                 train.getName(),

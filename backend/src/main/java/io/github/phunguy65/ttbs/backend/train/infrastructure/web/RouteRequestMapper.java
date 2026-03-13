@@ -3,8 +3,10 @@ package io.github.phunguy65.ttbs.backend.train.infrastructure.web;
 import io.github.phunguy65.ttbs.backend.shared.domain.Money;
 import io.github.phunguy65.ttbs.backend.train.application.command.CreateRouteCommand;
 import io.github.phunguy65.ttbs.backend.train.application.command.UpdateRouteCommand;
-import io.github.phunguy65.ttbs.backend.train.application.dto.RouteDto;
+import io.github.phunguy65.ttbs.backend.train.application.response.RouteResponse;
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteId;
+import io.github.phunguy65.ttbs.backend.train.infrastructure.web.request.CreateRouteHttpRequest;
+import io.github.phunguy65.ttbs.backend.train.infrastructure.web.request.UpdateRouteHttpRequest;
 import java.util.UUID;
 import org.openapitools.jackson.nullable.JsonNullable;
 import org.springframework.stereotype.Component;
@@ -22,7 +24,7 @@ class RouteRequestMapper {
                 Money.vnd(request.basePrice()));
     }
 
-    RouteHttpResponse toResponse(RouteDto dto) {
+    RouteHttpResponse toResponse(RouteResponse dto) {
         return new RouteHttpResponse(
                 dto.id(),
                 dto.trainId(),

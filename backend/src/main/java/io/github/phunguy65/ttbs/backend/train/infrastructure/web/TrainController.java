@@ -8,7 +8,7 @@ import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.JsendResponse;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.SliceHttpResponse;
 import io.github.phunguy65.ttbs.backend.train.application.command.BulkSoftDeleteTrainsCommand;
 import io.github.phunguy65.ttbs.backend.train.application.command.SoftDeleteTrainCommand;
-import io.github.phunguy65.ttbs.backend.train.application.dto.TrainDto;
+import io.github.phunguy65.ttbs.backend.train.application.response.TrainResponse;
 import io.github.phunguy65.ttbs.backend.train.application.usecase.BulkSoftDeleteTrainsUseCase;
 import io.github.phunguy65.ttbs.backend.train.application.usecase.CreateTrainUseCase;
 import io.github.phunguy65.ttbs.backend.train.application.usecase.GetTrainByIdUseCase;
@@ -17,6 +17,9 @@ import io.github.phunguy65.ttbs.backend.train.application.usecase.SoftDeleteTrai
 import io.github.phunguy65.ttbs.backend.train.application.usecase.UpdateTrainUseCase;
 import io.github.phunguy65.ttbs.backend.train.domain.error.TrainError;
 import io.github.phunguy65.ttbs.backend.train.domain.model.TrainId;
+import io.github.phunguy65.ttbs.backend.train.infrastructure.web.request.BulkSoftDeleteTrainsHttpRequest;
+import io.github.phunguy65.ttbs.backend.train.infrastructure.web.request.CreateTrainHttpRequest;
+import io.github.phunguy65.ttbs.backend.train.infrastructure.web.request.UpdateTrainHttpRequest;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Map;
@@ -118,7 +121,8 @@ class TrainController {
                             List.of())));
         }
 
-        PageResult<TrainDto> result = getTrainsUseCase.execute(page, size, sortField, direction);
+        PageResult<TrainResponse> result =
+                getTrainsUseCase.execute(page, size, sortField, direction);
 
         List<TrainHttpResponse> content =
                 result.items().stream().map(mapper::toResponse).toList();

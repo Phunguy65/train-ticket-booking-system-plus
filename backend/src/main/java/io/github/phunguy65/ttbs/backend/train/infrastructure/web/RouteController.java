@@ -8,7 +8,7 @@ import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.JsendResponse;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.SliceHttpResponse;
 import io.github.phunguy65.ttbs.backend.train.application.command.BulkSoftDeleteRoutesCommand;
 import io.github.phunguy65.ttbs.backend.train.application.command.SoftDeleteRouteCommand;
-import io.github.phunguy65.ttbs.backend.train.application.dto.RouteDto;
+import io.github.phunguy65.ttbs.backend.train.application.response.RouteResponse;
 import io.github.phunguy65.ttbs.backend.train.application.usecase.BulkSoftDeleteRoutesUseCase;
 import io.github.phunguy65.ttbs.backend.train.application.usecase.CreateRouteUseCase;
 import io.github.phunguy65.ttbs.backend.train.application.usecase.GetRouteByIdUseCase;
@@ -18,6 +18,9 @@ import io.github.phunguy65.ttbs.backend.train.application.usecase.UpdateRouteUse
 import io.github.phunguy65.ttbs.backend.train.domain.error.RouteError;
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteFilter;
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteId;
+import io.github.phunguy65.ttbs.backend.train.infrastructure.web.request.BulkSoftDeleteRoutesHttpRequest;
+import io.github.phunguy65.ttbs.backend.train.infrastructure.web.request.CreateRouteHttpRequest;
+import io.github.phunguy65.ttbs.backend.train.infrastructure.web.request.UpdateRouteHttpRequest;
 import jakarta.validation.Valid;
 import java.time.Instant;
 import java.util.List;
@@ -126,7 +129,7 @@ class RouteController {
 
         RouteFilter filter = new RouteFilter(
                 originStationId, destinationStationId, departureDateFrom, departureDateTo);
-        PageResult<RouteDto> result =
+        PageResult<RouteResponse> result =
                 getRoutesUseCase.execute(page, size, sortField, direction, filter);
 
         List<RouteHttpResponse> content =

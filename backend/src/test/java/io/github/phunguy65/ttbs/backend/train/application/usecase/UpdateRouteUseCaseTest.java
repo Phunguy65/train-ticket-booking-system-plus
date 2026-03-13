@@ -8,7 +8,7 @@ import io.github.phunguy65.ttbs.backend.shared.domain.Money;
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.station.domain.model.StationId;
 import io.github.phunguy65.ttbs.backend.train.application.command.UpdateRouteCommand;
-import io.github.phunguy65.ttbs.backend.train.application.dto.RouteDto;
+import io.github.phunguy65.ttbs.backend.train.application.response.RouteResponse;
 import io.github.phunguy65.ttbs.backend.train.domain.error.RouteError;
 import io.github.phunguy65.ttbs.backend.train.domain.model.Route;
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteId;
@@ -70,10 +70,10 @@ class UpdateRouteUseCaseTest {
                 JsonNullable.of(Money.vnd(20000L)),
                 JsonNullable.undefined());
 
-        Result<RouteDto, RouteError> result = useCase.execute(command);
+        Result<RouteResponse, RouteError> result = useCase.execute(command);
 
         assertThat(result.isSuccess()).isTrue();
-        RouteDto dto = ((Result.Success<RouteDto, RouteError>) result).value();
+        RouteResponse dto = ((Result.Success<RouteResponse, RouteError>) result).value();
         assertThat(dto.basePrice()).isEqualTo(20000L);
         assertThat(dto.status()).isEqualTo(RouteStatus.SCHEDULED);
     }
@@ -91,10 +91,10 @@ class UpdateRouteUseCaseTest {
                 JsonNullable.undefined(),
                 JsonNullable.of(RouteStatus.CANCELLED));
 
-        Result<RouteDto, RouteError> result = useCase.execute(command);
+        Result<RouteResponse, RouteError> result = useCase.execute(command);
 
         assertThat(result.isSuccess()).isTrue();
-        RouteDto dto = ((Result.Success<RouteDto, RouteError>) result).value();
+        RouteResponse dto = ((Result.Success<RouteResponse, RouteError>) result).value();
         assertThat(dto.status()).isEqualTo(RouteStatus.CANCELLED);
     }
 
@@ -109,10 +109,10 @@ class UpdateRouteUseCaseTest {
                 JsonNullable.undefined(),
                 JsonNullable.undefined());
 
-        Result<RouteDto, RouteError> result = useCase.execute(command);
+        Result<RouteResponse, RouteError> result = useCase.execute(command);
 
         assertThat(result.isFailure()).isTrue();
-        assertThat(((Result.Failure<RouteDto, RouteError>) result).error())
+        assertThat(((Result.Failure<RouteResponse, RouteError>) result).error())
                 .isInstanceOf(RouteError.RouteNotFound.class);
         verify(routeRepository, never()).save(any());
     }

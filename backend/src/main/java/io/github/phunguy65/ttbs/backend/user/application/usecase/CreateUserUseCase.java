@@ -4,9 +4,9 @@ import io.github.phunguy65.ttbs.backend.shared.domain.DomainEvent;
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.shared.domain.UuidGenerator;
 import io.github.phunguy65.ttbs.backend.user.application.command.CreateUserCommand;
-import io.github.phunguy65.ttbs.backend.user.application.dto.CreateUserResult;
-import io.github.phunguy65.ttbs.backend.user.application.dto.UserDto;
 import io.github.phunguy65.ttbs.backend.user.application.port.PasswordEncoder;
+import io.github.phunguy65.ttbs.backend.user.application.response.CreateUserResponse;
+import io.github.phunguy65.ttbs.backend.user.application.response.UserResponse;
 import io.github.phunguy65.ttbs.backend.user.domain.error.UserError;
 import io.github.phunguy65.ttbs.backend.user.domain.model.User;
 import io.github.phunguy65.ttbs.backend.user.domain.model.UserId;
@@ -33,7 +33,7 @@ public class CreateUserUseCase {
     }
 
     @Transactional
-    public Result<CreateUserResult, UserError> execute(CreateUserCommand command) {
+    public Result<CreateUserResponse, UserError> execute(CreateUserCommand command) {
         if (userRepository.findByEmail(command.email()).isPresent()) {
             return Result.failure(new UserError.EmailAlreadyExists());
         }
@@ -50,11 +50,11 @@ public class CreateUserUseCase {
         }
         user.clearDomainEvents();
 
-        return Result.success(new CreateUserResult(toDto(saved), temporaryPassword));
+        return Result.success(new CreateUserResponse(toDto(saved), temporaryPassword));
     }
 
-    private UserDto toDto(User user) {
-        return new UserDto(
+    private UserResponse toDto(User user) {
+        return new UserResponse(
                 user.getId().value(),
                 user.getEmail(),
                 user.getFullName(),

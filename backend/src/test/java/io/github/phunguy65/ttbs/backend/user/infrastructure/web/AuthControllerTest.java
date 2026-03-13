@@ -9,9 +9,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.GlobalExceptionHandler;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.WebConfig;
-import io.github.phunguy65.ttbs.backend.user.application.dto.LoginResultDto;
-import io.github.phunguy65.ttbs.backend.user.application.dto.UserDto;
 import io.github.phunguy65.ttbs.backend.user.application.port.TokenProvider;
+import io.github.phunguy65.ttbs.backend.user.application.response.LoginResultResponse;
+import io.github.phunguy65.ttbs.backend.user.application.response.UserResponse;
 import io.github.phunguy65.ttbs.backend.user.application.usecase.LoginUserUseCase;
 import io.github.phunguy65.ttbs.backend.user.application.usecase.LogoutUserUseCase;
 import io.github.phunguy65.ttbs.backend.user.application.usecase.RefreshTokenUseCase;
@@ -60,8 +60,8 @@ class AuthControllerTest {
     @MockitoBean
     private UserDetailsService userDetailsService;
 
-    private UserDto sampleUserDto() {
-        return new UserDto(
+    private UserResponse sampleUserDto() {
+        return new UserResponse(
                 UUID.randomUUID(),
                 "test@example.com",
                 "Test User",
@@ -102,8 +102,8 @@ class AuthControllerTest {
 
     @Test
     void login_withValidCredentials_shouldReturn200WithTokens() throws Exception {
-        LoginResultDto loginResult =
-                new LoginResultDto("access-token", "refresh-token", sampleUserDto());
+        LoginResultResponse loginResult =
+                new LoginResultResponse("access-token", "refresh-token", sampleUserDto());
         when(loginUserUseCase.execute(any())).thenReturn(Result.success(loginResult));
 
         mockMvc.perform(post("/api/v1.0/auth/login")

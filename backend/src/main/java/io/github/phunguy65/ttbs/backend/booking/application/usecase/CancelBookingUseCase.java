@@ -33,28 +33,23 @@ public class CancelBookingUseCase {
 
     @Transactional
     public Result<Void, BookingError> execute(CancelBookingCommand command) {
-        // 1. Load booking
         var found = bookingRepository.findById(BookingId.of(command.bookingId()));
         if (found.isEmpty()) {
             return Result.failure(new BookingError.BookingNotFound());
         }
         Booking booking = found.get();
 
-        // 2. Ownership check
         if (!booking.getUserId().value().equals(command.requestingUserId())) {
             return Result.failure(new BookingError.Forbidden());
         }
 
-        // 3. Remember previous status for seat release strategy
         BookingStatus previousStatus = booking.getStatus();
 
-        // 4. Cancel the booking (domain method)
         Result<Void, BookingError> cancelResult = booking.cancel();
         if (cancelResult.isFailure()) {
             return cancelResult;
         }
 
-        // 5. Status-aware seat release
         List<SeatId> seatIds = seatAvailabilityPort.findSeatIdsByBookingId(command.bookingId());
 
         if (!seatIds.isEmpty()) {
@@ -65,10 +60,8 @@ public class CancelBookingUseCase {
             }
         }
 
-        // 6. Persist
         bookingRepository.save(booking);
 
-        // 7. Publish events
         for (DomainEvent event : booking.getDomainEvents()) {
             eventPublisher.publishEvent(event);
         }

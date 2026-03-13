@@ -1,7 +1,7 @@
 package io.github.phunguy65.ttbs.backend.payment.application.usecase;
 
 import io.github.phunguy65.ttbs.backend.booking.domain.model.BookingId;
-import io.github.phunguy65.ttbs.backend.payment.application.dto.PaymentDto;
+import io.github.phunguy65.ttbs.backend.payment.application.response.PaymentResponse;
 import io.github.phunguy65.ttbs.backend.payment.domain.error.PaymentError;
 import io.github.phunguy65.ttbs.backend.payment.domain.model.Payment;
 import io.github.phunguy65.ttbs.backend.payment.domain.repository.PaymentRepository;
@@ -20,7 +20,8 @@ public class GetPaymentUseCase {
     }
 
     @Transactional(readOnly = true)
-    public Result<PaymentDto, PaymentError> execute(BookingId bookingId, UserId requestingUserId) {
+    public Result<PaymentResponse, PaymentError> execute(
+            BookingId bookingId, UserId requestingUserId) {
         Payment payment = paymentRepository.findByBookingId(bookingId).orElse(null);
 
         if (payment == null) {
@@ -31,7 +32,7 @@ public class GetPaymentUseCase {
             return Result.failure(new PaymentError.PaymentNotFound());
         }
 
-        return Result.success(new PaymentDto(
+        return Result.success(new PaymentResponse(
                 payment.getPaymentId().value(),
                 payment.getBookingId().value(),
                 payment.getStatus(),

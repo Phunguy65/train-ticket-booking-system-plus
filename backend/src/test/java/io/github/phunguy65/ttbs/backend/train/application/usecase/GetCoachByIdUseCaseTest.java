@@ -4,7 +4,7 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
-import io.github.phunguy65.ttbs.backend.train.application.dto.CoachDto;
+import io.github.phunguy65.ttbs.backend.train.application.response.CoachResponse;
 import io.github.phunguy65.ttbs.backend.train.domain.error.CoachError;
 import io.github.phunguy65.ttbs.backend.train.domain.model.Coach;
 import io.github.phunguy65.ttbs.backend.train.domain.model.CoachId;
@@ -46,11 +46,11 @@ class GetCoachByIdUseCaseTest {
         when(coachRepository.findById(CoachId.of(COACH_UUID)))
                 .thenReturn(Optional.of(sampleCoach(TRAIN_UUID)));
 
-        Result<CoachDto, CoachError> result =
+        Result<CoachResponse, CoachError> result =
                 useCase.execute(CoachId.of(COACH_UUID), TrainId.of(TRAIN_UUID));
 
         assertThat(result.isSuccess()).isTrue();
-        CoachDto dto = ((Result.Success<CoachDto, CoachError>) result).value();
+        CoachResponse dto = ((Result.Success<CoachResponse, CoachError>) result).value();
         assertThat(dto.id()).isEqualTo(COACH_UUID);
         assertThat(dto.trainId()).isEqualTo(TRAIN_UUID);
         assertThat(dto.carNumber()).isEqualTo(1);
@@ -60,11 +60,11 @@ class GetCoachByIdUseCaseTest {
     void execute_whenCoachNotFound_shouldReturnCoachNotFoundError() {
         when(coachRepository.findById(CoachId.of(COACH_UUID))).thenReturn(Optional.empty());
 
-        Result<CoachDto, CoachError> result =
+        Result<CoachResponse, CoachError> result =
                 useCase.execute(CoachId.of(COACH_UUID), TrainId.of(TRAIN_UUID));
 
         assertThat(result.isFailure()).isTrue();
-        assertThat(((Result.Failure<CoachDto, CoachError>) result).error())
+        assertThat(((Result.Failure<CoachResponse, CoachError>) result).error())
                 .isInstanceOf(CoachError.CoachNotFound.class);
     }
 
@@ -73,11 +73,11 @@ class GetCoachByIdUseCaseTest {
         when(coachRepository.findById(CoachId.of(COACH_UUID)))
                 .thenReturn(Optional.of(sampleCoach(OTHER_TRAIN_UUID)));
 
-        Result<CoachDto, CoachError> result =
+        Result<CoachResponse, CoachError> result =
                 useCase.execute(CoachId.of(COACH_UUID), TrainId.of(TRAIN_UUID));
 
         assertThat(result.isFailure()).isTrue();
-        assertThat(((Result.Failure<CoachDto, CoachError>) result).error())
+        assertThat(((Result.Failure<CoachResponse, CoachError>) result).error())
                 .isInstanceOf(CoachError.CoachNotFound.class);
     }
 }

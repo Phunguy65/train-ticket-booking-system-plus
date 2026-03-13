@@ -5,7 +5,7 @@ import static org.mockito.Mockito.*;
 
 import io.github.phunguy65.ttbs.backend.shared.domain.PageResult;
 import io.github.phunguy65.ttbs.backend.shared.domain.SortDirection;
-import io.github.phunguy65.ttbs.backend.station.application.dto.StationDto;
+import io.github.phunguy65.ttbs.backend.station.application.response.StationResponse;
 import io.github.phunguy65.ttbs.backend.station.domain.model.Station;
 import io.github.phunguy65.ttbs.backend.station.domain.model.StationId;
 import io.github.phunguy65.ttbs.backend.station.domain.repository.StationRepository;
@@ -51,7 +51,8 @@ class GetStationsUseCaseTest {
         when(stationRepository.findAll(0, 20, "createdAt", SortDirection.DESC))
                 .thenReturn(stationPage);
 
-        PageResult<StationDto> result = useCase.execute(0, 20, "createdAt", SortDirection.DESC);
+        PageResult<StationResponse> result =
+                useCase.execute(0, 20, "createdAt", SortDirection.DESC);
 
         assertThat(result.items()).hasSize(2);
         assertThat(result.pageNumber()).isEqualTo(0);
@@ -59,7 +60,7 @@ class GetStationsUseCaseTest {
         assertThat(result.hasNext()).isFalse();
         assertThat(result.hasPrevious()).isFalse();
         assertThat(result.items())
-                .extracting(StationDto::code)
+                .extracting(StationResponse::code)
                 .containsExactlyInAnyOrder("HN", "SGN");
     }
 
@@ -68,7 +69,7 @@ class GetStationsUseCaseTest {
         PageResult<Station> emptyPage = PageResult.of(List.of(), 0, 20, false);
         when(stationRepository.findAll(0, 20, "name", SortDirection.ASC)).thenReturn(emptyPage);
 
-        PageResult<StationDto> result = useCase.execute(0, 20, "name", SortDirection.ASC);
+        PageResult<StationResponse> result = useCase.execute(0, 20, "name", SortDirection.ASC);
 
         assertThat(result.items()).isEmpty();
         assertThat(result.hasNext()).isFalse();
@@ -86,7 +87,7 @@ class GetStationsUseCaseTest {
         PageResult<Station> stationPage = PageResult.of(List.of(s1), 0, 1, true);
         when(stationRepository.findAll(0, 1, "name", SortDirection.ASC)).thenReturn(stationPage);
 
-        PageResult<StationDto> result = useCase.execute(0, 1, "name", SortDirection.ASC);
+        PageResult<StationResponse> result = useCase.execute(0, 1, "name", SortDirection.ASC);
 
         assertThat(result.items()).hasSize(1);
         assertThat(result.hasNext()).isTrue();

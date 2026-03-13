@@ -6,7 +6,7 @@ import static org.mockito.Mockito.*;
 
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.user.application.command.UpdateUserCommand;
-import io.github.phunguy65.ttbs.backend.user.application.dto.UserDto;
+import io.github.phunguy65.ttbs.backend.user.application.response.UserResponse;
 import io.github.phunguy65.ttbs.backend.user.domain.error.UserError;
 import io.github.phunguy65.ttbs.backend.user.domain.model.User;
 import io.github.phunguy65.ttbs.backend.user.domain.model.UserId;
@@ -64,10 +64,10 @@ class UpdateUserUseCaseTest {
                 JsonNullable.undefined(),
                 JsonNullable.undefined());
 
-        Result<UserDto, UserError> result = useCase.execute(command);
+        Result<UserResponse, UserError> result = useCase.execute(command);
 
         assertThat(result.isSuccess()).isTrue();
-        UserDto dto = ((Result.Success<UserDto, UserError>) result).value();
+        UserResponse dto = ((Result.Success<UserResponse, UserError>) result).value();
         assertThat(dto.fullName()).isEqualTo("New Name");
         assertThat(dto.email()).isEqualTo("alice@example.com");
         assertThat(dto.phone()).isEqualTo("090");
@@ -82,10 +82,10 @@ class UpdateUserUseCaseTest {
         UpdateUserCommand command = new UpdateUserCommand(
                 USER_ID, JsonNullable.undefined(), JsonNullable.undefined(), JsonNullable.of(null));
 
-        Result<UserDto, UserError> result = useCase.execute(command);
+        Result<UserResponse, UserError> result = useCase.execute(command);
 
         assertThat(result.isSuccess()).isTrue();
-        UserDto dto = ((Result.Success<UserDto, UserError>) result).value();
+        UserResponse dto = ((Result.Success<UserResponse, UserError>) result).value();
         assertThat(dto.phone()).isNull();
         assertThat(dto.fullName()).isEqualTo("Alice");
         assertThat(dto.email()).isEqualTo("alice@example.com");
@@ -105,7 +105,7 @@ class UpdateUserUseCaseTest {
                 JsonNullable.undefined(),
                 JsonNullable.undefined());
 
-        Result<UserDto, UserError> result = useCase.execute(command);
+        Result<UserResponse, UserError> result = useCase.execute(command);
 
         assertThat(result.isSuccess()).isTrue();
         User saved = captor.getValue();
@@ -124,10 +124,10 @@ class UpdateUserUseCaseTest {
                 JsonNullable.undefined(),
                 JsonNullable.undefined());
 
-        Result<UserDto, UserError> result = useCase.execute(command);
+        Result<UserResponse, UserError> result = useCase.execute(command);
 
         assertThat(result.isFailure()).isTrue();
-        UserError error = ((Result.Failure<UserDto, UserError>) result).error();
+        UserError error = ((Result.Failure<UserResponse, UserError>) result).error();
         assertThat(error).isInstanceOf(UserError.UserNotFound.class);
         verify(userRepository, never()).save(any());
     }
@@ -155,10 +155,10 @@ class UpdateUserUseCaseTest {
                 JsonNullable.of("taken@example.com"),
                 JsonNullable.undefined());
 
-        Result<UserDto, UserError> result = useCase.execute(command);
+        Result<UserResponse, UserError> result = useCase.execute(command);
 
         assertThat(result.isFailure()).isTrue();
-        UserError error = ((Result.Failure<UserDto, UserError>) result).error();
+        UserError error = ((Result.Failure<UserResponse, UserError>) result).error();
         assertThat(error).isInstanceOf(UserError.EmailAlreadyExists.class);
         verify(userRepository, never()).save(any());
     }
@@ -175,7 +175,7 @@ class UpdateUserUseCaseTest {
                 JsonNullable.of("alice@example.com"),
                 JsonNullable.undefined());
 
-        Result<UserDto, UserError> result = useCase.execute(command);
+        Result<UserResponse, UserError> result = useCase.execute(command);
 
         assertThat(result.isSuccess()).isTrue();
         verify(userRepository, never()).findByEmail(anyString());

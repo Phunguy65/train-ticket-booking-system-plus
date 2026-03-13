@@ -11,7 +11,7 @@ import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.GlobalExceptionHandler;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.JacksonConfig;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.WebConfig;
-import io.github.phunguy65.ttbs.backend.train.application.dto.TrainDto;
+import io.github.phunguy65.ttbs.backend.train.application.response.TrainResponse;
 import io.github.phunguy65.ttbs.backend.train.application.usecase.BulkSoftDeleteTrainsUseCase;
 import io.github.phunguy65.ttbs.backend.train.application.usecase.CreateTrainUseCase;
 import io.github.phunguy65.ttbs.backend.train.application.usecase.GetTrainByIdUseCase;
@@ -74,8 +74,8 @@ class TrainControllerTest {
 
     private static final UUID TRAIN_UUID = UUID.randomUUID();
 
-    private TrainDto sampleTrainDto() {
-        return new TrainDto(TRAIN_UUID, "SE001", "Reunification Express", 250, Instant.now());
+    private TrainResponse sampleTrainDto() {
+        return new TrainResponse(TRAIN_UUID, "SE001", "Reunification Express", 250, Instant.now());
     }
 
     // ── POST /api/v1.0/trains ────────────────────────────────────────────────
@@ -142,8 +142,8 @@ class TrainControllerTest {
 
     @Test
     void listTrains_defaultParams_shouldReturn200WithSliceStructure() throws Exception {
-        TrainDto dto = sampleTrainDto();
-        PageResult<TrainDto> pageResult = PageResult.of(List.of(dto), 0, 20, false);
+        TrainResponse dto = sampleTrainDto();
+        PageResult<TrainResponse> pageResult = PageResult.of(List.of(dto), 0, 20, false);
         when(getTrainsUseCase.execute(anyInt(), anyInt(), anyString(), any()))
                 .thenReturn(pageResult);
 

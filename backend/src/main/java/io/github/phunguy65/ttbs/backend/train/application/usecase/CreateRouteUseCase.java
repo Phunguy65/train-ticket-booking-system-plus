@@ -5,7 +5,7 @@ import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.shared.domain.UuidGenerator;
 import io.github.phunguy65.ttbs.backend.station.domain.model.StationId;
 import io.github.phunguy65.ttbs.backend.train.application.command.CreateRouteCommand;
-import io.github.phunguy65.ttbs.backend.train.application.dto.RouteDto;
+import io.github.phunguy65.ttbs.backend.train.application.response.RouteResponse;
 import io.github.phunguy65.ttbs.backend.train.domain.error.RouteError;
 import io.github.phunguy65.ttbs.backend.train.domain.model.Route;
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteId;
@@ -28,7 +28,7 @@ public class CreateRouteUseCase {
     }
 
     @Transactional
-    public Result<RouteDto, RouteError> execute(CreateRouteCommand command) {
+    public Result<RouteResponse, RouteError> execute(CreateRouteCommand command) {
         RouteId routeId = RouteId.of(UuidGenerator.generate());
         Route route = Route.create(
                 routeId,
@@ -49,8 +49,8 @@ public class CreateRouteUseCase {
         return Result.success(toDto(saved));
     }
 
-    private RouteDto toDto(Route route) {
-        return new RouteDto(
+    private RouteResponse toDto(Route route) {
+        return new RouteResponse(
                 route.getId().value(),
                 route.getTrainId().value(),
                 route.getOriginStationId().value(),
