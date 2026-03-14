@@ -27,15 +27,11 @@ class BookingController {
 
     private final CreateBookingUseCase createBookingUseCase;
     private final CancelBookingUseCase cancelBookingUseCase;
-    private final BookingRequestMapper mapper;
 
     BookingController(
-            CreateBookingUseCase createBookingUseCase,
-            CancelBookingUseCase cancelBookingUseCase,
-            BookingRequestMapper mapper) {
+            CreateBookingUseCase createBookingUseCase, CancelBookingUseCase cancelBookingUseCase) {
         this.createBookingUseCase = createBookingUseCase;
         this.cancelBookingUseCase = cancelBookingUseCase;
-        this.mapper = mapper;
     }
 
     @PostMapping(value = "/{version}/bookings", version = "1.0")
@@ -45,7 +41,7 @@ class BookingController {
         UUID userId = UUID.fromString(auth.getName());
 
         return createBookingUseCase
-                .execute(mapper.toCommand(request, userId))
+                .execute(request.toCommand(userId))
                 .fold(
                         dto -> {
                             var location = ServletUriComponentsBuilder.fromCurrentRequest()
@@ -53,7 +49,7 @@ class BookingController {
                                     .buildAndExpand(dto.id())
                                     .toUri();
                             return ResponseEntity.created(location)
-                                    .body(JsendResponse.success(mapper.toResponse(dto)));
+                                    .body(JsendResponse.success(dto));
                         },
                         error -> errorResponse(error));
     }

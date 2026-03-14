@@ -23,32 +23,29 @@ class AuthController {
     private final LoginUserUseCase loginUserUseCase;
     private final RefreshTokenUseCase refreshTokenUseCase;
     private final LogoutUserUseCase logoutUserUseCase;
-    private final AuthRequestMapper mapper;
 
     AuthController(
             RegisterUserUseCase registerUserUseCase,
             LoginUserUseCase loginUserUseCase,
             RefreshTokenUseCase refreshTokenUseCase,
-            LogoutUserUseCase logoutUserUseCase,
-            AuthRequestMapper mapper) {
+            LogoutUserUseCase logoutUserUseCase) {
         this.registerUserUseCase = registerUserUseCase;
         this.loginUserUseCase = loginUserUseCase;
         this.refreshTokenUseCase = refreshTokenUseCase;
         this.logoutUserUseCase = logoutUserUseCase;
-        this.mapper = mapper;
     }
 
     @PostMapping(value = "/register", version = "1.0")
     ResponseEntity<JsendResponse<?>> register(@Valid @RequestBody RegisterHttpRequest request) {
         return registerUserUseCase
-                .execute(mapper.toCommand(request))
+                .execute(request.toCommand())
                 .fold(
                         userDto -> {
                             var location = ServletUriComponentsBuilder.fromCurrentRequest()
                                     .build()
                                     .toUri();
                             return ResponseEntity.created(location)
-                                    .body(JsendResponse.success(mapper.toResponse(userDto)));
+                                    .body(JsendResponse.success(userDto));
                         },
                         error -> errorResponse(error));
     }
@@ -56,20 +53,18 @@ class AuthController {
     @PostMapping(value = "/login", version = "1.0")
     ResponseEntity<JsendResponse<?>> login(@Valid @RequestBody LoginHttpRequest request) {
         return loginUserUseCase
-                .execute(mapper.toCommand(request))
+                .execute(request.toCommand())
                 .fold(
-                        loginResult -> ResponseEntity.ok(
-                                JsendResponse.success(mapper.toLoginResponse(loginResult))),
+                        loginResult -> ResponseEntity.ok(JsendResponse.success(loginResult)),
                         error -> errorResponse(error));
     }
 
     @PostMapping(value = "/refresh", version = "1.0")
     ResponseEntity<JsendResponse<?>> refresh(@Valid @RequestBody RefreshTokenHttpRequest request) {
         return refreshTokenUseCase
-                .execute(mapper.toCommand(request))
+                .execute(request.toCommand())
                 .fold(
-                        loginResult -> ResponseEntity.ok(
-                                JsendResponse.success(mapper.toLoginResponse(loginResult))),
+                        loginResult -> ResponseEntity.ok(JsendResponse.success(loginResult)),
                         error -> errorResponse(error));
     }
 

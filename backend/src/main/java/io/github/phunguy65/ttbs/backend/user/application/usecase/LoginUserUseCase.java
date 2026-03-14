@@ -4,8 +4,8 @@ import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.user.application.command.LoginCommand;
 import io.github.phunguy65.ttbs.backend.user.application.port.PasswordEncoder;
 import io.github.phunguy65.ttbs.backend.user.application.port.RefreshTokenManager;
-import io.github.phunguy65.ttbs.backend.user.application.response.LoginResultDto;
-import io.github.phunguy65.ttbs.backend.user.application.response.UserDto;
+import io.github.phunguy65.ttbs.backend.user.application.response.LoginResultResponse;
+import io.github.phunguy65.ttbs.backend.user.application.response.UserResponse;
 import io.github.phunguy65.ttbs.backend.user.domain.error.UserError;
 import io.github.phunguy65.ttbs.backend.user.domain.model.User;
 import io.github.phunguy65.ttbs.backend.user.domain.repository.UserRepository;
@@ -29,7 +29,7 @@ public class LoginUserUseCase {
     }
 
     @Transactional
-    public Result<LoginResultDto, UserError> execute(LoginCommand command) {
+    public Result<LoginResultResponse, UserError> execute(LoginCommand command) {
         var userOpt = userRepository.findByEmail(command.email());
         if (userOpt.isEmpty()) {
             return Result.failure(new UserError.InvalidCredentials());
@@ -43,16 +43,16 @@ public class LoginUserUseCase {
         RefreshTokenManager.TokenPair tokens = refreshTokenManager.generateAndSaveTokens(user);
 
         return Result.success(
-                new LoginResultDto(tokens.accessToken(), tokens.refreshToken(), toDto(user)));
+                new LoginResultResponse(tokens.accessToken(), tokens.refreshToken(), toDto(user)));
     }
 
-    private UserDto toDto(User user) {
-        return new UserDto(
+    private UserResponse toDto(User user) {
+        return new UserResponse(
                 user.getId().value(),
                 user.getEmail(),
                 user.getFullName(),
                 user.getPhone(),
-                user.getRole(),
+                user.getRole().name(),
                 user.getCreatedAt());
     }
 }

@@ -17,9 +17,9 @@ import io.github.phunguy65.ttbs.backend.train.application.usecase.SoftDeleteTrai
 import io.github.phunguy65.ttbs.backend.train.application.usecase.UpdateTrainUseCase;
 import io.github.phunguy65.ttbs.backend.train.domain.error.TrainError;
 import io.github.phunguy65.ttbs.backend.train.domain.model.TrainId;
-import io.github.phunguy65.ttbs.backend.train.infrastructure.web.request.BulkSoftDeleteTrainsHttpRequest;
-import io.github.phunguy65.ttbs.backend.train.infrastructure.web.request.CreateTrainHttpRequest;
-import io.github.phunguy65.ttbs.backend.train.infrastructure.web.request.UpdateTrainHttpRequest;
+import io.github.phunguy65.ttbs.backend.train.infrastructure.web.request.BulkSoftDeleteTrainsRequest;
+import io.github.phunguy65.ttbs.backend.train.infrastructure.web.request.CreateTrainRequest;
+import io.github.phunguy65.ttbs.backend.train.infrastructure.web.request.PatchTrainRequest;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Map;
@@ -50,7 +50,6 @@ class TrainController {
     private final UpdateTrainUseCase updateTrainUseCase;
     private final SoftDeleteTrainUseCase softDeleteTrainUseCase;
     private final BulkSoftDeleteTrainsUseCase bulkSoftDeleteTrainsUseCase;
-    private final TrainRequestMapper mapper;
 
     TrainController(
             CreateTrainUseCase createTrainUseCase,
@@ -58,22 +57,20 @@ class TrainController {
             GetTrainsUseCase getTrainsUseCase,
             UpdateTrainUseCase updateTrainUseCase,
             SoftDeleteTrainUseCase softDeleteTrainUseCase,
-            BulkSoftDeleteTrainsUseCase bulkSoftDeleteTrainsUseCase,
-            TrainRequestMapper mapper) {
+            BulkSoftDeleteTrainsUseCase bulkSoftDeleteTrainsUseCase) {
         this.createTrainUseCase = createTrainUseCase;
         this.getTrainByIdUseCase = getTrainByIdUseCase;
         this.getTrainsUseCase = getTrainsUseCase;
         this.updateTrainUseCase = updateTrainUseCase;
         this.softDeleteTrainUseCase = softDeleteTrainUseCase;
         this.bulkSoftDeleteTrainsUseCase = bulkSoftDeleteTrainsUseCase;
-        this.mapper = mapper;
     }
 
     @PostMapping(value = "/{version}/trains", version = "1.0")
     @PreAuthorize("hasRole('ADMIN')")
-    ResponseEntity<JsendResponse<?>> create(@Valid @RequestBody CreateTrainHttpRequest request) {
+    ResponseEntity<JsendResponse<?>> create(@Valid @RequestBody CreateTrainRequest request) {
         return createTrainUseCase
-                .execute(mapper.toCommand(request))
+                .execute(request.toCommand())
                 .fold(
                         dto -> {
                             var location = ServletUriComponentsBuilder.fromCurrentRequest()
@@ -81,7 +78,7 @@ class TrainController {
                                     .buildAndExpand(dto.id())
                                     .toUri();
                             return ResponseEntity.created(location)
-                                    .body(JsendResponse.success(mapper.toResponse(dto)));
+                                    .body(JsendResponse.success(dto));
                         },
                         error -> errorResponse(error));
     }
@@ -124,11 +121,8 @@ class TrainController {
         PageResult<TrainResponse> result =
                 getTrainsUseCase.execute(page, size, sortField, direction);
 
-        List<TrainHttpResponse> content =
-                result.items().stream().map(mapper::toResponse).toList();
-
-        SliceHttpResponse<TrainHttpResponse> sliceResponse = new SliceHttpResponse<>(
-                content,
+        SliceHttpResponse<TrainResponse> sliceResponse = new SliceHttpResponse<>(
+                result.items(),
                 result.pageNumber(),
                 result.pageSize(),
                 result.hasNext(),
@@ -142,18 +136,18 @@ class TrainController {
         return getTrainByIdUseCase
                 .execute(TrainId.of(id))
                 .fold(
-                        dto -> ResponseEntity.ok(JsendResponse.success(mapper.toResponse(dto))),
+                        dto -> ResponseEntity.ok(JsendResponse.success(dto)),
                         error -> errorResponse(error));
     }
 
     @PatchMapping(value = "/{version}/trains/{id}", version = "1.0")
     @PreAuthorize("hasRole('ADMIN')")
     ResponseEntity<JsendResponse<?>> patchById(
-            @PathVariable UUID id, @Valid @RequestBody UpdateTrainHttpRequest request) {
+            @PathVariable UUID id, @Valid @RequestBody PatchTrainRequest request) {
         return updateTrainUseCase
-                .execute(mapper.toUpdateCommand(id, request))
+                .execute(request.toCommand(id))
                 .fold(
-                        dto -> ResponseEntity.ok(JsendResponse.success(mapper.toResponse(dto))),
+                        dto -> ResponseEntity.ok(JsendResponse.success(dto)),
                         error -> errorResponse(error));
     }
 
@@ -170,7 +164,7 @@ class TrainController {
     @PostMapping(value = "/{version}/trains:bulkDelete", version = "1.0")
     @PreAuthorize("hasRole('ADMIN')")
     ResponseEntity<JsendResponse<?>> bulkDelete(
-            @Valid @RequestBody BulkSoftDeleteTrainsHttpRequest request) {
+            @Valid @RequestBody BulkSoftDeleteTrainsRequest request) {
         List<TrainId> trainIds = request.trainIds().stream().map(TrainId::of).toList();
         return bulkSoftDeleteTrainsUseCase
                 .execute(new BulkSoftDeleteTrainsCommand(trainIds))

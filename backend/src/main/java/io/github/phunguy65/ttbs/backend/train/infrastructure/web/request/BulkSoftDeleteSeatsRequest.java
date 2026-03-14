@@ -6,4 +6,5 @@ import jakarta.validation.constraints.Size;
 import java.util.List;
 import java.util.UUID;
 
-record BulkSoftDeleteSeatsRequest(@NotEmpty @Size(max = 100) List<@NotNull UUID> seatIds) {}
+public record BulkSoftDeleteSeatsRequest(
+        @NotEmpty @Size(max = 100) List<@NotNull UUID> seatIds) {}

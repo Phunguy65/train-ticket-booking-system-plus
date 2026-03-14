@@ -2,7 +2,7 @@ package io.github.phunguy65.ttbs.backend.user.application.usecase;
 
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.user.application.command.UpdateUserCommand;
-import io.github.phunguy65.ttbs.backend.user.application.response.UserDto;
+import io.github.phunguy65.ttbs.backend.user.application.response.UserResponse;
 import io.github.phunguy65.ttbs.backend.user.domain.error.UserError;
 import io.github.phunguy65.ttbs.backend.user.domain.model.User;
 import io.github.phunguy65.ttbs.backend.user.domain.repository.UserRepository;
@@ -21,7 +21,7 @@ public class UpdateUserUseCase {
     }
 
     @Transactional
-    public Result<UserDto, UserError> execute(UpdateUserCommand command) {
+    public Result<UserResponse, UserError> execute(UpdateUserCommand command) {
         User user = userRepository.findById(command.userId()).orElse(null);
         if (user == null) {
             return Result.failure(new UserError.UserNotFound());
@@ -61,13 +61,13 @@ public class UpdateUserUseCase {
         return Result.success(toDto(saved));
     }
 
-    private UserDto toDto(User user) {
-        return new UserDto(
+    private UserResponse toDto(User user) {
+        return new UserResponse(
                 user.getId().value(),
                 user.getEmail(),
                 user.getFullName(),
                 user.getPhone(),
-                user.getRole(),
+                user.getRole().name(),
                 user.getCreatedAt());
     }
 }

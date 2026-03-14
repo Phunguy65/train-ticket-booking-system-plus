@@ -1,7 +1,6 @@
 package io.github.phunguy65.ttbs.backend.payment.infrastructure.web;
 
 import io.github.phunguy65.ttbs.backend.booking.domain.model.BookingId;
-import io.github.phunguy65.ttbs.backend.payment.application.response.PaymentResponse;
 import io.github.phunguy65.ttbs.backend.payment.application.usecase.GetPaymentUseCase;
 import io.github.phunguy65.ttbs.backend.payment.domain.error.PaymentError;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.ErrorCode;
@@ -37,18 +36,8 @@ class PaymentController {
         return getPaymentUseCase
                 .execute(BookingId.of(bookingId), UserId.of(userId))
                 .fold(
-                        dto -> ResponseEntity.ok(JsendResponse.success(toResponse(dto))),
+                        dto -> ResponseEntity.ok(JsendResponse.success(dto)),
                         error -> errorResponse(error));
-    }
-
-    private PaymentHttpResponse toResponse(PaymentResponse dto) {
-        return new PaymentHttpResponse(
-                dto.paymentId(),
-                dto.bookingId(),
-                dto.status(),
-                dto.checkoutUrl(),
-                dto.amount(),
-                dto.currency());
     }
 
     private ResponseEntity<JsendResponse<?>> errorResponse(PaymentError error) {

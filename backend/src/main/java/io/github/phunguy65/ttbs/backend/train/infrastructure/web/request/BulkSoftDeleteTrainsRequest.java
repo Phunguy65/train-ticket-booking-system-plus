@@ -6,5 +6,5 @@ import jakarta.validation.constraints.Size;
 import java.util.List;
 import java.util.UUID;
 
-record BulkSoftDeleteTrainsRequest(
+public record BulkSoftDeleteTrainsRequest(
         @NotEmpty @Size(max = 100) List<@NotNull UUID> trainIds) {}

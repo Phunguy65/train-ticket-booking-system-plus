@@ -50,7 +50,6 @@ class UserController {
     private final UpdateUserUseCase updateUserUseCase;
     private final SoftDeleteUserUseCase softDeleteUserUseCase;
     private final BulkSoftDeleteUsersUseCase bulkSoftDeleteUsersUseCase;
-    private final UserRequestMapper mapper;
 
     UserController(
             GetUserByIdUseCase getUserByIdUseCase,
@@ -58,21 +57,19 @@ class UserController {
             ListUsersUseCase listUsersUseCase,
             UpdateUserUseCase updateUserUseCase,
             SoftDeleteUserUseCase softDeleteUserUseCase,
-            BulkSoftDeleteUsersUseCase bulkSoftDeleteUsersUseCase,
-            UserRequestMapper mapper) {
+            BulkSoftDeleteUsersUseCase bulkSoftDeleteUsersUseCase) {
         this.getUserByIdUseCase = getUserByIdUseCase;
         this.createUserUseCase = createUserUseCase;
         this.listUsersUseCase = listUsersUseCase;
         this.updateUserUseCase = updateUserUseCase;
         this.softDeleteUserUseCase = softDeleteUserUseCase;
         this.bulkSoftDeleteUsersUseCase = bulkSoftDeleteUsersUseCase;
-        this.mapper = mapper;
     }
 
     @PostMapping(value = "/{version}/users", version = "1.0")
     ResponseEntity<JsendResponse<?>> create(@Valid @RequestBody CreateUserHttpRequest request) {
         return createUserUseCase
-                .execute(mapper.toCommand(request))
+                .execute(request.toCommand())
                 .fold(
                         result -> {
                             var location = ServletUriComponentsBuilder.fromCurrentRequest()
@@ -80,7 +77,7 @@ class UserController {
                                     .buildAndExpand(result.user().id())
                                     .toUri();
                             return ResponseEntity.created(location)
-                                    .body(JsendResponse.success(mapper.toCreateResponse(result)));
+                                    .body(JsendResponse.success(result));
                         },
                         error -> errorResponse(error));
     }
@@ -90,8 +87,7 @@ class UserController {
         return getUserByIdUseCase
                 .execute(UserId.of(id))
                 .fold(
-                        userDto -> ResponseEntity.ok(
-                                JsendResponse.success(mapper.toResponse(userDto))),
+                        userDto -> ResponseEntity.ok(JsendResponse.success(userDto)),
                         error -> errorResponse(error));
     }
 
@@ -102,8 +98,7 @@ class UserController {
         return getUserByIdUseCase
                 .execute(UserId.of(principalId))
                 .fold(
-                        userDto -> ResponseEntity.ok(
-                                JsendResponse.success(mapper.toResponse(userDto))),
+                        userDto -> ResponseEntity.ok(JsendResponse.success(userDto)),
                         error -> errorResponse(error));
     }
 
@@ -145,13 +140,8 @@ class UserController {
         PageResult<UserResponse> result =
                 listUsersUseCase.execute(page, size, sortField, direction);
 
-        List<UserListHttpResponse> content = result.items().stream()
-                .map(dto -> new UserListHttpResponse(
-                        dto.id(), dto.email(), dto.fullName(), dto.role(), dto.createdAt()))
-                .toList();
-
-        SliceHttpResponse<UserListHttpResponse> sliceResponse = new SliceHttpResponse<>(
-                content,
+        SliceHttpResponse<UserResponse> sliceResponse = new SliceHttpResponse<>(
+                result.items(),
                 result.pageNumber(),
                 result.pageSize(),
                 result.hasNext(),
@@ -165,10 +155,9 @@ class UserController {
     ResponseEntity<JsendResponse<?>> patchById(
             @PathVariable UUID id, @Valid @RequestBody UpdateUserHttpRequest request) {
         return updateUserUseCase
-                .execute(mapper.toUpdateCommand(id, request))
+                .execute(request.toCommand(id))
                 .fold(
-                        userDto -> ResponseEntity.ok(
-                                JsendResponse.success(mapper.toResponse(userDto))),
+                        userDto -> ResponseEntity.ok(JsendResponse.success(userDto)),
                         error -> errorResponse(error));
     }
 
@@ -177,10 +166,9 @@ class UserController {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         UUID principalId = UUID.fromString(auth.getName());
         return updateUserUseCase
-                .execute(mapper.toUpdateCommand(principalId, request))
+                .execute(request.toCommand(principalId))
                 .fold(
-                        userDto -> ResponseEntity.ok(
-                                JsendResponse.success(mapper.toResponse(userDto))),
+                        userDto -> ResponseEntity.ok(JsendResponse.success(userDto)),
                         error -> errorResponse(error));
     }
 

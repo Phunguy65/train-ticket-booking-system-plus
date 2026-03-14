@@ -8,7 +8,7 @@ import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.JsendResponse;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.SliceHttpResponse;
 import io.github.phunguy65.ttbs.backend.station.application.command.BulkSoftDeleteStationsCommand;
 import io.github.phunguy65.ttbs.backend.station.application.command.SoftDeleteStationCommand;
-import io.github.phunguy65.ttbs.backend.station.application.response.StationDto;
+import io.github.phunguy65.ttbs.backend.station.application.response.StationResponse;
 import io.github.phunguy65.ttbs.backend.station.application.usecase.BulkSoftDeleteStationsUseCase;
 import io.github.phunguy65.ttbs.backend.station.application.usecase.CreateStationUseCase;
 import io.github.phunguy65.ttbs.backend.station.application.usecase.GetStationByIdUseCase;
@@ -17,9 +17,9 @@ import io.github.phunguy65.ttbs.backend.station.application.usecase.SoftDeleteSt
 import io.github.phunguy65.ttbs.backend.station.application.usecase.UpdateStationUseCase;
 import io.github.phunguy65.ttbs.backend.station.domain.error.StationError;
 import io.github.phunguy65.ttbs.backend.station.domain.model.StationId;
-import io.github.phunguy65.ttbs.backend.station.infrastructure.web.request.BulkSoftDeleteStationsHttpRequest;
-import io.github.phunguy65.ttbs.backend.station.infrastructure.web.request.CreateStationHttpRequest;
-import io.github.phunguy65.ttbs.backend.station.infrastructure.web.request.UpdateStationHttpRequest;
+import io.github.phunguy65.ttbs.backend.station.infrastructure.web.request.BulkSoftDeleteStationsRequest;
+import io.github.phunguy65.ttbs.backend.station.infrastructure.web.request.CreateStationRequest;
+import io.github.phunguy65.ttbs.backend.station.infrastructure.web.request.PatchStationRequest;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Map;
@@ -50,7 +50,6 @@ class StationController {
     private final UpdateStationUseCase updateStationUseCase;
     private final SoftDeleteStationUseCase softDeleteStationUseCase;
     private final BulkSoftDeleteStationsUseCase bulkSoftDeleteStationsUseCase;
-    private final StationRequestMapper mapper;
 
     StationController(
             CreateStationUseCase createStationUseCase,
@@ -58,22 +57,20 @@ class StationController {
             GetStationsUseCase getStationsUseCase,
             UpdateStationUseCase updateStationUseCase,
             SoftDeleteStationUseCase softDeleteStationUseCase,
-            BulkSoftDeleteStationsUseCase bulkSoftDeleteStationsUseCase,
-            StationRequestMapper mapper) {
+            BulkSoftDeleteStationsUseCase bulkSoftDeleteStationsUseCase) {
         this.createStationUseCase = createStationUseCase;
         this.getStationByIdUseCase = getStationByIdUseCase;
         this.getStationsUseCase = getStationsUseCase;
         this.updateStationUseCase = updateStationUseCase;
         this.softDeleteStationUseCase = softDeleteStationUseCase;
         this.bulkSoftDeleteStationsUseCase = bulkSoftDeleteStationsUseCase;
-        this.mapper = mapper;
     }
 
     @PostMapping(value = "/{version}/stations", version = "1.0")
     @PreAuthorize("hasRole('ADMIN')")
-    ResponseEntity<JsendResponse<?>> create(@Valid @RequestBody CreateStationHttpRequest request) {
+    ResponseEntity<JsendResponse<?>> create(@Valid @RequestBody CreateStationRequest request) {
         return createStationUseCase
-                .execute(mapper.toCommand(request))
+                .execute(request.toCommand())
                 .fold(
                         dto -> {
                             var location = ServletUriComponentsBuilder.fromCurrentRequest()
@@ -81,7 +78,7 @@ class StationController {
                                     .buildAndExpand(dto.id())
                                     .toUri();
                             return ResponseEntity.created(location)
-                                    .body(JsendResponse.success(mapper.toResponse(dto)));
+                                    .body(JsendResponse.success(dto));
                         },
                         error -> errorResponse(error));
     }
@@ -121,14 +118,11 @@ class StationController {
                             List.of())));
         }
 
-        PageResult<StationDto> result =
+        PageResult<StationResponse> result =
                 getStationsUseCase.execute(page, size, sortField, direction);
 
-        List<StationHttpResponse> content =
-                result.items().stream().map(mapper::toResponse).toList();
-
-        SliceHttpResponse<StationHttpResponse> sliceResponse = new SliceHttpResponse<>(
-                content,
+        SliceHttpResponse<StationResponse> sliceResponse = new SliceHttpResponse<>(
+                result.items(),
                 result.pageNumber(),
                 result.pageSize(),
                 result.hasNext(),
@@ -142,18 +136,18 @@ class StationController {
         return getStationByIdUseCase
                 .execute(StationId.of(id))
                 .fold(
-                        dto -> ResponseEntity.ok(JsendResponse.success(mapper.toResponse(dto))),
+                        dto -> ResponseEntity.ok(JsendResponse.success(dto)),
                         error -> errorResponse(error));
     }
 
     @PatchMapping(value = "/{version}/stations/{id}", version = "1.0")
     @PreAuthorize("hasRole('ADMIN')")
     ResponseEntity<JsendResponse<?>> patchById(
-            @PathVariable UUID id, @Valid @RequestBody UpdateStationHttpRequest request) {
+            @PathVariable UUID id, @Valid @RequestBody PatchStationRequest request) {
         return updateStationUseCase
-                .execute(mapper.toUpdateCommand(id, request))
+                .execute(request.toCommand(id))
                 .fold(
-                        dto -> ResponseEntity.ok(JsendResponse.success(mapper.toResponse(dto))),
+                        dto -> ResponseEntity.ok(JsendResponse.success(dto)),
                         error -> errorResponse(error));
     }
 
@@ -170,7 +164,7 @@ class StationController {
     @PostMapping(value = "/{version}/stations:bulkDelete", version = "1.0")
     @PreAuthorize("hasRole('ADMIN')")
     ResponseEntity<JsendResponse<?>> bulkDelete(
-            @Valid @RequestBody BulkSoftDeleteStationsHttpRequest request) {
+            @Valid @RequestBody BulkSoftDeleteStationsRequest request) {
         List<StationId> stationIds =
                 request.stationIds().stream().map(StationId::of).toList();
         return bulkSoftDeleteStationsUseCase

@@ -6,5 +6,5 @@ import jakarta.validation.constraints.Size;
 import java.util.List;
 import java.util.UUID;
 
-record BulkSoftDeleteStationsRequest(
+public record BulkSoftDeleteStationsRequest(
         @NotEmpty @Size(max = 100) List<@NotNull UUID> stationIds) {}

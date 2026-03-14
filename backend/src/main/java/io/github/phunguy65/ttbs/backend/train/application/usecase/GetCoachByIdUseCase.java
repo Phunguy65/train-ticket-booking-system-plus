@@ -1,7 +1,7 @@
 package io.github.phunguy65.ttbs.backend.train.application.usecase;
 
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
-import io.github.phunguy65.ttbs.backend.train.application.response.CoachDto;
+import io.github.phunguy65.ttbs.backend.train.application.response.CoachResponse;
 import io.github.phunguy65.ttbs.backend.train.domain.error.CoachError;
 import io.github.phunguy65.ttbs.backend.train.domain.model.Coach;
 import io.github.phunguy65.ttbs.backend.train.domain.model.CoachId;
@@ -20,16 +20,16 @@ public class GetCoachByIdUseCase {
     }
 
     @Transactional(readOnly = true)
-    public Result<CoachDto, CoachError> execute(CoachId coachId, TrainId trainId) {
+    public Result<CoachResponse, CoachError> execute(CoachId coachId, TrainId trainId) {
         return coachRepository
                 .findById(coachId)
                 .filter(coach -> coach.getTrainId().equals(trainId))
-                .map(coach -> Result.<CoachDto, CoachError>success(toDto(coach)))
+                .map(coach -> Result.<CoachResponse, CoachError>success(toDto(coach)))
                 .orElseGet(() -> Result.failure(new CoachError.CoachNotFound()));
     }
 
-    private CoachDto toDto(Coach coach) {
-        return new CoachDto(
+    private CoachResponse toDto(Coach coach) {
+        return new CoachResponse(
                 coach.getId().value(),
                 coach.getTrainId().value(),
                 coach.getCarNumber(),

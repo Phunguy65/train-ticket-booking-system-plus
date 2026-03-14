@@ -59,7 +59,7 @@ public class CreateUserUseCase {
                 user.getEmail(),
                 user.getFullName(),
                 user.getPhone(),
-                user.getRole(),
+                user.getRole().name(),
                 user.getCreatedAt());
     }
 }

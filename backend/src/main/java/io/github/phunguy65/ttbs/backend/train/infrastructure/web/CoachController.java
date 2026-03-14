@@ -5,6 +5,7 @@ import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.FailData;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.JsendResponse;
 import io.github.phunguy65.ttbs.backend.train.application.command.BulkSoftDeleteCoachesCommand;
 import io.github.phunguy65.ttbs.backend.train.application.command.SoftDeleteCoachCommand;
+import io.github.phunguy65.ttbs.backend.train.application.response.CoachResponse;
 import io.github.phunguy65.ttbs.backend.train.application.usecase.BulkCreateCoachesUseCase;
 import io.github.phunguy65.ttbs.backend.train.application.usecase.BulkSoftDeleteCoachesUseCase;
 import io.github.phunguy65.ttbs.backend.train.application.usecase.CreateCoachUseCase;
@@ -14,9 +15,9 @@ import io.github.phunguy65.ttbs.backend.train.application.usecase.SoftDeleteCoac
 import io.github.phunguy65.ttbs.backend.train.domain.error.CoachError;
 import io.github.phunguy65.ttbs.backend.train.domain.model.CoachId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.TrainId;
-import io.github.phunguy65.ttbs.backend.train.infrastructure.web.request.BulkCreateCoachesHttpRequest;
-import io.github.phunguy65.ttbs.backend.train.infrastructure.web.request.BulkSoftDeleteCoachesHttpRequest;
-import io.github.phunguy65.ttbs.backend.train.infrastructure.web.request.CreateCoachHttpRequest;
+import io.github.phunguy65.ttbs.backend.train.infrastructure.web.request.BulkCreateCoachesRequest;
+import io.github.phunguy65.ttbs.backend.train.infrastructure.web.request.BulkSoftDeleteCoachesRequest;
+import io.github.phunguy65.ttbs.backend.train.infrastructure.web.request.CreateCoachRequest;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Map;
@@ -41,7 +42,6 @@ class CoachController {
     private final SoftDeleteCoachUseCase softDeleteCoachUseCase;
     private final BulkSoftDeleteCoachesUseCase bulkSoftDeleteCoachesUseCase;
     private final BulkCreateCoachesUseCase bulkCreateCoachesUseCase;
-    private final CoachRequestMapper mapper;
 
     CoachController(
             CreateCoachUseCase createCoachUseCase,
@@ -49,23 +49,21 @@ class CoachController {
             GetCoachesByTrainUseCase getCoachesByTrainUseCase,
             SoftDeleteCoachUseCase softDeleteCoachUseCase,
             BulkSoftDeleteCoachesUseCase bulkSoftDeleteCoachesUseCase,
-            BulkCreateCoachesUseCase bulkCreateCoachesUseCase,
-            CoachRequestMapper mapper) {
+            BulkCreateCoachesUseCase bulkCreateCoachesUseCase) {
         this.createCoachUseCase = createCoachUseCase;
         this.getCoachByIdUseCase = getCoachByIdUseCase;
         this.getCoachesByTrainUseCase = getCoachesByTrainUseCase;
         this.softDeleteCoachUseCase = softDeleteCoachUseCase;
         this.bulkSoftDeleteCoachesUseCase = bulkSoftDeleteCoachesUseCase;
         this.bulkCreateCoachesUseCase = bulkCreateCoachesUseCase;
-        this.mapper = mapper;
     }
 
     @PostMapping(value = "/{version}/trains/{trainId}/coaches", version = "1.0")
     @PreAuthorize("hasRole('ADMIN')")
     ResponseEntity<JsendResponse<?>> createCoach(
-            @PathVariable UUID trainId, @Valid @RequestBody CreateCoachHttpRequest request) {
+            @PathVariable UUID trainId, @Valid @RequestBody CreateCoachRequest request) {
         return createCoachUseCase
-                .execute(mapper.toCommand(trainId, request))
+                .execute(request.toCommand(trainId))
                 .fold(
                         dto -> {
                             var location = ServletUriComponentsBuilder.fromCurrentRequest()
@@ -73,17 +71,14 @@ class CoachController {
                                     .buildAndExpand(dto.id())
                                     .toUri();
                             return ResponseEntity.created(location)
-                                    .body(JsendResponse.success(mapper.toResponse(dto)));
+                                    .body(JsendResponse.success(dto));
                         },
                         this::coachErrorResponse);
     }
 
     @GetMapping(value = "/{version}/trains/{trainId}/coaches", version = "1.0")
     ResponseEntity<JsendResponse<?>> getCoachesByTrain(@PathVariable UUID trainId) {
-        List<CoachHttpResponse> responses =
-                getCoachesByTrainUseCase.execute(TrainId.of(trainId)).stream()
-                        .map(mapper::toResponse)
-                        .toList();
+        List<CoachResponse> responses = getCoachesByTrainUseCase.execute(TrainId.of(trainId));
         return ResponseEntity.ok(JsendResponse.success(responses));
     }
 
@@ -93,7 +88,7 @@ class CoachController {
         return getCoachByIdUseCase
                 .execute(CoachId.of(id), TrainId.of(trainId))
                 .fold(
-                        dto -> ResponseEntity.ok(JsendResponse.success(mapper.toResponse(dto))),
+                        dto -> ResponseEntity.ok(JsendResponse.success(dto)),
                         this::coachErrorResponse);
     }
 
@@ -108,7 +103,7 @@ class CoachController {
     @PostMapping(value = "/{version}/coaches:bulkDelete", version = "1.0")
     @PreAuthorize("hasRole('ADMIN')")
     ResponseEntity<JsendResponse<?>> bulkDelete(
-            @Valid @RequestBody BulkSoftDeleteCoachesHttpRequest request) {
+            @Valid @RequestBody BulkSoftDeleteCoachesRequest request) {
         List<CoachId> coachIds = request.coachIds().stream().map(CoachId::of).toList();
         return bulkSoftDeleteCoachesUseCase
                 .execute(new BulkSoftDeleteCoachesCommand(coachIds))
@@ -121,12 +116,12 @@ class CoachController {
     @PostMapping(value = "/{version}/trains/{trainId}/coaches:bulkCreate", version = "1.0")
     @PreAuthorize("hasRole('ADMIN')")
     ResponseEntity<JsendResponse<?>> bulkCreateCoaches(
-            @PathVariable UUID trainId, @Valid @RequestBody BulkCreateCoachesHttpRequest request) {
+            @PathVariable UUID trainId, @Valid @RequestBody BulkCreateCoachesRequest request) {
         return bulkCreateCoachesUseCase
-                .execute(mapper.toBulkCommand(trainId, request))
+                .execute(request.toCommand(trainId))
                 .fold(
                         dtos -> ResponseEntity.status(HttpStatus.CREATED)
-                                .body(JsendResponse.success(mapper.toResponseList(dtos))),
+                                .body(JsendResponse.success(dtos)),
                         this::coachErrorResponse);
     }
 

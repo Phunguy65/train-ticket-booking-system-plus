@@ -5,6 +5,7 @@ import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.FailData;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.JsendResponse;
 import io.github.phunguy65.ttbs.backend.train.application.command.BulkSoftDeleteSeatsCommand;
 import io.github.phunguy65.ttbs.backend.train.application.command.SoftDeleteSeatCommand;
+import io.github.phunguy65.ttbs.backend.train.application.response.SeatResponse;
 import io.github.phunguy65.ttbs.backend.train.application.usecase.BulkCreateSeatsUseCase;
 import io.github.phunguy65.ttbs.backend.train.application.usecase.BulkSoftDeleteSeatsUseCase;
 import io.github.phunguy65.ttbs.backend.train.application.usecase.CreateSeatUseCase;
@@ -13,9 +14,9 @@ import io.github.phunguy65.ttbs.backend.train.application.usecase.GetSeatsByTrai
 import io.github.phunguy65.ttbs.backend.train.application.usecase.SoftDeleteSeatUseCase;
 import io.github.phunguy65.ttbs.backend.train.domain.error.SeatError;
 import io.github.phunguy65.ttbs.backend.train.domain.model.SeatId;
-import io.github.phunguy65.ttbs.backend.train.infrastructure.web.request.BulkCreateSeatsHttpRequest;
-import io.github.phunguy65.ttbs.backend.train.infrastructure.web.request.BulkSoftDeleteSeatsHttpRequest;
-import io.github.phunguy65.ttbs.backend.train.infrastructure.web.request.CreateSeatHttpRequest;
+import io.github.phunguy65.ttbs.backend.train.infrastructure.web.request.BulkCreateSeatsRequest;
+import io.github.phunguy65.ttbs.backend.train.infrastructure.web.request.BulkSoftDeleteSeatsRequest;
+import io.github.phunguy65.ttbs.backend.train.infrastructure.web.request.CreateSeatRequest;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Map;
@@ -40,7 +41,6 @@ class SeatController {
     private final SoftDeleteSeatUseCase softDeleteSeatUseCase;
     private final BulkSoftDeleteSeatsUseCase bulkSoftDeleteSeatsUseCase;
     private final BulkCreateSeatsUseCase bulkCreateSeatsUseCase;
-    private final SeatRequestMapper mapper;
 
     SeatController(
             CreateSeatUseCase createSeatUseCase,
@@ -48,23 +48,21 @@ class SeatController {
             GetAvailableSeatsForRouteUseCase getAvailableSeatsForRouteUseCase,
             SoftDeleteSeatUseCase softDeleteSeatUseCase,
             BulkSoftDeleteSeatsUseCase bulkSoftDeleteSeatsUseCase,
-            BulkCreateSeatsUseCase bulkCreateSeatsUseCase,
-            SeatRequestMapper mapper) {
+            BulkCreateSeatsUseCase bulkCreateSeatsUseCase) {
         this.createSeatUseCase = createSeatUseCase;
         this.getSeatsByTrainUseCase = getSeatsByTrainUseCase;
         this.getAvailableSeatsForRouteUseCase = getAvailableSeatsForRouteUseCase;
         this.softDeleteSeatUseCase = softDeleteSeatUseCase;
         this.bulkSoftDeleteSeatsUseCase = bulkSoftDeleteSeatsUseCase;
         this.bulkCreateSeatsUseCase = bulkCreateSeatsUseCase;
-        this.mapper = mapper;
     }
 
     @PostMapping(value = "/{version}/trains/{trainId}/seats", version = "1.0")
     @PreAuthorize("hasRole('ADMIN')")
     ResponseEntity<JsendResponse<?>> createSeat(
-            @PathVariable UUID trainId, @Valid @RequestBody CreateSeatHttpRequest request) {
+            @PathVariable UUID trainId, @Valid @RequestBody CreateSeatRequest request) {
         return createSeatUseCase
-                .execute(mapper.toCommand(trainId, request))
+                .execute(request.toCommand(trainId))
                 .fold(
                         dto -> {
                             var location = ServletUriComponentsBuilder.fromCurrentRequest()
@@ -72,25 +70,20 @@ class SeatController {
                                     .buildAndExpand(dto.id())
                                     .toUri();
                             return ResponseEntity.created(location)
-                                    .body(JsendResponse.success(mapper.toResponse(dto)));
+                                    .body(JsendResponse.success(dto));
                         },
                         this::seatErrorResponse);
     }
 
     @GetMapping(value = "/{version}/trains/{trainId}/seats", version = "1.0")
     ResponseEntity<JsendResponse<?>> getSeatsByTrain(@PathVariable UUID trainId) {
-        List<SeatHttpResponse> responses = getSeatsByTrainUseCase.execute(trainId).stream()
-                .map(mapper::toResponse)
-                .toList();
+        List<SeatResponse> responses = getSeatsByTrainUseCase.execute(trainId);
         return ResponseEntity.ok(JsendResponse.success(responses));
     }
 
     @GetMapping(value = "/{version}/routes/{routeId}/seats/available", version = "1.0")
     ResponseEntity<JsendResponse<?>> getAvailableSeats(@PathVariable UUID routeId) {
-        List<SeatHttpResponse> responses =
-                getAvailableSeatsForRouteUseCase.execute(routeId).stream()
-                        .map(mapper::toResponse)
-                        .toList();
+        List<SeatResponse> responses = getAvailableSeatsForRouteUseCase.execute(routeId);
         return ResponseEntity.ok(JsendResponse.success(responses));
     }
 
@@ -105,7 +98,7 @@ class SeatController {
     @PostMapping(value = "/{version}/seats:bulkDelete", version = "1.0")
     @PreAuthorize("hasRole('ADMIN')")
     ResponseEntity<JsendResponse<?>> bulkDelete(
-            @Valid @RequestBody BulkSoftDeleteSeatsHttpRequest request) {
+            @Valid @RequestBody BulkSoftDeleteSeatsRequest request) {
         List<SeatId> seatIds = request.seatIds().stream().map(SeatId::of).toList();
         return bulkSoftDeleteSeatsUseCase
                 .execute(new BulkSoftDeleteSeatsCommand(seatIds))
@@ -118,12 +111,12 @@ class SeatController {
     @PostMapping(value = "/{version}/coaches/{coachId}/seats:bulkCreate", version = "1.0")
     @PreAuthorize("hasRole('ADMIN')")
     ResponseEntity<JsendResponse<?>> bulkCreateSeats(
-            @PathVariable UUID coachId, @Valid @RequestBody BulkCreateSeatsHttpRequest request) {
+            @PathVariable UUID coachId, @Valid @RequestBody BulkCreateSeatsRequest request) {
         return bulkCreateSeatsUseCase
-                .execute(mapper.toBulkCommand(coachId, request))
+                .execute(request.toCommand(coachId))
                 .fold(
                         dtos -> ResponseEntity.status(HttpStatus.CREATED)
-                                .body(JsendResponse.success(mapper.toResponseList(dtos))),
+                                .body(JsendResponse.success(dtos)),
                         this::seatErrorResponse);
     }
 

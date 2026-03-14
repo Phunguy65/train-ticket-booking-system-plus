@@ -56,7 +56,7 @@ public class RegisterUserUseCase {
                 user.getEmail(),
                 user.getFullName(),
                 user.getPhone(),
-                user.getRole(),
+                user.getRole().name(),
                 user.getCreatedAt());
     }
 }

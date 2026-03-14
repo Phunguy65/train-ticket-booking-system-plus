@@ -1,5 +1,6 @@
 package io.github.phunguy65.ttbs.backend.user.infrastructure.web;
 
+import io.github.phunguy65.ttbs.backend.user.application.command.CreateUserCommand;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 
@@ -8,4 +9,9 @@ record CreateUserHttpRequest(
 
         @NotBlank(message = "Full name is required") String fullName,
 
-        String phone) {}
+        String phone) {
+
+    CreateUserCommand toCommand() {
+        return new CreateUserCommand(email, fullName, phone);
+    }
+}

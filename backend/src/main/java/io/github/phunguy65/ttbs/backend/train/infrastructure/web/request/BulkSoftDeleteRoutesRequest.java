@@ -6,5 +6,5 @@ import jakarta.validation.constraints.Size;
 import java.util.List;
 import java.util.UUID;
 
-record BulkSoftDeleteRoutesRequest(
+public record BulkSoftDeleteRoutesRequest(
         @NotEmpty @Size(max = 100) List<@NotNull UUID> routeIds) {}

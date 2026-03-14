@@ -18,9 +18,9 @@ import io.github.phunguy65.ttbs.backend.train.application.usecase.UpdateRouteUse
 import io.github.phunguy65.ttbs.backend.train.domain.error.RouteError;
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteFilter;
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteId;
-import io.github.phunguy65.ttbs.backend.train.infrastructure.web.request.BulkSoftDeleteRoutesHttpRequest;
-import io.github.phunguy65.ttbs.backend.train.infrastructure.web.request.CreateRouteHttpRequest;
-import io.github.phunguy65.ttbs.backend.train.infrastructure.web.request.UpdateRouteHttpRequest;
+import io.github.phunguy65.ttbs.backend.train.infrastructure.web.request.BulkSoftDeleteRoutesRequest;
+import io.github.phunguy65.ttbs.backend.train.infrastructure.web.request.CreateRouteRequest;
+import io.github.phunguy65.ttbs.backend.train.infrastructure.web.request.PatchRouteRequest;
 import jakarta.validation.Valid;
 import java.time.Instant;
 import java.util.List;
@@ -52,7 +52,6 @@ class RouteController {
     private final UpdateRouteUseCase updateRouteUseCase;
     private final SoftDeleteRouteUseCase softDeleteRouteUseCase;
     private final BulkSoftDeleteRoutesUseCase bulkSoftDeleteRoutesUseCase;
-    private final RouteRequestMapper mapper;
 
     RouteController(
             CreateRouteUseCase createRouteUseCase,
@@ -60,22 +59,20 @@ class RouteController {
             GetRoutesUseCase getRoutesUseCase,
             UpdateRouteUseCase updateRouteUseCase,
             SoftDeleteRouteUseCase softDeleteRouteUseCase,
-            BulkSoftDeleteRoutesUseCase bulkSoftDeleteRoutesUseCase,
-            RouteRequestMapper mapper) {
+            BulkSoftDeleteRoutesUseCase bulkSoftDeleteRoutesUseCase) {
         this.createRouteUseCase = createRouteUseCase;
         this.getRouteByIdUseCase = getRouteByIdUseCase;
         this.getRoutesUseCase = getRoutesUseCase;
         this.updateRouteUseCase = updateRouteUseCase;
         this.softDeleteRouteUseCase = softDeleteRouteUseCase;
         this.bulkSoftDeleteRoutesUseCase = bulkSoftDeleteRoutesUseCase;
-        this.mapper = mapper;
     }
 
     @PostMapping(value = "/{version}/routes", version = "1.0")
     @PreAuthorize("hasRole('ADMIN')")
-    ResponseEntity<JsendResponse<?>> create(@Valid @RequestBody CreateRouteHttpRequest request) {
+    ResponseEntity<JsendResponse<?>> create(@Valid @RequestBody CreateRouteRequest request) {
         return createRouteUseCase
-                .execute(mapper.toCommand(request))
+                .execute(request.toCommand())
                 .fold(
                         dto -> {
                             var location = ServletUriComponentsBuilder.fromCurrentRequest()
@@ -83,7 +80,7 @@ class RouteController {
                                     .buildAndExpand(dto.id())
                                     .toUri();
                             return ResponseEntity.created(location)
-                                    .body(JsendResponse.success(mapper.toResponse(dto)));
+                                    .body(JsendResponse.success(dto));
                         },
                         error -> errorResponse(error));
     }
@@ -132,11 +129,8 @@ class RouteController {
         PageResult<RouteResponse> result =
                 getRoutesUseCase.execute(page, size, sortField, direction, filter);
 
-        List<RouteHttpResponse> content =
-                result.items().stream().map(mapper::toResponse).toList();
-
-        SliceHttpResponse<RouteHttpResponse> sliceResponse = new SliceHttpResponse<>(
-                content,
+        SliceHttpResponse<RouteResponse> sliceResponse = new SliceHttpResponse<>(
+                result.items(),
                 result.pageNumber(),
                 result.pageSize(),
                 result.hasNext(),
@@ -150,18 +144,18 @@ class RouteController {
         return getRouteByIdUseCase
                 .execute(RouteId.of(id))
                 .fold(
-                        dto -> ResponseEntity.ok(JsendResponse.success(mapper.toResponse(dto))),
+                        dto -> ResponseEntity.ok(JsendResponse.success(dto)),
                         error -> errorResponse(error));
     }
 
     @PatchMapping(value = "/{version}/routes/{id}", version = "1.0")
     @PreAuthorize("hasRole('ADMIN')")
     ResponseEntity<JsendResponse<?>> patchById(
-            @PathVariable UUID id, @Valid @RequestBody UpdateRouteHttpRequest request) {
+            @PathVariable UUID id, @Valid @RequestBody PatchRouteRequest request) {
         return updateRouteUseCase
-                .execute(mapper.toUpdateCommand(id, request))
+                .execute(request.toCommand(id))
                 .fold(
-                        dto -> ResponseEntity.ok(JsendResponse.success(mapper.toResponse(dto))),
+                        dto -> ResponseEntity.ok(JsendResponse.success(dto)),
                         error -> errorResponse(error));
     }
 
@@ -178,7 +172,7 @@ class RouteController {
     @PostMapping(value = "/{version}/routes:bulkDelete", version = "1.0")
     @PreAuthorize("hasRole('ADMIN')")
     ResponseEntity<JsendResponse<?>> bulkDelete(
-            @Valid @RequestBody BulkSoftDeleteRoutesHttpRequest request) {
+            @Valid @RequestBody BulkSoftDeleteRoutesRequest request) {
         List<RouteId> routeIds = request.routeIds().stream().map(RouteId::of).toList();
         return bulkSoftDeleteRoutesUseCase
                 .execute(new BulkSoftDeleteRoutesCommand(routeIds))
