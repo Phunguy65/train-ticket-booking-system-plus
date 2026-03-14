@@ -2,10 +2,10 @@ package io.github.phunguy65.ttbs.backend.user;
 
 import static org.assertj.core.api.Assertions.*;
 
-import io.github.phunguy65.ttbs.backend.shared.domain.PageResult;
-import io.github.phunguy65.ttbs.backend.shared.domain.SortDirection;
+import io.github.phunguy65.ttbs.backend.shared.application.response.PageResponse;
 import io.github.phunguy65.ttbs.backend.user.application.command.RegisterUserCommand;
 import io.github.phunguy65.ttbs.backend.user.application.port.BookingValidationPort;
+import io.github.phunguy65.ttbs.backend.user.application.query.GetUsersQuery;
 import io.github.phunguy65.ttbs.backend.user.application.response.UserResponse;
 import io.github.phunguy65.ttbs.backend.user.application.usecase.ListUsersUseCase;
 import io.github.phunguy65.ttbs.backend.user.application.usecase.RegisterUserUseCase;
@@ -58,14 +58,13 @@ class UserModuleTest {
 
     @Test
     void listUsers_emptyDatabase_returnsEmptySlice() {
-        PageResult<UserResponse> result =
-                listUsersUseCase.execute(0, 20, "createdAt", SortDirection.DESC);
+        PageResponse<UserResponse> result = listUsersUseCase.execute(new GetUsersQuery(0, 20));
 
-        assertThat(result.items()).isEmpty();
+        assertThat(result.content()).isEmpty();
         assertThat(result.hasNext()).isFalse();
         assertThat(result.hasPrevious()).isFalse();
-        assertThat(result.pageNumber()).isEqualTo(0);
-        assertThat(result.pageSize()).isEqualTo(20);
+        assertThat(result.page()).isEqualTo(0);
+        assertThat(result.size()).isEqualTo(20);
     }
 
     @Test
@@ -75,10 +74,9 @@ class UserModuleTest {
         registerUserUseCase.execute(
                 new RegisterUserCommand("list2@example.com", "password456", "List User Two", null));
 
-        PageResult<UserResponse> result =
-                listUsersUseCase.execute(0, 10, "email", SortDirection.ASC);
+        PageResponse<UserResponse> result = listUsersUseCase.execute(new GetUsersQuery(0, 10));
 
-        assertThat(result.items())
+        assertThat(result.content())
                 .hasSizeGreaterThanOrEqualTo(2)
                 .extracting(UserResponse::email)
                 .contains("list1@example.com", "list2@example.com");
@@ -92,10 +90,9 @@ class UserModuleTest {
         registerUserUseCase.execute(
                 new RegisterUserCommand("page2@example.com", "password456", "Page User Two", null));
 
-        PageResult<UserResponse> result =
-                listUsersUseCase.execute(0, 1, "email", SortDirection.ASC);
+        PageResponse<UserResponse> result = listUsersUseCase.execute(new GetUsersQuery(0, 1));
 
-        assertThat(result.items()).hasSize(1);
+        assertThat(result.content()).hasSize(1);
         assertThat(result.hasNext()).isTrue();
         assertThat(result.hasPrevious()).isFalse();
     }

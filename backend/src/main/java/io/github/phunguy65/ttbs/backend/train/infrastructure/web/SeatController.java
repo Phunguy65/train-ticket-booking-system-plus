@@ -1,5 +1,6 @@
 package io.github.phunguy65.ttbs.backend.train.infrastructure.web;
 
+import io.github.phunguy65.ttbs.backend.shared.application.response.PageResponse;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.ErrorCode;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.FailData;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.JsendResponse;
@@ -17,6 +18,8 @@ import io.github.phunguy65.ttbs.backend.train.domain.model.SeatId;
 import io.github.phunguy65.ttbs.backend.train.infrastructure.web.request.BulkCreateSeatsRequest;
 import io.github.phunguy65.ttbs.backend.train.infrastructure.web.request.BulkSoftDeleteSeatsRequest;
 import io.github.phunguy65.ttbs.backend.train.infrastructure.web.request.CreateSeatRequest;
+import io.github.phunguy65.ttbs.backend.train.infrastructure.web.request.GetAvailableSeatsRequest;
+import io.github.phunguy65.ttbs.backend.train.infrastructure.web.request.GetSeatsRequest;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Map;
@@ -26,6 +29,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -76,15 +80,19 @@ class SeatController {
     }
 
     @GetMapping(value = "/{version}/trains/{trainId}/seats", version = "1.0")
-    ResponseEntity<JsendResponse<?>> getSeatsByTrain(@PathVariable UUID trainId) {
-        List<SeatResponse> responses = getSeatsByTrainUseCase.execute(trainId);
-        return ResponseEntity.ok(JsendResponse.success(responses));
+    ResponseEntity<JsendResponse<?>> getSeatsByTrain(
+            @PathVariable UUID trainId, @ModelAttribute @Valid GetSeatsRequest request) {
+        PageResponse<SeatResponse> result =
+                getSeatsByTrainUseCase.execute(request.toQuery(trainId));
+        return ResponseEntity.ok(JsendResponse.success(result));
     }
 
     @GetMapping(value = "/{version}/routes/{routeId}/seats/available", version = "1.0")
-    ResponseEntity<JsendResponse<?>> getAvailableSeats(@PathVariable UUID routeId) {
-        List<SeatResponse> responses = getAvailableSeatsForRouteUseCase.execute(routeId);
-        return ResponseEntity.ok(JsendResponse.success(responses));
+    ResponseEntity<JsendResponse<?>> getAvailableSeats(
+            @PathVariable UUID routeId, @ModelAttribute @Valid GetAvailableSeatsRequest request) {
+        PageResponse<SeatResponse> result =
+                getAvailableSeatsForRouteUseCase.execute(request.toQuery(routeId));
+        return ResponseEntity.ok(JsendResponse.success(result));
     }
 
     @DeleteMapping(value = "/{version}/seats/{id}", version = "1.0")

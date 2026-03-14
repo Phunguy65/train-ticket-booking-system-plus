@@ -1,5 +1,7 @@
 package io.github.phunguy65.ttbs.backend.train.infrastructure.persistence;
 
+import io.github.phunguy65.ttbs.backend.shared.application.response.PageResponse;
+import io.github.phunguy65.ttbs.backend.shared.domain.SortOrder;
 import io.github.phunguy65.ttbs.backend.train.domain.model.Coach;
 import io.github.phunguy65.ttbs.backend.train.domain.model.CoachId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.TrainId;
@@ -8,6 +10,9 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -48,6 +53,14 @@ class CoachRepositoryAdapter implements CoachRepository {
     }
 
     @Override
+    public PageResponse<Coach> findAll(int page, int size, List<SortOrder> sort, TrainId trainId) {
+        PageRequest pageable = PageRequest.of(page, size, toSpringSort(sort));
+        Page<CoachEntity> result = jpaRepository.findAllActiveByTrainId(trainId.value(), pageable);
+        List<Coach> items = result.getContent().stream().map(mapper::toDomain).toList();
+        return PageResponse.of(items, page, size, result.hasNext(), result.getTotalElements());
+    }
+
+    @Override
     public boolean existsByTrainIdAndCarNumber(TrainId trainId, int carNumber) {
         return jpaRepository.existsByTrainIdAndCarNumberAndDeletedAtIsNull(
                 trainId.value(), carNumber);
@@ -70,5 +83,14 @@ class CoachRepositoryAdapter implements CoachRepository {
         return jpaRepository.findActiveIdsByTrainIds(uuids).stream()
                 .map(CoachId::of)
                 .toList();
+    }
+
+    private Sort toSpringSort(List<SortOrder> orders) {
+        List<Sort.Order> springOrders = orders.stream()
+                .map(o -> o.direction() == SortOrder.Direction.ASC
+                        ? Sort.Order.asc(o.field())
+                        : Sort.Order.desc(o.field()))
+                .toList();
+        return Sort.by(springOrders);
     }
 }

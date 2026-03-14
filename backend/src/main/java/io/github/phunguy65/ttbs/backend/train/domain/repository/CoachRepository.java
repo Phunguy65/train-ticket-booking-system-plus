@@ -1,5 +1,7 @@
 package io.github.phunguy65.ttbs.backend.train.domain.repository;
 
+import io.github.phunguy65.ttbs.backend.shared.application.response.PageResponse;
+import io.github.phunguy65.ttbs.backend.shared.domain.SortOrder;
 import io.github.phunguy65.ttbs.backend.train.domain.model.Coach;
 import io.github.phunguy65.ttbs.backend.train.domain.model.CoachId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.TrainId;
@@ -21,6 +23,8 @@ public interface CoachRepository {
     Optional<Coach> findById(CoachId id);
 
     List<Coach> findByTrainId(TrainId trainId);
+
+    PageResponse<Coach> findAll(int page, int size, List<SortOrder> sort, TrainId trainId);
 
     List<CoachId> findActiveIdsByTrainIds(List<TrainId> trainIds);
 

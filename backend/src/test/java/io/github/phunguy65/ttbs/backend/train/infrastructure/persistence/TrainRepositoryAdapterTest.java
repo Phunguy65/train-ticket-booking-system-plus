@@ -2,11 +2,12 @@ package io.github.phunguy65.ttbs.backend.train.infrastructure.persistence;
 
 import static org.assertj.core.api.Assertions.*;
 
-import io.github.phunguy65.ttbs.backend.shared.domain.PageResult;
-import io.github.phunguy65.ttbs.backend.shared.domain.SortDirection;
+import io.github.phunguy65.ttbs.backend.shared.application.response.PageResponse;
+import io.github.phunguy65.ttbs.backend.shared.domain.SortOrder;
 import io.github.phunguy65.ttbs.backend.train.domain.model.Train;
 import io.github.phunguy65.ttbs.backend.train.domain.model.TrainId;
 import io.github.phunguy65.ttbs.backend.train.domain.repository.TrainRepository;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -82,9 +83,10 @@ class TrainRepositoryAdapterTest {
 
     @Test
     void findAll_emptyDatabase_returnsEmptyPageResult() {
-        PageResult<Train> result = trainRepository.findAll(0, 20, "createdAt", SortDirection.DESC);
+        PageResponse<Train> result =
+                trainRepository.findAll(0, 20, List.of(SortOrder.asc("trainNumber")));
 
-        assertThat(result.items()).isEmpty();
+        assertThat(result.content()).isEmpty();
         assertThat(result.hasNext()).isFalse();
         assertThat(result.hasPrevious()).isFalse();
     }
@@ -95,11 +97,12 @@ class TrainRepositoryAdapterTest {
             trainRepository.save(newTrain("TN" + String.format("%03d", i)));
         }
 
-        PageResult<Train> result = trainRepository.findAll(0, 3, "trainNumber", SortDirection.ASC);
+        PageResponse<Train> result =
+                trainRepository.findAll(0, 3, List.of(SortOrder.asc("trainNumber")));
 
-        assertThat(result.items()).hasSize(3);
-        assertThat(result.pageNumber()).isEqualTo(0);
-        assertThat(result.pageSize()).isEqualTo(3);
+        assertThat(result.content()).hasSize(3);
+        assertThat(result.page()).isEqualTo(0);
+        assertThat(result.size()).isEqualTo(3);
         assertThat(result.hasNext()).isTrue();
         assertThat(result.hasPrevious()).isFalse();
     }
@@ -110,9 +113,10 @@ class TrainRepositoryAdapterTest {
             trainRepository.save(newTrain("LT" + String.format("%03d", i)));
         }
 
-        PageResult<Train> result = trainRepository.findAll(1, 3, "trainNumber", SortDirection.ASC);
+        PageResponse<Train> result =
+                trainRepository.findAll(1, 3, List.of(SortOrder.asc("trainNumber")));
 
-        assertThat(result.items()).hasSize(1);
+        assertThat(result.content()).hasSize(1);
         assertThat(result.hasNext()).isFalse();
         assertThat(result.hasPrevious()).isTrue();
     }
@@ -123,9 +127,10 @@ class TrainRepositoryAdapterTest {
         trainRepository.save(newTrain("AAA"));
         trainRepository.save(newTrain("MMM"));
 
-        PageResult<Train> result = trainRepository.findAll(0, 10, "trainNumber", SortDirection.ASC);
+        PageResponse<Train> result =
+                trainRepository.findAll(0, 10, List.of(SortOrder.asc("trainNumber")));
 
-        assertThat(result.items())
+        assertThat(result.content())
                 .extracting(Train::getTrainNumber)
                 .containsExactly("AAA", "MMM", "ZZZ");
     }

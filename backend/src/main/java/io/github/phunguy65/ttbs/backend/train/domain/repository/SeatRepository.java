@@ -1,8 +1,12 @@
 package io.github.phunguy65.ttbs.backend.train.domain.repository;
 
+import io.github.phunguy65.ttbs.backend.shared.application.response.PageResponse;
+import io.github.phunguy65.ttbs.backend.shared.domain.SortOrder;
 import io.github.phunguy65.ttbs.backend.train.domain.model.CoachId;
+import io.github.phunguy65.ttbs.backend.train.domain.model.RouteId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.Seat;
 import io.github.phunguy65.ttbs.backend.train.domain.model.SeatId;
+import io.github.phunguy65.ttbs.backend.train.domain.model.TrainId;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -19,6 +23,10 @@ public interface SeatRepository {
     List<Seat> saveAll(List<Seat> seats);
 
     List<Seat> findByCoachId(CoachId coachId);
+
+    PageResponse<Seat> findAll(int page, int size, List<SortOrder> sort, TrainId trainId);
+
+    PageResponse<Seat> findAllAvailable(int page, int size, List<SortOrder> sort, RouteId routeId);
 
     List<SeatId> findActiveIdsByCoachIds(List<CoachId> coachIds);
 

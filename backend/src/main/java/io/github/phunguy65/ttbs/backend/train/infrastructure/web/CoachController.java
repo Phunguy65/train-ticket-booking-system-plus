@@ -1,5 +1,6 @@
 package io.github.phunguy65.ttbs.backend.train.infrastructure.web;
 
+import io.github.phunguy65.ttbs.backend.shared.application.response.PageResponse;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.ErrorCode;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.FailData;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.JsendResponse;
@@ -18,6 +19,7 @@ import io.github.phunguy65.ttbs.backend.train.domain.model.TrainId;
 import io.github.phunguy65.ttbs.backend.train.infrastructure.web.request.BulkCreateCoachesRequest;
 import io.github.phunguy65.ttbs.backend.train.infrastructure.web.request.BulkSoftDeleteCoachesRequest;
 import io.github.phunguy65.ttbs.backend.train.infrastructure.web.request.CreateCoachRequest;
+import io.github.phunguy65.ttbs.backend.train.infrastructure.web.request.GetCoachesRequest;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Map;
@@ -27,6 +29,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -77,9 +80,11 @@ class CoachController {
     }
 
     @GetMapping(value = "/{version}/trains/{trainId}/coaches", version = "1.0")
-    ResponseEntity<JsendResponse<?>> getCoachesByTrain(@PathVariable UUID trainId) {
-        List<CoachResponse> responses = getCoachesByTrainUseCase.execute(TrainId.of(trainId));
-        return ResponseEntity.ok(JsendResponse.success(responses));
+    ResponseEntity<JsendResponse<?>> getCoachesByTrain(
+            @PathVariable UUID trainId, @ModelAttribute @Valid GetCoachesRequest request) {
+        PageResponse<CoachResponse> result =
+                getCoachesByTrainUseCase.execute(request.toQuery(trainId));
+        return ResponseEntity.ok(JsendResponse.success(result));
     }
 
     @GetMapping(value = "/{version}/trains/{trainId}/coaches/{id}", version = "1.0")

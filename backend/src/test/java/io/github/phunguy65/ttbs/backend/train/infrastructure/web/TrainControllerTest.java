@@ -6,7 +6,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-import io.github.phunguy65.ttbs.backend.shared.domain.PageResult;
+import io.github.phunguy65.ttbs.backend.shared.application.response.PageResponse;
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.GlobalExceptionHandler;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.JacksonConfig;
@@ -143,9 +143,8 @@ class TrainControllerTest {
     @Test
     void listTrains_defaultParams_shouldReturn200WithSliceStructure() throws Exception {
         TrainResponse dto = sampleTrainDto();
-        PageResult<TrainResponse> pageResult = PageResult.of(List.of(dto), 0, 20, false);
-        when(getTrainsUseCase.execute(anyInt(), anyInt(), anyString(), any()))
-                .thenReturn(pageResult);
+        PageResponse<TrainResponse> pageResponse = PageResponse.of(List.of(dto), 0, 20, false);
+        when(getTrainsUseCase.execute(any())).thenReturn(pageResponse);
 
         mockMvc.perform(get("/api/v1.0/trains").with(csrf()))
                 .andExpect(status().isOk())

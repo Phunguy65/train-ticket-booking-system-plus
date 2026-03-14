@@ -2,11 +2,12 @@ package io.github.phunguy65.ttbs.backend.station.infrastructure.persistence;
 
 import static org.assertj.core.api.Assertions.*;
 
-import io.github.phunguy65.ttbs.backend.shared.domain.PageResult;
-import io.github.phunguy65.ttbs.backend.shared.domain.SortDirection;
+import io.github.phunguy65.ttbs.backend.shared.application.response.PageResponse;
+import io.github.phunguy65.ttbs.backend.shared.domain.SortOrder;
 import io.github.phunguy65.ttbs.backend.station.domain.model.Station;
 import io.github.phunguy65.ttbs.backend.station.domain.model.StationId;
 import io.github.phunguy65.ttbs.backend.station.domain.repository.StationRepository;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -82,10 +83,10 @@ class StationRepositoryAdapterTest {
 
     @Test
     void findAll_emptyDatabase_returnsEmptyPageResult() {
-        PageResult<Station> result =
-                stationRepository.findAll(0, 20, "createdAt", SortDirection.DESC);
+        List<SortOrder> sort = List.of(SortOrder.asc("code"), SortOrder.asc("id"));
+        PageResponse<Station> result = stationRepository.findAll(0, 20, sort);
 
-        assertThat(result.items()).isEmpty();
+        assertThat(result.content()).isEmpty();
         assertThat(result.hasNext()).isFalse();
         assertThat(result.hasPrevious()).isFalse();
     }
@@ -96,11 +97,12 @@ class StationRepositoryAdapterTest {
             stationRepository.save(newStation("S" + String.format("%02d", i)));
         }
 
-        PageResult<Station> result = stationRepository.findAll(0, 3, "code", SortDirection.ASC);
+        PageResponse<Station> result =
+                stationRepository.findAll(0, 3, List.of(SortOrder.asc("code")));
 
-        assertThat(result.items()).hasSize(3);
-        assertThat(result.pageNumber()).isEqualTo(0);
-        assertThat(result.pageSize()).isEqualTo(3);
+        assertThat(result.content()).hasSize(3);
+        assertThat(result.page()).isEqualTo(0);
+        assertThat(result.size()).isEqualTo(3);
         assertThat(result.hasNext()).isTrue();
         assertThat(result.hasPrevious()).isFalse();
     }
@@ -111,9 +113,10 @@ class StationRepositoryAdapterTest {
             stationRepository.save(newStation("T" + String.format("%02d", i)));
         }
 
-        PageResult<Station> result = stationRepository.findAll(1, 3, "code", SortDirection.ASC);
+        PageResponse<Station> result =
+                stationRepository.findAll(1, 3, List.of(SortOrder.asc("code")));
 
-        assertThat(result.items()).hasSize(1);
+        assertThat(result.content()).hasSize(1);
         assertThat(result.hasNext()).isFalse();
         assertThat(result.hasPrevious()).isTrue();
     }

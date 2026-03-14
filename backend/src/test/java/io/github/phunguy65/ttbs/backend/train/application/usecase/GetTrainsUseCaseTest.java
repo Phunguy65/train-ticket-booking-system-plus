@@ -1,10 +1,11 @@
 package io.github.phunguy65.ttbs.backend.train.application.usecase;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-import io.github.phunguy65.ttbs.backend.shared.domain.PageResult;
-import io.github.phunguy65.ttbs.backend.shared.domain.SortDirection;
+import io.github.phunguy65.ttbs.backend.shared.application.response.PageResponse;
+import io.github.phunguy65.ttbs.backend.train.application.query.GetTrainsQuery;
 import io.github.phunguy65.ttbs.backend.train.application.response.TrainResponse;
 import io.github.phunguy65.ttbs.backend.train.domain.model.Train;
 import io.github.phunguy65.ttbs.backend.train.domain.model.TrainId;
@@ -37,30 +38,29 @@ class GetTrainsUseCaseTest {
                 TrainId.of(UUID.randomUUID()), "SE001", "Express 1", 200, Instant.now(), null);
         Train train2 = Train.reconstitute(
                 TrainId.of(UUID.randomUUID()), "SE002", "Express 2", 300, Instant.now(), null);
-        PageResult<Train> trainPage = PageResult.of(List.of(train1, train2), 0, 20, false);
-        when(trainRepository.findAll(0, 20, "createdAt", SortDirection.DESC)).thenReturn(trainPage);
+        PageResponse<Train> trainPage = PageResponse.of(List.of(train1, train2), 0, 20, false);
+        when(trainRepository.findAll(eq(0), eq(20), any(List.class))).thenReturn(trainPage);
 
-        PageResult<TrainResponse> result = useCase.execute(0, 20, "createdAt", SortDirection.DESC);
+        PageResponse<TrainResponse> result = useCase.execute(new GetTrainsQuery(0, 20));
 
-        assertThat(result.items()).hasSize(2);
-        assertThat(result.pageNumber()).isEqualTo(0);
-        assertThat(result.pageSize()).isEqualTo(20);
+        assertThat(result.content()).hasSize(2);
+        assertThat(result.page()).isEqualTo(0);
+        assertThat(result.size()).isEqualTo(20);
         assertThat(result.hasNext()).isFalse();
         assertThat(result.hasPrevious()).isFalse();
-        assertThat(result.items())
+        assertThat(result.content())
                 .extracting(TrainResponse::trainNumber)
                 .containsExactlyInAnyOrder("SE001", "SE002");
     }
 
     @Test
     void execute_emptyResult_shouldReturnEmptyPageResult() {
-        PageResult<Train> emptyPage = PageResult.of(List.of(), 0, 20, false);
-        when(trainRepository.findAll(0, 20, "trainNumber", SortDirection.ASC))
-                .thenReturn(emptyPage);
+        PageResponse<Train> emptyPage = PageResponse.of(List.of(), 0, 20, false);
+        when(trainRepository.findAll(eq(0), eq(20), any(List.class))).thenReturn(emptyPage);
 
-        PageResult<TrainResponse> result = useCase.execute(0, 20, "trainNumber", SortDirection.ASC);
+        PageResponse<TrainResponse> result = useCase.execute(new GetTrainsQuery(0, 20));
 
-        assertThat(result.items()).isEmpty();
+        assertThat(result.content()).isEmpty();
         assertThat(result.hasNext()).isFalse();
     }
 
@@ -68,12 +68,12 @@ class GetTrainsUseCaseTest {
     void execute_hasNextTrue_shouldPropagateHasNext() {
         Train train = Train.reconstitute(
                 TrainId.of(UUID.randomUUID()), "SE001", "Express 1", 200, Instant.now(), null);
-        PageResult<Train> trainPage = PageResult.of(List.of(train), 0, 1, true);
-        when(trainRepository.findAll(0, 1, "trainNumber", SortDirection.ASC)).thenReturn(trainPage);
+        PageResponse<Train> trainPage = PageResponse.of(List.of(train), 0, 1, true);
+        when(trainRepository.findAll(eq(0), eq(1), any(List.class))).thenReturn(trainPage);
 
-        PageResult<TrainResponse> result = useCase.execute(0, 1, "trainNumber", SortDirection.ASC);
+        PageResponse<TrainResponse> result = useCase.execute(new GetTrainsQuery(0, 1));
 
-        assertThat(result.items()).hasSize(1);
+        assertThat(result.content()).hasSize(1);
         assertThat(result.hasNext()).isTrue();
     }
 }

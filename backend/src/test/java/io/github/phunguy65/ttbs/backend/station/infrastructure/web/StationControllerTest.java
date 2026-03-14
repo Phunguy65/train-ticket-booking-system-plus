@@ -6,7 +6,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-import io.github.phunguy65.ttbs.backend.shared.domain.PageResult;
+import io.github.phunguy65.ttbs.backend.shared.application.response.PageResponse;
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.GlobalExceptionHandler;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.JacksonConfig;
@@ -138,9 +138,8 @@ class StationControllerTest {
     @Test
     void listStations_defaultParams_shouldReturn200WithSliceStructure() throws Exception {
         StationResponse dto = sampleStationDto();
-        PageResult<StationResponse> pageResult = PageResult.of(List.of(dto), 0, 20, false);
-        when(getStationsUseCase.execute(anyInt(), anyInt(), anyString(), any()))
-                .thenReturn(pageResult);
+        PageResponse<StationResponse> pageResponse = PageResponse.of(List.of(dto), 0, 20, false);
+        when(getStationsUseCase.execute(any())).thenReturn(pageResponse);
 
         mockMvc.perform(get("/api/v1.0/stations").with(csrf()))
                 .andExpect(status().isOk())
@@ -157,14 +156,6 @@ class StationControllerTest {
     @Test
     void listStations_invalidPageParam_shouldReturn400() throws Exception {
         mockMvc.perform(get("/api/v1.0/stations").param("page", "-1").with(csrf()))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.status").value("fail"))
-                .andExpect(jsonPath("$.data.code").value("VALIDATION_ERROR"));
-    }
-
-    @Test
-    void listStations_invalidSortField_shouldReturn400() throws Exception {
-        mockMvc.perform(get("/api/v1.0/stations").param("sort", "unknown,asc").with(csrf()))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.status").value("fail"))
                 .andExpect(jsonPath("$.data.code").value("VALIDATION_ERROR"));

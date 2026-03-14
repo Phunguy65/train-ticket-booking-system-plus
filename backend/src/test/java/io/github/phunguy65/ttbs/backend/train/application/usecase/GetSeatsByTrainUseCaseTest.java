@@ -1,12 +1,16 @@
 package io.github.phunguy65.ttbs.backend.train.application.usecase;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+import io.github.phunguy65.ttbs.backend.shared.application.response.PageResponse;
+import io.github.phunguy65.ttbs.backend.train.application.query.GetSeatsQuery;
 import io.github.phunguy65.ttbs.backend.train.application.response.SeatResponse;
 import io.github.phunguy65.ttbs.backend.train.domain.model.CoachId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.Seat;
 import io.github.phunguy65.ttbs.backend.train.domain.model.SeatId;
+import io.github.phunguy65.ttbs.backend.train.domain.model.TrainId;
 import io.github.phunguy65.ttbs.backend.train.domain.repository.SeatRepository;
 import java.time.Instant;
 import java.util.List;
@@ -25,6 +29,7 @@ class GetSeatsByTrainUseCaseTest {
 
     private GetSeatsByTrainUseCase useCase;
 
+    private static final UUID TRAIN_UUID = UUID.randomUUID();
     private static final UUID COACH_UUID = UUID.randomUUID();
 
     @BeforeEach
@@ -32,27 +37,42 @@ class GetSeatsByTrainUseCaseTest {
         useCase = new GetSeatsByTrainUseCase(seatRepository);
     }
 
-    @Test
-    void execute_withSeats_shouldReturnDtoList() {
-        CoachId coachId = CoachId.of(COACH_UUID);
-        Seat seat1 =
-                Seat.reconstitute(SeatId.of(UUID.randomUUID()), coachId, "1A", Instant.now(), null);
-        Seat seat2 =
-                Seat.reconstitute(SeatId.of(UUID.randomUUID()), coachId, "1B", Instant.now(), null);
-        when(seatRepository.findByCoachId(coachId)).thenReturn(List.of(seat1, seat2));
-
-        List<SeatResponse> result = useCase.execute(COACH_UUID);
-
-        assertThat(result).hasSize(2);
-        assertThat(result).extracting(SeatResponse::seatNumber).containsExactly("1A", "1B");
+    private Seat sampleSeat(String seatNumber) {
+        return Seat.reconstitute(
+                SeatId.of(UUID.randomUUID()),
+                CoachId.of(COACH_UUID),
+                seatNumber,
+                Instant.now(),
+                null);
     }
 
     @Test
-    void execute_withNoSeats_shouldReturnEmptyList() {
-        when(seatRepository.findByCoachId(any())).thenReturn(List.of());
+    void execute_withSeats_shouldReturnPageResult() {
+        PageResponse<Seat> seatPage =
+                PageResponse.of(List.of(sampleSeat("1A"), sampleSeat("1B")), 0, 20, false);
+        when(seatRepository.findAll(eq(0), eq(20), any(List.class), eq(TrainId.of(TRAIN_UUID))))
+                .thenReturn(seatPage);
 
-        List<SeatResponse> result = useCase.execute(COACH_UUID);
+        PageResponse<SeatResponse> result = useCase.execute(new GetSeatsQuery(0, 20, TRAIN_UUID));
 
-        assertThat(result).isEmpty();
+        assertThat(result.content()).hasSize(2);
+        assertThat(result.content())
+                .extracting(SeatResponse::seatNumber)
+                .containsExactly("1A", "1B");
+        assertThat(result.page()).isEqualTo(0);
+        assertThat(result.size()).isEqualTo(20);
+        assertThat(result.hasNext()).isFalse();
+    }
+
+    @Test
+    void execute_withNoSeats_shouldReturnEmptyPageResult() {
+        PageResponse<Seat> emptyPage = PageResponse.of(List.of(), 0, 20, false);
+        when(seatRepository.findAll(anyInt(), anyInt(), any(List.class), any(TrainId.class)))
+                .thenReturn(emptyPage);
+
+        PageResponse<SeatResponse> result = useCase.execute(new GetSeatsQuery(0, 20, TRAIN_UUID));
+
+        assertThat(result.content()).isEmpty();
+        assertThat(result.hasNext()).isFalse();
     }
 }

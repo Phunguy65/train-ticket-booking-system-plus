@@ -4,8 +4,8 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -20,7 +20,7 @@ interface UserJpaRepository extends JpaRepository<UserEntity, UUID> {
     Optional<UserEntity> findActiveById(@Param("id") UUID id);
 
     @Query("SELECT u FROM UserEntity u WHERE u.deletedAt IS NULL")
-    Slice<UserEntity> findAllActive(Pageable pageable);
+    Page<UserEntity> findAllActive(Pageable pageable);
 
     @Modifying
     @Query(

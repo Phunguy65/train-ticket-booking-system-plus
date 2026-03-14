@@ -6,6 +6,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+import io.github.phunguy65.ttbs.backend.shared.application.response.PageResponse;
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.GlobalExceptionHandler;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.JacksonConfig;
@@ -138,27 +139,36 @@ class SeatControllerTest {
     // ── GET /api/v1.0/trains/{trainId}/seats ────────────────────────────────
 
     @Test
-    void getSeatsByTrain_shouldReturn200WithList() throws Exception {
-        when(getSeatsByTrainUseCase.execute(TRAIN_UUID)).thenReturn(List.of(sampleSeatDto()));
+    void getSeatsByTrain_shouldReturn200WithSliceStructure() throws Exception {
+        PageResponse<SeatResponse> pageResponse =
+                PageResponse.of(List.of(sampleSeatDto()), 0, 20, false);
+        when(getSeatsByTrainUseCase.execute(any())).thenReturn(pageResponse);
 
         mockMvc.perform(get("/api/v1.0/trains/{trainId}/seats", TRAIN_UUID))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("success"))
-                .andExpect(jsonPath("$.data").isArray())
-                .andExpect(jsonPath("$.data[0].seatNumber").value("1A"));
+                .andExpect(jsonPath("$.data.content").isArray())
+                .andExpect(jsonPath("$.data.content[0].seatNumber").value("1A"))
+                .andExpect(jsonPath("$.data.page").value(0))
+                .andExpect(jsonPath("$.data.size").value(20))
+                .andExpect(jsonPath("$.data.hasNext").value(false));
     }
 
     // ── GET /api/v1.0/routes/{routeId}/seats/available ─────────────────────
 
     @Test
-    void getAvailableSeats_shouldReturn200WithList() throws Exception {
-        when(getAvailableSeatsForRouteUseCase.execute(ROUTE_UUID))
-                .thenReturn(List.of(sampleSeatDto()));
+    void getAvailableSeats_shouldReturn200WithSliceStructure() throws Exception {
+        PageResponse<SeatResponse> pageResponse =
+                PageResponse.of(List.of(sampleSeatDto()), 0, 20, false);
+        when(getAvailableSeatsForRouteUseCase.execute(any())).thenReturn(pageResponse);
 
         mockMvc.perform(get("/api/v1.0/routes/{routeId}/seats/available", ROUTE_UUID))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("success"))
-                .andExpect(jsonPath("$.data").isArray())
-                .andExpect(jsonPath("$.data[0].seatNumber").value("1A"));
+                .andExpect(jsonPath("$.data.content").isArray())
+                .andExpect(jsonPath("$.data.content[0].seatNumber").value("1A"))
+                .andExpect(jsonPath("$.data.page").value(0))
+                .andExpect(jsonPath("$.data.size").value(20))
+                .andExpect(jsonPath("$.data.hasNext").value(false));
     }
 }

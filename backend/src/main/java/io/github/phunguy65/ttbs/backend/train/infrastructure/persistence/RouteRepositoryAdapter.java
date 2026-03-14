@@ -1,10 +1,9 @@
 package io.github.phunguy65.ttbs.backend.train.infrastructure.persistence;
 
-import io.github.phunguy65.ttbs.backend.shared.domain.PageResult;
-import io.github.phunguy65.ttbs.backend.shared.domain.SortDirection;
+import io.github.phunguy65.ttbs.backend.shared.application.response.PageResponse;
+import io.github.phunguy65.ttbs.backend.shared.domain.SortOrder;
 import io.github.phunguy65.ttbs.backend.station.domain.model.StationId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.Route;
-import io.github.phunguy65.ttbs.backend.train.domain.model.RouteFilter;
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.TrainId;
 import io.github.phunguy65.ttbs.backend.train.domain.repository.RouteRepository;
@@ -12,8 +11,8 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Repository;
 
@@ -41,19 +40,11 @@ class RouteRepositoryAdapter implements RouteRepository {
     }
 
     @Override
-    public PageResult<Route> findAll(
-            int page, int size, String sortField, SortDirection direction, RouteFilter filter) {
-        Sort.Direction sortDir =
-                direction == SortDirection.ASC ? Sort.Direction.ASC : Sort.Direction.DESC;
-        PageRequest pageable = PageRequest.of(page, size, Sort.by(sortDir, sortField));
-        Slice<RouteEntity> slice = jpaRepository.findAllWithFilter(
-                filter.originStationId(),
-                filter.destinationStationId(),
-                filter.departureDateFrom(),
-                filter.departureDateTo(),
-                pageable);
-        List<Route> items = slice.getContent().stream().map(mapper::toDomain).toList();
-        return PageResult.of(items, page, size, slice.hasNext());
+    public PageResponse<Route> findAll(int page, int size, List<SortOrder> sort) {
+        PageRequest pageable = PageRequest.of(page, size, toSpringSort(sort));
+        Page<RouteEntity> result = jpaRepository.findAllActive(pageable);
+        List<Route> items = result.getContent().stream().map(mapper::toDomain).toList();
+        return PageResponse.of(items, page, size, result.hasNext(), result.getTotalElements());
     }
 
     @Override
@@ -78,7 +69,7 @@ class RouteRepositoryAdapter implements RouteRepository {
 
     @Override
     public int softDeleteByIds(List<RouteId> ids, Instant deletedAt) {
-        List<java.util.UUID> uuids = ids.stream().map(RouteId::value).toList();
+        List<UUID> uuids = ids.stream().map(RouteId::value).toList();
         return jpaRepository.softDeleteByIds(uuids, deletedAt);
     }
 
@@ -108,5 +99,14 @@ class RouteRepositoryAdapter implements RouteRepository {
     @Override
     public long countActiveByTrainId(TrainId trainId) {
         return jpaRepository.countActiveByTrainId(trainId.value());
+    }
+
+    private Sort toSpringSort(List<SortOrder> orders) {
+        List<Sort.Order> springOrders = orders.stream()
+                .map(o -> o.direction() == SortOrder.Direction.ASC
+                        ? Sort.Order.asc(o.field())
+                        : Sort.Order.desc(o.field()))
+                .toList();
+        return Sort.by(springOrders);
     }
 }

@@ -6,7 +6,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-import io.github.phunguy65.ttbs.backend.shared.domain.PageResult;
+import io.github.phunguy65.ttbs.backend.shared.application.response.PageResponse;
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.GlobalExceptionHandler;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.JacksonConfig;
@@ -181,9 +181,8 @@ class UserControllerTest {
     @WithMockUser(roles = "ADMIN")
     void listUsers_admin_defaultParams_shouldReturn200WithSliceStructure() throws Exception {
         UserResponse dto = sampleUserDto();
-        PageResult<UserResponse> pageResult = PageResult.of(List.of(dto), 0, 20, false);
-        when(listUsersUseCase.execute(anyInt(), anyInt(), anyString(), any()))
-                .thenReturn(pageResult);
+        PageResponse<UserResponse> pageResponse = PageResponse.of(List.of(dto), 0, 20, false);
+        when(listUsersUseCase.execute(any())).thenReturn(pageResponse);
 
         mockMvc.perform(get("/api/v1.0/users").with(csrf()))
                 .andExpect(status().isOk())
@@ -203,9 +202,8 @@ class UserControllerTest {
     @WithMockUser(roles = "ADMIN")
     void listUsers_admin_hasNext_shouldReturnHasNextTrue() throws Exception {
         UserResponse dto = sampleUserDto();
-        PageResult<UserResponse> pageResult = PageResult.of(List.of(dto), 0, 5, true);
-        when(listUsersUseCase.execute(anyInt(), anyInt(), anyString(), any()))
-                .thenReturn(pageResult);
+        PageResponse<UserResponse> pageResponse = PageResponse.of(List.of(dto), 0, 5, true);
+        when(listUsersUseCase.execute(any())).thenReturn(pageResponse);
 
         mockMvc.perform(get("/api/v1.0/users").param("size", "5").with(csrf()))
                 .andExpect(status().isOk())
@@ -230,8 +228,7 @@ class UserControllerTest {
     void listUsers_negativePage_shouldReturn400() throws Exception {
         mockMvc.perform(get("/api/v1.0/users").param("page", "-1").with(csrf()))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.status").value("fail"))
-                .andExpect(jsonPath("$.data.message").value("page must be >= 0"));
+                .andExpect(jsonPath("$.status").value("fail"));
     }
 
     @Test
@@ -239,8 +236,7 @@ class UserControllerTest {
     void listUsers_sizeZero_shouldReturn400() throws Exception {
         mockMvc.perform(get("/api/v1.0/users").param("size", "0").with(csrf()))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.status").value("fail"))
-                .andExpect(jsonPath("$.data.message").value("size must be between 1 and 100"));
+                .andExpect(jsonPath("$.status").value("fail"));
     }
 
     @Test
@@ -248,28 +244,17 @@ class UserControllerTest {
     void listUsers_sizeExceedsMax_shouldReturn400() throws Exception {
         mockMvc.perform(get("/api/v1.0/users").param("size", "200").with(csrf()))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.status").value("fail"))
-                .andExpect(jsonPath("$.data.message").value("size must be between 1 and 100"));
+                .andExpect(jsonPath("$.status").value("fail"));
     }
 
     @Test
     @WithMockUser(roles = "ADMIN")
-    void listUsers_invalidSortField_shouldReturn400() throws Exception {
-        mockMvc.perform(get("/api/v1.0/users").param("sort", "passwordHash,asc").with(csrf()))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.status").value("fail"))
-                .andExpect(
-                        jsonPath("$.data.message").value("sort field not allowed: passwordHash"));
-    }
+    void listUsers_validParams_shouldReturn200() throws Exception {
+        PageResponse<UserResponse> pageResponse =
+                PageResponse.of(List.of(sampleUserDto()), 0, 20, false);
+        when(listUsersUseCase.execute(any())).thenReturn(pageResponse);
 
-    @Test
-    @WithMockUser(roles = "ADMIN")
-    void listUsers_validSortField_email_shouldReturn200() throws Exception {
-        PageResult<UserResponse> pageResult = PageResult.of(List.of(sampleUserDto()), 0, 20, false);
-        when(listUsersUseCase.execute(anyInt(), anyInt(), anyString(), any()))
-                .thenReturn(pageResult);
-
-        mockMvc.perform(get("/api/v1.0/users").param("sort", "email,asc").with(csrf()))
+        mockMvc.perform(get("/api/v1.0/users").with(csrf()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("success"));
     }

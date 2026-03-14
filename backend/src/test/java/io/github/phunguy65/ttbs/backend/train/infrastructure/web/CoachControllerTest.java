@@ -6,6 +6,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+import io.github.phunguy65.ttbs.backend.shared.application.response.PageResponse;
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.GlobalExceptionHandler;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.JacksonConfig;
@@ -151,14 +152,19 @@ class CoachControllerTest {
     // ── GET /api/v1.0/trains/{trainId}/coaches ───────────────────────────────
 
     @Test
-    void getCoachesByTrain_shouldReturn200WithList() throws Exception {
-        when(getCoachesByTrainUseCase.execute(any())).thenReturn(List.of(sampleCoachDto()));
+    void getCoachesByTrain_shouldReturn200WithSliceStructure() throws Exception {
+        PageResponse<CoachResponse> pageResponse =
+                PageResponse.of(List.of(sampleCoachDto()), 0, 20, false);
+        when(getCoachesByTrainUseCase.execute(any())).thenReturn(pageResponse);
 
         mockMvc.perform(get("/api/v1.0/trains/{trainId}/coaches", TRAIN_UUID))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("success"))
-                .andExpect(jsonPath("$.data").isArray())
-                .andExpect(jsonPath("$.data[0].carNumber").value(1));
+                .andExpect(jsonPath("$.data.content").isArray())
+                .andExpect(jsonPath("$.data.content[0].carNumber").value(1))
+                .andExpect(jsonPath("$.data.page").value(0))
+                .andExpect(jsonPath("$.data.size").value(20))
+                .andExpect(jsonPath("$.data.hasNext").value(false));
     }
 
     // ── GET /api/v1.0/trains/{trainId}/coaches/{id} ──────────────────────────

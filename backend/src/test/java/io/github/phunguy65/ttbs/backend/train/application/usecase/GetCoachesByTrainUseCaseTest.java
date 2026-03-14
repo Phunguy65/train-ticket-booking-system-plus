@@ -1,9 +1,12 @@
 package io.github.phunguy65.ttbs.backend.train.application.usecase;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-import io.github.phunguy65.ttbs.backend.train.application.response.CoachDto;
+import io.github.phunguy65.ttbs.backend.shared.application.response.PageResponse;
+import io.github.phunguy65.ttbs.backend.train.application.query.GetCoachesQuery;
+import io.github.phunguy65.ttbs.backend.train.application.response.CoachResponse;
 import io.github.phunguy65.ttbs.backend.train.domain.model.Coach;
 import io.github.phunguy65.ttbs.backend.train.domain.model.CoachId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.TrainId;
@@ -43,24 +46,43 @@ class GetCoachesByTrainUseCaseTest {
     }
 
     @Test
-    void execute_shouldReturnMappedList() {
-        when(coachRepository.findByTrainId(TrainId.of(TRAIN_UUID)))
-                .thenReturn(List.of(sampleCoach(1), sampleCoach(2)));
+    void execute_shouldReturnPageResultWithCoaches() {
+        PageResponse<Coach> coachPage =
+                PageResponse.of(List.of(sampleCoach(1), sampleCoach(2)), 0, 20, false);
+        when(coachRepository.findAll(eq(0), eq(20), any(List.class), eq(TrainId.of(TRAIN_UUID))))
+                .thenReturn(coachPage);
 
-        List<CoachDto> result = useCase.execute(TrainId.of(TRAIN_UUID));
+        PageResponse<CoachResponse> result =
+                useCase.execute(new GetCoachesQuery(0, 20, TRAIN_UUID));
 
-        assertThat(result).hasSize(2);
-        assertThat(result.get(0).carNumber()).isEqualTo(1);
-        assertThat(result.get(1).carNumber()).isEqualTo(2);
-        assertThat(result).allMatch(dto -> dto.trainId().equals(TRAIN_UUID));
+        assertThat(result.content()).hasSize(2);
+        assertThat(result.page()).isEqualTo(0);
+        assertThat(result.size()).isEqualTo(20);
+        assertThat(result.hasNext()).isFalse();
+        assertThat(result.content()).extracting(CoachResponse::carNumber).containsExactly(1, 2);
     }
 
     @Test
-    void execute_whenEmptyTrain_shouldReturnEmptyList() {
-        when(coachRepository.findByTrainId(TrainId.of(TRAIN_UUID))).thenReturn(List.of());
+    void execute_whenEmptyTrain_shouldReturnEmptyPageResult() {
+        PageResponse<Coach> emptyPage = PageResponse.of(List.of(), 0, 20, false);
+        when(coachRepository.findAll(anyInt(), anyInt(), any(List.class), any(TrainId.class)))
+                .thenReturn(emptyPage);
 
-        List<CoachDto> result = useCase.execute(TrainId.of(TRAIN_UUID));
+        PageResponse<CoachResponse> result =
+                useCase.execute(new GetCoachesQuery(0, 20, TRAIN_UUID));
 
-        assertThat(result).isEmpty();
+        assertThat(result.content()).isEmpty();
+        assertThat(result.hasNext()).isFalse();
+    }
+
+    @Test
+    void execute_hasNextTrue_shouldPropagateHasNext() {
+        PageResponse<Coach> coachPage = PageResponse.of(List.of(sampleCoach(1)), 0, 1, true);
+        when(coachRepository.findAll(eq(0), eq(1), any(List.class), any(TrainId.class)))
+                .thenReturn(coachPage);
+
+        PageResponse<CoachResponse> result = useCase.execute(new GetCoachesQuery(0, 1, TRAIN_UUID));
+
+        assertThat(result.hasNext()).isTrue();
     }
 }

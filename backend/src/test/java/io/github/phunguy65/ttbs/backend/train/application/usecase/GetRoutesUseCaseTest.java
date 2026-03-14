@@ -1,15 +1,15 @@
 package io.github.phunguy65.ttbs.backend.train.application.usecase;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+import io.github.phunguy65.ttbs.backend.shared.application.response.PageResponse;
 import io.github.phunguy65.ttbs.backend.shared.domain.Money;
-import io.github.phunguy65.ttbs.backend.shared.domain.PageResult;
-import io.github.phunguy65.ttbs.backend.shared.domain.SortDirection;
 import io.github.phunguy65.ttbs.backend.station.domain.model.StationId;
+import io.github.phunguy65.ttbs.backend.train.application.query.GetRoutesQuery;
 import io.github.phunguy65.ttbs.backend.train.application.response.RouteResponse;
 import io.github.phunguy65.ttbs.backend.train.domain.model.Route;
-import io.github.phunguy65.ttbs.backend.train.domain.model.RouteFilter;
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteStatus;
 import io.github.phunguy65.ttbs.backend.train.domain.model.TrainId;
@@ -54,60 +54,48 @@ class GetRoutesUseCaseTest {
     void execute_shouldReturnPageResultWithCorrectMetadata() {
         Route route1 = sampleRoute();
         Route route2 = sampleRoute();
-        RouteFilter filter = RouteFilter.empty();
-        PageResult<Route> routePage = PageResult.of(List.of(route1, route2), 0, 20, false);
-        when(routeRepository.findAll(0, 20, "createdAt", SortDirection.DESC, filter))
-                .thenReturn(routePage);
+        PageResponse<Route> routePage = PageResponse.of(List.of(route1, route2), 0, 20, false);
+        when(routeRepository.findAll(eq(0), eq(20), any(List.class))).thenReturn(routePage);
 
-        PageResult<RouteResponse> result =
-                useCase.execute(0, 20, "createdAt", SortDirection.DESC, filter);
+        PageResponse<RouteResponse> result = useCase.execute(new GetRoutesQuery(0, 20));
 
-        assertThat(result.items()).hasSize(2);
-        assertThat(result.pageNumber()).isEqualTo(0);
-        assertThat(result.pageSize()).isEqualTo(20);
+        assertThat(result.content()).hasSize(2);
+        assertThat(result.page()).isEqualTo(0);
+        assertThat(result.size()).isEqualTo(20);
         assertThat(result.hasNext()).isFalse();
         assertThat(result.hasPrevious()).isFalse();
     }
 
     @Test
     void execute_emptyResult_shouldReturnEmptyPageResult() {
-        RouteFilter filter = RouteFilter.empty();
-        PageResult<Route> emptyPage = PageResult.of(List.of(), 0, 20, false);
-        when(routeRepository.findAll(0, 20, "departureTime", SortDirection.ASC, filter))
-                .thenReturn(emptyPage);
+        PageResponse<Route> emptyPage = PageResponse.of(List.of(), 0, 20, false);
+        when(routeRepository.findAll(eq(0), eq(20), any(List.class))).thenReturn(emptyPage);
 
-        PageResult<RouteResponse> result =
-                useCase.execute(0, 20, "departureTime", SortDirection.ASC, filter);
+        PageResponse<RouteResponse> result = useCase.execute(new GetRoutesQuery(0, 20));
 
-        assertThat(result.items()).isEmpty();
+        assertThat(result.content()).isEmpty();
         assertThat(result.hasNext()).isFalse();
     }
 
     @Test
     void execute_hasNextTrue_shouldPropagateHasNext() {
         Route route = sampleRoute();
-        RouteFilter filter = RouteFilter.empty();
-        PageResult<Route> routePage = PageResult.of(List.of(route), 0, 1, true);
-        when(routeRepository.findAll(0, 1, "createdAt", SortDirection.DESC, filter))
-                .thenReturn(routePage);
+        PageResponse<Route> routePage = PageResponse.of(List.of(route), 0, 1, true);
+        when(routeRepository.findAll(eq(0), eq(1), any(List.class))).thenReturn(routePage);
 
-        PageResult<RouteResponse> result =
-                useCase.execute(0, 1, "createdAt", SortDirection.DESC, filter);
+        PageResponse<RouteResponse> result = useCase.execute(new GetRoutesQuery(0, 1));
 
-        assertThat(result.items()).hasSize(1);
+        assertThat(result.content()).hasSize(1);
         assertThat(result.hasNext()).isTrue();
     }
 
     @Test
-    void execute_withFilter_shouldDelegateFilterToRepository() {
-        UUID originId = UUID.randomUUID();
-        RouteFilter filter = new RouteFilter(originId, null, null, null);
-        PageResult<Route> emptyPage = PageResult.of(List.of(), 0, 20, false);
-        when(routeRepository.findAll(0, 20, "createdAt", SortDirection.DESC, filter))
-                .thenReturn(emptyPage);
+    void execute_delegatesToRepository() {
+        PageResponse<Route> emptyPage = PageResponse.of(List.of(), 0, 20, false);
+        when(routeRepository.findAll(eq(0), eq(20), any(List.class))).thenReturn(emptyPage);
 
-        useCase.execute(0, 20, "createdAt", SortDirection.DESC, filter);
+        useCase.execute(new GetRoutesQuery(0, 20));
 
-        verify(routeRepository).findAll(0, 20, "createdAt", SortDirection.DESC, filter);
+        verify(routeRepository).findAll(eq(0), eq(20), any(List.class));
     }
 }

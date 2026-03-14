@@ -4,8 +4,8 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -19,7 +19,7 @@ interface TrainJpaRepository extends JpaRepository<TrainEntity, UUID> {
     Optional<TrainEntity> findActiveById(@Param("id") UUID id);
 
     @Query("SELECT t FROM TrainEntity t WHERE t.deletedAt IS NULL")
-    Slice<TrainEntity> findAllActive(Pageable pageable);
+    Page<TrainEntity> findAllActive(Pageable pageable);
 
     @Modifying
     @Query(

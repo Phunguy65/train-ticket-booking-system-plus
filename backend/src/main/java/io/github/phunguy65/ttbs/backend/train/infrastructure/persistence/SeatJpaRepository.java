@@ -4,6 +4,8 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -18,6 +20,28 @@ interface SeatJpaRepository extends JpaRepository<SeatEntity, UUID> {
     List<UUID> findActiveIdsByCoachIds(@Param("coachIds") List<UUID> coachIds);
 
     boolean existsByCoachIdAndSeatNumber(UUID coachId, String seatNumber);
+
+    @Query(
+            "SELECT s FROM SeatEntity s JOIN CoachEntity c ON s.coachId = c.id WHERE c.trainId = :trainId AND s.deletedAt IS NULL")
+    Page<SeatEntity> findAllActiveByTrainId(@Param("trainId") UUID trainId, Pageable pageable);
+
+    @Query(
+            value = "SELECT s.* FROM seats s "
+                    + "JOIN route_seat_availability rsa ON rsa.seat_id = s.id "
+                    + "LEFT JOIN bookings b ON b.id = rsa.booking_id "
+                    + "WHERE rsa.route_id = :routeId "
+                    + "AND (rsa.status = 'AVAILABLE' "
+                    + "     OR (rsa.status = 'HELD' AND b.payment_deadline < CURRENT_TIMESTAMP)) "
+                    + "AND s.deleted_at IS NULL",
+            nativeQuery = true,
+            countQuery = "SELECT COUNT(*) FROM seats s "
+                    + "JOIN route_seat_availability rsa ON rsa.seat_id = s.id "
+                    + "LEFT JOIN bookings b ON b.id = rsa.booking_id "
+                    + "WHERE rsa.route_id = :routeId "
+                    + "AND (rsa.status = 'AVAILABLE' "
+                    + "     OR (rsa.status = 'HELD' AND b.payment_deadline < CURRENT_TIMESTAMP)) "
+                    + "AND s.deleted_at IS NULL")
+    Page<SeatEntity> findAllAvailableByRouteId(@Param("routeId") UUID routeId, Pageable pageable);
 
     @Query("SELECT s FROM SeatEntity s WHERE s.id = :id AND s.deletedAt IS NULL")
     Optional<SeatEntity> findActiveById(@Param("id") UUID id);

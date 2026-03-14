@@ -2,8 +2,8 @@ package io.github.phunguy65.ttbs.backend.user.infrastructure.persistence;
 
 import static org.assertj.core.api.Assertions.*;
 
-import io.github.phunguy65.ttbs.backend.shared.domain.PageResult;
-import io.github.phunguy65.ttbs.backend.shared.domain.SortDirection;
+import io.github.phunguy65.ttbs.backend.shared.application.response.PageResponse;
+import io.github.phunguy65.ttbs.backend.shared.domain.SortOrder;
 import io.github.phunguy65.ttbs.backend.user.domain.model.User;
 import io.github.phunguy65.ttbs.backend.user.domain.model.UserId;
 import io.github.phunguy65.ttbs.backend.user.domain.repository.UserRepository;
@@ -78,9 +78,10 @@ class UserRepositoryAdapterTest {
 
     @Test
     void findAll_emptyDatabase_returnsEmptyPageResult() {
-        PageResult<User> result = userRepository.findAll(0, 20, "createdAt", SortDirection.DESC);
+        PageResponse<User> result =
+                userRepository.findAll(0, 20, List.of(SortOrder.desc("createdAt")));
 
-        assertThat(result.items()).isEmpty();
+        assertThat(result.content()).isEmpty();
         assertThat(result.hasNext()).isFalse();
         assertThat(result.hasPrevious()).isFalse();
     }
@@ -96,11 +97,11 @@ class UserRepositoryAdapterTest {
                     null));
         }
 
-        PageResult<User> result = userRepository.findAll(0, 3, "email", SortDirection.ASC);
+        PageResponse<User> result = userRepository.findAll(0, 3, List.of(SortOrder.asc("email")));
 
-        assertThat(result.items()).hasSize(3);
-        assertThat(result.pageNumber()).isEqualTo(0);
-        assertThat(result.pageSize()).isEqualTo(3);
+        assertThat(result.content()).hasSize(3);
+        assertThat(result.page()).isEqualTo(0);
+        assertThat(result.size()).isEqualTo(3);
         assertThat(result.hasNext()).isTrue();
         assertThat(result.hasPrevious()).isFalse();
     }
@@ -117,9 +118,9 @@ class UserRepositoryAdapterTest {
         }
 
         // page=1, size=3: should return 1 item (the 4th), hasNext=false, hasPrevious=true
-        PageResult<User> result = userRepository.findAll(1, 3, "email", SortDirection.ASC);
+        PageResponse<User> result = userRepository.findAll(1, 3, List.of(SortOrder.asc("email")));
 
-        assertThat(result.items()).hasSize(1);
+        assertThat(result.content()).hasSize(1);
         assertThat(result.hasNext()).isFalse();
         assertThat(result.hasPrevious()).isTrue();
     }
@@ -133,9 +134,9 @@ class UserRepositoryAdapterTest {
         userRepository.save(User.create(
                 UserId.of(UUID.randomUUID()), "mango@example.com", "$2a$12$hash", "Mango", null));
 
-        PageResult<User> result = userRepository.findAll(0, 10, "email", SortDirection.ASC);
+        PageResponse<User> result = userRepository.findAll(0, 10, List.of(SortOrder.asc("email")));
 
-        assertThat(result.items())
+        assertThat(result.content())
                 .extracting(User::getEmail)
                 .containsExactly("apple@example.com", "mango@example.com", "zebra@example.com");
     }
@@ -151,9 +152,9 @@ class UserRepositoryAdapterTest {
                     null));
         }
 
-        PageResult<User> result = userRepository.findAll(0, 3, "email", SortDirection.ASC);
+        PageResponse<User> result = userRepository.findAll(0, 3, List.of(SortOrder.asc("email")));
 
-        assertThat(result.items()).hasSize(3);
+        assertThat(result.content()).hasSize(3);
         assertThat(result.hasNext()).isFalse();
     }
 
@@ -193,9 +194,11 @@ class UserRepositoryAdapterTest {
                 User.create(deletedId, "gone@example.com", "$2a$12$hash", "Gone", null));
         userRepository.softDeleteById(deletedId, Instant.now());
 
-        PageResult<User> result = userRepository.findAll(0, 20, "email", SortDirection.ASC);
+        PageResponse<User> result = userRepository.findAll(0, 20, List.of(SortOrder.asc("email")));
 
-        assertThat(result.items()).extracting(User::getEmail).containsExactly("active@example.com");
+        assertThat(result.content())
+                .extracting(User::getEmail)
+                .containsExactly("active@example.com");
     }
 
     @Test

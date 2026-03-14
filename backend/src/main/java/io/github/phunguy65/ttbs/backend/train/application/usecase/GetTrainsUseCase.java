@@ -1,10 +1,12 @@
 package io.github.phunguy65.ttbs.backend.train.application.usecase;
 
-import io.github.phunguy65.ttbs.backend.shared.domain.PageResult;
-import io.github.phunguy65.ttbs.backend.shared.domain.SortDirection;
+import io.github.phunguy65.ttbs.backend.shared.application.response.PageResponse;
+import io.github.phunguy65.ttbs.backend.shared.domain.SortOrder;
+import io.github.phunguy65.ttbs.backend.train.application.query.GetTrainsQuery;
 import io.github.phunguy65.ttbs.backend.train.application.response.TrainResponse;
 import io.github.phunguy65.ttbs.backend.train.domain.model.Train;
 import io.github.phunguy65.ttbs.backend.train.domain.repository.TrainRepository;
+import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,14 +20,15 @@ public class GetTrainsUseCase {
     }
 
     @Transactional(readOnly = true)
-    public PageResult<TrainResponse> execute(
-            int page, int size, String sortField, SortDirection direction) {
-        PageResult<Train> trains = trainRepository.findAll(page, size, sortField, direction);
-        return PageResult.of(
-                trains.items().stream().map(this::toDto).toList(),
-                trains.pageNumber(),
-                trains.pageSize(),
-                trains.hasNext());
+    public PageResponse<TrainResponse> execute(GetTrainsQuery query) {
+        List<SortOrder> sort = List.of(SortOrder.asc("trainNumber"), SortOrder.asc("id"));
+        PageResponse<Train> trains = trainRepository.findAll(query.page(), query.size(), sort);
+        return PageResponse.of(
+                trains.content().stream().map(this::toDto).toList(),
+                trains.page(),
+                trains.size(),
+                trains.hasNext(),
+                trains.total());
     }
 
     private TrainResponse toDto(Train train) {

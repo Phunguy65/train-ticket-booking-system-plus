@@ -1,7 +1,7 @@
 package io.github.phunguy65.ttbs.backend.station.domain.repository;
 
-import io.github.phunguy65.ttbs.backend.shared.domain.PageResult;
-import io.github.phunguy65.ttbs.backend.shared.domain.SortDirection;
+import io.github.phunguy65.ttbs.backend.shared.application.response.PageResponse;
+import io.github.phunguy65.ttbs.backend.shared.domain.SortOrder;
 import io.github.phunguy65.ttbs.backend.station.domain.model.Station;
 import io.github.phunguy65.ttbs.backend.station.domain.model.StationId;
 import java.time.Instant;
@@ -14,7 +14,7 @@ public interface StationRepository {
 
     Optional<Station> findById(StationId id);
 
-    PageResult<Station> findAll(int page, int size, String sortField, SortDirection direction);
+    PageResponse<Station> findAll(int page, int size, List<SortOrder> sort);
 
     boolean existsByCode(String code);
 

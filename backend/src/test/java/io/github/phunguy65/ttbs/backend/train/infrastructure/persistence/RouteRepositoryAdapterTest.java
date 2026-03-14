@@ -2,12 +2,11 @@ package io.github.phunguy65.ttbs.backend.train.infrastructure.persistence;
 
 import static org.assertj.core.api.Assertions.*;
 
+import io.github.phunguy65.ttbs.backend.shared.application.response.PageResponse;
 import io.github.phunguy65.ttbs.backend.shared.domain.Money;
-import io.github.phunguy65.ttbs.backend.shared.domain.PageResult;
-import io.github.phunguy65.ttbs.backend.shared.domain.SortDirection;
+import io.github.phunguy65.ttbs.backend.shared.domain.SortOrder;
 import io.github.phunguy65.ttbs.backend.station.domain.model.StationId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.Route;
-import io.github.phunguy65.ttbs.backend.train.domain.model.RouteFilter;
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.TrainId;
 import io.github.phunguy65.ttbs.backend.train.domain.repository.RouteRepository;
@@ -93,14 +92,14 @@ class RouteRepositoryAdapterTest {
         assertThat(found).isEmpty();
     }
 
-    // ── findAll — no filter ──────────────────────────────────────────────────────
+    // ── findAll ──────────────────────────────────────────────────────────────────
 
     @Test
     void findAll_emptyDatabase_returnsEmptyPageResult() {
-        PageResult<Route> result = routeRepository.findAll(
-                0, 20, "createdAt", SortDirection.DESC, RouteFilter.empty());
+        List<SortOrder> sort = List.of(SortOrder.asc("departureTime"), SortOrder.asc("id"));
+        PageResponse<Route> result = routeRepository.findAll(0, 20, sort);
 
-        assertThat(result.items()).isEmpty();
+        assertThat(result.content()).isEmpty();
         assertThat(result.hasNext()).isFalse();
         assertThat(result.hasPrevious()).isFalse();
     }
@@ -111,12 +110,12 @@ class RouteRepositoryAdapterTest {
             routeRepository.save(newRoute());
         }
 
-        PageResult<Route> result =
-                routeRepository.findAll(0, 3, "createdAt", SortDirection.DESC, RouteFilter.empty());
+        List<SortOrder> sort = List.of(SortOrder.asc("departureTime"));
+        PageResponse<Route> result = routeRepository.findAll(0, 3, sort);
 
-        assertThat(result.items()).hasSize(3);
-        assertThat(result.pageNumber()).isEqualTo(0);
-        assertThat(result.pageSize()).isEqualTo(3);
+        assertThat(result.content()).hasSize(3);
+        assertThat(result.page()).isEqualTo(0);
+        assertThat(result.size()).isEqualTo(3);
         assertThat(result.hasNext()).isTrue();
         assertThat(result.hasPrevious()).isFalse();
     }
@@ -127,56 +126,12 @@ class RouteRepositoryAdapterTest {
             routeRepository.save(newRoute());
         }
 
-        PageResult<Route> result =
-                routeRepository.findAll(1, 3, "createdAt", SortDirection.ASC, RouteFilter.empty());
+        List<SortOrder> sort = List.of(SortOrder.asc("departureTime"));
+        PageResponse<Route> result = routeRepository.findAll(1, 3, sort);
 
-        assertThat(result.items()).hasSize(1);
+        assertThat(result.content()).hasSize(1);
         assertThat(result.hasNext()).isFalse();
         assertThat(result.hasPrevious()).isTrue();
-    }
-
-    // ── findAll — originStationId filter ────────────────────────────────────────
-
-    @Test
-    void findAll_withOriginFilter_returnsOnlyMatchingRoutes() {
-        StationId otherOrigin = StationId.of(UUID.randomUUID());
-        routeRepository.save(newRoute(ORIGIN_A, DEST_B, DEPARTURE_BASE, ARRIVAL_BASE));
-        routeRepository.save(newRoute(
-                ORIGIN_A,
-                DEST_B,
-                DEPARTURE_BASE.plusSeconds(3600),
-                ARRIVAL_BASE.plusSeconds(3600)));
-        routeRepository.save(newRoute(otherOrigin, DEST_B, DEPARTURE_BASE, ARRIVAL_BASE));
-
-        RouteFilter filter = new RouteFilter(ORIGIN_A.value(), null, null, null);
-        PageResult<Route> result =
-                routeRepository.findAll(0, 20, "createdAt", SortDirection.DESC, filter);
-
-        assertThat(result.items()).hasSize(2);
-        assertThat(result.items()).allMatch(r -> r.getOriginStationId().equals(ORIGIN_A));
-    }
-
-    // ── findAll — departure date range filter ────────────────────────────────────
-
-    @Test
-    void findAll_withDepartureDateRangeFilter_returnsOnlyMatchingRoutes() {
-        Instant early = Instant.parse("2025-05-01T08:00:00Z");
-        Instant earlyArrival = early.plusSeconds(4 * 3600);
-        Instant late = Instant.parse("2025-07-01T08:00:00Z");
-        Instant lateArrival = late.plusSeconds(4 * 3600);
-
-        routeRepository.save(newRoute(ORIGIN_A, DEST_B, early, earlyArrival));
-        routeRepository.save(newRoute(ORIGIN_A, DEST_B, DEPARTURE_BASE, ARRIVAL_BASE));
-        routeRepository.save(newRoute(ORIGIN_A, DEST_B, late, lateArrival));
-
-        Instant from = Instant.parse("2025-05-15T00:00:00Z");
-        Instant to = Instant.parse("2025-06-15T00:00:00Z");
-        RouteFilter filter = new RouteFilter(null, null, from, to);
-        PageResult<Route> result =
-                routeRepository.findAll(0, 20, "departureTime", SortDirection.ASC, filter);
-
-        assertThat(result.items()).hasSize(1);
-        assertThat(result.items().getFirst().getDepartureTime()).isEqualTo(DEPARTURE_BASE);
     }
 
     // ── soft delete ──────────────────────────────────────────────────────────
@@ -226,10 +181,10 @@ class RouteRepositoryAdapterTest {
         Route toDelete = routeRepository.save(newRoute());
         routeRepository.softDeleteById(toDelete.getId(), Instant.now());
 
-        PageResult<Route> result = routeRepository.findAll(
-                0, 20, "createdAt", SortDirection.DESC, RouteFilter.empty());
+        List<SortOrder> sort = List.of(SortOrder.asc("departureTime"));
+        PageResponse<Route> result = routeRepository.findAll(0, 20, sort);
 
-        assertThat(result.items()).hasSize(1);
-        assertThat(result.items().getFirst().getId()).isNotEqualTo(toDelete.getId());
+        assertThat(result.content()).hasSize(1);
+        assertThat(result.content().getFirst().getId()).isNotEqualTo(toDelete.getId());
     }
 }

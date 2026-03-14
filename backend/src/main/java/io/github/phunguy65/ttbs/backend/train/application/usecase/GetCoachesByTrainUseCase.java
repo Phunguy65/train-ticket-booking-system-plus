@@ -1,5 +1,8 @@
 package io.github.phunguy65.ttbs.backend.train.application.usecase;
 
+import io.github.phunguy65.ttbs.backend.shared.application.response.PageResponse;
+import io.github.phunguy65.ttbs.backend.shared.domain.SortOrder;
+import io.github.phunguy65.ttbs.backend.train.application.query.GetCoachesQuery;
 import io.github.phunguy65.ttbs.backend.train.application.response.CoachResponse;
 import io.github.phunguy65.ttbs.backend.train.domain.model.Coach;
 import io.github.phunguy65.ttbs.backend.train.domain.model.TrainId;
@@ -18,8 +21,16 @@ public class GetCoachesByTrainUseCase {
     }
 
     @Transactional(readOnly = true)
-    public List<CoachResponse> execute(TrainId trainId) {
-        return coachRepository.findByTrainId(trainId).stream().map(this::toDto).toList();
+    public PageResponse<CoachResponse> execute(GetCoachesQuery query) {
+        List<SortOrder> sort = List.of(SortOrder.asc("carNumber"), SortOrder.asc("id"));
+        PageResponse<Coach> coaches = coachRepository.findAll(
+                query.page(), query.size(), sort, TrainId.of(query.trainId()));
+        return PageResponse.of(
+                coaches.content().stream().map(this::toDto).toList(),
+                coaches.page(),
+                coaches.size(),
+                coaches.hasNext(),
+                coaches.total());
     }
 
     private CoachResponse toDto(Coach coach) {

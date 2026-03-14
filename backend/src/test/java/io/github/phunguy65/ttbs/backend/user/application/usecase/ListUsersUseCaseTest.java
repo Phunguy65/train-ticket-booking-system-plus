@@ -1,10 +1,11 @@
 package io.github.phunguy65.ttbs.backend.user.application.usecase;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-import io.github.phunguy65.ttbs.backend.shared.domain.PageResult;
-import io.github.phunguy65.ttbs.backend.shared.domain.SortDirection;
+import io.github.phunguy65.ttbs.backend.shared.application.response.PageResponse;
+import io.github.phunguy65.ttbs.backend.user.application.query.GetUsersQuery;
 import io.github.phunguy65.ttbs.backend.user.application.response.UserResponse;
 import io.github.phunguy65.ttbs.backend.user.domain.model.User;
 import io.github.phunguy65.ttbs.backend.user.domain.model.UserId;
@@ -43,18 +44,17 @@ class ListUsersUseCaseTest {
                 Instant.now(),
                 null);
 
-        PageResult<User> repoResult = PageResult.of(List.of(user), 0, 20, false);
-        when(userRepository.findAll(0, 20, "createdAt", SortDirection.DESC)).thenReturn(repoResult);
+        PageResponse<User> repoResult = PageResponse.of(List.of(user), 0, 20, false);
+        when(userRepository.findAll(eq(0), eq(20), any(List.class))).thenReturn(repoResult);
 
-        PageResult<UserResponse> result =
-                listUsersUseCase.execute(0, 20, "createdAt", SortDirection.DESC);
+        PageResponse<UserResponse> result = listUsersUseCase.execute(new GetUsersQuery(0, 20));
 
-        assertThat(result.items()).hasSize(1);
-        assertThat(result.items().get(0).email()).isEqualTo("alice@example.com");
-        assertThat(result.items().get(0).fullName()).isEqualTo("Alice");
-        assertThat(result.items().get(0).role()).isEqualTo(UserRole.CUSTOMER);
-        assertThat(result.pageNumber()).isEqualTo(0);
-        assertThat(result.pageSize()).isEqualTo(20);
+        assertThat(result.content()).hasSize(1);
+        assertThat(result.content().get(0).email()).isEqualTo("alice@example.com");
+        assertThat(result.content().get(0).fullName()).isEqualTo("Alice");
+        assertThat(result.content().get(0).role()).isEqualTo(UserRole.CUSTOMER);
+        assertThat(result.page()).isEqualTo(0);
+        assertThat(result.size()).isEqualTo(20);
         assertThat(result.hasNext()).isFalse();
         assertThat(result.hasPrevious()).isFalse();
     }
@@ -72,11 +72,10 @@ class ListUsersUseCaseTest {
                 Instant.now(),
                 null);
 
-        PageResult<User> repoResult = PageResult.of(List.of(user), 0, 5, true);
-        when(userRepository.findAll(0, 5, "email", SortDirection.ASC)).thenReturn(repoResult);
+        PageResponse<User> repoResult = PageResponse.of(List.of(user), 0, 5, true);
+        when(userRepository.findAll(eq(0), eq(5), any(List.class))).thenReturn(repoResult);
 
-        PageResult<UserResponse> result =
-                listUsersUseCase.execute(0, 5, "email", SortDirection.ASC);
+        PageResponse<UserResponse> result = listUsersUseCase.execute(new GetUsersQuery(0, 5));
 
         assertThat(result.hasNext()).isTrue();
         assertThat(result.hasPrevious()).isFalse();
@@ -84,28 +83,26 @@ class ListUsersUseCaseTest {
 
     @Test
     void execute_middlePage_hasPreviousTrue() {
-        PageResult<User> repoResult = PageResult.of(List.of(), 2, 10, false);
-        when(userRepository.findAll(2, 10, "createdAt", SortDirection.DESC)).thenReturn(repoResult);
+        PageResponse<User> repoResult = PageResponse.of(List.of(), 2, 10, false);
+        when(userRepository.findAll(eq(2), eq(10), any(List.class))).thenReturn(repoResult);
 
-        PageResult<UserResponse> result =
-                listUsersUseCase.execute(2, 10, "createdAt", SortDirection.DESC);
+        PageResponse<UserResponse> result = listUsersUseCase.execute(new GetUsersQuery(2, 10));
 
         assertThat(result.hasPrevious()).isTrue();
         assertThat(result.hasNext()).isFalse();
-        assertThat(result.pageNumber()).isEqualTo(2);
+        assertThat(result.page()).isEqualTo(2);
     }
 
     // ── Empty result ─────────────────────────────────────────────────────────
 
     @Test
     void execute_emptyDatabase_returnsEmptyPageResult() {
-        PageResult<User> repoResult = PageResult.empty(20);
-        when(userRepository.findAll(0, 20, "createdAt", SortDirection.DESC)).thenReturn(repoResult);
+        PageResponse<User> repoResult = PageResponse.empty(20);
+        when(userRepository.findAll(eq(0), eq(20), any(List.class))).thenReturn(repoResult);
 
-        PageResult<UserResponse> result =
-                listUsersUseCase.execute(0, 20, "createdAt", SortDirection.DESC);
+        PageResponse<UserResponse> result = listUsersUseCase.execute(new GetUsersQuery(0, 20));
 
-        assertThat(result.items()).isEmpty();
+        assertThat(result.content()).isEmpty();
         assertThat(result.hasNext()).isFalse();
         assertThat(result.hasPrevious()).isFalse();
     }
@@ -125,15 +122,14 @@ class ListUsersUseCaseTest {
                 Instant.now(),
                 null);
 
-        PageResult<User> repoResult = PageResult.of(List.of(user), 0, 20, false);
-        when(userRepository.findAll(anyInt(), anyInt(), anyString(), any())).thenReturn(repoResult);
+        PageResponse<User> repoResult = PageResponse.of(List.of(user), 0, 20, false);
+        when(userRepository.findAll(anyInt(), anyInt(), any(List.class))).thenReturn(repoResult);
 
-        PageResult<UserResponse> result =
-                listUsersUseCase.execute(0, 20, "createdAt", SortDirection.DESC);
+        PageResponse<UserResponse> result = listUsersUseCase.execute(new GetUsersQuery(0, 20));
 
         // UserResponse record does not have a passwordHash field – compile-time guarantee.
         // This test asserts the email is present and the dto is well-formed.
-        UserResponse dto = result.items().get(0);
+        UserResponse dto = result.content().get(0);
         assertThat(dto.email()).isEqualTo("carol@example.com");
         assertThat(dto.id()).isNotNull();
         assertThat(dto.createdAt()).isNotNull();
