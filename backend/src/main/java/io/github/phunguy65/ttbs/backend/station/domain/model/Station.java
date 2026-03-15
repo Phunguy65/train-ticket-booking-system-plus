@@ -3,6 +3,7 @@ package io.github.phunguy65.ttbs.backend.station.domain.model;
 import io.github.phunguy65.ttbs.backend.shared.domain.AggregateRoot;
 import io.github.phunguy65.ttbs.backend.station.domain.event.StationCreated;
 import io.github.phunguy65.ttbs.backend.station.domain.event.StationDeleted;
+import io.github.phunguy65.ttbs.backend.station.domain.event.StationUpdated;
 import java.time.Instant;
 
 public class Station extends AggregateRoot<StationId> {
@@ -51,6 +52,16 @@ public class Station extends AggregateRoot<StationId> {
             Instant createdAt,
             Instant deletedAt) {
         return new Station(id, code, name, city, createdAt, deletedAt);
+    }
+
+    /**
+     * Updates this station's business fields and registers a {@link StationUpdated} domain event.
+     * Returns a new {@code Station} instance (fields are immutable).
+     */
+    public Station update(String code, String name, String city) {
+        Station updated = new Station(this.id, code, name, city, this.createdAt, this.deletedAt);
+        updated.registerEvent(StationUpdated.of(this.id, code, name, city));
+        return updated;
     }
 
     /**
