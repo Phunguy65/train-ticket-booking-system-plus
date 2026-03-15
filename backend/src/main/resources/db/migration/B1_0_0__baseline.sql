@@ -150,6 +150,7 @@ CREATE TABLE bookings (
     idempotency_key VARCHAR(255),
     payment_deadline TIMESTAMPTZ,
     payment_reference VARCHAR(255),
+    checkout_session_id VARCHAR(255),
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT pk_bookings PRIMARY KEY (id),
     CONSTRAINT uq_bookings_idempotency UNIQUE (idempotency_key),

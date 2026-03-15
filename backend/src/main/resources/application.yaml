@@ -1,27 +1,34 @@
 spring:
-  application:
-    name: backend
-  threads:
-    virtual:
-        enabled: true
-  mvc:
-    apiversion:
-      use:
-        path-segment: 1
-      supported: 1.0
-      default: 1.0
+    application:
+        name: backend
+    threads:
+        virtual:
+            enabled: true
+    datasource:
+        url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/trainbooking}
+        username: ${SPRING_DATASOURCE_USERNAME:postgres}
+        password: ${SPRING_DATASOURCE_PASSWORD:postgres}
+    flyway:
+        locations: classpath:db/migration
+        baseline-on-migrate: true
+        baseline-version: 0
+    mvc:
+        apiversion:
+            use:
+                path-segment: 1
+            supported: 1.0
+            default: 1.0
 
 jwt:
-  secret: ${JWT_SECRET}
-  access-token-expiry: ${JWT_ACCESS_TOKEN_EXPIRY:900}
-  refresh-token-expiry: ${JWT_REFRESH_TOKEN_EXPIRY:604800}
+    secret: ${JWT_SECRET}
+    access-token-expiry: ${JWT_ACCESS_TOKEN_EXPIRY:900}
+    refresh-token-expiry: ${JWT_REFRESH_TOKEN_EXPIRY:604800}
 
 stripe:
-  api-key: ${STRIPE_SECRET_KEY}
-  webhook-secret: ${STRIPE_WEBHOOK_SECRET}
-  success-url: ${STRIPE_SUCCESS_URL}
-  cancel-url: ${STRIPE_CANCEL_URL}
+    api-key: ${STRIPE_SECRET_KEY}
+    webhook-secret: ${STRIPE_WEBHOOK_SECRET}
+    success-url: ${STRIPE_SUCCESS_URL}
+    cancel-url: ${STRIPE_CANCEL_URL}
 
 booking:
-  cancel-url: ${STRIPE_CANCEL_URL}
-
+    cancel-url: ${STRIPE_CANCEL_URL}

@@ -64,9 +64,8 @@ pre-commit:
 
         # ── Database – SQL (Prettier) ─────────────────────────────────────
         database-format:
-            root: 'database/'
             glob: '**/*.sql'
-            run: bun --bun run format
+            run: bunx prettier --write {staged_files}
             stage_fixed: true
 
 commit-msg:

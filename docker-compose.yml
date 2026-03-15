@@ -1,7 +1,29 @@
-include:
-    - path: ./database/docker-compose.yml
-
 services:
+    postgres:
+        image: postgres:18-alpine
+        container_name: trainbooking-postgres
+        environment:
+            POSTGRES_DB: trainbooking
+            POSTGRES_USER: postgres
+            POSTGRES_PASSWORD: postgres
+            TZ: UTC
+            PGTZ: UTC
+        ports:
+            - '5432:5432'
+        volumes:
+            - trainbooking-data:/var/lib/postgresql/data
+        networks:
+            - trainbooking-network
+        healthcheck:
+            test: ['CMD-SHELL', 'pg_isready -U postgres']
+            interval: 10s
+            timeout: 5s
+            retries: 5
+        command:
+            - 'postgres'
+            - '-c'
+            - 'timezone=UTC'
+
     backend:
         build:
             context: ./backend
@@ -18,8 +40,6 @@ services:
         depends_on:
             postgres:
                 condition: service_healthy
-            flyway:
-                condition: service_completed_successfully
         networks:
             - trainbooking-network
 
@@ -42,3 +62,6 @@ services:
 networks:
     trainbooking-network:
         driver: bridge
+
+volumes:
+    trainbooking-data:

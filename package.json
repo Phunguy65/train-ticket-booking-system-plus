@@ -1,29 +1,29 @@
 {
-  "name": "train-ticket-booking-system-plus",
-  "version": "1.0.0",
-  "description": "",
-  "type": "module",
-  "scripts": {
-    "lint": "markdownlint-cli2 --fix '**.md'",
-    "format": "prettier --write '**.{md, json, toml, yaml, yml, sh}'",
-    "turbo": "turbo"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "GPL-3.0-only",
-  "packageManager": "pnpm@10.28.1",
-  "devDependencies": {
-    "@commitlint/cli": "^20.4.2",
-    "@commitlint/config-conventional": "^20.4.2",
-    "prettier-plugin-toml": "^2.0.6",
-    "prettier-plugin-sh": "^0.18.0",
-    "markdownlint-cli2": "^0.21.0",
-    "prettier": "^3.8.1",
-    "lefthook": "^2.1.1"
-  },
-  "workspaces": [
-    "frontend",
-    "backend",
-    "database"
-  ]
+    "name": "train-ticket-booking-system-plus",
+    "version": "1.0.0",
+    "description": "",
+    "type": "module",
+    "scripts": {
+        "lint": "markdownlint-cli2 --fix '**.md'",
+        "format": "prettier --write '**.{md, json, toml, yaml, yml, sh}'",
+        "turbo": "turbo"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "GPL-3.0-only",
+    "packageManager": "pnpm@10.28.1",
+    "devDependencies": {
+        "@commitlint/cli": "^20.4.2",
+        "@commitlint/config-conventional": "^20.4.2",
+        "prettier-plugin-toml": "^2.0.6",
+        "prettier-plugin-sh": "^0.18.0",
+        "markdownlint-cli2": "^0.21.0",
+        "prettier": "^3.8.1",
+        "lefthook": "^2.1.1",
+		"prettier-plugin-sql": "^0.19.2"
+    },
+    "workspaces": [
+        "frontend",
+        "backend"
+    ]
 }
