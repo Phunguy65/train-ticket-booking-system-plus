@@ -5,10 +5,9 @@ import com.stripe.model.Event;
 import com.stripe.model.PaymentIntent;
 import com.stripe.model.checkout.Session;
 import com.stripe.net.Webhook;
+import io.github.phunguy65.ttbs.backend.payment.application.usecase.CancelPendingPaymentUseCase;
 import io.github.phunguy65.ttbs.backend.payment.application.usecase.HandlePaymentFailedUseCase;
 import io.github.phunguy65.ttbs.backend.payment.application.usecase.HandlePaymentSuccessUseCase;
-import io.github.phunguy65.ttbs.backend.payment.domain.model.PaymentStatus;
-import io.github.phunguy65.ttbs.backend.payment.domain.repository.PaymentRepository;
 import io.github.phunguy65.ttbs.backend.payment.infrastructure.stripe.StripeConfig;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.JsendResponse;
 import jakarta.servlet.http.HttpServletRequest;
@@ -29,17 +28,17 @@ class StripeWebhookController {
     private final StripeConfig stripeConfig;
     private final HandlePaymentSuccessUseCase handlePaymentSuccessUseCase;
     private final HandlePaymentFailedUseCase handlePaymentFailedUseCase;
-    private final PaymentRepository paymentRepository;
+    private final CancelPendingPaymentUseCase cancelPendingPaymentUseCase;
 
     StripeWebhookController(
             StripeConfig stripeConfig,
             HandlePaymentSuccessUseCase handlePaymentSuccessUseCase,
             HandlePaymentFailedUseCase handlePaymentFailedUseCase,
-            PaymentRepository paymentRepository) {
+            CancelPendingPaymentUseCase cancelPendingPaymentUseCase) {
         this.stripeConfig = stripeConfig;
         this.handlePaymentSuccessUseCase = handlePaymentSuccessUseCase;
         this.handlePaymentFailedUseCase = handlePaymentFailedUseCase;
-        this.paymentRepository = paymentRepository;
+        this.cancelPendingPaymentUseCase = cancelPendingPaymentUseCase;
     }
 
     @PostMapping(value = "/{version}/webhooks/stripe", version = "1.0")
@@ -72,16 +71,7 @@ class StripeWebhookController {
                     Session session = (Session) event.getDataObjectDeserializer()
                             .getObject()
                             .orElseThrow(() -> new IllegalStateException("Missing session data"));
-                    paymentRepository
-                            .findByCheckoutSessionId(session.getId())
-                            .filter(p -> p.getStatus() == PaymentStatus.PENDING)
-                            .ifPresent(p -> {
-                                p.markCancelled();
-                                paymentRepository.save(p);
-                                log.info(
-                                        "Payment cancelled via Stripe expiry for session={}",
-                                        session.getId());
-                            });
+                    cancelPendingPaymentUseCase.execute(session.getId());
                 }
                 case "payment_intent.payment_failed" -> {
                     PaymentIntent pi = (PaymentIntent) event.getDataObjectDeserializer()
