@@ -31,6 +31,7 @@ configurations {
 dependencies {
     implementation(libs.spring.boot.starter.actuator)
     implementation(libs.spring.boot.starter.flyway)
+    runtimeOnly(libs.flyway.database.postgresql)
     implementation(libs.spring.boot.starter.amqp)
     implementation(libs.spring.boot.starter.data.jpa)
     implementation(libs.spring.boot.starter.integration)
@@ -65,7 +66,11 @@ dependencies {
     testImplementation(libs.spring.integration.test)
     testImplementation(libs.spring.modulith.starter.test)
     testRuntimeOnly(libs.junit.platform.launcher)
-    testRuntimeOnly(libs.h2)
+    testImplementation(platform(libs.testcontainers.bom))
+    testImplementation(libs.testcontainers.junit.jupiter)
+    testImplementation(libs.testcontainers.postgresql)
+    testImplementation(libs.testcontainers.rabbitmq)
+    testImplementation(libs.spring.boot.testcontainers)
     testImplementation(libs.archunit.junit5)
 }
 

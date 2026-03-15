@@ -1,6 +1,7 @@
 [versions]
 # ─── Java ─────────────────────────────────────────────────────────────────
 archunitJunit5 = "1.4.1"
+testcontainers = "2.0.3"
 jacksonDatabindNullable = "0.2.9"
 java = "25"
 # ─── Backend ─────────────────────────────────────────────────────────────────
@@ -46,6 +47,7 @@ spring-modulith-bom = { module = "org.springframework.modulith:spring-modulith-b
 
 # Spring Boot Starters (version managed by Spring Boot BOM)
 spring-boot-starter-flyway = { module = "org.springframework.boot:spring-boot-starter-flyway" }
+flyway-database-postgresql = { module = "org.flywaydb:flyway-database-postgresql" }
 spring-boot-starter-actuator = { module = "org.springframework.boot:spring-boot-starter-actuator" }
 spring-boot-starter-amqp = { module = "org.springframework.boot:spring-boot-starter-amqp" }
 spring-boot-starter-data-jpa = { module = "org.springframework.boot:spring-boot-starter-data-jpa" }
@@ -103,7 +105,13 @@ spring-boot-starter-data-jpa-test = { module = "org.springframework.boot:spring-
 spring-boot-starter-security-test = { module = "org.springframework.boot:spring-boot-starter-security-test" }
 spring-boot-starter-webmvc-test = { module = "org.springframework.boot:spring-boot-starter-webmvc-test" }
 archunit-junit5 = { module = "com.tngtech.archunit:archunit-junit5", version.ref = "archunitJunit5" }
-h2 = { module = "com.h2database:h2" }
+
+# Testcontainers
+testcontainers-bom = { group = "org.testcontainers", name = "testcontainers-bom", version.ref = "testcontainers" }
+testcontainers-junit-jupiter = { group = "org.testcontainers", name = "testcontainers-junit-jupiter", version.ref = "testcontainers" }
+testcontainers-postgresql = { group = "org.testcontainers", name = "testcontainers-postgresql", version.ref = "testcontainers" }
+testcontainers-rabbitmq = { group = "org.testcontainers", name = "testcontainers-rabbitmq", version.ref = "testcontainers" }
+spring-boot-testcontainers = { module = "org.springframework.boot:spring-boot-testcontainers" }
 
 # ─── Frontend – Kotlin & Testing ─────────────────────────────────────────────
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
