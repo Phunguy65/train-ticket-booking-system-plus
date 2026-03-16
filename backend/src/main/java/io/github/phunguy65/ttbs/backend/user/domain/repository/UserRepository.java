@@ -1,6 +1,6 @@
 package io.github.phunguy65.ttbs.backend.user.domain.repository;
 
-import io.github.phunguy65.ttbs.backend.shared.application.response.PageResponse;
+import io.github.phunguy65.ttbs.backend.shared.domain.PageResponse;
 import io.github.phunguy65.ttbs.backend.shared.domain.SortOrder;
 import io.github.phunguy65.ttbs.backend.user.domain.model.User;
 import io.github.phunguy65.ttbs.backend.user.domain.model.UserId;

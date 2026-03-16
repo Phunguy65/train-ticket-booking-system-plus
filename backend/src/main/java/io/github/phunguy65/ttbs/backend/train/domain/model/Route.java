@@ -5,6 +5,7 @@ import io.github.phunguy65.ttbs.backend.shared.domain.Money;
 import io.github.phunguy65.ttbs.backend.station.domain.model.StationId;
 import io.github.phunguy65.ttbs.backend.train.domain.event.RouteCreated;
 import io.github.phunguy65.ttbs.backend.train.domain.event.RouteDeleted;
+import io.github.phunguy65.ttbs.backend.train.domain.event.RouteUpdated;
 import java.time.Instant;
 
 /**
@@ -20,10 +21,10 @@ public class Route extends AggregateRoot<RouteId> {
     private final TrainId trainId;
     private final StationId originStationId;
     private final StationId destinationStationId;
-    private final Instant departureTime;
-    private final Instant arrivalTime;
-    private final Money basePrice;
-    private final RouteStatus status;
+    private Instant departureTime;
+    private Instant arrivalTime;
+    private Money basePrice;
+    private RouteStatus status;
     private final Instant createdAt;
     private Instant deletedAt;
 
@@ -111,6 +112,23 @@ public class Route extends AggregateRoot<RouteId> {
                 status,
                 createdAt,
                 deletedAt);
+    }
+
+    /**
+     * Updates mutable fields of this route and registers a {@link RouteUpdated} domain event.
+     *
+     * @throws IllegalArgumentException if {@code arrivalTime} is not after {@code departureTime}
+     */
+    public void update(
+            Instant departureTime, Instant arrivalTime, Money basePrice, RouteStatus status) {
+        if (!arrivalTime.isAfter(departureTime)) {
+            throw new IllegalArgumentException("arrivalTime must be after departureTime");
+        }
+        this.departureTime = departureTime;
+        this.arrivalTime = arrivalTime;
+        this.basePrice = basePrice;
+        this.status = status;
+        registerEvent(RouteUpdated.of(id, status));
     }
 
     /**

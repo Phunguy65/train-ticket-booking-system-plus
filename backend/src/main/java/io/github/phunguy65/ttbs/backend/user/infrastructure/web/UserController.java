@@ -1,6 +1,6 @@
 package io.github.phunguy65.ttbs.backend.user.infrastructure.web;
 
-import io.github.phunguy65.ttbs.backend.shared.application.response.PageResponse;
+import io.github.phunguy65.ttbs.backend.shared.domain.PageResponse;
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.ErrorCode;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.FailData;

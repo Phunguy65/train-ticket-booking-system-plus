@@ -4,10 +4,13 @@ import io.github.phunguy65.ttbs.backend.train.domain.event.RouteCreated;
 import io.github.phunguy65.ttbs.backend.train.domain.model.Coach;
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteSeatAvailability;
 import io.github.phunguy65.ttbs.backend.train.domain.model.Seat;
+import io.github.phunguy65.ttbs.backend.train.domain.model.SeatId;
 import io.github.phunguy65.ttbs.backend.train.domain.repository.CoachRepository;
 import io.github.phunguy65.ttbs.backend.train.domain.repository.RouteSeatAvailabilityRepository;
 import io.github.phunguy65.ttbs.backend.train.domain.repository.SeatRepository;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.springframework.modulith.events.ApplicationModuleListener;
 import org.springframework.stereotype.Service;
 
@@ -45,10 +48,19 @@ public class SeatAvailabilitySeeder {
                 .flatMap(coach -> seatRepository.findByCoachId(coach.getId()).stream())
                 .toList();
 
+        if (seats.isEmpty()) {
+            return;
+        }
+
+        List<SeatId> seatIds = seats.stream().map(Seat::getId).toList();
+
+        Set<SeatId> existingSeatIds =
+                availabilityRepository.findByRouteIdAndSeatIds(event.routeId(), seatIds).stream()
+                        .map(RouteSeatAvailability::getSeatId)
+                        .collect(Collectors.toSet());
+
         List<RouteSeatAvailability> records = seats.stream()
-                .filter(seat -> availabilityRepository
-                        .findByRouteIdAndSeatId(event.routeId(), seat.getId())
-                        .isEmpty())
+                .filter(seat -> !existingSeatIds.contains(seat.getId()))
                 .map(seat -> RouteSeatAvailability.create(event.routeId(), seat.getId()))
                 .toList();
 

@@ -1,6 +1,6 @@
 package io.github.phunguy65.ttbs.backend.train.infrastructure.persistence;
 
-import io.github.phunguy65.ttbs.backend.shared.application.response.PageResponse;
+import io.github.phunguy65.ttbs.backend.shared.domain.PageResponse;
 import io.github.phunguy65.ttbs.backend.shared.domain.SortOrder;
 import io.github.phunguy65.ttbs.backend.train.domain.model.CoachId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteId;

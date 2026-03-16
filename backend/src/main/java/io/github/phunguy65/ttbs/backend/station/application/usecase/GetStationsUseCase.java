@@ -1,6 +1,6 @@
 package io.github.phunguy65.ttbs.backend.station.application.usecase;
 
-import io.github.phunguy65.ttbs.backend.shared.application.response.PageResponse;
+import io.github.phunguy65.ttbs.backend.shared.domain.PageResponse;
 import io.github.phunguy65.ttbs.backend.shared.domain.SortOrder;
 import io.github.phunguy65.ttbs.backend.station.application.query.GetStationsQuery;
 import io.github.phunguy65.ttbs.backend.station.application.response.StationResponse;

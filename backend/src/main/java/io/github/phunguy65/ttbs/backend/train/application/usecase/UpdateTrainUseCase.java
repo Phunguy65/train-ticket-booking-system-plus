@@ -43,15 +43,9 @@ public class UpdateTrainUseCase {
                 ? command.totalSeats().get()
                 : train.getTotalSeats();
 
-        Train updated = Train.reconstitute(
-                train.getId(),
-                newTrainNumber,
-                newName,
-                newTotalSeats,
-                train.getCreatedAt(),
-                train.getDeletedAt());
+        train.update(newTrainNumber, newName, newTotalSeats);
 
-        Train saved = trainRepository.save(updated);
+        Train saved = trainRepository.save(train);
         return Result.success(toDto(saved));
     }
 

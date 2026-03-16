@@ -3,14 +3,15 @@ package io.github.phunguy65.ttbs.backend.train.domain.model;
 import io.github.phunguy65.ttbs.backend.shared.domain.AggregateRoot;
 import io.github.phunguy65.ttbs.backend.train.domain.event.TrainCreated;
 import io.github.phunguy65.ttbs.backend.train.domain.event.TrainDeleted;
+import io.github.phunguy65.ttbs.backend.train.domain.event.TrainUpdated;
 import java.time.Instant;
 
 public class Train extends AggregateRoot<TrainId> {
 
     private final TrainId id;
-    private final String trainNumber;
-    private final String name;
-    private final int totalSeats;
+    private String trainNumber;
+    private String name;
+    private int totalSeats;
     private final Instant createdAt;
     private Instant deletedAt;
 
@@ -33,6 +34,9 @@ public class Train extends AggregateRoot<TrainId> {
      * Factory method for creating a new train. Registers {@link TrainCreated} domain event.
      */
     public static Train create(TrainId id, String trainNumber, String name, int totalSeats) {
+        if (totalSeats <= 0) {
+            throw new IllegalArgumentException("totalSeats must be positive");
+        }
         Instant now = Instant.now();
         Train train = new Train(id, trainNumber, name, totalSeats, now, null);
         train.registerEvent(TrainCreated.of(id, trainNumber));
@@ -51,6 +55,23 @@ public class Train extends AggregateRoot<TrainId> {
             Instant createdAt,
             Instant deletedAt) {
         return new Train(id, trainNumber, name, totalSeats, createdAt, deletedAt);
+    }
+
+    /**
+     * Updates mutable fields of this train and registers a {@link TrainUpdated} domain event.
+     *
+     * @param trainNumber new train number (must not be null)
+     * @param name        new display name (must not be null)
+     * @param totalSeats  new total seat count (must be positive)
+     */
+    public void update(String trainNumber, String name, int totalSeats) {
+        if (totalSeats <= 0) {
+            throw new IllegalArgumentException("totalSeats must be positive");
+        }
+        this.trainNumber = trainNumber;
+        this.name = name;
+        this.totalSeats = totalSeats;
+        registerEvent(TrainUpdated.of(id, trainNumber));
     }
 
     /**

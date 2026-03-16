@@ -39,19 +39,9 @@ public class UpdateRouteUseCase {
         RouteStatus newStatus =
                 command.status().isPresent() ? command.status().get() : route.getStatus();
 
-        Route updated = Route.reconstitute(
-                route.getId(),
-                route.getTrainId(),
-                route.getOriginStationId(),
-                route.getDestinationStationId(),
-                newDepartureTime,
-                newArrivalTime,
-                newBasePrice,
-                newStatus,
-                route.getCreatedAt(),
-                route.getDeletedAt());
+        route.update(newDepartureTime, newArrivalTime, newBasePrice, newStatus);
 
-        Route saved = routeRepository.save(updated);
+        Route saved = routeRepository.save(route);
         return Result.success(toDto(saved));
     }
 
