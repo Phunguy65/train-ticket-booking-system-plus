@@ -1,7 +1,5 @@
-package io.github.phunguy65.ttbs.backend.shared.application.response;
+package io.github.phunguy65.ttbs.backend.shared.domain;
 
-import io.github.phunguy65.ttbs.backend.shared.domain.Money;
-import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import java.util.List;
 
 /**
