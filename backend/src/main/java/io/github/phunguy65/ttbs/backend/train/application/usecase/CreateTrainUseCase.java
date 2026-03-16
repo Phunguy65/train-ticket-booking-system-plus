@@ -32,8 +32,7 @@ public class CreateTrainUseCase {
         }
 
         TrainId trainId = TrainId.of(UuidGenerator.generate());
-        Train train =
-                Train.create(trainId, command.trainNumber(), command.name(), command.totalSeats());
+        Train train = Train.create(trainId, command.trainNumber(), command.name());
         Train saved = trainRepository.save(train);
 
         for (DomainEvent event : train.getDomainEvents()) {

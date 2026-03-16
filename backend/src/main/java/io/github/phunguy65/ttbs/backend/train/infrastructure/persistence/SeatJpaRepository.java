@@ -43,6 +43,20 @@ interface SeatJpaRepository extends JpaRepository<SeatEntity, UUID> {
                     + "AND s.deleted_at IS NULL")
     Page<SeatEntity> findAllAvailableByRouteId(@Param("routeId") UUID routeId, Pageable pageable);
 
+    @Query(
+            "SELECT COUNT(s) FROM SeatEntity s JOIN CoachEntity c ON s.coachId = c.id WHERE c.trainId = :trainId AND s.deletedAt IS NULL")
+    int countActiveByTrainId(@Param("trainId") UUID trainId);
+
+    @Query("SELECT COUNT(s) FROM SeatEntity s WHERE s.coachId = :coachId AND s.deletedAt IS NULL")
+    int countActiveByCoachId(@Param("coachId") UUID coachId);
+
+    @Query(
+            "SELECT DISTINCT c.trainId FROM SeatEntity s JOIN CoachEntity c ON s.coachId = c.id WHERE s.id IN :seatIds")
+    List<UUID> findDistinctTrainIdsBySeatIds(@Param("seatIds") List<UUID> seatIds);
+
+    @Query("SELECT DISTINCT s.coachId FROM SeatEntity s WHERE s.id IN :seatIds")
+    List<UUID> findDistinctCoachIdsBySeatIds(@Param("seatIds") List<UUID> seatIds);
+
     @Query("SELECT s FROM SeatEntity s WHERE s.id = :id AND s.deletedAt IS NULL")
     Optional<SeatEntity> findActiveById(@Param("id") UUID id);
 

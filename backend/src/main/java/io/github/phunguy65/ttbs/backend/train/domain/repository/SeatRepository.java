@@ -34,6 +34,14 @@ public interface SeatRepository {
 
     boolean existsByCoachIdAndSeatNumber(CoachId coachId, String seatNumber);
 
+    int countActiveByTrainId(TrainId trainId);
+
+    int countActiveByCoachId(CoachId coachId);
+
+    List<TrainId> findDistinctTrainIdsBySeatIds(List<SeatId> seatIds);
+
+    List<CoachId> findDistinctCoachIdsBySeatIds(List<SeatId> seatIds);
+
     void softDeleteById(SeatId id, Instant deletedAt);
 
     int softDeleteByIds(List<SeatId> ids, Instant deletedAt);

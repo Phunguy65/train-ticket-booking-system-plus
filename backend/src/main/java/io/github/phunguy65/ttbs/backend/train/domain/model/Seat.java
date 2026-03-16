@@ -53,7 +53,7 @@ public class Seat extends AggregateRoot<SeatId> {
             return;
         }
         this.deletedAt = Instant.now();
-        registerEvent(SeatDeleted.of(id));
+        registerEvent(SeatDeleted.of(id, coachId));
     }
 
     /** Returns {@code true} if this seat has been soft-deleted. */

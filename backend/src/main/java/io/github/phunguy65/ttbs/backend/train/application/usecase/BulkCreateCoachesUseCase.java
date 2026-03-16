@@ -59,10 +59,7 @@ public class BulkCreateCoachesUseCase {
 
         List<Coach> coaches = command.coaches().stream()
                 .map(item -> Coach.create(
-                        CoachId.of(UuidGenerator.generate()),
-                        trainId,
-                        item.carNumber(),
-                        item.totalSeats()))
+                        CoachId.of(UuidGenerator.generate()), trainId, item.carNumber()))
                 .toList();
 
         List<Coach> saved = coachRepository.saveAll(coaches);

@@ -32,13 +32,11 @@ public class Train extends AggregateRoot<TrainId> {
 
     /**
      * Factory method for creating a new train. Registers {@link TrainCreated} domain event.
+     * {@code totalSeats} starts at 0 and is updated automatically as seats are created/deleted.
      */
-    public static Train create(TrainId id, String trainNumber, String name, int totalSeats) {
-        if (totalSeats <= 0) {
-            throw new IllegalArgumentException("totalSeats must be positive");
-        }
+    public static Train create(TrainId id, String trainNumber, String name) {
         Instant now = Instant.now();
-        Train train = new Train(id, trainNumber, name, totalSeats, now, null);
+        Train train = new Train(id, trainNumber, name, 0, now, null);
         train.registerEvent(TrainCreated.of(id, trainNumber));
         return train;
     }
@@ -62,16 +60,24 @@ public class Train extends AggregateRoot<TrainId> {
      *
      * @param trainNumber new train number (must not be null)
      * @param name        new display name (must not be null)
-     * @param totalSeats  new total seat count (must be positive)
      */
-    public void update(String trainNumber, String name, int totalSeats) {
-        if (totalSeats <= 0) {
-            throw new IllegalArgumentException("totalSeats must be positive");
-        }
+    public void update(String trainNumber, String name) {
         this.trainNumber = trainNumber;
         this.name = name;
-        this.totalSeats = totalSeats;
         registerEvent(TrainUpdated.of(id, trainNumber));
+    }
+
+    /**
+     * Updates the total seat count. Called by event listeners when seats are created or removed.
+     * {@code totalSeats} must be non-negative (0 is allowed when all seats are removed).
+     *
+     * @param count new total seat count
+     */
+    public void updateTotalSeats(int count) {
+        if (count < 0) {
+            throw new IllegalArgumentException("totalSeats must be non-negative");
+        }
+        this.totalSeats = count;
     }
 
     /**

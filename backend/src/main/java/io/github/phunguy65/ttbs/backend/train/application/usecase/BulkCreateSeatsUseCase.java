@@ -5,6 +5,7 @@ import io.github.phunguy65.ttbs.backend.shared.domain.UuidGenerator;
 import io.github.phunguy65.ttbs.backend.train.application.command.BulkCreateSeatsCommand;
 import io.github.phunguy65.ttbs.backend.train.application.response.SeatResponse;
 import io.github.phunguy65.ttbs.backend.train.domain.error.SeatError;
+import io.github.phunguy65.ttbs.backend.train.domain.event.SeatsCreated;
 import io.github.phunguy65.ttbs.backend.train.domain.model.CoachId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.Seat;
 import io.github.phunguy65.ttbs.backend.train.domain.model.SeatId;
@@ -14,6 +15,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,10 +24,15 @@ public class BulkCreateSeatsUseCase {
 
     private final CoachRepository coachRepository;
     private final SeatRepository seatRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
-    public BulkCreateSeatsUseCase(CoachRepository coachRepository, SeatRepository seatRepository) {
+    public BulkCreateSeatsUseCase(
+            CoachRepository coachRepository,
+            SeatRepository seatRepository,
+            ApplicationEventPublisher eventPublisher) {
         this.coachRepository = coachRepository;
         this.seatRepository = seatRepository;
+        this.eventPublisher = eventPublisher;
     }
 
     @Transactional
@@ -65,6 +72,7 @@ public class BulkCreateSeatsUseCase {
                 .toList();
 
         List<Seat> saved = seatRepository.saveAll(seats);
+        eventPublisher.publishEvent(SeatsCreated.of(coachId, saved.size()));
 
         return Result.success(saved.stream().map(this::toDto).toList());
     }

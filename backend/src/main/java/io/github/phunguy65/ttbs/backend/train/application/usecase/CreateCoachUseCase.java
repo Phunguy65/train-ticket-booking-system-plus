@@ -36,11 +36,8 @@ public class CreateCoachUseCase {
             return Result.failure(new CoachError.CarNumberAlreadyExists(command.carNumber()));
         }
 
-        Coach coach = Coach.create(
-                CoachId.of(UuidGenerator.generate()),
-                trainId,
-                command.carNumber(),
-                command.totalSeats());
+        Coach coach =
+                Coach.create(CoachId.of(UuidGenerator.generate()), trainId, command.carNumber());
         Coach saved = coachRepository.save(coach);
 
         return Result.success(toDto(saved));

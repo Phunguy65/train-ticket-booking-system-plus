@@ -15,7 +15,6 @@ public record BulkCreateCoachesCommand(UUID trainId, List<CoachItem> coaches) {
      * A single coach item within a bulk-create request.
      *
      * @param carNumber  the car number (must be unique within the train)
-     * @param totalSeats the total number of seats in this coach
      */
-    public record CoachItem(int carNumber, int totalSeats) {}
+    public record CoachItem(int carNumber) {}
 }

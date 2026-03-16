@@ -12,13 +12,11 @@ public record BulkCreateCoachesRequest(
         @NotEmpty(message = "At least one coach must be provided") @Size(max = 100, message = "Bulk create is limited to 100 coaches per request") List<@Valid CoachItemRequest> coaches) {
 
     record CoachItemRequest(
-            @Positive(message = "Car number must be a positive number") int carNumber,
-
-            @Positive(message = "Total seats must be a positive number") int totalSeats) {}
+            @Positive(message = "Car number must be a positive number") int carNumber) {}
 
     public BulkCreateCoachesCommand toCommand(UUID trainId) {
         List<BulkCreateCoachesCommand.CoachItem> items = coaches.stream()
-                .map(c -> new BulkCreateCoachesCommand.CoachItem(c.carNumber(), c.totalSeats()))
+                .map(c -> new BulkCreateCoachesCommand.CoachItem(c.carNumber()))
                 .toList();
         return new BulkCreateCoachesCommand(trainId, items);
     }

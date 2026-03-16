@@ -5,11 +5,9 @@ import jakarta.validation.constraints.Positive;
 import java.util.UUID;
 
 public record CreateCoachRequest(
-        @Positive(message = "Car number must be a positive number") int carNumber,
-
-        @Positive(message = "Total seats must be a positive number") int totalSeats) {
+        @Positive(message = "Car number must be a positive number") int carNumber) {
 
     public CreateCoachCommand toCommand(UUID trainId) {
-        return new CreateCoachCommand(trainId, carNumber, totalSeats);
+        return new CreateCoachCommand(trainId, carNumber);
     }
 }

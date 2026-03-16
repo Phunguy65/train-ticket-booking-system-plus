@@ -78,6 +78,32 @@ class SeatRepositoryAdapter implements SeatRepository {
     }
 
     @Override
+    public int countActiveByTrainId(TrainId trainId) {
+        return jpaRepository.countActiveByTrainId(trainId.value());
+    }
+
+    @Override
+    public int countActiveByCoachId(CoachId coachId) {
+        return jpaRepository.countActiveByCoachId(coachId.value());
+    }
+
+    @Override
+    public List<TrainId> findDistinctTrainIdsBySeatIds(List<SeatId> seatIds) {
+        List<UUID> uuids = seatIds.stream().map(SeatId::value).toList();
+        return jpaRepository.findDistinctTrainIdsBySeatIds(uuids).stream()
+                .map(TrainId::of)
+                .toList();
+    }
+
+    @Override
+    public List<CoachId> findDistinctCoachIdsBySeatIds(List<SeatId> seatIds) {
+        List<UUID> uuids = seatIds.stream().map(SeatId::value).toList();
+        return jpaRepository.findDistinctCoachIdsBySeatIds(uuids).stream()
+                .map(CoachId::of)
+                .toList();
+    }
+
+    @Override
     public void softDeleteById(SeatId id, Instant deletedAt) {
         jpaRepository.softDeleteById(id.value(), deletedAt);
     }

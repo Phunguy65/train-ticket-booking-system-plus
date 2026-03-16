@@ -5,11 +5,13 @@ import io.github.phunguy65.ttbs.backend.shared.domain.UuidGenerator;
 import io.github.phunguy65.ttbs.backend.train.application.command.CreateSeatCommand;
 import io.github.phunguy65.ttbs.backend.train.application.response.SeatResponse;
 import io.github.phunguy65.ttbs.backend.train.domain.error.SeatError;
+import io.github.phunguy65.ttbs.backend.train.domain.event.SeatCreated;
 import io.github.phunguy65.ttbs.backend.train.domain.model.CoachId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.Seat;
 import io.github.phunguy65.ttbs.backend.train.domain.model.SeatId;
 import io.github.phunguy65.ttbs.backend.train.domain.repository.CoachRepository;
 import io.github.phunguy65.ttbs.backend.train.domain.repository.SeatRepository;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,10 +20,15 @@ public class CreateSeatUseCase {
 
     private final CoachRepository coachRepository;
     private final SeatRepository seatRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
-    public CreateSeatUseCase(CoachRepository coachRepository, SeatRepository seatRepository) {
+    public CreateSeatUseCase(
+            CoachRepository coachRepository,
+            SeatRepository seatRepository,
+            ApplicationEventPublisher eventPublisher) {
         this.coachRepository = coachRepository;
         this.seatRepository = seatRepository;
+        this.eventPublisher = eventPublisher;
     }
 
     @Transactional
@@ -39,6 +46,7 @@ public class CreateSeatUseCase {
         SeatId seatId = SeatId.of(UuidGenerator.generate());
         Seat seat = Seat.create(seatId, coachId, command.seatNumber());
         Seat saved = seatRepository.save(seat);
+        eventPublisher.publishEvent(SeatCreated.of(saved.getId(), saved.getCoachId()));
 
         return Result.success(toDto(saved));
     }

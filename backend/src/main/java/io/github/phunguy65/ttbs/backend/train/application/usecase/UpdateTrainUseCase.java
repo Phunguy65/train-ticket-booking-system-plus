@@ -39,11 +39,8 @@ public class UpdateTrainUseCase {
         String newTrainNumber =
                 trainNumberField.isPresent() ? trainNumberField.get() : train.getTrainNumber();
         String newName = command.name().isPresent() ? command.name().get() : train.getName();
-        int newTotalSeats = command.totalSeats().isPresent()
-                ? command.totalSeats().get()
-                : train.getTotalSeats();
 
-        train.update(newTrainNumber, newName, newTotalSeats);
+        train.update(newTrainNumber, newName);
 
         Train saved = trainRepository.save(train);
         return Result.success(toDto(saved));

@@ -45,7 +45,7 @@ CREATE TABLE trains (
     id UUID NOT NULL DEFAULT uuidv7(),
     train_number VARCHAR(20) NOT NULL,
     name VARCHAR(255) NOT NULL,
-    total_seats INTEGER NOT NULL,
+    total_seats INTEGER NOT NULL DEFAULT 0,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     deleted_at TIMESTAMPTZ,
     CONSTRAINT pk_trains PRIMARY KEY (id)
@@ -62,20 +62,19 @@ CREATE TABLE coaches (
     id UUID NOT NULL DEFAULT uuidv7(),
     train_id UUID NOT NULL,
     car_number INTEGER NOT NULL,
-    total_seats INTEGER NOT NULL,
+    total_seats INTEGER NOT NULL DEFAULT 0,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     deleted_at TIMESTAMPTZ,
     CONSTRAINT pk_coaches PRIMARY KEY (id),
     CONSTRAINT fk_coaches_train FOREIGN KEY (train_id) REFERENCES trains (id),
-    CONSTRAINT chk_coaches_car_number CHECK (car_number > 0),
-    CONSTRAINT chk_coaches_total_seats CHECK (total_seats > 0)
+    CONSTRAINT chk_coaches_car_number CHECK (car_number > 0)
 );
 
 COMMENT ON TABLE coaches IS 'Toa tàu — intermediate layer between trains and seats';
 
 COMMENT ON COLUMN coaches.car_number IS 'Physical position of this car in the train (1-based)';
 
-COMMENT ON COLUMN coaches.total_seats IS 'Total seat capacity declared for this car';
+COMMENT ON COLUMN coaches.total_seats IS 'Computed seat count — auto-updated by event listener when seats are created/deleted';
 
 COMMENT ON COLUMN coaches.created_at IS 'Timestamp with timezone (UTC)';
 
