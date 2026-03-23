@@ -1,6 +1,5 @@
 package io.github.phunguy65.ttbs.backend.user.infrastructure.persistence;
 
-import io.github.phunguy65.ttbs.backend.user.domain.model.UserRole;
 import jakarta.persistence.*;
 import java.time.Instant;
 import java.util.UUID;
@@ -25,9 +24,8 @@ class UserEntity {
     @Column(name = "phone", length = 20)
     private String phone;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "role", nullable = false, length = 20)
-    private UserRole role;
+    private String role;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
@@ -80,11 +78,11 @@ class UserEntity {
         this.phone = phone;
     }
 
-    UserRole getRole() {
+    String getRole() {
         return role;
     }
 
-    void setRole(UserRole role) {
+    void setRole(String role) {
         this.role = role;
     }
 

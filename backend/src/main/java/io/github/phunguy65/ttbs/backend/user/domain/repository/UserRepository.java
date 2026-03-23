@@ -4,6 +4,7 @@ import io.github.phunguy65.ttbs.backend.shared.domain.PageResponse;
 import io.github.phunguy65.ttbs.backend.shared.domain.SortOrder;
 import io.github.phunguy65.ttbs.backend.user.domain.model.User;
 import io.github.phunguy65.ttbs.backend.user.domain.model.UserId;
+import io.github.phunguy65.ttbs.backend.user.domain.projection.UserSummary;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -16,7 +17,11 @@ public interface UserRepository {
 
     Optional<User> findById(UserId id);
 
+    Optional<UserSummary> findSummaryById(UserId id);
+
     PageResponse<User> findAll(int page, int size, List<SortOrder> sort);
+
+    PageResponse<UserSummary> findAllSummaries(int page, int size, List<SortOrder> sort);
 
     void softDeleteById(UserId id, Instant deletedAt);
 

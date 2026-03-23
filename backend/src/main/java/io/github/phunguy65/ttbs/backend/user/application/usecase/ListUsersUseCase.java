@@ -4,7 +4,7 @@ import io.github.phunguy65.ttbs.backend.shared.domain.PageResponse;
 import io.github.phunguy65.ttbs.backend.shared.domain.SortOrder;
 import io.github.phunguy65.ttbs.backend.user.application.query.GetUsersQuery;
 import io.github.phunguy65.ttbs.backend.user.application.response.UserResponse;
-import io.github.phunguy65.ttbs.backend.user.domain.model.User;
+import io.github.phunguy65.ttbs.backend.user.domain.projection.UserSummary;
 import io.github.phunguy65.ttbs.backend.user.domain.repository.UserRepository;
 import java.util.List;
 import org.springframework.stereotype.Service;
@@ -22,22 +22,21 @@ public class ListUsersUseCase {
     @Transactional(readOnly = true)
     public PageResponse<UserResponse> execute(GetUsersQuery query) {
         List<SortOrder> sort = List.of(SortOrder.desc("createdAt"), SortOrder.asc("id"));
-        PageResponse<User> users = userRepository.findAll(query.page(), query.size(), sort);
+        PageResponse<UserSummary> summaries =
+                userRepository.findAllSummaries(query.page(), query.size(), sort);
         return PageResponse.of(
-                users.content().stream().map(this::toDto).toList(),
-                users.page(),
-                users.size(),
-                users.hasNext(),
-                users.total());
-    }
-
-    private UserResponse toDto(User user) {
-        return new UserResponse(
-                user.getId().value(),
-                user.getEmail(),
-                user.getFullName(),
-                user.getPhone(),
-                user.getRole().name(),
-                user.getCreatedAt());
+                summaries.content().stream()
+                        .map(s -> new UserResponse(
+                                s.id(),
+                                s.email(),
+                                s.fullName(),
+                                s.phone(),
+                                s.role(),
+                                s.createdAt()))
+                        .toList(),
+                summaries.page(),
+                summaries.size(),
+                summaries.hasNext(),
+                summaries.total());
     }
 }

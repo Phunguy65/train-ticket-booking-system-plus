@@ -4,6 +4,7 @@ import io.github.phunguy65.ttbs.backend.shared.domain.PageResponse;
 import io.github.phunguy65.ttbs.backend.shared.domain.SortOrder;
 import io.github.phunguy65.ttbs.backend.user.domain.model.User;
 import io.github.phunguy65.ttbs.backend.user.domain.model.UserId;
+import io.github.phunguy65.ttbs.backend.user.domain.projection.UserSummary;
 import io.github.phunguy65.ttbs.backend.user.domain.repository.UserRepository;
 import java.time.Instant;
 import java.util.List;
@@ -43,11 +44,24 @@ class UserRepositoryAdapter implements UserRepository {
     }
 
     @Override
+    public Optional<UserSummary> findSummaryById(UserId id) {
+        return jpaRepository.findSummaryById(id.value());
+    }
+
+    @Override
     public PageResponse<User> findAll(int page, int size, List<SortOrder> sort) {
         PageRequest pageable = PageRequest.of(page, size, toSpringSort(sort));
         Page<UserEntity> result = jpaRepository.findAllActive(pageable);
         List<User> items = result.getContent().stream().map(mapper::toDomain).toList();
         return PageResponse.of(items, page, size, result.hasNext(), result.getTotalElements());
+    }
+
+    @Override
+    public PageResponse<UserSummary> findAllSummaries(int page, int size, List<SortOrder> sort) {
+        PageRequest pageable = PageRequest.of(page, size, toSpringSort(sort));
+        Page<UserSummary> result = jpaRepository.findAllSummaries(pageable);
+        return PageResponse.of(
+                result.getContent(), page, size, result.hasNext(), result.getTotalElements());
     }
 
     @Override

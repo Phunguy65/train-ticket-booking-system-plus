@@ -2,6 +2,7 @@ package io.github.phunguy65.ttbs.backend.user.infrastructure.persistence;
 
 import io.github.phunguy65.ttbs.backend.user.domain.model.User;
 import io.github.phunguy65.ttbs.backend.user.domain.model.UserId;
+import io.github.phunguy65.ttbs.backend.user.domain.model.UserRole;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -14,7 +15,7 @@ class UserEntityMapper {
                 entity.getPasswordHash(),
                 entity.getFullName(),
                 entity.getPhone(),
-                entity.getRole(),
+                UserRole.valueOf(entity.getRole()),
                 entity.getCreatedAt(),
                 entity.getUpdatedAt(),
                 entity.getDeletedAt());
@@ -27,7 +28,7 @@ class UserEntityMapper {
         entity.setPasswordHash(user.getPasswordHash());
         entity.setFullName(user.getFullName());
         entity.setPhone(user.getPhone());
-        entity.setRole(user.getRole());
+        entity.setRole(user.getRole().name());
         entity.setCreatedAt(user.getCreatedAt());
         entity.setUpdatedAt(user.getUpdatedAt());
         entity.setDeletedAt(user.getDeletedAt());

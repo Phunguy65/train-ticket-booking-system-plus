@@ -33,8 +33,10 @@ rules:
             │   │   └── {Entity}Cancelled.java
             │   ├── repository/                     # Repository port (interface only - no impl here)
             │   │   └── {Entity}Repository.java
-            │   └── error/                          # Typed business errors as sealed interfaces (not exceptions)
-            │       └── {Entity}Error.java
+            │   ├── error/                          # Typed business errors as sealed interfaces (not exceptions)
+            │   │   └── {Entity}Error.java
+            │   │
+            │   └── projection/                     # Optional: read-model projections for query use cases
             ├── application/
             │   ├── usecase/                        # One use case class per operation (SRP)
             │   │   ├── Create{Entity}UseCase.java  # @Service @Transactional - orchestrates create flow
