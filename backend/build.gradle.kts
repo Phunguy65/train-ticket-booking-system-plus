@@ -42,9 +42,6 @@ dependencies {
     implementation(libs.spring.integration.amqp)
     implementation(libs.spring.integration.http)
     implementation(libs.spring.integration.jpa)
-    implementation(libs.spring.modulith.events.api)
-    implementation(libs.spring.modulith.starter.core)
-    implementation(libs.spring.modulith.starter.jpa)
     implementation(libs.spring.security.messaging)
     implementation(libs.jjwt.api)
     implementation(libs.jackson.databind.nullable)
@@ -55,16 +52,12 @@ dependencies {
     runtimeOnly(libs.jjwt.jackson)
     developmentOnly(libs.spring.boot.devtools)
     runtimeOnly(libs.postgresql)
-    runtimeOnly(libs.spring.modulith.actuator)
-    runtimeOnly(libs.spring.modulith.events.amqp)
-    runtimeOnly(libs.spring.modulith.observability)
     annotationProcessor(libs.spring.boot.configuration.processor)
     testImplementation(libs.spring.boot.starter.actuator.test)
     testImplementation(libs.spring.boot.starter.data.jpa.test)
     testImplementation(libs.spring.boot.starter.security.test)
     testImplementation(libs.spring.boot.starter.webmvc.test)
     testImplementation(libs.spring.integration.test)
-    testImplementation(libs.spring.modulith.starter.test)
     testRuntimeOnly(libs.junit.platform.launcher)
     testImplementation(platform(libs.testcontainers.bom))
     testImplementation(libs.testcontainers.junit.jupiter)
@@ -72,16 +65,6 @@ dependencies {
     testImplementation(libs.testcontainers.rabbitmq)
     testImplementation(libs.spring.boot.testcontainers)
     testImplementation(libs.archunit.junit5)
-}
-
-dependencyManagement {
-    imports {
-        mavenBom(
-            libs.spring.modulith.bom
-                .get()
-                .toString()
-        )
-    }
 }
 
 hibernate {

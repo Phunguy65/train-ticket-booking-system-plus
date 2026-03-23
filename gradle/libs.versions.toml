@@ -9,7 +9,6 @@ springBoot = "4.0.3"
 jjwt = "0.13.0"
 uuidCreator = "6.1.1"
 springDependencyManagement = "1.1.7"
-springModulith = "2.0.3"
 hibernateOrm = "7.2.1.Final"
 graalvmNative = "0.11.4"
 spotless = "8.2.1"
@@ -43,8 +42,6 @@ stripeJava = "31.4.0"
 [libraries]
 # ─── Backend ─────────────────────────────────────────────────────────────────
 jackson-databind-nullable = { module = "org.openapitools:jackson-databind-nullable", version.ref = "jacksonDatabindNullable" }
-spring-modulith-bom = { module = "org.springframework.modulith:spring-modulith-bom", version.ref = "springModulith" }
-
 # Spring Boot Starters (version managed by Spring Boot BOM)
 spring-boot-starter-flyway = { module = "org.springframework.boot:spring-boot-starter-flyway" }
 flyway-database-postgresql = { module = "org.flywaydb:flyway-database-postgresql" }
@@ -66,15 +63,6 @@ spring-integration-amqp = { module = "org.springframework.integration:spring-int
 spring-integration-http = { module = "org.springframework.integration:spring-integration-http" }
 spring-integration-jpa = { module = "org.springframework.integration:spring-integration-jpa" }
 spring-integration-test = { module = "org.springframework.integration:spring-integration-test" }
-
-# Spring Modulith
-spring-modulith-events-api = { module = "org.springframework.modulith:spring-modulith-events-api" }
-spring-modulith-starter-core = { module = "org.springframework.modulith:spring-modulith-starter-core" }
-spring-modulith-starter-jpa = { module = "org.springframework.modulith:spring-modulith-starter-jpa" }
-spring-modulith-actuator = { module = "org.springframework.modulith:spring-modulith-actuator" }
-spring-modulith-events-amqp = { module = "org.springframework.modulith:spring-modulith-events-amqp" }
-spring-modulith-observability = { module = "org.springframework.modulith:spring-modulith-observability" }
-spring-modulith-starter-test = { module = "org.springframework.modulith:spring-modulith-starter-test" }
 
 # Spring Security
 spring-security-messaging = { module = "org.springframework.security:spring-security-messaging" }
