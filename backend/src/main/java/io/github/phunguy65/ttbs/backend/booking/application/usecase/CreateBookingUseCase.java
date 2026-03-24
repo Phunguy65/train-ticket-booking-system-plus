@@ -10,10 +10,10 @@ import io.github.phunguy65.ttbs.backend.shared.domain.DomainEvent;
 import io.github.phunguy65.ttbs.backend.shared.domain.Money;
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.shared.domain.UuidGenerator;
-import io.github.phunguy65.ttbs.backend.train.application.port.RouteQueryPort;
-import io.github.phunguy65.ttbs.backend.train.application.port.RouteSeatAvailabilityPort;
+import io.github.phunguy65.ttbs.backend.train.application.port.RouteSeatAvailabilityManager;
 import io.github.phunguy65.ttbs.backend.train.domain.error.RouteSeatAvailabilityError;
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteId;
+import io.github.phunguy65.ttbs.backend.train.domain.repository.RouteRepository;
 import io.github.phunguy65.ttbs.backend.user.domain.model.UserId;
 import java.time.Instant;
 import org.springframework.context.ApplicationEventPublisher;
@@ -26,18 +26,18 @@ public class CreateBookingUseCase {
     private static final long HOLD_DURATION_SECONDS = 15 * 60;
 
     private final BookingRepository bookingRepository;
-    private final RouteSeatAvailabilityPort seatAvailabilityPort;
-    private final RouteQueryPort routeQueryPort;
+    private final RouteSeatAvailabilityManager seatAvailabilityPort;
+    private final RouteRepository routeRepository;
     private final ApplicationEventPublisher eventPublisher;
 
     public CreateBookingUseCase(
             BookingRepository bookingRepository,
-            RouteSeatAvailabilityPort seatAvailabilityPort,
-            RouteQueryPort routeQueryPort,
+            RouteSeatAvailabilityManager seatAvailabilityPort,
+            RouteRepository routeRepository,
             ApplicationEventPublisher eventPublisher) {
         this.bookingRepository = bookingRepository;
         this.seatAvailabilityPort = seatAvailabilityPort;
-        this.routeQueryPort = routeQueryPort;
+        this.routeRepository = routeRepository;
         this.eventPublisher = eventPublisher;
     }
 
@@ -62,7 +62,7 @@ public class CreateBookingUseCase {
             return Result.failure(new BookingError.SeatNotAvailable());
         }
 
-        var routeOpt = routeQueryPort.findById(routeId);
+        var routeOpt = routeRepository.findById(routeId);
         if (routeOpt.isEmpty()) {
             return Result.failure(new BookingError.RouteNotFound());
         }

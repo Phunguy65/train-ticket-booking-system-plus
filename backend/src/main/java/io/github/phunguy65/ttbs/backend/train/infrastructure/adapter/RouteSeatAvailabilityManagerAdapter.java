@@ -1,7 +1,7 @@
 package io.github.phunguy65.ttbs.backend.train.infrastructure.adapter;
 
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
-import io.github.phunguy65.ttbs.backend.train.application.port.RouteSeatAvailabilityPort;
+import io.github.phunguy65.ttbs.backend.train.application.port.RouteSeatAvailabilityManager;
 import io.github.phunguy65.ttbs.backend.train.domain.error.RouteSeatAvailabilityError;
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteSeatAvailability;
@@ -14,18 +14,18 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Infrastructure adapter that implements {@link RouteSeatAvailabilityPort} using the domain
+ * Infrastructure adapter that implements {@link RouteSeatAvailabilityManager} using the domain
  * repository and optimistic locking ({@code @Version}) for concurrent modification detection.
  *
  * <p>Placed in {@code train.infrastructure.adapter} — the port contract lives in
  * {@code train.domain.model} and is exposed via the {@code train::model} named interface.
  */
 @Service
-public class RouteSeatAvailabilityPortAdapter implements RouteSeatAvailabilityPort {
+public class RouteSeatAvailabilityManagerAdapter implements RouteSeatAvailabilityManager {
 
     private final RouteSeatAvailabilityRepository repository;
 
-    public RouteSeatAvailabilityPortAdapter(RouteSeatAvailabilityRepository repository) {
+    public RouteSeatAvailabilityManagerAdapter(RouteSeatAvailabilityRepository repository) {
         this.repository = repository;
     }
 

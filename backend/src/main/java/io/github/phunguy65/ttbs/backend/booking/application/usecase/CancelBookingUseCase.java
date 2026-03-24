@@ -8,7 +8,7 @@ import io.github.phunguy65.ttbs.backend.booking.domain.model.BookingStatus;
 import io.github.phunguy65.ttbs.backend.booking.domain.repository.BookingRepository;
 import io.github.phunguy65.ttbs.backend.shared.domain.DomainEvent;
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
-import io.github.phunguy65.ttbs.backend.train.application.port.RouteSeatAvailabilityPort;
+import io.github.phunguy65.ttbs.backend.train.application.port.RouteSeatAvailabilityManager;
 import io.github.phunguy65.ttbs.backend.train.domain.model.SeatId;
 import java.util.List;
 import org.springframework.context.ApplicationEventPublisher;
@@ -19,12 +19,12 @@ import org.springframework.transaction.annotation.Transactional;
 public class CancelBookingUseCase {
 
     private final BookingRepository bookingRepository;
-    private final RouteSeatAvailabilityPort seatAvailabilityPort;
+    private final RouteSeatAvailabilityManager seatAvailabilityPort;
     private final ApplicationEventPublisher eventPublisher;
 
     public CancelBookingUseCase(
             BookingRepository bookingRepository,
-            RouteSeatAvailabilityPort seatAvailabilityPort,
+            RouteSeatAvailabilityManager seatAvailabilityPort,
             ApplicationEventPublisher eventPublisher) {
         this.bookingRepository = bookingRepository;
         this.seatAvailabilityPort = seatAvailabilityPort;

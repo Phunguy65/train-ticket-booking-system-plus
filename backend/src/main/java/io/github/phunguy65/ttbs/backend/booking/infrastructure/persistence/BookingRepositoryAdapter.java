@@ -2,6 +2,7 @@ package io.github.phunguy65.ttbs.backend.booking.infrastructure.persistence;
 
 import io.github.phunguy65.ttbs.backend.booking.domain.model.Booking;
 import io.github.phunguy65.ttbs.backend.booking.domain.model.BookingId;
+import io.github.phunguy65.ttbs.backend.booking.domain.model.BookingStatus;
 import io.github.phunguy65.ttbs.backend.booking.domain.repository.BookingRepository;
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteId;
 import io.github.phunguy65.ttbs.backend.user.domain.model.UserId;
@@ -54,5 +55,11 @@ class BookingRepositoryAdapter implements BookingRepository {
     public List<Booking> saveAll(List<Booking> bookings) {
         List<BookingEntity> entities = bookings.stream().map(mapper::toEntity).toList();
         return jpaRepository.saveAll(entities).stream().map(mapper::toDomain).toList();
+    }
+
+    @Override
+    public boolean existsActiveByUserId(UserId userId) {
+        return jpaRepository.existsByUserIdAndStatusIn(
+                userId.value(), List.of(BookingStatus.HELD.name(), BookingStatus.CONFIRMED.name()));
     }
 }

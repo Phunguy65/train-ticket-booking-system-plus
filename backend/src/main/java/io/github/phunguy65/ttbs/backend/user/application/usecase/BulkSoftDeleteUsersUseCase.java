@@ -1,8 +1,8 @@
 package io.github.phunguy65.ttbs.backend.user.application.usecase;
 
+import io.github.phunguy65.ttbs.backend.booking.domain.repository.BookingRepository;
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.user.application.command.BulkSoftDeleteUsersCommand;
-import io.github.phunguy65.ttbs.backend.user.application.port.BookingValidationPort;
 import io.github.phunguy65.ttbs.backend.user.domain.error.UserError;
 import io.github.phunguy65.ttbs.backend.user.domain.event.UserDeleted;
 import io.github.phunguy65.ttbs.backend.user.domain.model.UserId;
@@ -19,25 +19,24 @@ public class BulkSoftDeleteUsersUseCase {
 
     private final UserRepository userRepository;
     private final RefreshTokenRepository refreshTokenRepository;
-    private final BookingValidationPort bookingValidationPort;
+    private final BookingRepository bookingRepository;
     private final ApplicationEventPublisher eventPublisher;
 
     public BulkSoftDeleteUsersUseCase(
             UserRepository userRepository,
             RefreshTokenRepository refreshTokenRepository,
-            BookingValidationPort bookingValidationPort,
+            BookingRepository bookingRepository,
             ApplicationEventPublisher eventPublisher) {
         this.userRepository = userRepository;
         this.refreshTokenRepository = refreshTokenRepository;
-        this.bookingValidationPort = bookingValidationPort;
+        this.bookingRepository = bookingRepository;
         this.eventPublisher = eventPublisher;
     }
 
     @Transactional
     public Result<Integer, UserError> execute(BulkSoftDeleteUsersCommand command) {
-        // Pre-validate: check ALL user IDs for active bookings
         List<UserId> conflictingIds = command.userIds().stream()
-                .filter(bookingValidationPort::hasActiveBookingsForUser)
+                .filter(bookingRepository::existsActiveByUserId)
                 .toList();
 
         if (!conflictingIds.isEmpty()) {

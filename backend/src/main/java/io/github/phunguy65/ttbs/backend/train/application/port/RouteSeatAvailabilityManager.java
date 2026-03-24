@@ -14,7 +14,7 @@ import java.util.List;
  * declare {@code allowedDependencies = {"train::port", "train::model"}} in its
  * {@code @ApplicationModule}.
  */
-public interface RouteSeatAvailabilityPort {
+public interface RouteSeatAvailabilityManager {
 
     /**
      * Atomically transitions all specified seats from {@code AVAILABLE} to {@code HELD}.

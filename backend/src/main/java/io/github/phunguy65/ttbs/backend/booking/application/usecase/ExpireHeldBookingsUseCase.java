@@ -3,7 +3,7 @@ package io.github.phunguy65.ttbs.backend.booking.application.usecase;
 import io.github.phunguy65.ttbs.backend.booking.domain.model.Booking;
 import io.github.phunguy65.ttbs.backend.booking.domain.repository.BookingRepository;
 import io.github.phunguy65.ttbs.backend.shared.domain.DomainEvent;
-import io.github.phunguy65.ttbs.backend.train.application.port.RouteSeatAvailabilityPort;
+import io.github.phunguy65.ttbs.backend.train.application.port.RouteSeatAvailabilityManager;
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.SeatId;
 import java.time.Instant;
@@ -21,12 +21,12 @@ public class ExpireHeldBookingsUseCase {
     private static final Logger log = LoggerFactory.getLogger(ExpireHeldBookingsUseCase.class);
 
     private final BookingRepository bookingRepository;
-    private final RouteSeatAvailabilityPort seatAvailabilityPort;
+    private final RouteSeatAvailabilityManager seatAvailabilityPort;
     private final ApplicationEventPublisher eventPublisher;
 
     public ExpireHeldBookingsUseCase(
             BookingRepository bookingRepository,
-            RouteSeatAvailabilityPort seatAvailabilityPort,
+            RouteSeatAvailabilityManager seatAvailabilityPort,
             ApplicationEventPublisher eventPublisher) {
         this.bookingRepository = bookingRepository;
         this.seatAvailabilityPort = seatAvailabilityPort;

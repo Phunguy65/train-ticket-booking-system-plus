@@ -26,4 +26,12 @@ public interface BookingRepository {
     List<Booking> findExpiredHeldBookings(Instant now);
 
     List<Booking> saveAll(List<Booking> bookings);
+
+    /**
+     * Returns {@code true} if the user has any non-cancelled bookings (HELD or CONFIRMED).
+     *
+     * @param userId the user to check
+     * @return {@code true} if at least one active booking exists
+     */
+    boolean existsActiveByUserId(UserId userId);
 }

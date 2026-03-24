@@ -7,7 +7,7 @@ import io.github.phunguy65.ttbs.backend.booking.domain.repository.BookingReposit
 import io.github.phunguy65.ttbs.backend.payment.application.port.StripeGatewayPort;
 import io.github.phunguy65.ttbs.backend.payment.domain.model.Payment;
 import io.github.phunguy65.ttbs.backend.payment.domain.repository.PaymentRepository;
-import io.github.phunguy65.ttbs.backend.train.application.port.RouteSeatAvailabilityPort;
+import io.github.phunguy65.ttbs.backend.train.application.port.RouteSeatAvailabilityManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
@@ -21,14 +21,14 @@ public class HandlePaymentSuccessUseCase {
 
     private final PaymentRepository paymentRepository;
     private final BookingRepository bookingRepository;
-    private final RouteSeatAvailabilityPort seatAvailabilityPort;
+    private final RouteSeatAvailabilityManager seatAvailabilityPort;
     private final StripeGatewayPort stripeGatewayPort;
     private final ApplicationEventPublisher eventPublisher;
 
     public HandlePaymentSuccessUseCase(
             PaymentRepository paymentRepository,
             BookingRepository bookingRepository,
-            RouteSeatAvailabilityPort seatAvailabilityPort,
+            RouteSeatAvailabilityManager seatAvailabilityPort,
             StripeGatewayPort stripeGatewayPort,
             ApplicationEventPublisher eventPublisher) {
         this.paymentRepository = paymentRepository;
