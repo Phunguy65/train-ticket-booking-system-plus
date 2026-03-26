@@ -54,6 +54,17 @@ interface RouteSeatAvailabilityJpaRepository
             "SELECT COUNT(e) > 0 FROM RouteSeatAvailabilityEntity e WHERE e.id.seatId IN :seatIds AND e.status IN ('HELD', 'BOOKED')")
     boolean existsActiveByAnyOfSeatIds(@Param("seatIds") List<java.util.UUID> seatIds);
 
+    @Query("SELECT DISTINCT e.bookingId FROM RouteSeatAvailabilityEntity e "
+            + "WHERE e.id.seatId = :seatId AND e.status IN ('HELD', 'BOOKED') "
+            + "AND e.bookingId IS NOT NULL")
+    List<UUID> findActiveBookingIdsBySeatId(@Param("seatId") java.util.UUID seatId);
+
+    @Query("SELECT DISTINCT e.bookingId FROM RouteSeatAvailabilityEntity e "
+            + "WHERE e.id.seatId IN :seatIds AND e.status IN ('HELD', 'BOOKED') "
+            + "AND e.bookingId IS NOT NULL")
+    List<UUID> findDistinctActiveBookingIdsBySeatIds(
+            @Param("seatIds") List<java.util.UUID> seatIds);
+
     @Modifying
     @Query(
             value = "DELETE FROM route_seat_availability WHERE route_id IN :routeIds",

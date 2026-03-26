@@ -33,6 +33,18 @@ public interface RouteSeatAvailabilityRepository {
 
     boolean existsActiveByAnyOfSeatIds(List<SeatId> seatIds);
 
+    /**
+     * Returns the booking UUID associated with the given seat when it is in an active state
+     * (HELD or BOOKED). Returns an empty list if the seat has no active booking.
+     */
+    List<java.util.UUID> findActiveBookingIdsBySeatId(SeatId seatId);
+
+    /**
+     * Returns distinct booking UUIDs for all seats in the given list that are in an active state
+     * (HELD or BOOKED). Used to identify bookings that must be cancelled before bulk seat deletion.
+     */
+    List<java.util.UUID> findDistinctActiveBookingIdsBySeatIds(List<SeatId> seatIds);
+
     void hardDeleteByRouteIds(List<RouteId> routeIds);
 
     void hardDeleteBySeatIds(List<SeatId> seatIds);

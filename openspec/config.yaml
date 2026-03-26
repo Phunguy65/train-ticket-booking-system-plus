@@ -9,16 +9,16 @@ rules:
         - Ensure specifications are clear and concise
     design: 
         - |
-          Backend: Vertical Slice Architecture (Spring Modulith + Clean Architecture + DDD)
+          Backend: Vertical Slice Architecture
 
-          Each feature is an independent Spring Modulith module with 3 layers:
+          Each feature is an independent  module with 3 layers:
             - domain/      → Pure Java (no framework deps): aggregates, value objects, domain events, repository ports, business errors
             - application/ → Use case orchestrators (@Service @Transactional), command/result DTOs, infrastructure ports
             - infrastructure/ → Framework adapters: persistence (JPA), web (REST), and optionally security
 
           Folder structure per vertical slice (e.g., user/):
             {feature}/
-            ├── package-info.java                   # @ApplicationModule - Spring Modulith module boundary
+            ├── package-info.java                   # @ApplicationModule -  module boundary
             │                                       # Use @NamedInterface("name") in sub-packages to export to other modules
             │                                       # Use allowedDependencies = {"module::interface"} for cross-module access
             ├── domain/
@@ -72,7 +72,7 @@ rules:
 
           Test structure mirrors main source (under src/test/java/.../):
             {feature}/
-            ├── {Feature}ModuleTest.java            # @ApplicationModuleTest - Spring Modulith integration test
+            ├── {Feature}ModuleTest.java            # @ApplicationModuleTest -  integration test
             ├── domain/model/
             │   └── {Entity}Test.java              # Pure JUnit 5 unit tests (no Spring)
             ├── application/usecase/
