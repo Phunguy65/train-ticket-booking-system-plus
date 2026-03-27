@@ -3,7 +3,7 @@ package io.github.phunguy65.ttbs.backend.train.infrastructure.persistence;
 import io.github.phunguy65.ttbs.backend.shared.domain.PageResponse;
 import io.github.phunguy65.ttbs.backend.shared.domain.SortOrder;
 import io.github.phunguy65.ttbs.backend.train.domain.model.CoachId;
-import io.github.phunguy65.ttbs.backend.train.domain.model.RouteId;
+import io.github.phunguy65.ttbs.backend.train.domain.model.ScheduledTripId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.Seat;
 import io.github.phunguy65.ttbs.backend.train.domain.model.SeatId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.TrainId;
@@ -59,10 +59,10 @@ class SeatRepositoryAdapter implements SeatRepository {
 
     @Override
     public PageResponse<Seat> findAllAvailable(
-            int page, int size, List<SortOrder> sort, RouteId routeId) {
+            int page, int size, List<SortOrder> sort, ScheduledTripId scheduledTripId) {
         PageRequest pageable = PageRequest.of(page, size, toSpringSort(sort));
         Page<SeatEntity> result =
-                jpaRepository.findAllAvailableByRouteId(routeId.value(), pageable);
+                jpaRepository.findAllAvailableByScheduledTripId(scheduledTripId.value(), pageable);
         List<Seat> items = result.getContent().stream().map(mapper::toDomain).toList();
         return PageResponse.of(items, page, size, result.hasNext(), result.getTotalElements());
     }

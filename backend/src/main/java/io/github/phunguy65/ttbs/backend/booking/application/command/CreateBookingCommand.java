@@ -6,7 +6,7 @@ import java.util.UUID;
 
 public record CreateBookingCommand(
         UUID userId,
-        UUID routeId,
+        UUID scheduledTripId,
         List<SeatId> seatIds,
         String passengerName,
         String passengerEmail,

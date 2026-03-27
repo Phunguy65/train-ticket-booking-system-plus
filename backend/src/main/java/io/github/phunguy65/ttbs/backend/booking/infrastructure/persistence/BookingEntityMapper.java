@@ -25,7 +25,6 @@ class BookingEntityMapper {
                 entity.getPassengerEmail(),
                 entity.getPassengerPhone(),
                 totalPrice,
-                entity.getCurrency(),
                 BookingStatus.valueOf(entity.getStatus()),
                 entity.getIdempotencyKey(),
                 entity.getPaymentDeadline(),

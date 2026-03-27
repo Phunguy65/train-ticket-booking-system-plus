@@ -14,7 +14,7 @@ public class Seat extends AggregateRoot<SeatId> {
 
     private final SeatId id;
     private final CoachId coachId;
-    private final String seatNumber;
+    private final SeatNumber seatNumber;
     private final Instant createdAt;
     private Instant deletedAt;
 
@@ -22,7 +22,7 @@ public class Seat extends AggregateRoot<SeatId> {
             SeatId id, CoachId coachId, String seatNumber, Instant createdAt, Instant deletedAt) {
         this.id = id;
         this.coachId = coachId;
-        this.seatNumber = seatNumber;
+        this.seatNumber = SeatNumber.of(seatNumber);
         this.createdAt = createdAt;
         this.deletedAt = deletedAt;
     }
@@ -71,7 +71,7 @@ public class Seat extends AggregateRoot<SeatId> {
     }
 
     public String getSeatNumber() {
-        return seatNumber;
+        return seatNumber.value();
     }
 
     public Instant getCreatedAt() {

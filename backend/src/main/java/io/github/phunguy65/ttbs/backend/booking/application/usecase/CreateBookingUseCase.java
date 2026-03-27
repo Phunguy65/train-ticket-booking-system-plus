@@ -53,7 +53,7 @@ public class CreateBookingUseCase {
         }
 
         UserId userId = UserId.of(command.userId());
-        ScheduledTripId scheduledTripId = ScheduledTripId.of(command.routeId());
+        ScheduledTripId scheduledTripId = ScheduledTripId.of(command.scheduledTripId());
 
         var activeHold =
                 bookingRepository.findActiveHoldByUserAndScheduledTrip(userId, scheduledTripId);
@@ -69,12 +69,12 @@ public class CreateBookingUseCase {
 
         var scheduledTripOpt = scheduledTripRepository.findById(scheduledTripId);
         if (scheduledTripOpt.isEmpty()) {
-            return Result.failure(new BookingError.RouteNotFound());
+            return Result.failure(new BookingError.ScheduledTripNotFound());
         }
         var scheduledTrip = scheduledTripOpt.get();
         var routeTemplateOpt = routeTemplateRepository.findById(scheduledTrip.getRouteTemplateId());
         if (routeTemplateOpt.isEmpty()) {
-            return Result.failure(new BookingError.RouteNotFound());
+            return Result.failure(new BookingError.ScheduledTripNotFound());
         }
         Money totalPrice = Money.vnd(routeTemplateOpt.get().getBasePrice().toLong()
                 * command.seatIds().size());
@@ -88,7 +88,6 @@ public class CreateBookingUseCase {
                 command.passengerEmail(),
                 command.passengerPhone(),
                 totalPrice,
-                totalPrice.getCurrency().getCurrencyCode(),
                 command.idempotencyKey(),
                 paymentDeadline);
 

@@ -1,16 +1,14 @@
 package io.github.phunguy65.ttbs.backend.train.application.response;
 
-import io.github.phunguy65.ttbs.backend.train.domain.model.RouteStatus;
+import io.github.phunguy65.ttbs.backend.train.domain.model.ScheduledTripStatus;
 import java.time.Instant;
 import java.util.UUID;
 
-public record RouteResponse(
+public record ScheduledTripResponse(
         UUID id,
+        UUID routeTemplateId,
         UUID trainId,
-        UUID originStationId,
-        UUID destinationStationId,
         Instant departureTime,
         Instant arrivalTime,
-        long basePrice,
-        RouteStatus status,
+        ScheduledTripStatus status,
         Instant createdAt) {}

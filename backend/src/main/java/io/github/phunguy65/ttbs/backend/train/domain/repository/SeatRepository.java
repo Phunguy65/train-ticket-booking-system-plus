@@ -3,7 +3,7 @@ package io.github.phunguy65.ttbs.backend.train.domain.repository;
 import io.github.phunguy65.ttbs.backend.shared.domain.PageResponse;
 import io.github.phunguy65.ttbs.backend.shared.domain.SortOrder;
 import io.github.phunguy65.ttbs.backend.train.domain.model.CoachId;
-import io.github.phunguy65.ttbs.backend.train.domain.model.RouteId;
+import io.github.phunguy65.ttbs.backend.train.domain.model.ScheduledTripId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.Seat;
 import io.github.phunguy65.ttbs.backend.train.domain.model.SeatId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.TrainId;
@@ -26,7 +26,8 @@ public interface SeatRepository {
 
     PageResponse<Seat> findAll(int page, int size, List<SortOrder> sort, TrainId trainId);
 
-    PageResponse<Seat> findAllAvailable(int page, int size, List<SortOrder> sort, RouteId routeId);
+    PageResponse<Seat> findAllAvailable(
+            int page, int size, List<SortOrder> sort, ScheduledTripId scheduledTripId);
 
     List<SeatId> findActiveIdsByCoachIds(List<CoachId> coachIds);
 

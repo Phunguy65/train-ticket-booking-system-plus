@@ -12,7 +12,7 @@ public record GetAvailableSeatsRequest(
         this(0, 20);
     }
 
-    public GetAvailableSeatsQuery toQuery(UUID routeId) {
-        return new GetAvailableSeatsQuery(page, size, routeId);
+    public GetAvailableSeatsQuery toQuery(UUID scheduledTripId) {
+        return new GetAvailableSeatsQuery(page, size, scheduledTripId);
     }
 }

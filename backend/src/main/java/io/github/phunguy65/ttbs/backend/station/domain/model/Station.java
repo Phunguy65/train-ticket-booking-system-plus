@@ -9,7 +9,7 @@ import java.time.Instant;
 public class Station extends AggregateRoot<StationId> {
 
     private final StationId id;
-    private final String code;
+    private final StationCode code;
     private final String name;
     private final String city;
     private final Instant createdAt;
@@ -23,7 +23,7 @@ public class Station extends AggregateRoot<StationId> {
             Instant createdAt,
             Instant deletedAt) {
         this.id = id;
-        this.code = code;
+        this.code = StationCode.of(code);
         this.name = name;
         this.city = city;
         this.createdAt = createdAt;
@@ -87,7 +87,7 @@ public class Station extends AggregateRoot<StationId> {
     }
 
     public String getCode() {
-        return code;
+        return code.value();
     }
 
     public String getName() {

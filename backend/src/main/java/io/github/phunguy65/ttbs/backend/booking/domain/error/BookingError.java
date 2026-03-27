@@ -24,7 +24,7 @@ public sealed interface BookingError {
     record ActiveHoldExists() implements BookingError {
         @Override
         public String message() {
-            return "An active hold already exists for this user on this route";
+            return "An active hold already exists for this user on this scheduled trip";
         }
     }
 
@@ -42,10 +42,10 @@ public sealed interface BookingError {
         }
     }
 
-    record RouteNotFound() implements BookingError {
+    record ScheduledTripNotFound() implements BookingError {
         @Override
         public String message() {
-            return "Route not found";
+            return "Scheduled trip not found";
         }
     }
 

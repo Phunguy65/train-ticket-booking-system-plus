@@ -5,7 +5,11 @@ import io.github.phunguy65.ttbs.backend.booking.domain.event.BookingCancelled;
 import io.github.phunguy65.ttbs.backend.booking.domain.event.BookingConfirmed;
 import io.github.phunguy65.ttbs.backend.booking.domain.event.BookingCreated;
 import io.github.phunguy65.ttbs.backend.shared.domain.AggregateRoot;
+import io.github.phunguy65.ttbs.backend.shared.domain.EmailAddress;
+import io.github.phunguy65.ttbs.backend.shared.domain.IdempotencyKey;
 import io.github.phunguy65.ttbs.backend.shared.domain.Money;
+import io.github.phunguy65.ttbs.backend.shared.domain.PersonName;
+import io.github.phunguy65.ttbs.backend.shared.domain.PhoneNumber;
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.train.domain.model.ScheduledTripId;
 import io.github.phunguy65.ttbs.backend.user.domain.model.UserId;
@@ -26,13 +30,12 @@ public class Booking extends AggregateRoot<BookingId> {
     private final BookingId bookingId;
     private final UserId userId;
     private final ScheduledTripId scheduledTripId;
-    private final String passengerName;
-    private final String passengerEmail;
-    private final String passengerPhone;
+    private final PersonName passengerName;
+    private final EmailAddress passengerEmail;
+    private final PhoneNumber passengerPhone;
     private final Money totalPrice;
-    private final String currency;
     private BookingStatus status;
-    private final String idempotencyKey;
+    private final IdempotencyKey idempotencyKey;
     private final Instant paymentDeadline;
     private final Instant createdAt;
 
@@ -44,7 +47,6 @@ public class Booking extends AggregateRoot<BookingId> {
             String passengerEmail,
             String passengerPhone,
             Money totalPrice,
-            String currency,
             BookingStatus status,
             String idempotencyKey,
             Instant paymentDeadline,
@@ -52,13 +54,12 @@ public class Booking extends AggregateRoot<BookingId> {
         this.bookingId = bookingId;
         this.userId = userId;
         this.scheduledTripId = scheduledTripId;
-        this.passengerName = passengerName;
-        this.passengerEmail = passengerEmail;
-        this.passengerPhone = passengerPhone;
+        this.passengerName = PersonName.of(passengerName);
+        this.passengerEmail = EmailAddress.of(passengerEmail);
+        this.passengerPhone = PhoneNumber.ofNullable(passengerPhone);
         this.totalPrice = totalPrice;
-        this.currency = currency;
         this.status = status;
-        this.idempotencyKey = idempotencyKey;
+        this.idempotencyKey = IdempotencyKey.of(idempotencyKey);
         this.paymentDeadline = paymentDeadline;
         this.createdAt = createdAt;
     }
@@ -74,7 +75,6 @@ public class Booking extends AggregateRoot<BookingId> {
             String passengerEmail,
             String passengerPhone,
             Money totalPrice,
-            String currency,
             String idempotencyKey,
             Instant paymentDeadline) {
         Booking booking = new Booking(
@@ -85,13 +85,16 @@ public class Booking extends AggregateRoot<BookingId> {
                 passengerEmail,
                 passengerPhone,
                 totalPrice,
-                currency,
                 BookingStatus.HELD,
                 idempotencyKey,
                 paymentDeadline,
                 Instant.now());
-        booking.registerEvent(
-                new BookingCreated(bookingId, userId, scheduledTripId, totalPrice, currency));
+        booking.registerEvent(new BookingCreated(
+                bookingId,
+                userId,
+                scheduledTripId,
+                totalPrice,
+                totalPrice.getCurrency().getCurrencyCode()));
         return booking;
     }
 
@@ -106,7 +109,6 @@ public class Booking extends AggregateRoot<BookingId> {
             String passengerEmail,
             String passengerPhone,
             Money totalPrice,
-            String currency,
             BookingStatus status,
             String idempotencyKey,
             Instant paymentDeadline,
@@ -119,7 +121,6 @@ public class Booking extends AggregateRoot<BookingId> {
                 passengerEmail,
                 passengerPhone,
                 totalPrice,
-                currency,
                 status,
                 idempotencyKey,
                 paymentDeadline,
@@ -178,15 +179,15 @@ public class Booking extends AggregateRoot<BookingId> {
     }
 
     public String getPassengerName() {
-        return passengerName;
+        return passengerName.value();
     }
 
     public String getPassengerEmail() {
-        return passengerEmail;
+        return passengerEmail.value();
     }
 
     public String getPassengerPhone() {
-        return passengerPhone;
+        return passengerPhone == null ? null : passengerPhone.value();
     }
 
     public Money getTotalPrice() {
@@ -194,7 +195,7 @@ public class Booking extends AggregateRoot<BookingId> {
     }
 
     public String getCurrency() {
-        return currency;
+        return totalPrice.getCurrency().getCurrencyCode();
     }
 
     public BookingStatus getStatus() {
@@ -202,7 +203,7 @@ public class Booking extends AggregateRoot<BookingId> {
     }
 
     public String getIdempotencyKey() {
-        return idempotencyKey;
+        return idempotencyKey.value();
     }
 
     public Instant getPaymentDeadline() {

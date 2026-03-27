@@ -5,7 +5,7 @@ import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.ErrorCode;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.FailData;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.JsendResponse;
 import io.github.phunguy65.ttbs.backend.train.application.response.SeatResponse;
-import io.github.phunguy65.ttbs.backend.train.application.usecase.GetAvailableSeatsForRouteUseCase;
+import io.github.phunguy65.ttbs.backend.train.application.usecase.GetAvailableSeatsForScheduledTripUseCase;
 import io.github.phunguy65.ttbs.backend.train.application.usecase.GetSeatsByTrainUseCase;
 import io.github.phunguy65.ttbs.backend.train.domain.error.SeatError;
 import io.github.phunguy65.ttbs.backend.train.infrastructure.web.request.*;
@@ -21,13 +21,13 @@ import org.springframework.web.bind.annotation.*;
 class SeatController {
 
     private final GetSeatsByTrainUseCase getSeatsByTrainUseCase;
-    private final GetAvailableSeatsForRouteUseCase getAvailableSeatsForRouteUseCase;
+    private final GetAvailableSeatsForScheduledTripUseCase getAvailableSeatsForScheduledTripUseCase;
 
     SeatController(
             GetSeatsByTrainUseCase getSeatsByTrainUseCase,
-            GetAvailableSeatsForRouteUseCase getAvailableSeatsForRouteUseCase) {
+            GetAvailableSeatsForScheduledTripUseCase getAvailableSeatsForScheduledTripUseCase) {
         this.getSeatsByTrainUseCase = getSeatsByTrainUseCase;
-        this.getAvailableSeatsForRouteUseCase = getAvailableSeatsForRouteUseCase;
+        this.getAvailableSeatsForScheduledTripUseCase = getAvailableSeatsForScheduledTripUseCase;
     }
 
     @GetMapping(value = "/{version}/trains/{trainId}/seats", version = "1.0")
@@ -38,11 +38,14 @@ class SeatController {
         return ResponseEntity.ok(JsendResponse.success(result));
     }
 
-    @GetMapping(value = "/{version}/routes/{routeId}/seats/available", version = "1.0")
+    @GetMapping(
+            value = "/{version}/scheduled-trips/{scheduledTripId}/seats/available",
+            version = "1.0")
     ResponseEntity<JsendResponse<?>> getAvailableSeats(
-            @PathVariable UUID routeId, @ModelAttribute @Valid GetAvailableSeatsRequest request) {
+            @PathVariable UUID scheduledTripId,
+            @ModelAttribute @Valid GetAvailableSeatsRequest request) {
         PageResponse<SeatResponse> result =
-                getAvailableSeatsForRouteUseCase.execute(request.toQuery(routeId));
+                getAvailableSeatsForScheduledTripUseCase.execute(request.toQuery(scheduledTripId));
         return ResponseEntity.ok(JsendResponse.success(result));
     }
 

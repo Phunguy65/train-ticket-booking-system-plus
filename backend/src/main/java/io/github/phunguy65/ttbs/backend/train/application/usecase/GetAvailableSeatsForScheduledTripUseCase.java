@@ -4,7 +4,7 @@ import io.github.phunguy65.ttbs.backend.shared.domain.PageResponse;
 import io.github.phunguy65.ttbs.backend.shared.domain.SortOrder;
 import io.github.phunguy65.ttbs.backend.train.application.query.GetAvailableSeatsQuery;
 import io.github.phunguy65.ttbs.backend.train.application.response.SeatResponse;
-import io.github.phunguy65.ttbs.backend.train.domain.model.RouteId;
+import io.github.phunguy65.ttbs.backend.train.domain.model.ScheduledTripId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.Seat;
 import io.github.phunguy65.ttbs.backend.train.domain.repository.SeatRepository;
 import java.util.List;
@@ -12,11 +12,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-public class GetAvailableSeatsForRouteUseCase {
+public class GetAvailableSeatsForScheduledTripUseCase {
 
     private final SeatRepository seatRepository;
 
-    public GetAvailableSeatsForRouteUseCase(SeatRepository seatRepository) {
+    public GetAvailableSeatsForScheduledTripUseCase(SeatRepository seatRepository) {
         this.seatRepository = seatRepository;
     }
 
@@ -24,7 +24,7 @@ public class GetAvailableSeatsForRouteUseCase {
     public PageResponse<SeatResponse> execute(GetAvailableSeatsQuery query) {
         List<SortOrder> sort = List.of(SortOrder.asc("seatNumber"), SortOrder.asc("id"));
         PageResponse<Seat> seats = seatRepository.findAllAvailable(
-                query.page(), query.size(), sort, RouteId.of(query.routeId()));
+                query.page(), query.size(), sort, ScheduledTripId.of(query.scheduledTripId()));
         return PageResponse.of(
                 seats.content().stream().map(this::toDto).toList(),
                 seats.page(),

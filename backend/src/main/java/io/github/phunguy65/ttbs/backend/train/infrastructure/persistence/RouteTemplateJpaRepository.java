@@ -22,6 +22,10 @@ interface RouteTemplateJpaRepository extends JpaRepository<RouteTemplateEntity, 
             "SELECT COUNT(e) > 0 FROM RouteTemplateEntity e WHERE e.id = :id AND e.deletedAt IS NULL")
     boolean existsActiveById(@Param("id") UUID id);
 
+    @Query(
+            "SELECT COUNT(e) > 0 FROM RouteTemplateEntity e WHERE (e.originStationId = :stationId OR e.destinationStationId = :stationId) AND e.deletedAt IS NULL")
+    boolean existsActiveByStationId(@Param("stationId") UUID stationId);
+
     @Modifying
     @Query(
             "UPDATE RouteTemplateEntity e SET e.deletedAt = :deletedAt WHERE e.id = :id AND e.deletedAt IS NULL")

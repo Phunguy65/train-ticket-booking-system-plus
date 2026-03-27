@@ -27,21 +27,22 @@ interface SeatJpaRepository extends JpaRepository<SeatEntity, UUID> {
 
     @Query(
             value = "SELECT s.* FROM seats s "
-                    + "JOIN route_seat_availability rsa ON rsa.seat_id = s.id "
-                    + "LEFT JOIN bookings b ON b.id = rsa.booking_id "
-                    + "WHERE rsa.route_id = :routeId "
-                    + "AND (rsa.status = 'AVAILABLE' "
-                    + "     OR (rsa.status = 'HELD' AND b.payment_deadline < CURRENT_TIMESTAMP)) "
+                    + "JOIN trip_seat_availability tsa ON tsa.seat_id = s.id "
+                    + "LEFT JOIN bookings b ON b.id = tsa.booking_id "
+                    + "WHERE tsa.scheduled_trip_id = :scheduledTripId "
+                    + "AND (tsa.status = 'AVAILABLE' "
+                    + "     OR (tsa.status = 'HELD' AND b.payment_deadline < CURRENT_TIMESTAMP)) "
                     + "AND s.deleted_at IS NULL",
             nativeQuery = true,
             countQuery = "SELECT COUNT(*) FROM seats s "
-                    + "JOIN route_seat_availability rsa ON rsa.seat_id = s.id "
-                    + "LEFT JOIN bookings b ON b.id = rsa.booking_id "
-                    + "WHERE rsa.route_id = :routeId "
-                    + "AND (rsa.status = 'AVAILABLE' "
-                    + "     OR (rsa.status = 'HELD' AND b.payment_deadline < CURRENT_TIMESTAMP)) "
+                    + "JOIN trip_seat_availability tsa ON tsa.seat_id = s.id "
+                    + "LEFT JOIN bookings b ON b.id = tsa.booking_id "
+                    + "WHERE tsa.scheduled_trip_id = :scheduledTripId "
+                    + "AND (tsa.status = 'AVAILABLE' "
+                    + "     OR (tsa.status = 'HELD' AND b.payment_deadline < CURRENT_TIMESTAMP)) "
                     + "AND s.deleted_at IS NULL")
-    Page<SeatEntity> findAllAvailableByRouteId(@Param("routeId") UUID routeId, Pageable pageable);
+    Page<SeatEntity> findAllAvailableByScheduledTripId(
+            @Param("scheduledTripId") UUID scheduledTripId, Pageable pageable);
 
     @Query(
             "SELECT COUNT(s) FROM SeatEntity s JOIN CoachEntity c ON s.coachId = c.id WHERE c.trainId = :trainId AND s.deletedAt IS NULL")

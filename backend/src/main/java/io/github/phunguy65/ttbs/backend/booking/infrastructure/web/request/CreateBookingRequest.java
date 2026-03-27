@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.UUID;
 
 public record CreateBookingRequest(
-        @NotNull UUID routeId,
+        @NotNull UUID scheduledTripId,
         @NotEmpty List<UUID> seatIds,
         @NotBlank String passengerName,
         @Email @NotBlank String passengerEmail,
@@ -20,7 +20,7 @@ public record CreateBookingRequest(
     public CreateBookingCommand toCommand(UUID userId) {
         return new CreateBookingCommand(
                 userId,
-                routeId,
+                scheduledTripId,
                 seatIds.stream().map(SeatId::of).toList(),
                 passengerName,
                 passengerEmail,

@@ -27,7 +27,7 @@ public sealed interface StationError {
     record StationInUse(List<UUID> conflictingIds) implements StationError {
         @Override
         public String message() {
-            return "One or more stations are referenced by active routes and cannot be deleted";
+            return "One or more stations are referenced by active route templates and cannot be deleted";
         }
     }
 

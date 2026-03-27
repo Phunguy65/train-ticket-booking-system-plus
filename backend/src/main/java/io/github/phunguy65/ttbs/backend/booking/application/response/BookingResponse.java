@@ -7,7 +7,7 @@ import java.util.UUID;
 public record BookingResponse(
         UUID id,
         UUID userId,
-        UUID routeId,
+        UUID scheduledTripId,
         String passengerName,
         String passengerEmail,
         String passengerPhone,

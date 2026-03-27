@@ -9,7 +9,7 @@ import java.time.Instant;
 public class Train extends AggregateRoot<TrainId> {
 
     private final TrainId id;
-    private String trainNumber;
+    private TrainNumber trainNumber;
     private String name;
     private int totalSeats;
     private final Instant createdAt;
@@ -23,7 +23,7 @@ public class Train extends AggregateRoot<TrainId> {
             Instant createdAt,
             Instant deletedAt) {
         this.id = id;
-        this.trainNumber = trainNumber;
+        this.trainNumber = TrainNumber.of(trainNumber);
         this.name = name;
         this.totalSeats = totalSeats;
         this.createdAt = createdAt;
@@ -62,7 +62,7 @@ public class Train extends AggregateRoot<TrainId> {
      * @param name        new display name (must not be null)
      */
     public void update(String trainNumber, String name) {
-        this.trainNumber = trainNumber;
+        this.trainNumber = TrainNumber.of(trainNumber);
         this.name = name;
         registerEvent(TrainUpdated.of(id, trainNumber));
     }
@@ -103,7 +103,7 @@ public class Train extends AggregateRoot<TrainId> {
     }
 
     public String getTrainNumber() {
-        return trainNumber;
+        return trainNumber.value();
     }
 
     public String getName() {

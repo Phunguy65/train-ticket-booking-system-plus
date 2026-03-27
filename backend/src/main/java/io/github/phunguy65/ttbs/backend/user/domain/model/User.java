@@ -1,6 +1,10 @@
 package io.github.phunguy65.ttbs.backend.user.domain.model;
 
 import io.github.phunguy65.ttbs.backend.shared.domain.AggregateRoot;
+import io.github.phunguy65.ttbs.backend.shared.domain.EmailAddress;
+import io.github.phunguy65.ttbs.backend.shared.domain.PasswordHash;
+import io.github.phunguy65.ttbs.backend.shared.domain.PersonName;
+import io.github.phunguy65.ttbs.backend.shared.domain.PhoneNumber;
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.user.domain.error.UserError;
 import io.github.phunguy65.ttbs.backend.user.domain.event.UserDeleted;
@@ -10,10 +14,10 @@ import java.time.Instant;
 public class User extends AggregateRoot<UserId> {
 
     private final UserId id;
-    private final String email;
-    private final String passwordHash;
-    private final String fullName;
-    private final String phone;
+    private final EmailAddress email;
+    private final PasswordHash passwordHash;
+    private final PersonName fullName;
+    private final PhoneNumber phone;
     private final UserRole role;
     private final Instant createdAt;
     private final Instant updatedAt;
@@ -30,10 +34,10 @@ public class User extends AggregateRoot<UserId> {
             Instant updatedAt,
             Instant deletedAt) {
         this.id = id;
-        this.email = email;
-        this.passwordHash = passwordHash;
-        this.fullName = fullName;
-        this.phone = phone;
+        this.email = EmailAddress.of(email);
+        this.passwordHash = PasswordHash.of(passwordHash);
+        this.fullName = PersonName.of(fullName);
+        this.phone = PhoneNumber.ofNullable(phone);
         this.role = role;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
@@ -47,15 +51,7 @@ public class User extends AggregateRoot<UserId> {
             UserId id, String email, String passwordHash, String fullName, String phone) {
         Instant now = Instant.now();
         User user = new User(
-                id,
-                email.toLowerCase().trim(),
-                passwordHash,
-                fullName,
-                phone,
-                UserRole.CUSTOMER,
-                now,
-                now,
-                null);
+                id, email, passwordHash, fullName, phone, UserRole.CUSTOMER, now, now, null);
         user.registerEvent(UserRegistered.of(id, email));
         return user;
     }
@@ -106,19 +102,19 @@ public class User extends AggregateRoot<UserId> {
     }
 
     public String getEmail() {
-        return email;
+        return email.value();
     }
 
     public String getPasswordHash() {
-        return passwordHash;
+        return passwordHash.value();
     }
 
     public String getFullName() {
-        return fullName;
+        return fullName.value();
     }
 
     public String getPhone() {
-        return phone;
+        return phone == null ? null : phone.value();
     }
 
     public UserRole getRole() {

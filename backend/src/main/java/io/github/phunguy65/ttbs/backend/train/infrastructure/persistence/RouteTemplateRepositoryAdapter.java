@@ -2,6 +2,7 @@ package io.github.phunguy65.ttbs.backend.train.infrastructure.persistence;
 
 import io.github.phunguy65.ttbs.backend.shared.domain.PageResponse;
 import io.github.phunguy65.ttbs.backend.shared.domain.SortOrder;
+import io.github.phunguy65.ttbs.backend.station.domain.model.StationId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteTemplate;
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteTemplateId;
 import io.github.phunguy65.ttbs.backend.train.domain.repository.RouteTemplateRepository;
@@ -46,6 +47,11 @@ class RouteTemplateRepositoryAdapter implements RouteTemplateRepository {
     @Override
     public boolean existsById(RouteTemplateId id) {
         return jpaRepository.existsActiveById(id.value());
+    }
+
+    @Override
+    public boolean existsActiveByStationId(StationId stationId) {
+        return jpaRepository.existsActiveByStationId(stationId.value());
     }
 
     @Override
