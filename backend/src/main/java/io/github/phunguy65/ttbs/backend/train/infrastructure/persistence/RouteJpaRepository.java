@@ -30,6 +30,9 @@ interface RouteJpaRepository extends JpaRepository<RouteEntity, UUID> {
     @Query("SELECT COUNT(r) > 0 FROM RouteEntity r WHERE r.id = :id AND r.deletedAt IS NULL")
     boolean existsActiveById(@Param("id") UUID id);
 
+    @Query("SELECT r.id FROM RouteEntity r WHERE r.trainId IN :trainIds AND r.deletedAt IS NULL")
+    List<UUID> findActiveIdsByTrainIds(@Param("trainIds") List<UUID> trainIds);
+
     @Modifying
     @Query(
             "UPDATE RouteEntity r SET r.deletedAt = :deletedAt WHERE r.id = :id AND r.deletedAt IS NULL")

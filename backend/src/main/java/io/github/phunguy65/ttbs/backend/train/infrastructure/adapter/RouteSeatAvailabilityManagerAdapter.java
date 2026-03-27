@@ -3,9 +3,9 @@ package io.github.phunguy65.ttbs.backend.train.infrastructure.adapter;
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.train.application.port.RouteSeatAvailabilityManager;
 import io.github.phunguy65.ttbs.backend.train.domain.error.RouteSeatAvailabilityError;
-import io.github.phunguy65.ttbs.backend.train.domain.model.RouteId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteSeatAvailability;
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteSeatAvailabilityStatus;
+import io.github.phunguy65.ttbs.backend.train.domain.model.ScheduledTripId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.SeatId;
 import io.github.phunguy65.ttbs.backend.train.domain.repository.RouteSeatAvailabilityRepository;
 import java.util.ArrayList;
@@ -32,8 +32,9 @@ public class RouteSeatAvailabilityManagerAdapter implements RouteSeatAvailabilit
     @Override
     @Transactional
     public Result<Void, RouteSeatAvailabilityError> holdSeats(
-            RouteId routeId, List<SeatId> seatIds) {
-        List<RouteSeatAvailability> seats = repository.findByRouteIdAndSeatIds(routeId, seatIds);
+            ScheduledTripId scheduledTripId, List<SeatId> seatIds) {
+        List<RouteSeatAvailability> seats =
+                repository.findByScheduledTripIdAndSeatIds(scheduledTripId, seatIds);
 
         if (seats.size() != seatIds.size()) {
             return Result.failure(new RouteSeatAvailabilityError.SeatNotAvailable());
@@ -55,8 +56,9 @@ public class RouteSeatAvailabilityManagerAdapter implements RouteSeatAvailabilit
     @Override
     @Transactional
     public Result<Void, RouteSeatAvailabilityError> releaseHeldSeats(
-            RouteId routeId, List<SeatId> seatIds) {
-        List<RouteSeatAvailability> seats = repository.findByRouteIdAndSeatIds(routeId, seatIds);
+            ScheduledTripId scheduledTripId, List<SeatId> seatIds) {
+        List<RouteSeatAvailability> seats =
+                repository.findByScheduledTripIdAndSeatIds(scheduledTripId, seatIds);
 
         List<RouteSeatAvailability> toSave = new ArrayList<>();
         for (RouteSeatAvailability domain : seats) {
@@ -78,8 +80,9 @@ public class RouteSeatAvailabilityManagerAdapter implements RouteSeatAvailabilit
     @Override
     @Transactional
     public Result<Void, RouteSeatAvailabilityError> cancelBookedSeats(
-            RouteId routeId, List<SeatId> seatIds) {
-        List<RouteSeatAvailability> seats = repository.findByRouteIdAndSeatIds(routeId, seatIds);
+            ScheduledTripId scheduledTripId, List<SeatId> seatIds) {
+        List<RouteSeatAvailability> seats =
+                repository.findByScheduledTripIdAndSeatIds(scheduledTripId, seatIds);
 
         if (seats.size() != seatIds.size()) {
             return Result.failure(new RouteSeatAvailabilityError.SeatNotAvailable());

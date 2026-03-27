@@ -54,9 +54,9 @@ public class CancelBookingUseCase {
 
         if (!seatIds.isEmpty()) {
             if (previousStatus == BookingStatus.HELD) {
-                seatAvailabilityPort.releaseHeldSeats(booking.getRouteId(), seatIds);
+                seatAvailabilityPort.releaseHeldSeats(booking.getScheduledTripId(), seatIds);
             } else if (previousStatus == BookingStatus.CONFIRMED) {
-                seatAvailabilityPort.cancelBookedSeats(booking.getRouteId(), seatIds);
+                seatAvailabilityPort.cancelBookedSeats(booking.getScheduledTripId(), seatIds);
             }
         }
 

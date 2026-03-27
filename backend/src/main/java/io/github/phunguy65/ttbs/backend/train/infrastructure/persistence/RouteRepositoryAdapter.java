@@ -63,6 +63,14 @@ class RouteRepositoryAdapter implements RouteRepository {
     }
 
     @Override
+    public List<RouteId> findActiveIdsByTrainIds(List<TrainId> trainIds) {
+        List<UUID> uuids = trainIds.stream().map(TrainId::value).toList();
+        return jpaRepository.findActiveIdsByTrainIds(uuids).stream()
+                .map(RouteId::of)
+                .toList();
+    }
+
+    @Override
     public void softDeleteById(RouteId id, Instant deletedAt) {
         jpaRepository.softDeleteById(id.value(), deletedAt);
     }

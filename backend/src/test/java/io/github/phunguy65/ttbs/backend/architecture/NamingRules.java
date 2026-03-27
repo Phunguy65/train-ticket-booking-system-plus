@@ -7,7 +7,7 @@ import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchRule;
 
 /**
- * Naming convention rules derived from the project's established patterns:
+ * Naming and package-location rules derived from the backend's current package conventions:
  *
  * <ul>
  *   <li>{@code *UseCase}           → {@code ..application.usecase..}

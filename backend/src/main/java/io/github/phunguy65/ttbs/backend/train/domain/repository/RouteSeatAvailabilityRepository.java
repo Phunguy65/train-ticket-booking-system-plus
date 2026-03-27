@@ -1,7 +1,7 @@
 package io.github.phunguy65.ttbs.backend.train.domain.repository;
 
-import io.github.phunguy65.ttbs.backend.train.domain.model.RouteId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteSeatAvailability;
+import io.github.phunguy65.ttbs.backend.train.domain.model.ScheduledTripId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.SeatId;
 import java.util.List;
 import java.util.Optional;
@@ -13,15 +13,17 @@ import java.util.Optional;
  */
 public interface RouteSeatAvailabilityRepository {
 
-    List<RouteSeatAvailability> findAvailableByRouteId(RouteId routeId);
+    List<RouteSeatAvailability> findAvailableByScheduledTripId(ScheduledTripId scheduledTripId);
 
-    Optional<RouteSeatAvailability> findByRouteIdAndSeatId(RouteId routeId, SeatId seatId);
+    Optional<RouteSeatAvailability> findByScheduledTripIdAndSeatId(
+            ScheduledTripId scheduledTripId, SeatId seatId);
 
     /**
      * Fetches the specified seats for a given route without locking.
      * Optimistic locking via {@code @Version} handles concurrent modification detection.
      */
-    List<RouteSeatAvailability> findByRouteIdAndSeatIds(RouteId routeId, List<SeatId> seatIds);
+    List<RouteSeatAvailability> findByScheduledTripIdAndSeatIds(
+            ScheduledTripId scheduledTripId, List<SeatId> seatIds);
 
     List<RouteSeatAvailability> findByBookingId(java.util.UUID bookingId);
 
@@ -45,7 +47,7 @@ public interface RouteSeatAvailabilityRepository {
      */
     List<java.util.UUID> findDistinctActiveBookingIdsBySeatIds(List<SeatId> seatIds);
 
-    void hardDeleteByRouteIds(List<RouteId> routeIds);
+    void hardDeleteByScheduledTripIds(List<ScheduledTripId> scheduledTripIds);
 
     void hardDeleteBySeatIds(List<SeatId> seatIds);
 }

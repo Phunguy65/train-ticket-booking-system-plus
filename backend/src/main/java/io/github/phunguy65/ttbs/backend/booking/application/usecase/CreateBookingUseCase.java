@@ -12,8 +12,9 @@ import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.shared.domain.UuidGenerator;
 import io.github.phunguy65.ttbs.backend.train.application.port.RouteSeatAvailabilityManager;
 import io.github.phunguy65.ttbs.backend.train.domain.error.RouteSeatAvailabilityError;
-import io.github.phunguy65.ttbs.backend.train.domain.model.RouteId;
-import io.github.phunguy65.ttbs.backend.train.domain.repository.RouteRepository;
+import io.github.phunguy65.ttbs.backend.train.domain.model.ScheduledTripId;
+import io.github.phunguy65.ttbs.backend.train.domain.repository.RouteTemplateRepository;
+import io.github.phunguy65.ttbs.backend.train.domain.repository.ScheduledTripRepository;
 import io.github.phunguy65.ttbs.backend.user.domain.model.UserId;
 import java.time.Instant;
 import org.springframework.context.ApplicationEventPublisher;
@@ -27,17 +28,20 @@ public class CreateBookingUseCase {
 
     private final BookingRepository bookingRepository;
     private final RouteSeatAvailabilityManager seatAvailabilityPort;
-    private final RouteRepository routeRepository;
+    private final ScheduledTripRepository scheduledTripRepository;
+    private final RouteTemplateRepository routeTemplateRepository;
     private final ApplicationEventPublisher eventPublisher;
 
     public CreateBookingUseCase(
             BookingRepository bookingRepository,
             RouteSeatAvailabilityManager seatAvailabilityPort,
-            RouteRepository routeRepository,
+            ScheduledTripRepository scheduledTripRepository,
+            RouteTemplateRepository routeTemplateRepository,
             ApplicationEventPublisher eventPublisher) {
         this.bookingRepository = bookingRepository;
         this.seatAvailabilityPort = seatAvailabilityPort;
-        this.routeRepository = routeRepository;
+        this.scheduledTripRepository = scheduledTripRepository;
+        this.routeTemplateRepository = routeTemplateRepository;
         this.eventPublisher = eventPublisher;
     }
 
@@ -49,31 +53,37 @@ public class CreateBookingUseCase {
         }
 
         UserId userId = UserId.of(command.userId());
-        RouteId routeId = RouteId.of(command.routeId());
+        ScheduledTripId scheduledTripId = ScheduledTripId.of(command.routeId());
 
-        var activeHold = bookingRepository.findActiveHoldByUserAndRoute(userId, routeId);
+        var activeHold =
+                bookingRepository.findActiveHoldByUserAndScheduledTrip(userId, scheduledTripId);
         if (activeHold.isPresent()) {
             return Result.failure(new BookingError.ActiveHoldExists());
         }
 
         Result<Void, RouteSeatAvailabilityError> holdResult =
-                seatAvailabilityPort.holdSeats(routeId, command.seatIds());
+                seatAvailabilityPort.holdSeats(scheduledTripId, command.seatIds());
         if (holdResult.isFailure()) {
             return Result.failure(new BookingError.SeatNotAvailable());
         }
 
-        var routeOpt = routeRepository.findById(routeId);
-        if (routeOpt.isEmpty()) {
+        var scheduledTripOpt = scheduledTripRepository.findById(scheduledTripId);
+        if (scheduledTripOpt.isEmpty()) {
             return Result.failure(new BookingError.RouteNotFound());
         }
-        Money totalPrice = Money.vnd(
-                routeOpt.get().getBasePrice().toLong() * command.seatIds().size());
+        var scheduledTrip = scheduledTripOpt.get();
+        var routeTemplateOpt = routeTemplateRepository.findById(scheduledTrip.getRouteTemplateId());
+        if (routeTemplateOpt.isEmpty()) {
+            return Result.failure(new BookingError.RouteNotFound());
+        }
+        Money totalPrice = Money.vnd(routeTemplateOpt.get().getBasePrice().toLong()
+                * command.seatIds().size());
 
         Instant paymentDeadline = Instant.now().plusSeconds(HOLD_DURATION_SECONDS);
         Booking booking = Booking.create(
                 BookingId.of(UuidGenerator.generate()),
                 userId,
-                routeId,
+                scheduledTripId,
                 command.passengerName(),
                 command.passengerEmail(),
                 command.passengerPhone(),
@@ -96,7 +106,7 @@ public class CreateBookingUseCase {
         return new BookingResponse(
                 booking.getBookingId().value(),
                 booking.getUserId().value(),
-                booking.getRouteId().value(),
+                booking.getScheduledTripId().value(),
                 booking.getPassengerName(),
                 booking.getPassengerEmail(),
                 booking.getPassengerPhone(),

@@ -24,6 +24,8 @@ public interface RouteRepository {
 
     boolean existsById(RouteId id);
 
+    List<RouteId> findActiveIdsByTrainIds(List<TrainId> trainIds);
+
     List<RouteId> findActiveIdsByStationId(StationId stationId);
 
     List<RouteId> findActiveIdsByStationIds(List<StationId> stationIds);

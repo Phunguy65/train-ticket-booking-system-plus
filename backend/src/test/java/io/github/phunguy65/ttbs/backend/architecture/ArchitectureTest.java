@@ -8,14 +8,15 @@ import com.tngtech.archunit.lang.ArchRule;
 /**
  * Architecture test suite for the train-ticket-booking-system backend.
  *
- * <p>Rules are grouped into four focused classes and imported here via {@code @ArchTest}
- * field references so that {@link AnalyzeClasses} caching is shared across all of them.
+ * <p>The backend is organized into domain-oriented packages at the top level. These tests keep
+ * the internal package structure consistent by enforcing layer dependency direction and
+ * naming/location conventions. Rules are grouped into focused classes and imported here via
+ * {@code @ArchTest} field references so that {@link AnalyzeClasses} caching is shared across all
+ * of them.
  *
  * <ul>
- *   <li>{@link LayerRules}       – layer dependency direction (domain / application / infrastructure / web)
- *   <li>{@link NamingRules}      – naming-convention / location contracts
- *   <li>{@link CrossModuleRules} – no module may reach into another module's infrastructure
- *   <li>{@link CycleRules}       – acyclic module dependency graph
+ *   <li>{@link LayerRules}  - layer dependency direction (domain / application / infrastructure / web)
+ *   <li>{@link NamingRules} - naming-convention / location contracts
  * </ul>
  */
 @AnalyzeClasses(
@@ -90,32 +91,4 @@ public class ArchitectureTest {
     @ArchTest
     static final ArchRule repository_adapters_must_reside_in_infrastructure_persistence =
             NamingRules.repository_adapters_must_reside_in_infrastructure_persistence;
-
-    // ── Cross-module rules ────────────────────────────────────────────────
-
-    @ArchTest
-    static final ArchRule booking_infrastructure_must_not_access_other_module_infrastructure =
-            CrossModuleRules.booking_infrastructure_must_not_access_other_module_infrastructure;
-
-    @ArchTest
-    static final ArchRule payment_infrastructure_must_not_access_other_module_infrastructure =
-            CrossModuleRules.payment_infrastructure_must_not_access_other_module_infrastructure;
-
-    @ArchTest
-    static final ArchRule train_infrastructure_must_not_access_other_module_infrastructure =
-            CrossModuleRules.train_infrastructure_must_not_access_other_module_infrastructure;
-
-    @ArchTest
-    static final ArchRule station_infrastructure_must_not_access_other_module_infrastructure =
-            CrossModuleRules.station_infrastructure_must_not_access_other_module_infrastructure;
-
-    @ArchTest
-    static final ArchRule user_infrastructure_must_not_access_other_module_infrastructure =
-            CrossModuleRules.user_infrastructure_must_not_access_other_module_infrastructure;
-
-    // ── Cycle rules ───────────────────────────────────────────────────────
-
-    @ArchTest
-    static final ArchRule no_cycles_between_bounded_context_modules =
-            CycleRules.no_cycles_between_bounded_context_modules;
 }

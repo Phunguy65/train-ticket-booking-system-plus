@@ -18,8 +18,8 @@ class BookingEntity {
     @Column(name = "user_id", nullable = false, updatable = false)
     private UUID userId;
 
-    @Column(name = "route_id", nullable = false, updatable = false)
-    private UUID routeId;
+    @Column(name = "scheduled_trip_id", nullable = false, updatable = false)
+    private UUID scheduledTripId;
 
     @Column(name = "passenger_name", nullable = false, length = 255)
     private String passengerName;
@@ -66,12 +66,12 @@ class BookingEntity {
         this.userId = userId;
     }
 
-    UUID getRouteId() {
-        return routeId;
+    UUID getScheduledTripId() {
+        return scheduledTripId;
     }
 
-    void setRouteId(UUID routeId) {
-        this.routeId = routeId;
+    void setScheduledTripId(UUID scheduledTripId) {
+        this.scheduledTripId = scheduledTripId;
     }
 
     String getPassengerName() {

@@ -4,7 +4,7 @@ import io.github.phunguy65.ttbs.backend.booking.domain.model.Booking;
 import io.github.phunguy65.ttbs.backend.booking.domain.model.BookingId;
 import io.github.phunguy65.ttbs.backend.booking.domain.model.BookingStatus;
 import io.github.phunguy65.ttbs.backend.shared.domain.Money;
-import io.github.phunguy65.ttbs.backend.train.domain.model.RouteId;
+import io.github.phunguy65.ttbs.backend.train.domain.model.ScheduledTripId;
 import io.github.phunguy65.ttbs.backend.user.domain.model.UserId;
 import java.math.BigDecimal;
 import java.util.Currency;
@@ -20,7 +20,7 @@ class BookingEntityMapper {
         return Booking.reconstitute(
                 BookingId.of(entity.getId()),
                 UserId.of(entity.getUserId()),
-                RouteId.of(entity.getRouteId()),
+                ScheduledTripId.of(entity.getScheduledTripId()),
                 entity.getPassengerName(),
                 entity.getPassengerEmail(),
                 entity.getPassengerPhone(),
@@ -36,7 +36,7 @@ class BookingEntityMapper {
         BookingEntity entity = new BookingEntity();
         entity.setId(domain.getBookingId().value());
         entity.setUserId(domain.getUserId().value());
-        entity.setRouteId(domain.getRouteId().value());
+        entity.setScheduledTripId(domain.getScheduledTripId().value());
         entity.setPassengerName(domain.getPassengerName());
         entity.setPassengerEmail(domain.getPassengerEmail());
         entity.setPassengerPhone(domain.getPassengerPhone());

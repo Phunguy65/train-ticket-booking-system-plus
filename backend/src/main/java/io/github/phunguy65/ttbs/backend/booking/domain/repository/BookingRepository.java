@@ -2,7 +2,8 @@ package io.github.phunguy65.ttbs.backend.booking.domain.repository;
 
 import io.github.phunguy65.ttbs.backend.booking.domain.model.Booking;
 import io.github.phunguy65.ttbs.backend.booking.domain.model.BookingId;
-import io.github.phunguy65.ttbs.backend.train.domain.model.RouteId;
+import io.github.phunguy65.ttbs.backend.booking.domain.model.BookingStatus;
+import io.github.phunguy65.ttbs.backend.train.domain.model.ScheduledTripId;
 import io.github.phunguy65.ttbs.backend.user.domain.model.UserId;
 import java.time.Instant;
 import java.util.List;
@@ -15,23 +16,24 @@ import java.util.Optional;
  */
 public interface BookingRepository {
 
+    record CancellationCandidate(BookingId bookingId, BookingStatus status) {}
+
     Booking save(Booking booking);
 
     Optional<Booking> findById(BookingId bookingId);
 
     Optional<Booking> findByIdempotencyKey(String idempotencyKey);
 
-    Optional<Booking> findActiveHoldByUserAndRoute(UserId userId, RouteId routeId);
+    Optional<Booking> findActiveHoldByUserAndScheduledTrip(
+            UserId userId, ScheduledTripId scheduledTripId);
 
     List<Booking> findExpiredHeldBookings(Instant now);
 
+    List<CancellationCandidate> findCancellationCandidatesByIds(List<BookingId> bookingIds);
+
+    void cancelByIds(List<BookingId> bookingIds);
+
     List<Booking> saveAll(List<Booking> bookings);
 
-    /**
-     * Returns {@code true} if the user has any non-cancelled bookings (HELD or CONFIRMED).
-     *
-     * @param userId the user to check
-     * @return {@code true} if at least one active booking exists
-     */
     boolean existsActiveByUserId(UserId userId);
 }

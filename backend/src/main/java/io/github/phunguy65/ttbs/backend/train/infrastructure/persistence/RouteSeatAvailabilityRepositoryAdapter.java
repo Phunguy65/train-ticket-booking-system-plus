@@ -1,7 +1,7 @@
 package io.github.phunguy65.ttbs.backend.train.infrastructure.persistence;
 
-import io.github.phunguy65.ttbs.backend.train.domain.model.RouteId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteSeatAvailability;
+import io.github.phunguy65.ttbs.backend.train.domain.model.ScheduledTripId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.SeatId;
 import io.github.phunguy65.ttbs.backend.train.domain.repository.RouteSeatAvailabilityRepository;
 import java.util.Comparator;
@@ -24,27 +24,31 @@ class RouteSeatAvailabilityRepositoryAdapter implements RouteSeatAvailabilityRep
     }
 
     @Override
-    public List<RouteSeatAvailability> findAvailableByRouteId(RouteId routeId) {
-        return jpaRepository.findAvailableByRouteId(routeId.value()).stream()
+    public List<RouteSeatAvailability> findAvailableByScheduledTripId(
+            ScheduledTripId scheduledTripId) {
+        return jpaRepository.findAvailableByScheduledTripId(scheduledTripId.value()).stream()
                 .map(mapper::toDomain)
                 .toList();
     }
 
     @Override
-    public Optional<RouteSeatAvailability> findByRouteIdAndSeatId(RouteId routeId, SeatId seatId) {
+    public Optional<RouteSeatAvailability> findByScheduledTripIdAndSeatId(
+            ScheduledTripId scheduledTripId, SeatId seatId) {
         return jpaRepository
-                .findByRouteIdAndSeatId(routeId.value(), seatId.value())
+                .findByScheduledTripIdAndSeatId(scheduledTripId.value(), seatId.value())
                 .map(mapper::toDomain);
     }
 
     @Override
-    public List<RouteSeatAvailability> findByRouteIdAndSeatIds(
-            RouteId routeId, List<SeatId> seatIds) {
+    public List<RouteSeatAvailability> findByScheduledTripIdAndSeatIds(
+            ScheduledTripId scheduledTripId, List<SeatId> seatIds) {
         List<UUID> sortedSeatUuids = seatIds.stream()
                 .map(SeatId::value)
                 .sorted(Comparator.naturalOrder())
                 .toList();
-        return jpaRepository.findByRouteIdAndSeatIds(routeId.value(), sortedSeatUuids).stream()
+        return jpaRepository
+                .findByScheduledTripIdAndSeatIds(scheduledTripId.value(), sortedSeatUuids)
+                .stream()
                 .map(mapper::toDomain)
                 .toList();
     }
@@ -92,9 +96,9 @@ class RouteSeatAvailabilityRepositoryAdapter implements RouteSeatAvailabilityRep
     }
 
     @Override
-    public void hardDeleteByRouteIds(List<RouteId> routeIds) {
-        List<UUID> uuids = routeIds.stream().map(RouteId::value).toList();
-        jpaRepository.hardDeleteByRouteIds(uuids);
+    public void hardDeleteByScheduledTripIds(List<ScheduledTripId> scheduledTripIds) {
+        List<UUID> uuids = scheduledTripIds.stream().map(ScheduledTripId::value).toList();
+        jpaRepository.hardDeleteByScheduledTripIds(uuids);
     }
 
     @Override

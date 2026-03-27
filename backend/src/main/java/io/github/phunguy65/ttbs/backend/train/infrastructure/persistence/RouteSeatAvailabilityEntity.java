@@ -3,7 +3,7 @@ package io.github.phunguy65.ttbs.backend.train.infrastructure.persistence;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "route_seat_availability")
+@Table(name = "trip_seat_availability")
 class RouteSeatAvailabilityEntity {
 
     @EmbeddedId

@@ -2,6 +2,7 @@ package io.github.phunguy65.ttbs.backend.payment.domain.repository;
 
 import io.github.phunguy65.ttbs.backend.booking.domain.model.BookingId;
 import io.github.phunguy65.ttbs.backend.payment.domain.model.Payment;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -14,6 +15,8 @@ public interface PaymentRepository {
     Payment save(Payment payment);
 
     Optional<Payment> findByBookingId(BookingId bookingId);
+
+    List<Payment> findByBookingIds(List<BookingId> bookingIds);
 
     Optional<Payment> findByCheckoutSessionId(String checkoutSessionId);
 

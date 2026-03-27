@@ -4,7 +4,6 @@ import io.github.phunguy65.ttbs.backend.booking.domain.model.Booking;
 import io.github.phunguy65.ttbs.backend.booking.domain.repository.BookingRepository;
 import io.github.phunguy65.ttbs.backend.shared.domain.DomainEvent;
 import io.github.phunguy65.ttbs.backend.train.application.port.RouteSeatAvailabilityManager;
-import io.github.phunguy65.ttbs.backend.train.domain.model.RouteId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.SeatId;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -57,11 +56,11 @@ public class ExpireHeldBookingsUseCase {
                 continue;
             }
 
-            RouteId trainRouteId = booking.getRouteId();
+            var scheduledTripId = booking.getScheduledTripId();
             List<SeatId> seatIds = seatAvailabilityPort.findSeatIdsByBookingId(
                     booking.getBookingId().value());
             if (!seatIds.isEmpty()) {
-                seatAvailabilityPort.releaseHeldSeats(trainRouteId, seatIds);
+                seatAvailabilityPort.releaseHeldSeats(scheduledTripId, seatIds);
             }
 
             toSave.add(booking);

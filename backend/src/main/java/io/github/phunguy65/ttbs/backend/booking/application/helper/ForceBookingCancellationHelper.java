@@ -87,9 +87,9 @@ public class ForceBookingCancellationHelper {
         List<SeatId> seatIds = seatAvailabilityManager.findSeatIdsByBookingId(bookingId);
         if (!seatIds.isEmpty()) {
             if (previousStatus == BookingStatus.HELD) {
-                seatAvailabilityManager.releaseHeldSeats(booking.getRouteId(), seatIds);
+                seatAvailabilityManager.releaseHeldSeats(booking.getScheduledTripId(), seatIds);
             } else if (previousStatus == BookingStatus.CONFIRMED) {
-                seatAvailabilityManager.cancelBookedSeats(booking.getRouteId(), seatIds);
+                seatAvailabilityManager.cancelBookedSeats(booking.getScheduledTripId(), seatIds);
             }
         }
 

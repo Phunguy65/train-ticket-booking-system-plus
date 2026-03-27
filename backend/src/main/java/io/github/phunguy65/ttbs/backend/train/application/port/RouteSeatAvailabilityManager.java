@@ -2,7 +2,7 @@ package io.github.phunguy65.ttbs.backend.train.application.port;
 
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.train.domain.error.RouteSeatAvailabilityError;
-import io.github.phunguy65.ttbs.backend.train.domain.model.RouteId;
+import io.github.phunguy65.ttbs.backend.train.domain.model.ScheduledTripId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.SeatId;
 import java.util.List;
 
@@ -21,36 +21,37 @@ public interface RouteSeatAvailabilityManager {
      * Seat IDs are sorted ascending before locking to prevent deadlocks.
      * All-or-nothing: if any seat is not AVAILABLE, no seats are modified.
      *
-     * @param routeId the route
+     * @param scheduledTripId the scheduled trip
      * @param seatIds the seats to hold
      * @return success if all seats were AVAILABLE and are now HELD;
      * failure with {@link RouteSeatAvailabilityError.SeatNotAvailable} otherwise
      */
-    Result<Void, RouteSeatAvailabilityError> holdSeats(RouteId routeId, List<SeatId> seatIds);
+    Result<Void, RouteSeatAvailabilityError> holdSeats(
+            ScheduledTripId scheduledTripId, List<SeatId> seatIds);
 
     /**
      * Atomically transitions all specified seats from {@code HELD} back to {@code AVAILABLE}.
      * Used when a hold expires or is cancelled.
      *
-     * @param routeId the route
+     * @param scheduledTripId the scheduled trip
      * @param seatIds the seats to release
      * @return success if all seats were released;
      * failure otherwise
      */
     Result<Void, RouteSeatAvailabilityError> releaseHeldSeats(
-            RouteId routeId, List<SeatId> seatIds);
+            ScheduledTripId scheduledTripId, List<SeatId> seatIds);
 
     /**
      * Atomically transitions all specified seats from {@code BOOKED} to {@code CANCELLED}.
      * Used when a confirmed booking is cancelled by the user.
      *
-     * @param routeId the route
+     * @param scheduledTripId the scheduled trip
      * @param seatIds the seats to cancel
      * @return success if all seats were cancelled;
      * failure otherwise
      */
     Result<Void, RouteSeatAvailabilityError> cancelBookedSeats(
-            RouteId routeId, List<SeatId> seatIds);
+            ScheduledTripId scheduledTripId, List<SeatId> seatIds);
 
     /**
      * Atomically transitions all seats for the given booking from {@code HELD} to {@code BOOKED}.

@@ -4,7 +4,7 @@ import io.github.phunguy65.ttbs.backend.booking.domain.model.Booking;
 import io.github.phunguy65.ttbs.backend.booking.domain.model.BookingId;
 import io.github.phunguy65.ttbs.backend.booking.domain.model.BookingStatus;
 import io.github.phunguy65.ttbs.backend.booking.domain.repository.BookingRepository;
-import io.github.phunguy65.ttbs.backend.train.domain.model.RouteId;
+import io.github.phunguy65.ttbs.backend.train.domain.model.ScheduledTripId;
 import io.github.phunguy65.ttbs.backend.user.domain.model.UserId;
 import java.time.Instant;
 import java.util.List;
@@ -38,9 +38,11 @@ class BookingRepositoryAdapter implements BookingRepository {
     }
 
     @Override
-    public Optional<Booking> findActiveHoldByUserAndRoute(UserId userId, RouteId routeId) {
+    public Optional<Booking> findActiveHoldByUserAndScheduledTrip(
+            UserId userId, ScheduledTripId scheduledTripId) {
         return jpaRepository
-                .findByUserIdAndRouteIdAndStatusHeld(userId.value(), routeId.value())
+                .findByUserIdAndScheduledTripIdAndStatusHeld(
+                        userId.value(), scheduledTripId.value())
                 .map(mapper::toDomain);
     }
 
@@ -49,6 +51,22 @@ class BookingRepositoryAdapter implements BookingRepository {
         return jpaRepository.findByStatusHeldAndPaymentDeadlineBefore(now).stream()
                 .map(mapper::toDomain)
                 .toList();
+    }
+
+    @Override
+    public List<CancellationCandidate> findCancellationCandidatesByIds(List<BookingId> bookingIds) {
+        List<java.util.UUID> uuids = bookingIds.stream().map(BookingId::value).toList();
+        return jpaRepository.findCancellationCandidatesByIds(uuids).stream()
+                .map(candidate -> new CancellationCandidate(
+                        BookingId.of(candidate.getId()),
+                        BookingStatus.valueOf(candidate.getStatus())))
+                .toList();
+    }
+
+    @Override
+    public void cancelByIds(List<BookingId> bookingIds) {
+        List<java.util.UUID> uuids = bookingIds.stream().map(BookingId::value).toList();
+        jpaRepository.cancelByIds(uuids);
     }
 
     @Override

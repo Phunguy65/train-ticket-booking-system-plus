@@ -1,13 +1,11 @@
 package io.github.phunguy65.ttbs.backend.train.application.usecase;
 
-import io.github.phunguy65.ttbs.backend.shared.domain.DomainEvent;
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.train.application.command.SoftDeleteTrainCommand;
 import io.github.phunguy65.ttbs.backend.train.domain.error.TrainError;
-import io.github.phunguy65.ttbs.backend.train.domain.model.Train;
 import io.github.phunguy65.ttbs.backend.train.domain.repository.TrainRepository;
-import java.util.Optional;
-import org.springframework.context.ApplicationEventPublisher;
+import java.time.Instant;
+import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,34 +13,22 @@ import org.springframework.transaction.annotation.Transactional;
 public class SoftDeleteTrainUseCase {
 
     private final TrainRepository trainRepository;
-    private final ApplicationEventPublisher eventPublisher;
+    private final TrainCascadeSoftDeleteService trainCascadeSoftDeleteService;
 
     public SoftDeleteTrainUseCase(
-            TrainRepository trainRepository, ApplicationEventPublisher eventPublisher) {
+            TrainRepository trainRepository,
+            TrainCascadeSoftDeleteService trainCascadeSoftDeleteService) {
         this.trainRepository = trainRepository;
-        this.eventPublisher = eventPublisher;
+        this.trainCascadeSoftDeleteService = trainCascadeSoftDeleteService;
     }
 
     @Transactional
     public Result<Void, TrainError> execute(SoftDeleteTrainCommand command) {
-        Optional<Train> found = trainRepository.findById(command.trainId());
-        if (found.isEmpty()) {
+        if (!trainRepository.existsById(command.trainId())) {
             return Result.failure(new TrainError.TrainNotFound());
         }
 
-        Train train = found.get();
-
-        if (train.isDeleted()) {
-            return Result.success();
-        }
-
-        train.softDelete();
-        trainRepository.save(train);
-
-        for (DomainEvent event : train.getDomainEvents()) {
-            eventPublisher.publishEvent(event);
-        }
-        train.clearDomainEvents();
+        trainCascadeSoftDeleteService.execute(List.of(command.trainId()), Instant.now());
 
         return Result.success();
     }

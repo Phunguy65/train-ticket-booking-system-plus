@@ -33,6 +33,11 @@ class TrainRepositoryAdapter implements TrainRepository {
     }
 
     @Override
+    public boolean existsById(TrainId id) {
+        return jpaRepository.existsById(id.value());
+    }
+
+    @Override
     public Optional<Train> findById(TrainId id) {
         return jpaRepository.findActiveById(id.value()).map(mapper::toDomain);
     }

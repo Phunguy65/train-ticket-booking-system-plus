@@ -4,7 +4,7 @@ import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.train.domain.error.RouteSeatAvailabilityError;
 
 /**
- * Domain entity tracking the availability of a specific seat on a specific route.
+ * Domain entity tracking the availability of a specific seat on a specific scheduled trip.
  *
  * <p>This entity is NOT an AggregateRoot — it is managed within the seat management context.
  * Concurrency safety is enforced via JPA {@code @Version} optimistic locking at the database
@@ -22,14 +22,17 @@ import io.github.phunguy65.ttbs.backend.train.domain.error.RouteSeatAvailability
  */
 public class RouteSeatAvailability {
 
-    private final RouteId routeId;
+    private final ScheduledTripId scheduledTripId;
     private final SeatId seatId;
     private RouteSeatAvailabilityStatus status;
     private final Integer version;
 
     private RouteSeatAvailability(
-            RouteId routeId, SeatId seatId, RouteSeatAvailabilityStatus status, Integer version) {
-        this.routeId = routeId;
+            ScheduledTripId scheduledTripId,
+            SeatId seatId,
+            RouteSeatAvailabilityStatus status,
+            Integer version) {
+        this.scheduledTripId = scheduledTripId;
         this.seatId = seatId;
         this.status = status;
         this.version = version;
@@ -38,25 +41,28 @@ public class RouteSeatAvailability {
     /**
      * Factory method for creating a new availability record with status {@code AVAILABLE}.
      */
-    public static RouteSeatAvailability create(RouteId routeId, SeatId seatId) {
+    public static RouteSeatAvailability create(ScheduledTripId scheduledTripId, SeatId seatId) {
         return new RouteSeatAvailability(
-                routeId, seatId, RouteSeatAvailabilityStatus.AVAILABLE, null);
+                scheduledTripId, seatId, RouteSeatAvailabilityStatus.AVAILABLE, null);
     }
 
     /**
      * Factory method for reconstituting from persistence.
      */
     public static RouteSeatAvailability reconstitute(
-            RouteId routeId, SeatId seatId, RouteSeatAvailabilityStatus status) {
-        return new RouteSeatAvailability(routeId, seatId, status, null);
+            ScheduledTripId scheduledTripId, SeatId seatId, RouteSeatAvailabilityStatus status) {
+        return new RouteSeatAvailability(scheduledTripId, seatId, status, null);
     }
 
     /**
      * Factory method for reconstituting from persistence with version.
      */
     public static RouteSeatAvailability reconstitute(
-            RouteId routeId, SeatId seatId, RouteSeatAvailabilityStatus status, Integer version) {
-        return new RouteSeatAvailability(routeId, seatId, status, version);
+            ScheduledTripId scheduledTripId,
+            SeatId seatId,
+            RouteSeatAvailabilityStatus status,
+            Integer version) {
+        return new RouteSeatAvailability(scheduledTripId, seatId, status, version);
     }
 
     /**
@@ -137,8 +143,8 @@ public class RouteSeatAvailability {
         return Result.success();
     }
 
-    public RouteId getRouteId() {
-        return routeId;
+    public ScheduledTripId getScheduledTripId() {
+        return scheduledTripId;
     }
 
     public SeatId getSeatId() {

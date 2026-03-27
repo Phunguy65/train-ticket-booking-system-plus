@@ -7,9 +7,9 @@ import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchRule;
 
 /**
- * Layer dependency rules for the Clean Architecture / Vertical Slice pattern.
+ * Layer dependency rules for the backend's domain-oriented package structure.
  *
- * <p>Allowed dependency direction:
+ * <p>Allowed dependency direction within each domain area:
  * <pre>
  *   web → application → domain
  *         infrastructure → domain

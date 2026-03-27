@@ -3,6 +3,7 @@ package io.github.phunguy65.ttbs.backend.payment.infrastructure.persistence;
 import io.github.phunguy65.ttbs.backend.booking.domain.model.BookingId;
 import io.github.phunguy65.ttbs.backend.payment.domain.model.Payment;
 import io.github.phunguy65.ttbs.backend.payment.domain.repository.PaymentRepository;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Repository;
 
@@ -25,6 +26,14 @@ class PaymentRepositoryAdapter implements PaymentRepository {
     @Override
     public Optional<Payment> findByBookingId(BookingId bookingId) {
         return jpaRepository.findByBookingId(bookingId.value()).map(mapper::toDomain);
+    }
+
+    @Override
+    public List<Payment> findByBookingIds(List<BookingId> bookingIds) {
+        List<java.util.UUID> uuids = bookingIds.stream().map(BookingId::value).toList();
+        return jpaRepository.findByBookingIdIn(uuids).stream()
+                .map(mapper::toDomain)
+                .toList();
     }
 
     @Override

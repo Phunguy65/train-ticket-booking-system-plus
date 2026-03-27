@@ -12,6 +12,8 @@ public interface TrainRepository {
 
     Train save(Train train);
 
+    boolean existsById(TrainId id);
+
     Optional<Train> findById(TrainId id);
 
     PageResponse<Train> findAll(int page, int size, List<SortOrder> sort);

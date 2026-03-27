@@ -7,7 +7,7 @@ import io.github.phunguy65.ttbs.backend.booking.domain.event.BookingCreated;
 import io.github.phunguy65.ttbs.backend.shared.domain.AggregateRoot;
 import io.github.phunguy65.ttbs.backend.shared.domain.Money;
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
-import io.github.phunguy65.ttbs.backend.train.domain.model.RouteId;
+import io.github.phunguy65.ttbs.backend.train.domain.model.ScheduledTripId;
 import io.github.phunguy65.ttbs.backend.user.domain.model.UserId;
 import java.time.Instant;
 
@@ -25,7 +25,7 @@ public class Booking extends AggregateRoot<BookingId> {
 
     private final BookingId bookingId;
     private final UserId userId;
-    private final RouteId routeId;
+    private final ScheduledTripId scheduledTripId;
     private final String passengerName;
     private final String passengerEmail;
     private final String passengerPhone;
@@ -39,7 +39,7 @@ public class Booking extends AggregateRoot<BookingId> {
     private Booking(
             BookingId bookingId,
             UserId userId,
-            RouteId routeId,
+            ScheduledTripId scheduledTripId,
             String passengerName,
             String passengerEmail,
             String passengerPhone,
@@ -51,7 +51,7 @@ public class Booking extends AggregateRoot<BookingId> {
             Instant createdAt) {
         this.bookingId = bookingId;
         this.userId = userId;
-        this.routeId = routeId;
+        this.scheduledTripId = scheduledTripId;
         this.passengerName = passengerName;
         this.passengerEmail = passengerEmail;
         this.passengerPhone = passengerPhone;
@@ -69,7 +69,7 @@ public class Booking extends AggregateRoot<BookingId> {
     public static Booking create(
             BookingId bookingId,
             UserId userId,
-            RouteId routeId,
+            ScheduledTripId scheduledTripId,
             String passengerName,
             String passengerEmail,
             String passengerPhone,
@@ -80,7 +80,7 @@ public class Booking extends AggregateRoot<BookingId> {
         Booking booking = new Booking(
                 bookingId,
                 userId,
-                routeId,
+                scheduledTripId,
                 passengerName,
                 passengerEmail,
                 passengerPhone,
@@ -90,7 +90,8 @@ public class Booking extends AggregateRoot<BookingId> {
                 idempotencyKey,
                 paymentDeadline,
                 Instant.now());
-        booking.registerEvent(new BookingCreated(bookingId, userId, routeId, totalPrice, currency));
+        booking.registerEvent(
+                new BookingCreated(bookingId, userId, scheduledTripId, totalPrice, currency));
         return booking;
     }
 
@@ -100,7 +101,7 @@ public class Booking extends AggregateRoot<BookingId> {
     public static Booking reconstitute(
             BookingId bookingId,
             UserId userId,
-            RouteId routeId,
+            ScheduledTripId scheduledTripId,
             String passengerName,
             String passengerEmail,
             String passengerPhone,
@@ -113,7 +114,7 @@ public class Booking extends AggregateRoot<BookingId> {
         return new Booking(
                 bookingId,
                 userId,
-                routeId,
+                scheduledTripId,
                 passengerName,
                 passengerEmail,
                 passengerPhone,
@@ -136,7 +137,7 @@ public class Booking extends AggregateRoot<BookingId> {
                     status.name(), BookingStatus.CONFIRMED.name()));
         }
         this.status = BookingStatus.CONFIRMED;
-        registerEvent(new BookingConfirmed(bookingId, userId, routeId));
+        registerEvent(new BookingConfirmed(bookingId, userId, scheduledTripId));
         return Result.success();
     }
 
@@ -155,7 +156,7 @@ public class Booking extends AggregateRoot<BookingId> {
         }
         boolean requiresRefund = (status == BookingStatus.CONFIRMED);
         this.status = BookingStatus.CANCELLED;
-        registerEvent(new BookingCancelled(bookingId, userId, routeId, requiresRefund));
+        registerEvent(new BookingCancelled(bookingId, userId, scheduledTripId, requiresRefund));
         return Result.success();
     }
 
@@ -172,8 +173,8 @@ public class Booking extends AggregateRoot<BookingId> {
         return userId;
     }
 
-    public RouteId getRouteId() {
-        return routeId;
+    public ScheduledTripId getScheduledTripId() {
+        return scheduledTripId;
     }
 
     public String getPassengerName() {
