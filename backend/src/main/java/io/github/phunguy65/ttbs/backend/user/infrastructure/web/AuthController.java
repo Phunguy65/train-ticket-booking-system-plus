@@ -8,6 +8,9 @@ import io.github.phunguy65.ttbs.backend.user.application.usecase.LogoutUserUseCa
 import io.github.phunguy65.ttbs.backend.user.application.usecase.RefreshTokenUseCase;
 import io.github.phunguy65.ttbs.backend.user.application.usecase.RegisterUserUseCase;
 import io.github.phunguy65.ttbs.backend.user.domain.error.UserError;
+import io.github.phunguy65.ttbs.backend.user.infrastructure.web.request.LoginRequest;
+import io.github.phunguy65.ttbs.backend.user.infrastructure.web.request.RefreshTokenRequest;
+import io.github.phunguy65.ttbs.backend.user.infrastructure.web.request.RegisterRequest;
 import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.http.HttpStatus;
@@ -36,7 +39,7 @@ class AuthController {
     }
 
     @PostMapping(value = "/register", version = "1.0")
-    ResponseEntity<JsendResponse<?>> register(@Valid @RequestBody RegisterHttpRequest request) {
+    ResponseEntity<JsendResponse<?>> register(@Valid @RequestBody RegisterRequest request) {
         return registerUserUseCase
                 .execute(request.toCommand())
                 .fold(
@@ -51,7 +54,7 @@ class AuthController {
     }
 
     @PostMapping(value = "/login", version = "1.0")
-    ResponseEntity<JsendResponse<?>> login(@Valid @RequestBody LoginHttpRequest request) {
+    ResponseEntity<JsendResponse<?>> login(@Valid @RequestBody LoginRequest request) {
         return loginUserUseCase
                 .execute(request.toCommand())
                 .fold(
@@ -60,7 +63,7 @@ class AuthController {
     }
 
     @PostMapping(value = "/refresh", version = "1.0")
-    ResponseEntity<JsendResponse<?>> refresh(@Valid @RequestBody RefreshTokenHttpRequest request) {
+    ResponseEntity<JsendResponse<?>> refresh(@Valid @RequestBody RefreshTokenRequest request) {
         return refreshTokenUseCase
                 .execute(request.toCommand())
                 .fold(
@@ -69,7 +72,7 @@ class AuthController {
     }
 
     @PostMapping(value = "/logout", version = "1.0")
-    ResponseEntity<JsendResponse<?>> logout(@Valid @RequestBody RefreshTokenHttpRequest request) {
+    ResponseEntity<JsendResponse<?>> logout(@Valid @RequestBody RefreshTokenRequest request) {
         return logoutUserUseCase
                 .execute(request.refreshToken())
                 .fold(
