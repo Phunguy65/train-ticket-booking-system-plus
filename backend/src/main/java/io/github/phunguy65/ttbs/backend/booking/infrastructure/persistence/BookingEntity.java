@@ -6,6 +6,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.Instant;
 import java.util.UUID;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Entity
 @Table(name = "bookings")
@@ -21,14 +23,9 @@ class BookingEntity {
     @Column(name = "scheduled_trip_id", nullable = false, updatable = false)
     private UUID scheduledTripId;
 
-    @Column(name = "passenger_name", nullable = false, length = 255)
-    private String passengerName;
-
-    @Column(name = "passenger_email", nullable = false, length = 255)
-    private String passengerEmail;
-
-    @Column(name = "passenger_phone", length = 20)
-    private String passengerPhone;
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "user_info_snapshot", nullable = false, columnDefinition = "jsonb")
+    private BookingUserInfoSnapshotJson userInfoSnapshot;
 
     @Column(name = "total_price", nullable = false)
     private long totalPrice;
@@ -74,28 +71,12 @@ class BookingEntity {
         this.scheduledTripId = scheduledTripId;
     }
 
-    String getPassengerName() {
-        return passengerName;
+    BookingUserInfoSnapshotJson getUserInfoSnapshot() {
+        return userInfoSnapshot;
     }
 
-    void setPassengerName(String passengerName) {
-        this.passengerName = passengerName;
-    }
-
-    String getPassengerEmail() {
-        return passengerEmail;
-    }
-
-    void setPassengerEmail(String passengerEmail) {
-        this.passengerEmail = passengerEmail;
-    }
-
-    String getPassengerPhone() {
-        return passengerPhone;
-    }
-
-    void setPassengerPhone(String passengerPhone) {
-        this.passengerPhone = passengerPhone;
+    void setUserInfoSnapshot(BookingUserInfoSnapshotJson userInfoSnapshot) {
+        this.userInfoSnapshot = userInfoSnapshot;
     }
 
     long getTotalPrice() {

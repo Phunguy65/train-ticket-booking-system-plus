@@ -5,10 +5,4 @@ import java.util.List;
 import java.util.UUID;
 
 public record CreateBookingCommand(
-        UUID userId,
-        UUID scheduledTripId,
-        List<SeatId> seatIds,
-        String passengerName,
-        String passengerEmail,
-        String passengerPhone,
-        String idempotencyKey) {}
+        UUID userId, UUID scheduledTripId, List<SeatId> seatIds, String idempotencyKey) {}

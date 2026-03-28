@@ -1,12 +1,19 @@
 package io.github.phunguy65.ttbs.backend.user.application.usecase;
 
+import io.github.phunguy65.ttbs.backend.shared.domain.AddressLine;
 import io.github.phunguy65.ttbs.backend.shared.domain.DomainEvent;
+import io.github.phunguy65.ttbs.backend.shared.domain.EmailAddress;
+import io.github.phunguy65.ttbs.backend.shared.domain.Gender;
+import io.github.phunguy65.ttbs.backend.shared.domain.IdDocumentNumber;
+import io.github.phunguy65.ttbs.backend.shared.domain.PasswordHash;
+import io.github.phunguy65.ttbs.backend.shared.domain.PersonName;
+import io.github.phunguy65.ttbs.backend.shared.domain.PhoneNumber;
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.shared.domain.UuidGenerator;
 import io.github.phunguy65.ttbs.backend.user.application.command.CreateUserCommand;
 import io.github.phunguy65.ttbs.backend.user.application.port.PasswordEncoder;
 import io.github.phunguy65.ttbs.backend.user.application.response.CreateUserResponse;
-import io.github.phunguy65.ttbs.backend.user.application.response.UserResponse;
+import io.github.phunguy65.ttbs.backend.user.application.response.UserResponseMapper;
 import io.github.phunguy65.ttbs.backend.user.domain.error.UserError;
 import io.github.phunguy65.ttbs.backend.user.domain.model.User;
 import io.github.phunguy65.ttbs.backend.user.domain.model.UserId;
@@ -22,27 +29,39 @@ public class CreateUserUseCase {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final ApplicationEventPublisher eventPublisher;
+    private final UserResponseMapper userResponseMapper;
 
     public CreateUserUseCase(
             UserRepository userRepository,
             PasswordEncoder passwordEncoder,
-            ApplicationEventPublisher eventPublisher) {
+            ApplicationEventPublisher eventPublisher,
+            UserResponseMapper userResponseMapper) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.eventPublisher = eventPublisher;
+        this.userResponseMapper = userResponseMapper;
     }
 
     @Transactional
     public Result<CreateUserResponse, UserError> execute(CreateUserCommand command) {
-        if (userRepository.findByEmail(command.email()).isPresent()) {
+        EmailAddress email = EmailAddress.of(command.email());
+        if (userRepository.findByEmail(email.value()).isPresent()) {
             return Result.failure(new UserError.EmailAlreadyExists());
         }
 
         String temporaryPassword = UUID.randomUUID().toString().replace("-", "");
-        String passwordHash = passwordEncoder.encode(temporaryPassword);
+        PasswordHash passwordHash = PasswordHash.of(passwordEncoder.encode(temporaryPassword));
         UserId userId = UserId.of(UuidGenerator.generate());
         User user = User.create(
-                userId, command.email(), passwordHash, command.fullName(), command.phone());
+                userId,
+                email,
+                passwordHash,
+                PersonName.of(command.fullName()),
+                PhoneNumber.ofNullable(command.phone()),
+                command.dateOfBirth(),
+                Gender.ofNullable(command.gender()),
+                IdDocumentNumber.ofNullable(command.idDocumentNumber()),
+                AddressLine.ofNullable(command.addressLine()));
         User saved = userRepository.save(user);
 
         for (DomainEvent event : user.getDomainEvents()) {
@@ -50,16 +69,7 @@ public class CreateUserUseCase {
         }
         user.clearDomainEvents();
 
-        return Result.success(new CreateUserResponse(toDto(saved), temporaryPassword));
-    }
-
-    private UserResponse toDto(User user) {
-        return new UserResponse(
-                user.getId().value(),
-                user.getEmail(),
-                user.getFullName(),
-                user.getPhone(),
-                user.getRole().name(),
-                user.getCreatedAt());
+        return Result.success(
+                new CreateUserResponse(userResponseMapper.fromUser(saved), temporaryPassword));
     }
 }

@@ -1,10 +1,10 @@
-package io.github.phunguy65.ttbs.backend.user.application.command;
+package io.github.phunguy65.ttbs.backend.booking.application.response;
 
 import java.time.LocalDate;
 
-public record CreateUserCommand(
-        String email,
+public record BookingUserInfoResponse(
         String fullName,
+        String email,
         String phone,
         LocalDate dateOfBirth,
         String gender,

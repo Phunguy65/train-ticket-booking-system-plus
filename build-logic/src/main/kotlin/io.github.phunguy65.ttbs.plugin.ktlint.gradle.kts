@@ -29,14 +29,13 @@ ktlint {
         exclude("**/bin/**")
         exclude("**/third-party/**")
     }
-    additionalEditorconfig.set(mapOf(
-        "indent_size" to "4",
-        "indent_style" to "space",
-        "insert_final_newline" to "true",
-        "ktlint_standard_trailing-comma-on-call-site" to "disabled",
-        "ktlint_standard_trailing-comma-on-declaration-site" to "disabled"
-    ))
+    additionalEditorconfig.set(
+        mapOf(
+            "indent_size" to "4",
+            "indent_style" to "space",
+            "insert_final_newline" to "true",
+            "ktlint_standard_trailing-comma-on-call-site" to "disabled",
+            "ktlint_standard_trailing-comma-on-declaration-site" to "disabled"
+        )
+    )
 }
-
-
-

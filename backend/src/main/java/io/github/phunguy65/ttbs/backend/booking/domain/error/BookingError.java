@@ -49,6 +49,13 @@ public sealed interface BookingError {
         }
     }
 
+    record UserNotFound() implements BookingError {
+        @Override
+        public String message() {
+            return "User not found";
+        }
+    }
+
     /** Human-readable description suitable for a JSend {@code fail} data payload. */
     String message();
 }

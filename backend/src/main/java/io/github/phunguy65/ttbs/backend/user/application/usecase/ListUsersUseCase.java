@@ -4,6 +4,7 @@ import io.github.phunguy65.ttbs.backend.shared.domain.PageResponse;
 import io.github.phunguy65.ttbs.backend.shared.domain.SortOrder;
 import io.github.phunguy65.ttbs.backend.user.application.query.GetUsersQuery;
 import io.github.phunguy65.ttbs.backend.user.application.response.UserResponse;
+import io.github.phunguy65.ttbs.backend.user.application.response.UserResponseMapper;
 import io.github.phunguy65.ttbs.backend.user.domain.projection.UserSummary;
 import io.github.phunguy65.ttbs.backend.user.domain.repository.UserRepository;
 import java.util.List;
@@ -14,9 +15,11 @@ import org.springframework.transaction.annotation.Transactional;
 public class ListUsersUseCase {
 
     private final UserRepository userRepository;
+    private final UserResponseMapper userResponseMapper;
 
-    public ListUsersUseCase(UserRepository userRepository) {
+    public ListUsersUseCase(UserRepository userRepository, UserResponseMapper userResponseMapper) {
         this.userRepository = userRepository;
+        this.userResponseMapper = userResponseMapper;
     }
 
     @Transactional(readOnly = true)
@@ -26,13 +29,7 @@ public class ListUsersUseCase {
                 userRepository.findAllSummaries(query.page(), query.size(), sort);
         return PageResponse.of(
                 summaries.content().stream()
-                        .map(s -> new UserResponse(
-                                s.id(),
-                                s.email(),
-                                s.fullName(),
-                                s.phone(),
-                                s.role(),
-                                s.createdAt()))
+                        .map(userResponseMapper::fromSummary)
                         .toList(),
                 summaries.page(),
                 summaries.size(),

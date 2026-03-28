@@ -25,14 +25,32 @@ interface UserJpaRepository extends JpaRepository<UserEntity, UUID> {
 
     @Query("""
             SELECT new io.github.phunguy65.ttbs.backend.user.domain.projection.UserSummary(
-                u.id, u.email, u.fullName, u.phone, u.role, u.createdAt
+                u.id,
+                u.email,
+                u.fullName,
+                u.phone,
+                u.dateOfBirth,
+                u.gender,
+                u.idDocumentNumber,
+                u.addressLine,
+                u.role,
+                u.createdAt
             ) FROM UserEntity u WHERE u.id = :id AND u.deletedAt IS NULL
             """)
     Optional<UserSummary> findSummaryById(@Param("id") UUID id);
 
     @Query("""
             SELECT new io.github.phunguy65.ttbs.backend.user.domain.projection.UserSummary(
-                u.id, u.email, u.fullName, u.phone, u.role, u.createdAt
+                u.id,
+                u.email,
+                u.fullName,
+                u.phone,
+                u.dateOfBirth,
+                u.gender,
+                u.idDocumentNumber,
+                u.addressLine,
+                u.role,
+                u.createdAt
             ) FROM UserEntity u WHERE u.deletedAt IS NULL
             """)
     Page<UserSummary> findAllSummaries(Pageable pageable);

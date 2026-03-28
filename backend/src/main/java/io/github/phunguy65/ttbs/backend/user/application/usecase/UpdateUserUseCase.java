@@ -1,12 +1,20 @@
 package io.github.phunguy65.ttbs.backend.user.application.usecase;
 
+import io.github.phunguy65.ttbs.backend.shared.domain.AddressLine;
+import io.github.phunguy65.ttbs.backend.shared.domain.EmailAddress;
+import io.github.phunguy65.ttbs.backend.shared.domain.Gender;
+import io.github.phunguy65.ttbs.backend.shared.domain.IdDocumentNumber;
+import io.github.phunguy65.ttbs.backend.shared.domain.PersonName;
+import io.github.phunguy65.ttbs.backend.shared.domain.PhoneNumber;
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.user.application.command.UpdateUserCommand;
 import io.github.phunguy65.ttbs.backend.user.application.response.UserResponse;
+import io.github.phunguy65.ttbs.backend.user.application.response.UserResponseMapper;
 import io.github.phunguy65.ttbs.backend.user.domain.error.UserError;
 import io.github.phunguy65.ttbs.backend.user.domain.model.User;
 import io.github.phunguy65.ttbs.backend.user.domain.repository.UserRepository;
 import java.time.Instant;
+import java.time.LocalDate;
 import org.openapitools.jackson.nullable.JsonNullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,9 +23,11 @@ import org.springframework.transaction.annotation.Transactional;
 public class UpdateUserUseCase {
 
     private final UserRepository userRepository;
+    private final UserResponseMapper userResponseMapper;
 
-    public UpdateUserUseCase(UserRepository userRepository) {
+    public UpdateUserUseCase(UserRepository userRepository, UserResponseMapper userResponseMapper) {
         this.userRepository = userRepository;
+        this.userResponseMapper = userResponseMapper;
     }
 
     @Transactional
@@ -28,11 +38,12 @@ public class UpdateUserUseCase {
         }
 
         JsonNullable<String> emailField = command.email();
+        EmailAddress currentEmail = user.getEmail();
         if (emailField.isPresent()) {
-            String newEmail = emailField.get();
-            if (newEmail != null && !newEmail.equalsIgnoreCase(user.getEmail())) {
+            EmailAddress newEmail = EmailAddress.of(emailField.get());
+            if (!newEmail.value().equals(currentEmail.value())) {
                 boolean takenByOther = userRepository
-                        .findByEmail(newEmail)
+                        .findByEmail(newEmail.value())
                         .filter(other -> !other.getId().equals(user.getId()))
                         .isPresent();
                 if (takenByOther) {
@@ -41,10 +52,26 @@ public class UpdateUserUseCase {
             }
         }
 
-        String newFullName =
-                command.fullName().isPresent() ? command.fullName().get() : user.getFullName();
-        String newEmail = emailField.isPresent() ? emailField.get() : user.getEmail();
-        String newPhone = command.phone().isPresent() ? command.phone().get() : user.getPhone();
+        PersonName newFullName = command.fullName().isPresent()
+                ? PersonName.of(command.fullName().get())
+                : user.getFullName();
+        EmailAddress newEmail =
+                emailField.isPresent() ? EmailAddress.of(emailField.get()) : currentEmail;
+        PhoneNumber newPhone = command.phone().isPresent()
+                ? PhoneNumber.ofNullable(command.phone().get())
+                : user.getPhone().orElse(null);
+        LocalDate newDateOfBirth = command.dateOfBirth().isPresent()
+                ? command.dateOfBirth().get()
+                : user.getDateOfBirth().orElse(null);
+        Gender newGender = command.gender().isPresent()
+                ? Gender.ofNullable(command.gender().get())
+                : user.getGender().orElse(null);
+        IdDocumentNumber newIdDocumentNumber = command.idDocumentNumber().isPresent()
+                ? IdDocumentNumber.ofNullable(command.idDocumentNumber().get())
+                : user.getIdDocumentNumber().orElse(null);
+        AddressLine newAddressLine = command.addressLine().isPresent()
+                ? AddressLine.ofNullable(command.addressLine().get())
+                : user.getAddressLine().orElse(null);
 
         User updated = User.reconstitute(
                 user.getId(),
@@ -52,22 +79,16 @@ public class UpdateUserUseCase {
                 user.getPasswordHash(),
                 newFullName,
                 newPhone,
+                newDateOfBirth,
+                newGender,
+                newIdDocumentNumber,
+                newAddressLine,
                 user.getRole(),
                 user.getCreatedAt(),
                 Instant.now(),
                 user.getDeletedAt());
 
         User saved = userRepository.save(updated);
-        return Result.success(toDto(saved));
-    }
-
-    private UserResponse toDto(User user) {
-        return new UserResponse(
-                user.getId().value(),
-                user.getEmail(),
-                user.getFullName(),
-                user.getPhone(),
-                user.getRole().name(),
-                user.getCreatedAt());
+        return Result.success(userResponseMapper.fromUser(saved));
     }
 }

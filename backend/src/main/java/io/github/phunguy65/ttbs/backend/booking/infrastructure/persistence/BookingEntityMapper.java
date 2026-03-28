@@ -3,6 +3,7 @@ package io.github.phunguy65.ttbs.backend.booking.infrastructure.persistence;
 import io.github.phunguy65.ttbs.backend.booking.domain.model.Booking;
 import io.github.phunguy65.ttbs.backend.booking.domain.model.BookingId;
 import io.github.phunguy65.ttbs.backend.booking.domain.model.BookingStatus;
+import io.github.phunguy65.ttbs.backend.booking.domain.model.BookingUserInfo;
 import io.github.phunguy65.ttbs.backend.shared.domain.Money;
 import io.github.phunguy65.ttbs.backend.train.domain.model.ScheduledTripId;
 import io.github.phunguy65.ttbs.backend.user.domain.model.UserId;
@@ -17,13 +18,19 @@ class BookingEntityMapper {
         Money totalPrice = Money.of(
                 BigDecimal.valueOf(entity.getTotalPrice()),
                 Currency.getInstance(entity.getCurrency()));
+        BookingUserInfoSnapshotJson snapshot = entity.getUserInfoSnapshot();
         return Booking.reconstitute(
                 BookingId.of(entity.getId()),
                 UserId.of(entity.getUserId()),
                 ScheduledTripId.of(entity.getScheduledTripId()),
-                entity.getPassengerName(),
-                entity.getPassengerEmail(),
-                entity.getPassengerPhone(),
+                BookingUserInfo.of(
+                        snapshot.fullName(),
+                        snapshot.email(),
+                        snapshot.phone(),
+                        snapshot.dateOfBirth(),
+                        snapshot.gender(),
+                        snapshot.idDocumentNumber(),
+                        snapshot.addressLine()),
                 totalPrice,
                 BookingStatus.valueOf(entity.getStatus()),
                 entity.getIdempotencyKey(),
@@ -36,9 +43,7 @@ class BookingEntityMapper {
         entity.setId(domain.getBookingId().value());
         entity.setUserId(domain.getUserId().value());
         entity.setScheduledTripId(domain.getScheduledTripId().value());
-        entity.setPassengerName(domain.getPassengerName());
-        entity.setPassengerEmail(domain.getPassengerEmail());
-        entity.setPassengerPhone(domain.getPassengerPhone());
+        entity.setUserInfoSnapshot(toSnapshot(domain.getUserInfo()));
         entity.setTotalPrice(domain.getTotalPrice().toLong());
         entity.setCurrency(domain.getCurrency());
         entity.setStatus(domain.getStatus().name());
@@ -46,5 +51,16 @@ class BookingEntityMapper {
         entity.setPaymentDeadline(domain.getPaymentDeadline());
         entity.setCreatedAt(domain.getCreatedAt());
         return entity;
+    }
+
+    private BookingUserInfoSnapshotJson toSnapshot(BookingUserInfo userInfo) {
+        return new BookingUserInfoSnapshotJson(
+                userInfo.fullName(),
+                userInfo.email(),
+                userInfo.phone(),
+                userInfo.dateOfBirth(),
+                userInfo.gender(),
+                userInfo.idDocumentNumber(),
+                userInfo.addressLine());
     }
 }

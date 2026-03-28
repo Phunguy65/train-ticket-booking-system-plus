@@ -72,6 +72,7 @@ class BookingController {
                 switch (error) {
                     case BookingError.BookingNotFound e -> HttpStatus.NOT_FOUND;
                     case BookingError.ScheduledTripNotFound e -> HttpStatus.NOT_FOUND;
+                    case BookingError.UserNotFound e -> HttpStatus.NOT_FOUND;
                     case BookingError.SeatNotAvailable e -> HttpStatus.CONFLICT;
                     case BookingError.ActiveHoldExists e -> HttpStatus.CONFLICT;
                     case BookingError.InvalidStatusTransition e -> HttpStatus.CONFLICT;
@@ -81,6 +82,7 @@ class BookingController {
                 switch (error) {
                     case BookingError.BookingNotFound e -> ErrorCode.BOOKING_NOT_FOUND;
                     case BookingError.ScheduledTripNotFound e -> ErrorCode.SCHEDULED_TRIP_NOT_FOUND;
+                    case BookingError.UserNotFound e -> ErrorCode.USER_NOT_FOUND;
                     case BookingError.SeatNotAvailable e -> ErrorCode.SEAT_NOT_AVAILABLE;
                     case BookingError.ActiveHoldExists e -> ErrorCode.BOOKING_CANNOT_CONFIRM;
                     case BookingError.InvalidStatusTransition e ->

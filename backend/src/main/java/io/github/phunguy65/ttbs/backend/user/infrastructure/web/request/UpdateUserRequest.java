@@ -4,19 +4,39 @@ import io.github.phunguy65.ttbs.backend.user.application.command.UpdateUserComma
 import io.github.phunguy65.ttbs.backend.user.domain.model.UserId;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import java.time.LocalDate;
 import java.util.UUID;
 import org.openapitools.jackson.nullable.JsonNullable;
 
 public record UpdateUserRequest(
         @NotBlank JsonNullable<String> fullName,
         @NotBlank @Email JsonNullable<String> email,
-        JsonNullable<String> phone) {
+        JsonNullable<String> phone,
+        JsonNullable<LocalDate> dateOfBirth,
+        JsonNullable<String> gender,
+        JsonNullable<String> idDocumentNumber,
+        JsonNullable<String> addressLine) {
 
     UpdateUserRequest() {
-        this(JsonNullable.undefined(), JsonNullable.undefined(), JsonNullable.undefined());
+        this(
+                JsonNullable.undefined(),
+                JsonNullable.undefined(),
+                JsonNullable.undefined(),
+                JsonNullable.undefined(),
+                JsonNullable.undefined(),
+                JsonNullable.undefined(),
+                JsonNullable.undefined());
     }
 
     public UpdateUserCommand toCommand(UUID userId) {
-        return new UpdateUserCommand(UserId.of(userId), fullName, email, phone);
+        return new UpdateUserCommand(
+                UserId.of(userId),
+                fullName,
+                email,
+                phone,
+                dateOfBirth,
+                gender,
+                idDocumentNumber,
+                addressLine);
     }
 }

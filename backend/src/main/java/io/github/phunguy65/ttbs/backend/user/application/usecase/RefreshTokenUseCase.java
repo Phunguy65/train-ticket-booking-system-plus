@@ -4,7 +4,7 @@ import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.user.application.command.RefreshTokenCommand;
 import io.github.phunguy65.ttbs.backend.user.application.port.RefreshTokenManager;
 import io.github.phunguy65.ttbs.backend.user.application.response.LoginResultResponse;
-import io.github.phunguy65.ttbs.backend.user.application.response.UserResponse;
+import io.github.phunguy65.ttbs.backend.user.application.response.UserResponseMapper;
 import io.github.phunguy65.ttbs.backend.user.domain.error.UserError;
 import io.github.phunguy65.ttbs.backend.user.domain.model.User;
 import io.github.phunguy65.ttbs.backend.user.domain.repository.RefreshTokenRepository;
@@ -21,14 +21,17 @@ public class RefreshTokenUseCase {
     private final RefreshTokenRepository refreshTokenRepository;
     private final UserRepository userRepository;
     private final RefreshTokenManager refreshTokenManager;
+    private final UserResponseMapper userResponseMapper;
 
     public RefreshTokenUseCase(
             RefreshTokenRepository refreshTokenRepository,
             UserRepository userRepository,
-            RefreshTokenManager refreshTokenManager) {
+            RefreshTokenManager refreshTokenManager,
+            UserResponseMapper userResponseMapper) {
         this.refreshTokenRepository = refreshTokenRepository;
         this.userRepository = userRepository;
         this.refreshTokenManager = refreshTokenManager;
+        this.userResponseMapper = userResponseMapper;
     }
 
     @Transactional
@@ -60,17 +63,7 @@ public class RefreshTokenUseCase {
 
         RefreshTokenManager.TokenPair tokens = refreshTokenManager.generateAndSaveTokens(user);
 
-        return Result.success(
-                new LoginResultResponse(tokens.accessToken(), tokens.refreshToken(), toDto(user)));
-    }
-
-    private UserResponse toDto(User user) {
-        return new UserResponse(
-                user.getId().value(),
-                user.getEmail(),
-                user.getFullName(),
-                user.getPhone(),
-                user.getRole().name(),
-                user.getCreatedAt());
+        return Result.success(new LoginResultResponse(
+                tokens.accessToken(), tokens.refreshToken(), userResponseMapper.fromUser(user)));
     }
 }

@@ -1,10 +1,10 @@
-package io.github.phunguy65.ttbs.backend.user.application.command;
+package io.github.phunguy65.ttbs.backend.booking.infrastructure.persistence;
 
 import java.time.LocalDate;
 
-public record CreateUserCommand(
-        String email,
+public record BookingUserInfoSnapshotJson(
         String fullName,
+        String email,
         String phone,
         LocalDate dateOfBirth,
         String gender,

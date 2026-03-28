@@ -10,11 +10,9 @@ public record RegisterRequest(
 
         @NotBlank(message = "Password is required") @Size(min = 8, message = "Password must be at least 8 characters") String password,
 
-        @NotBlank(message = "Full name is required") String fullName,
-
-        String phone) {
+        @NotBlank(message = "Full name is required") String fullName) {
 
     public RegisterUserCommand toCommand() {
-        return new RegisterUserCommand(email, password, fullName, phone);
+        return new RegisterUserCommand(email, password, fullName);
     }
 }

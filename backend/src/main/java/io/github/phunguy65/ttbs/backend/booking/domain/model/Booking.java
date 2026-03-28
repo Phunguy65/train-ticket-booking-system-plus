@@ -5,11 +5,8 @@ import io.github.phunguy65.ttbs.backend.booking.domain.event.BookingCancelled;
 import io.github.phunguy65.ttbs.backend.booking.domain.event.BookingConfirmed;
 import io.github.phunguy65.ttbs.backend.booking.domain.event.BookingCreated;
 import io.github.phunguy65.ttbs.backend.shared.domain.AggregateRoot;
-import io.github.phunguy65.ttbs.backend.shared.domain.EmailAddress;
 import io.github.phunguy65.ttbs.backend.shared.domain.IdempotencyKey;
 import io.github.phunguy65.ttbs.backend.shared.domain.Money;
-import io.github.phunguy65.ttbs.backend.shared.domain.PersonName;
-import io.github.phunguy65.ttbs.backend.shared.domain.PhoneNumber;
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.train.domain.model.ScheduledTripId;
 import io.github.phunguy65.ttbs.backend.user.domain.model.UserId;
@@ -30,9 +27,7 @@ public class Booking extends AggregateRoot<BookingId> {
     private final BookingId bookingId;
     private final UserId userId;
     private final ScheduledTripId scheduledTripId;
-    private final PersonName passengerName;
-    private final EmailAddress passengerEmail;
-    private final PhoneNumber passengerPhone;
+    private final BookingUserInfo userInfo;
     private final Money totalPrice;
     private BookingStatus status;
     private final IdempotencyKey idempotencyKey;
@@ -43,9 +38,7 @@ public class Booking extends AggregateRoot<BookingId> {
             BookingId bookingId,
             UserId userId,
             ScheduledTripId scheduledTripId,
-            String passengerName,
-            String passengerEmail,
-            String passengerPhone,
+            BookingUserInfo userInfo,
             Money totalPrice,
             BookingStatus status,
             String idempotencyKey,
@@ -54,9 +47,7 @@ public class Booking extends AggregateRoot<BookingId> {
         this.bookingId = bookingId;
         this.userId = userId;
         this.scheduledTripId = scheduledTripId;
-        this.passengerName = PersonName.of(passengerName);
-        this.passengerEmail = EmailAddress.of(passengerEmail);
-        this.passengerPhone = PhoneNumber.ofNullable(passengerPhone);
+        this.userInfo = userInfo;
         this.totalPrice = totalPrice;
         this.status = status;
         this.idempotencyKey = IdempotencyKey.of(idempotencyKey);
@@ -71,9 +62,7 @@ public class Booking extends AggregateRoot<BookingId> {
             BookingId bookingId,
             UserId userId,
             ScheduledTripId scheduledTripId,
-            String passengerName,
-            String passengerEmail,
-            String passengerPhone,
+            BookingUserInfo userInfo,
             Money totalPrice,
             String idempotencyKey,
             Instant paymentDeadline) {
@@ -81,9 +70,7 @@ public class Booking extends AggregateRoot<BookingId> {
                 bookingId,
                 userId,
                 scheduledTripId,
-                passengerName,
-                passengerEmail,
-                passengerPhone,
+                userInfo,
                 totalPrice,
                 BookingStatus.HELD,
                 idempotencyKey,
@@ -105,9 +92,7 @@ public class Booking extends AggregateRoot<BookingId> {
             BookingId bookingId,
             UserId userId,
             ScheduledTripId scheduledTripId,
-            String passengerName,
-            String passengerEmail,
-            String passengerPhone,
+            BookingUserInfo userInfo,
             Money totalPrice,
             BookingStatus status,
             String idempotencyKey,
@@ -117,9 +102,7 @@ public class Booking extends AggregateRoot<BookingId> {
                 bookingId,
                 userId,
                 scheduledTripId,
-                passengerName,
-                passengerEmail,
-                passengerPhone,
+                userInfo,
                 totalPrice,
                 status,
                 idempotencyKey,
@@ -178,16 +161,8 @@ public class Booking extends AggregateRoot<BookingId> {
         return scheduledTripId;
     }
 
-    public String getPassengerName() {
-        return passengerName.value();
-    }
-
-    public String getPassengerEmail() {
-        return passengerEmail.value();
-    }
-
-    public String getPassengerPhone() {
-        return passengerPhone == null ? null : passengerPhone.value();
+    public BookingUserInfo getUserInfo() {
+        return userInfo;
     }
 
     public Money getTotalPrice() {
