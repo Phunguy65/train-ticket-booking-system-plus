@@ -3,6 +3,8 @@ package io.github.phunguy65.ttbs.backend.booking.infrastructure.persistence;
 import io.github.phunguy65.ttbs.backend.booking.domain.model.Booking;
 import io.github.phunguy65.ttbs.backend.booking.domain.model.BookingId;
 import io.github.phunguy65.ttbs.backend.booking.domain.model.BookingStatus;
+import io.github.phunguy65.ttbs.backend.booking.domain.projection.BookingSummary;
+import io.github.phunguy65.ttbs.backend.booking.domain.projection.BookingUserInfoSummary;
 import io.github.phunguy65.ttbs.backend.booking.domain.repository.BookingRepository;
 import io.github.phunguy65.ttbs.backend.train.domain.model.ScheduledTripId;
 import io.github.phunguy65.ttbs.backend.user.domain.model.UserId;
@@ -30,6 +32,11 @@ class BookingRepositoryAdapter implements BookingRepository {
     @Override
     public Optional<Booking> findById(BookingId bookingId) {
         return jpaRepository.findById(bookingId.value()).map(mapper::toDomain);
+    }
+
+    @Override
+    public Optional<BookingSummary> findSummaryById(BookingId bookingId) {
+        return jpaRepository.findSummaryById(bookingId.value()).map(this::toSummary);
     }
 
     @Override
@@ -79,5 +86,26 @@ class BookingRepositoryAdapter implements BookingRepository {
     public boolean existsActiveByUserId(UserId userId) {
         return jpaRepository.existsByUserIdAndStatusIn(
                 userId.value(), List.of(BookingStatus.HELD.name(), BookingStatus.CONFIRMED.name()));
+    }
+
+    private BookingSummary toSummary(BookingSummaryView view) {
+        BookingUserInfoSnapshotJson userInfo = view.getUserInfoSnapshot();
+        return new BookingSummary(
+                view.getId(),
+                view.getUserId(),
+                view.getScheduledTripId(),
+                new BookingUserInfoSummary(
+                        userInfo.fullName(),
+                        userInfo.email(),
+                        userInfo.phone(),
+                        userInfo.dateOfBirth(),
+                        userInfo.gender(),
+                        userInfo.idDocumentNumber(),
+                        userInfo.addressLine()),
+                view.getTotalPrice(),
+                view.getCurrency(),
+                view.getStatus(),
+                view.getPaymentDeadline(),
+                view.getCreatedAt());
     }
 }

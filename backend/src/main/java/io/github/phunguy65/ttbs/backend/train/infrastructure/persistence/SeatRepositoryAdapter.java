@@ -7,6 +7,7 @@ import io.github.phunguy65.ttbs.backend.train.domain.model.ScheduledTripId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.Seat;
 import io.github.phunguy65.ttbs.backend.train.domain.model.SeatId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.TrainId;
+import io.github.phunguy65.ttbs.backend.train.domain.projection.SeatSummary;
 import io.github.phunguy65.ttbs.backend.train.domain.repository.SeatRepository;
 import java.time.Instant;
 import java.util.List;
@@ -58,12 +59,32 @@ class SeatRepositoryAdapter implements SeatRepository {
     }
 
     @Override
+    public PageResponse<SeatSummary> findAllSummaries(
+            int page, int size, List<SortOrder> sort, TrainId trainId) {
+        PageRequest pageable = PageRequest.of(page, size, toSpringSort(sort));
+        Page<SeatSummary> result =
+                jpaRepository.findAllSummariesByTrainId(trainId.value(), pageable);
+        List<SeatSummary> items = result.getContent();
+        return PageResponse.of(items, page, size, result.hasNext(), result.getTotalElements());
+    }
+
+    @Override
     public PageResponse<Seat> findAllAvailable(
             int page, int size, List<SortOrder> sort, ScheduledTripId scheduledTripId) {
         PageRequest pageable = PageRequest.of(page, size, toSpringSort(sort));
         Page<SeatEntity> result =
                 jpaRepository.findAllAvailableByScheduledTripId(scheduledTripId.value(), pageable);
         List<Seat> items = result.getContent().stream().map(mapper::toDomain).toList();
+        return PageResponse.of(items, page, size, result.hasNext(), result.getTotalElements());
+    }
+
+    @Override
+    public PageResponse<SeatSummary> findAllAvailableSummaries(
+            int page, int size, List<SortOrder> sort, ScheduledTripId scheduledTripId) {
+        PageRequest pageable = PageRequest.of(page, size, toSpringSort(sort));
+        Page<SeatSummary> result = jpaRepository.findAllAvailableSummariesByScheduledTripId(
+                scheduledTripId.value(), pageable);
+        List<SeatSummary> items = result.getContent();
         return PageResponse.of(items, page, size, result.hasNext(), result.getTotalElements());
     }
 

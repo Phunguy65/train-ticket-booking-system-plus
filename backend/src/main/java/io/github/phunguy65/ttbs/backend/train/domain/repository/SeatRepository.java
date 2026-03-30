@@ -7,6 +7,7 @@ import io.github.phunguy65.ttbs.backend.train.domain.model.ScheduledTripId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.Seat;
 import io.github.phunguy65.ttbs.backend.train.domain.model.SeatId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.TrainId;
+import io.github.phunguy65.ttbs.backend.train.domain.projection.SeatSummary;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -26,7 +27,13 @@ public interface SeatRepository {
 
     PageResponse<Seat> findAll(int page, int size, List<SortOrder> sort, TrainId trainId);
 
+    PageResponse<SeatSummary> findAllSummaries(
+            int page, int size, List<SortOrder> sort, TrainId trainId);
+
     PageResponse<Seat> findAllAvailable(
+            int page, int size, List<SortOrder> sort, ScheduledTripId scheduledTripId);
+
+    PageResponse<SeatSummary> findAllAvailableSummaries(
             int page, int size, List<SortOrder> sort, ScheduledTripId scheduledTripId);
 
     List<SeatId> findActiveIdsByCoachIds(List<CoachId> coachIds);

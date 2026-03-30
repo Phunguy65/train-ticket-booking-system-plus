@@ -4,6 +4,7 @@ import io.github.phunguy65.ttbs.backend.shared.domain.PageResponse;
 import io.github.phunguy65.ttbs.backend.shared.domain.SortOrder;
 import io.github.phunguy65.ttbs.backend.train.domain.model.Train;
 import io.github.phunguy65.ttbs.backend.train.domain.model.TrainId;
+import io.github.phunguy65.ttbs.backend.train.domain.projection.TrainSummary;
 import io.github.phunguy65.ttbs.backend.train.domain.repository.TrainRepository;
 import java.time.Instant;
 import java.util.List;
@@ -43,10 +44,23 @@ class TrainRepositoryAdapter implements TrainRepository {
     }
 
     @Override
+    public Optional<TrainSummary> findSummaryById(TrainId id) {
+        return jpaRepository.findSummaryById(id.value());
+    }
+
+    @Override
     public PageResponse<Train> findAll(int page, int size, List<SortOrder> sort) {
         PageRequest pageable = PageRequest.of(page, size, toSpringSort(sort));
         Page<TrainEntity> result = jpaRepository.findAllActive(pageable);
         List<Train> items = result.getContent().stream().map(mapper::toDomain).toList();
+        return PageResponse.of(items, page, size, result.hasNext(), result.getTotalElements());
+    }
+
+    @Override
+    public PageResponse<TrainSummary> findAllSummaries(int page, int size, List<SortOrder> sort) {
+        PageRequest pageable = PageRequest.of(page, size, toSpringSort(sort));
+        Page<TrainSummary> result = jpaRepository.findAllSummaries(pageable);
+        List<TrainSummary> items = result.getContent();
         return PageResponse.of(items, page, size, result.hasNext(), result.getTotalElements());
     }
 

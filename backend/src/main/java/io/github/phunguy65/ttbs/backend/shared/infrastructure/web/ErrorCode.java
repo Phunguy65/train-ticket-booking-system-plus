@@ -45,6 +45,7 @@ public enum ErrorCode {
     COACH_DUPLICATE_CAR_NUMBERS_IN_REQUEST,
     SEAT_NUMBERS_ALREADY_EXIST,
     SEAT_DUPLICATE_SEAT_NUMBERS_IN_REQUEST,
+    ROUTE_TEMPLATE_NOT_FOUND,
 
     // ── Station module ────────────────────────────────────────────────────────
     STATION_NOT_FOUND,

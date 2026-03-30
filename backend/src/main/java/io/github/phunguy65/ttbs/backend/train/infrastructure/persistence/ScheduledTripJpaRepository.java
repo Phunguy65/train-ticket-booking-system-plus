@@ -1,5 +1,6 @@
 package io.github.phunguy65.ttbs.backend.train.infrastructure.persistence;
 
+import io.github.phunguy65.ttbs.backend.train.domain.projection.ScheduledTripSummary;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -16,8 +17,34 @@ interface ScheduledTripJpaRepository extends JpaRepository<ScheduledTripEntity, 
     @Query("SELECT e FROM ScheduledTripEntity e WHERE e.id = :id AND e.deletedAt IS NULL")
     Optional<ScheduledTripEntity> findActiveById(@Param("id") UUID id);
 
+    @Query("""
+            SELECT new io.github.phunguy65.ttbs.backend.train.domain.projection.ScheduledTripSummary(
+                e.id,
+                e.routeTemplateId,
+                e.trainId,
+                e.departureTime,
+                e.arrivalTime,
+                e.status,
+                e.createdAt
+            ) FROM ScheduledTripEntity e WHERE e.id = :id AND e.deletedAt IS NULL
+            """)
+    Optional<ScheduledTripSummary> findSummaryById(@Param("id") UUID id);
+
     @Query("SELECT e FROM ScheduledTripEntity e WHERE e.deletedAt IS NULL")
     Page<ScheduledTripEntity> findAllActive(Pageable pageable);
+
+    @Query("""
+            SELECT new io.github.phunguy65.ttbs.backend.train.domain.projection.ScheduledTripSummary(
+                e.id,
+                e.routeTemplateId,
+                e.trainId,
+                e.departureTime,
+                e.arrivalTime,
+                e.status,
+                e.createdAt
+            ) FROM ScheduledTripEntity e WHERE e.deletedAt IS NULL
+            """)
+    Page<ScheduledTripSummary> findAllSummaries(Pageable pageable);
 
     @Query(
             "SELECT COUNT(e) > 0 FROM ScheduledTripEntity e WHERE e.id = :id AND e.deletedAt IS NULL")

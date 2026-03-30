@@ -8,7 +8,7 @@ import io.github.phunguy65.ttbs.backend.train.application.response.TrainResponse
 import io.github.phunguy65.ttbs.backend.train.application.usecase.GetTrainByIdUseCase;
 import io.github.phunguy65.ttbs.backend.train.application.usecase.GetTrainsUseCase;
 import io.github.phunguy65.ttbs.backend.train.domain.error.TrainError;
-import io.github.phunguy65.ttbs.backend.train.domain.model.TrainId;
+import io.github.phunguy65.ttbs.backend.train.infrastructure.web.request.GetTrainByIdRequest;
 import io.github.phunguy65.ttbs.backend.train.infrastructure.web.request.GetTrainsRequest;
 import jakarta.validation.Valid;
 import java.util.List;
@@ -36,9 +36,10 @@ class TrainController {
     }
 
     @GetMapping(value = "/{version}/trains/{id}", version = "1.0")
-    ResponseEntity<JsendResponse<?>> getById(@PathVariable UUID id) {
+    ResponseEntity<JsendResponse<?>> getById(
+            @PathVariable UUID id, @ModelAttribute GetTrainByIdRequest request) {
         return getTrainByIdUseCase
-                .execute(TrainId.of(id))
+                .execute(request.toQuery(id))
                 .fold(
                         dto -> ResponseEntity.ok(JsendResponse.success(dto)),
                         error -> errorResponse(error));

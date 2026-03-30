@@ -20,12 +20,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-public class UpdateUserUseCase {
+public class UpdateAuthenticatedUserUseCase {
 
     private final UserRepository userRepository;
     private final UserResponseMapper userResponseMapper;
 
-    public UpdateUserUseCase(UserRepository userRepository, UserResponseMapper userResponseMapper) {
+    public UpdateAuthenticatedUserUseCase(
+            UserRepository userRepository, UserResponseMapper userResponseMapper) {
         this.userRepository = userRepository;
         this.userResponseMapper = userResponseMapper;
     }

@@ -3,6 +3,7 @@ package io.github.phunguy65.ttbs.backend.booking.domain.repository;
 import io.github.phunguy65.ttbs.backend.booking.domain.model.Booking;
 import io.github.phunguy65.ttbs.backend.booking.domain.model.BookingId;
 import io.github.phunguy65.ttbs.backend.booking.domain.model.BookingStatus;
+import io.github.phunguy65.ttbs.backend.booking.domain.projection.BookingSummary;
 import io.github.phunguy65.ttbs.backend.train.domain.model.ScheduledTripId;
 import io.github.phunguy65.ttbs.backend.user.domain.model.UserId;
 import java.time.Instant;
@@ -21,6 +22,8 @@ public interface BookingRepository {
     Booking save(Booking booking);
 
     Optional<Booking> findById(BookingId bookingId);
+
+    Optional<BookingSummary> findSummaryById(BookingId bookingId);
 
     Optional<Booking> findByIdempotencyKey(String idempotencyKey);
 

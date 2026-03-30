@@ -6,6 +6,7 @@ import io.github.phunguy65.ttbs.backend.train.domain.model.RouteTemplateId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.ScheduledTrip;
 import io.github.phunguy65.ttbs.backend.train.domain.model.ScheduledTripId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.TrainId;
+import io.github.phunguy65.ttbs.backend.train.domain.projection.ScheduledTripSummary;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -16,7 +17,11 @@ public interface ScheduledTripRepository {
 
     Optional<ScheduledTrip> findById(ScheduledTripId id);
 
+    Optional<ScheduledTripSummary> findSummaryById(ScheduledTripId id);
+
     PageResponse<ScheduledTrip> findAll(int page, int size, List<SortOrder> sort);
+
+    PageResponse<ScheduledTripSummary> findAllSummaries(int page, int size, List<SortOrder> sort);
 
     boolean existsById(ScheduledTripId id);
 

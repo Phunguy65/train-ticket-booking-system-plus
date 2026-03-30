@@ -5,6 +5,7 @@ import io.github.phunguy65.ttbs.backend.shared.domain.SortOrder;
 import io.github.phunguy65.ttbs.backend.train.domain.model.Coach;
 import io.github.phunguy65.ttbs.backend.train.domain.model.CoachId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.TrainId;
+import io.github.phunguy65.ttbs.backend.train.domain.projection.CoachSummary;
 import io.github.phunguy65.ttbs.backend.train.domain.repository.CoachRepository;
 import java.time.Instant;
 import java.util.List;
@@ -46,6 +47,11 @@ class CoachRepositoryAdapter implements CoachRepository {
     }
 
     @Override
+    public Optional<CoachSummary> findSummaryById(CoachId id) {
+        return jpaRepository.findSummaryById(id.value());
+    }
+
+    @Override
     public List<Coach> findByTrainId(TrainId trainId) {
         return jpaRepository.findAllActiveByTrainId(trainId.value()).stream()
                 .map(mapper::toDomain)
@@ -57,6 +63,16 @@ class CoachRepositoryAdapter implements CoachRepository {
         PageRequest pageable = PageRequest.of(page, size, toSpringSort(sort));
         Page<CoachEntity> result = jpaRepository.findAllActiveByTrainId(trainId.value(), pageable);
         List<Coach> items = result.getContent().stream().map(mapper::toDomain).toList();
+        return PageResponse.of(items, page, size, result.hasNext(), result.getTotalElements());
+    }
+
+    @Override
+    public PageResponse<CoachSummary> findAllSummaries(
+            int page, int size, List<SortOrder> sort, TrainId trainId) {
+        PageRequest pageable = PageRequest.of(page, size, toSpringSort(sort));
+        Page<CoachSummary> result =
+                jpaRepository.findAllSummariesByTrainId(trainId.value(), pageable);
+        List<CoachSummary> items = result.getContent();
         return PageResponse.of(items, page, size, result.hasNext(), result.getTotalElements());
     }
 

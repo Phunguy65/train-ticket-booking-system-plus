@@ -5,8 +5,11 @@ import com.stripe.model.Event;
 import com.stripe.model.PaymentIntent;
 import com.stripe.model.checkout.Session;
 import com.stripe.net.Webhook;
+import io.github.phunguy65.ttbs.backend.payment.application.command.CancelPendingPaymentCommand;
+import io.github.phunguy65.ttbs.backend.payment.application.command.HandlePaymentFailedByPaymentIntentCommand;
+import io.github.phunguy65.ttbs.backend.payment.application.command.HandlePaymentSuccessCommand;
 import io.github.phunguy65.ttbs.backend.payment.application.usecase.CancelPendingPaymentUseCase;
-import io.github.phunguy65.ttbs.backend.payment.application.usecase.HandlePaymentFailedUseCase;
+import io.github.phunguy65.ttbs.backend.payment.application.usecase.HandlePaymentFailedByPaymentIntentUseCase;
 import io.github.phunguy65.ttbs.backend.payment.application.usecase.HandlePaymentSuccessUseCase;
 import io.github.phunguy65.ttbs.backend.payment.infrastructure.stripe.StripeConfig;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.JsendResponse;
@@ -27,17 +30,18 @@ class StripeWebhookController {
 
     private final StripeConfig stripeConfig;
     private final HandlePaymentSuccessUseCase handlePaymentSuccessUseCase;
-    private final HandlePaymentFailedUseCase handlePaymentFailedUseCase;
+    private final HandlePaymentFailedByPaymentIntentUseCase
+            handlePaymentFailedByPaymentIntentUseCase;
     private final CancelPendingPaymentUseCase cancelPendingPaymentUseCase;
 
     StripeWebhookController(
             StripeConfig stripeConfig,
             HandlePaymentSuccessUseCase handlePaymentSuccessUseCase,
-            HandlePaymentFailedUseCase handlePaymentFailedUseCase,
+            HandlePaymentFailedByPaymentIntentUseCase handlePaymentFailedByPaymentIntentUseCase,
             CancelPendingPaymentUseCase cancelPendingPaymentUseCase) {
         this.stripeConfig = stripeConfig;
         this.handlePaymentSuccessUseCase = handlePaymentSuccessUseCase;
-        this.handlePaymentFailedUseCase = handlePaymentFailedUseCase;
+        this.handlePaymentFailedByPaymentIntentUseCase = handlePaymentFailedByPaymentIntentUseCase;
         this.cancelPendingPaymentUseCase = cancelPendingPaymentUseCase;
     }
 
@@ -64,14 +68,15 @@ class StripeWebhookController {
                     Session session = (Session) event.getDataObjectDeserializer()
                             .getObject()
                             .orElseThrow(() -> new IllegalStateException("Missing session data"));
-                    handlePaymentSuccessUseCase.execute(
-                            session.getId(), session.getPaymentIntent(), event.getId());
+                    handlePaymentSuccessUseCase.execute(new HandlePaymentSuccessCommand(
+                            session.getId(), session.getPaymentIntent(), event.getId()));
                 }
                 case "checkout.session.expired" -> {
                     Session session = (Session) event.getDataObjectDeserializer()
                             .getObject()
                             .orElseThrow(() -> new IllegalStateException("Missing session data"));
-                    cancelPendingPaymentUseCase.execute(session.getId());
+                    cancelPendingPaymentUseCase.execute(
+                            new CancelPendingPaymentCommand(session.getId()));
                 }
                 case "payment_intent.payment_failed" -> {
                     PaymentIntent pi = (PaymentIntent) event.getDataObjectDeserializer()
@@ -81,8 +86,9 @@ class StripeWebhookController {
                     String errorMsg = pi.getLastPaymentError() != null
                             ? pi.getLastPaymentError().getMessage()
                             : "Payment failed";
-                    handlePaymentFailedUseCase.executeByPaymentIntent(
-                            pi.getId(), errorMsg, event.getId());
+                    handlePaymentFailedByPaymentIntentUseCase.execute(
+                            new HandlePaymentFailedByPaymentIntentCommand(
+                                    pi.getId(), errorMsg, event.getId()));
                 }
                 default -> log.debug("Unhandled Stripe event type: {}", event.getType());
             }

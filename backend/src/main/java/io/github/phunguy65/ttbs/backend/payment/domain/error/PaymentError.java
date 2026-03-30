@@ -14,6 +14,13 @@ public sealed interface PaymentError {
         }
     }
 
+    record Forbidden() implements PaymentError {
+        @Override
+        public String message() {
+            return "You are not allowed to access this payment";
+        }
+    }
+
     record AlreadyProcessed() implements PaymentError {
         @Override
         public String message() {

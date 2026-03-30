@@ -1,5 +1,6 @@
 package io.github.phunguy65.ttbs.backend.train.infrastructure.persistence;
 
+import io.github.phunguy65.ttbs.backend.train.domain.projection.SeatSummary;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -25,6 +26,19 @@ interface SeatJpaRepository extends JpaRepository<SeatEntity, UUID> {
             "SELECT s FROM SeatEntity s JOIN CoachEntity c ON s.coachId = c.id WHERE c.trainId = :trainId AND s.deletedAt IS NULL")
     Page<SeatEntity> findAllActiveByTrainId(@Param("trainId") UUID trainId, Pageable pageable);
 
+    @Query("""
+            SELECT new io.github.phunguy65.ttbs.backend.train.domain.projection.SeatSummary(
+                s.id,
+                s.coachId,
+                s.seatNumber,
+                s.createdAt
+            )
+            FROM SeatEntity s
+            JOIN CoachEntity c ON s.coachId = c.id
+            WHERE c.trainId = :trainId AND s.deletedAt IS NULL
+            """)
+    Page<SeatSummary> findAllSummariesByTrainId(@Param("trainId") UUID trainId, Pageable pageable);
+
     @Query(
             value = "SELECT s.* FROM seats s "
                     + "JOIN trip_seat_availability tsa ON tsa.seat_id = s.id "
@@ -42,6 +56,24 @@ interface SeatJpaRepository extends JpaRepository<SeatEntity, UUID> {
                     + "     OR (tsa.status = 'HELD' AND b.payment_deadline < CURRENT_TIMESTAMP)) "
                     + "AND s.deleted_at IS NULL")
     Page<SeatEntity> findAllAvailableByScheduledTripId(
+            @Param("scheduledTripId") UUID scheduledTripId, Pageable pageable);
+
+    @Query("""
+            SELECT new io.github.phunguy65.ttbs.backend.train.domain.projection.SeatSummary(
+                s.id,
+                s.coachId,
+                s.seatNumber,
+                s.createdAt
+            )
+            FROM SeatEntity s
+            JOIN RouteSeatAvailabilityEntity tsa ON tsa.id.seatId = s.id
+            LEFT JOIN BookingEntity b ON b.id = tsa.bookingId
+            WHERE tsa.id.scheduledTripId = :scheduledTripId
+                AND (tsa.status = 'AVAILABLE'
+                    OR (tsa.status = 'HELD' AND b.paymentDeadline < CURRENT_TIMESTAMP))
+                AND s.deletedAt IS NULL
+            """)
+    Page<SeatSummary> findAllAvailableSummariesByScheduledTripId(
             @Param("scheduledTripId") UUID scheduledTripId, Pageable pageable);
 
     @Query(

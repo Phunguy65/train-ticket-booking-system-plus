@@ -4,8 +4,8 @@ import io.github.phunguy65.ttbs.backend.shared.domain.PageResponse;
 import io.github.phunguy65.ttbs.backend.shared.domain.SortOrder;
 import io.github.phunguy65.ttbs.backend.train.application.query.GetCoachesQuery;
 import io.github.phunguy65.ttbs.backend.train.application.response.CoachResponse;
-import io.github.phunguy65.ttbs.backend.train.domain.model.Coach;
 import io.github.phunguy65.ttbs.backend.train.domain.model.TrainId;
+import io.github.phunguy65.ttbs.backend.train.domain.projection.CoachSummary;
 import io.github.phunguy65.ttbs.backend.train.domain.repository.CoachRepository;
 import java.util.List;
 import org.springframework.stereotype.Service;
@@ -23,7 +23,7 @@ public class GetCoachesByTrainUseCase {
     @Transactional(readOnly = true)
     public PageResponse<CoachResponse> execute(GetCoachesQuery query) {
         List<SortOrder> sort = List.of(SortOrder.asc("carNumber"), SortOrder.asc("id"));
-        PageResponse<Coach> coaches = coachRepository.findAll(
+        PageResponse<CoachSummary> coaches = coachRepository.findAllSummaries(
                 query.page(), query.size(), sort, TrainId.of(query.trainId()));
         return PageResponse.of(
                 coaches.content().stream().map(this::toDto).toList(),
@@ -33,12 +33,12 @@ public class GetCoachesByTrainUseCase {
                 coaches.total());
     }
 
-    private CoachResponse toDto(Coach coach) {
+    private CoachResponse toDto(CoachSummary coach) {
         return new CoachResponse(
-                coach.getId().value(),
-                coach.getTrainId().value(),
-                coach.getCarNumber(),
-                coach.getTotalSeats(),
-                coach.getCreatedAt());
+                coach.id(),
+                coach.trainId(),
+                coach.carNumber(),
+                coach.totalSeats(),
+                coach.createdAt());
     }
 }

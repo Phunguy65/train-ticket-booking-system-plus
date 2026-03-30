@@ -9,7 +9,7 @@ import com.stripe.param.RefundCreateParams;
 import com.stripe.param.checkout.SessionCreateParams;
 import com.stripe.param.checkout.SessionExpireParams;
 import io.github.phunguy65.ttbs.backend.payment.StripeGatewayException;
-import io.github.phunguy65.ttbs.backend.payment.application.command.CreateCheckoutSessionCommand;
+import io.github.phunguy65.ttbs.backend.payment.application.command.CreateStripeCheckoutSessionCommand;
 import io.github.phunguy65.ttbs.backend.payment.application.port.StripeGatewayPort;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,7 +24,7 @@ class StripeGatewayAdapter implements StripeGatewayPort {
     private static final long SESSION_EXPIRY_SECONDS = 1800L;
 
     @Override
-    public CheckoutSessionResult createCheckoutSession(CreateCheckoutSessionCommand command) {
+    public CheckoutSessionResult createCheckoutSession(CreateStripeCheckoutSessionCommand command) {
         try {
             long expiresAt = (System.currentTimeMillis() / 1000L) + SESSION_EXPIRY_SECONDS;
 

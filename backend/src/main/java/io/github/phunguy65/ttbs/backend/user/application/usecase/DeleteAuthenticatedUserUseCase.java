@@ -1,28 +1,27 @@
 package io.github.phunguy65.ttbs.backend.user.application.usecase;
 
 import io.github.phunguy65.ttbs.backend.booking.domain.repository.BookingRepository;
+import io.github.phunguy65.ttbs.backend.shared.domain.DomainEvent;
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
-import io.github.phunguy65.ttbs.backend.user.application.command.BulkSoftDeleteUsersCommand;
+import io.github.phunguy65.ttbs.backend.user.application.command.SoftDeleteUserCommand;
 import io.github.phunguy65.ttbs.backend.user.domain.error.UserError;
-import io.github.phunguy65.ttbs.backend.user.domain.event.UserDeleted;
-import io.github.phunguy65.ttbs.backend.user.domain.model.UserId;
+import io.github.phunguy65.ttbs.backend.user.domain.model.User;
 import io.github.phunguy65.ttbs.backend.user.domain.repository.RefreshTokenRepository;
 import io.github.phunguy65.ttbs.backend.user.domain.repository.UserRepository;
-import java.time.Instant;
-import java.util.List;
+import java.util.Optional;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-public class BulkSoftDeleteUsersUseCase {
+public class DeleteAuthenticatedUserUseCase {
 
     private final UserRepository userRepository;
     private final RefreshTokenRepository refreshTokenRepository;
     private final BookingRepository bookingRepository;
     private final ApplicationEventPublisher eventPublisher;
 
-    public BulkSoftDeleteUsersUseCase(
+    public DeleteAuthenticatedUserUseCase(
             UserRepository userRepository,
             RefreshTokenRepository refreshTokenRepository,
             BookingRepository bookingRepository,
@@ -34,23 +33,36 @@ public class BulkSoftDeleteUsersUseCase {
     }
 
     @Transactional
-    public Result<Integer, UserError> execute(BulkSoftDeleteUsersCommand command) {
-        List<UserId> conflictingIds = command.userIds().stream()
-                .filter(bookingRepository::existsActiveByUserId)
-                .toList();
+    public Result<Void, UserError> execute(SoftDeleteUserCommand command) {
+        Optional<User> found = userRepository.findById(command.userId());
+        if (found.isEmpty()) {
+            return Result.failure(new UserError.UserNotFound());
+        }
 
-        if (!conflictingIds.isEmpty()) {
+        User user = found.get();
+
+        // Idempotent: already deleted → return success immediately
+        if (user.isDeleted()) {
+            return Result.success();
+        }
+
+        if (bookingRepository.existsActiveByUserId(command.userId())) {
             return Result.failure(new UserError.UserHasActiveBookings());
         }
 
-        Instant now = Instant.now();
-        int affected = userRepository.softDeleteByIds(command.userIds(), now);
-        refreshTokenRepository.revokeAllByUserIds(command.userIds());
-
-        for (UserId userId : command.userIds()) {
-            eventPublisher.publishEvent(UserDeleted.of(userId));
+        Result<Void, UserError> deleteResult = user.softDelete();
+        if (deleteResult.isFailure()) {
+            return deleteResult;
         }
 
-        return Result.success(affected);
+        refreshTokenRepository.revokeAllByUserId(command.userId());
+        userRepository.save(user);
+
+        for (DomainEvent event : user.getDomainEvents()) {
+            eventPublisher.publishEvent(event);
+        }
+        user.clearDomainEvents();
+
+        return Result.success();
     }
 }

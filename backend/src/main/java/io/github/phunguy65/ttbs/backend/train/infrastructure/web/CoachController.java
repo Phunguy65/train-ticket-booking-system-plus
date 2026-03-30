@@ -8,8 +8,7 @@ import io.github.phunguy65.ttbs.backend.train.application.response.CoachResponse
 import io.github.phunguy65.ttbs.backend.train.application.usecase.GetCoachByIdUseCase;
 import io.github.phunguy65.ttbs.backend.train.application.usecase.GetCoachesByTrainUseCase;
 import io.github.phunguy65.ttbs.backend.train.domain.error.CoachError;
-import io.github.phunguy65.ttbs.backend.train.domain.model.CoachId;
-import io.github.phunguy65.ttbs.backend.train.domain.model.TrainId;
+import io.github.phunguy65.ttbs.backend.train.infrastructure.web.request.GetCoachByIdRequest;
 import io.github.phunguy65.ttbs.backend.train.infrastructure.web.request.GetCoachesRequest;
 import jakarta.validation.Valid;
 import java.util.List;
@@ -43,9 +42,11 @@ class CoachController {
 
     @GetMapping(value = "/{version}/trains/{trainId}/coaches/{id}", version = "1.0")
     ResponseEntity<JsendResponse<?>> getCoachById(
-            @PathVariable UUID trainId, @PathVariable UUID id) {
+            @PathVariable UUID trainId,
+            @PathVariable UUID id,
+            @ModelAttribute GetCoachByIdRequest request) {
         return getCoachByIdUseCase
-                .execute(CoachId.of(id), TrainId.of(trainId))
+                .execute(request.toQuery(id, trainId))
                 .fold(
                         dto -> ResponseEntity.ok(JsendResponse.success(dto)),
                         this::coachErrorResponse);

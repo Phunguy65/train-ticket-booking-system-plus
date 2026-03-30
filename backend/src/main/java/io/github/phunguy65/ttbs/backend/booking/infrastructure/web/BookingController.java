@@ -3,8 +3,10 @@ package io.github.phunguy65.ttbs.backend.booking.infrastructure.web;
 import io.github.phunguy65.ttbs.backend.booking.application.command.CancelBookingCommand;
 import io.github.phunguy65.ttbs.backend.booking.application.usecase.CancelBookingUseCase;
 import io.github.phunguy65.ttbs.backend.booking.application.usecase.CreateBookingUseCase;
+import io.github.phunguy65.ttbs.backend.booking.application.usecase.GetBookingByIdUseCase;
 import io.github.phunguy65.ttbs.backend.booking.domain.error.BookingError;
 import io.github.phunguy65.ttbs.backend.booking.infrastructure.web.request.CreateBookingRequest;
+import io.github.phunguy65.ttbs.backend.booking.infrastructure.web.request.GetBookingByIdRequest;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.ErrorCode;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.FailData;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.JsendResponse;
@@ -15,7 +17,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -27,17 +29,38 @@ class BookingController {
 
     private final CreateBookingUseCase createBookingUseCase;
     private final CancelBookingUseCase cancelBookingUseCase;
+    private final GetBookingByIdUseCase getBookingByIdUseCase;
 
     BookingController(
-            CreateBookingUseCase createBookingUseCase, CancelBookingUseCase cancelBookingUseCase) {
+            CreateBookingUseCase createBookingUseCase,
+            CancelBookingUseCase cancelBookingUseCase,
+            GetBookingByIdUseCase getBookingByIdUseCase) {
         this.createBookingUseCase = createBookingUseCase;
         this.cancelBookingUseCase = cancelBookingUseCase;
+        this.getBookingByIdUseCase = getBookingByIdUseCase;
+    }
+
+    @org.springframework.web.bind.annotation.GetMapping(
+            value = "/{version}/bookings/{id}",
+            version = "1.0")
+    @PreAuthorize("isAuthenticated()")
+    ResponseEntity<JsendResponse<?>> getById(
+            @PathVariable UUID id,
+            Authentication auth,
+            @ModelAttribute GetBookingByIdRequest request) {
+        UUID userId = UUID.fromString(auth.getName());
+
+        return getBookingByIdUseCase
+                .execute(request.toQuery(id, userId))
+                .fold(
+                        dto -> ResponseEntity.ok(JsendResponse.success(dto)),
+                        error -> errorResponse(error));
     }
 
     @PostMapping(value = "/{version}/bookings", version = "1.0")
     @PreAuthorize("isAuthenticated()")
-    ResponseEntity<JsendResponse<?>> create(@Valid @RequestBody CreateBookingRequest request) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+    ResponseEntity<JsendResponse<?>> create(
+            @Valid @RequestBody CreateBookingRequest request, Authentication auth) {
         UUID userId = UUID.fromString(auth.getName());
 
         return createBookingUseCase
@@ -56,8 +79,7 @@ class BookingController {
 
     @PostMapping(value = "/{version}/bookings/{id}/cancel", version = "1.0")
     @PreAuthorize("isAuthenticated()")
-    ResponseEntity<JsendResponse<?>> cancel(@PathVariable UUID id) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+    ResponseEntity<JsendResponse<?>> cancel(@PathVariable UUID id, Authentication auth) {
         UUID userId = UUID.fromString(auth.getName());
 
         return cancelBookingUseCase

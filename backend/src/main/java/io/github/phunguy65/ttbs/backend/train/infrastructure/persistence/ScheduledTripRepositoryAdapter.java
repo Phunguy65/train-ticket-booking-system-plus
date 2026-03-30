@@ -6,6 +6,7 @@ import io.github.phunguy65.ttbs.backend.train.domain.model.RouteTemplateId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.ScheduledTrip;
 import io.github.phunguy65.ttbs.backend.train.domain.model.ScheduledTripId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.TrainId;
+import io.github.phunguy65.ttbs.backend.train.domain.projection.ScheduledTripSummary;
 import io.github.phunguy65.ttbs.backend.train.domain.repository.ScheduledTripRepository;
 import java.time.Instant;
 import java.util.List;
@@ -38,11 +39,25 @@ class ScheduledTripRepositoryAdapter implements ScheduledTripRepository {
     }
 
     @Override
+    public java.util.Optional<ScheduledTripSummary> findSummaryById(ScheduledTripId id) {
+        return jpaRepository.findSummaryById(id.value());
+    }
+
+    @Override
     public PageResponse<ScheduledTrip> findAll(int page, int size, List<SortOrder> sort) {
         PageRequest pageable = PageRequest.of(page, size, toSpringSort(sort));
         Page<ScheduledTripEntity> result = jpaRepository.findAllActive(pageable);
         List<ScheduledTrip> items =
                 result.getContent().stream().map(mapper::toDomain).toList();
+        return PageResponse.of(items, page, size, result.hasNext(), result.getTotalElements());
+    }
+
+    @Override
+    public PageResponse<ScheduledTripSummary> findAllSummaries(
+            int page, int size, List<SortOrder> sort) {
+        PageRequest pageable = PageRequest.of(page, size, toSpringSort(sort));
+        Page<ScheduledTripSummary> result = jpaRepository.findAllSummaries(pageable);
+        List<ScheduledTripSummary> items = result.getContent();
         return PageResponse.of(items, page, size, result.hasNext(), result.getTotalElements());
     }
 

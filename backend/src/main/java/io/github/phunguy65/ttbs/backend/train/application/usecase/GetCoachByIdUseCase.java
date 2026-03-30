@@ -1,11 +1,12 @@
 package io.github.phunguy65.ttbs.backend.train.application.usecase;
 
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
+import io.github.phunguy65.ttbs.backend.train.application.query.GetCoachByIdQuery;
 import io.github.phunguy65.ttbs.backend.train.application.response.CoachResponse;
 import io.github.phunguy65.ttbs.backend.train.domain.error.CoachError;
-import io.github.phunguy65.ttbs.backend.train.domain.model.Coach;
 import io.github.phunguy65.ttbs.backend.train.domain.model.CoachId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.TrainId;
+import io.github.phunguy65.ttbs.backend.train.domain.projection.CoachSummary;
 import io.github.phunguy65.ttbs.backend.train.domain.repository.CoachRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,20 +21,22 @@ public class GetCoachByIdUseCase {
     }
 
     @Transactional(readOnly = true)
-    public Result<CoachResponse, CoachError> execute(CoachId coachId, TrainId trainId) {
+    public Result<CoachResponse, CoachError> execute(GetCoachByIdQuery query) {
+        CoachId coachId = CoachId.of(query.coachId());
+        TrainId trainId = TrainId.of(query.trainId());
         return coachRepository
-                .findById(coachId)
-                .filter(coach -> coach.getTrainId().equals(trainId))
+                .findSummaryById(coachId)
+                .filter(coach -> coach.trainId().equals(trainId.value()))
                 .map(coach -> Result.<CoachResponse, CoachError>success(toDto(coach)))
                 .orElseGet(() -> Result.failure(new CoachError.CoachNotFound()));
     }
 
-    private CoachResponse toDto(Coach coach) {
+    private CoachResponse toDto(CoachSummary coach) {
         return new CoachResponse(
-                coach.getId().value(),
-                coach.getTrainId().value(),
-                coach.getCarNumber(),
-                coach.getTotalSeats(),
-                coach.getCreatedAt());
+                coach.id(),
+                coach.trainId(),
+                coach.carNumber(),
+                coach.totalSeats(),
+                coach.createdAt());
     }
 }

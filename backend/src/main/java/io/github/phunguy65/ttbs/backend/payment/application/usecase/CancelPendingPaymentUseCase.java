@@ -1,5 +1,6 @@
 package io.github.phunguy65.ttbs.backend.payment.application.usecase;
 
+import io.github.phunguy65.ttbs.backend.payment.application.command.CancelPendingPaymentCommand;
 import io.github.phunguy65.ttbs.backend.payment.domain.model.PaymentStatus;
 import io.github.phunguy65.ttbs.backend.payment.domain.repository.PaymentRepository;
 import org.slf4j.Logger;
@@ -24,16 +25,16 @@ public class CancelPendingPaymentUseCase {
     }
 
     @Transactional
-    public void execute(String checkoutSessionId) {
+    public void execute(CancelPendingPaymentCommand command) {
         paymentRepository
-                .findByCheckoutSessionId(checkoutSessionId)
+                .findByCheckoutSessionId(command.checkoutSessionId())
                 .filter(p -> p.getStatus() == PaymentStatus.PENDING)
                 .ifPresent(p -> {
                     p.markCancelled();
                     paymentRepository.save(p);
                     log.info(
                             "Payment cancelled via Stripe expiry for session={}",
-                            checkoutSessionId);
+                            command.checkoutSessionId());
                 });
     }
 }

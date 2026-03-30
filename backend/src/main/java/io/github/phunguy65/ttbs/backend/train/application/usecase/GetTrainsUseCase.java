@@ -4,7 +4,7 @@ import io.github.phunguy65.ttbs.backend.shared.domain.PageResponse;
 import io.github.phunguy65.ttbs.backend.shared.domain.SortOrder;
 import io.github.phunguy65.ttbs.backend.train.application.query.GetTrainsQuery;
 import io.github.phunguy65.ttbs.backend.train.application.response.TrainResponse;
-import io.github.phunguy65.ttbs.backend.train.domain.model.Train;
+import io.github.phunguy65.ttbs.backend.train.domain.projection.TrainSummary;
 import io.github.phunguy65.ttbs.backend.train.domain.repository.TrainRepository;
 import java.util.List;
 import org.springframework.stereotype.Service;
@@ -22,7 +22,8 @@ public class GetTrainsUseCase {
     @Transactional(readOnly = true)
     public PageResponse<TrainResponse> execute(GetTrainsQuery query) {
         List<SortOrder> sort = List.of(SortOrder.asc("trainNumber"), SortOrder.asc("id"));
-        PageResponse<Train> trains = trainRepository.findAll(query.page(), query.size(), sort);
+        PageResponse<TrainSummary> trains =
+                trainRepository.findAllSummaries(query.page(), query.size(), sort);
         return PageResponse.of(
                 trains.content().stream().map(this::toDto).toList(),
                 trains.page(),
@@ -31,12 +32,12 @@ public class GetTrainsUseCase {
                 trains.total());
     }
 
-    private TrainResponse toDto(Train train) {
+    private TrainResponse toDto(TrainSummary train) {
         return new TrainResponse(
-                train.getId().value(),
-                train.getTrainNumber(),
-                train.getName(),
-                train.getTotalSeats(),
-                train.getCreatedAt());
+                train.id(),
+                train.trainNumber(),
+                train.name(),
+                train.totalSeats(),
+                train.createdAt());
     }
 }

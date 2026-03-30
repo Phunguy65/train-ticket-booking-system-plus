@@ -4,6 +4,7 @@ import io.github.phunguy65.ttbs.backend.shared.domain.PageResponse;
 import io.github.phunguy65.ttbs.backend.shared.domain.SortOrder;
 import io.github.phunguy65.ttbs.backend.train.domain.model.Train;
 import io.github.phunguy65.ttbs.backend.train.domain.model.TrainId;
+import io.github.phunguy65.ttbs.backend.train.domain.projection.TrainSummary;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -16,7 +17,11 @@ public interface TrainRepository {
 
     Optional<Train> findById(TrainId id);
 
+    Optional<TrainSummary> findSummaryById(TrainId id);
+
     PageResponse<Train> findAll(int page, int size, List<SortOrder> sort);
+
+    PageResponse<TrainSummary> findAllSummaries(int page, int size, List<SortOrder> sort);
 
     boolean existsByTrainNumber(String trainNumber);
 

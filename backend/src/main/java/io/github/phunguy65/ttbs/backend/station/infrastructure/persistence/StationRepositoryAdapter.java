@@ -4,6 +4,7 @@ import io.github.phunguy65.ttbs.backend.shared.domain.PageResponse;
 import io.github.phunguy65.ttbs.backend.shared.domain.SortOrder;
 import io.github.phunguy65.ttbs.backend.station.domain.model.Station;
 import io.github.phunguy65.ttbs.backend.station.domain.model.StationId;
+import io.github.phunguy65.ttbs.backend.station.domain.projection.StationSummary;
 import io.github.phunguy65.ttbs.backend.station.domain.repository.StationRepository;
 import java.time.Instant;
 import java.util.List;
@@ -38,10 +39,23 @@ class StationRepositoryAdapter implements StationRepository {
     }
 
     @Override
+    public Optional<StationSummary> findSummaryById(StationId id) {
+        return jpaRepository.findSummaryById(id.value());
+    }
+
+    @Override
     public PageResponse<Station> findAll(int page, int size, List<SortOrder> sort) {
         PageRequest pageable = PageRequest.of(page, size, toSpringSort(sort));
         Page<StationEntity> result = jpaRepository.findAllActive(pageable);
         List<Station> items = result.getContent().stream().map(mapper::toDomain).toList();
+        return PageResponse.of(items, page, size, result.hasNext(), result.getTotalElements());
+    }
+
+    @Override
+    public PageResponse<StationSummary> findAllSummaries(int page, int size, List<SortOrder> sort) {
+        PageRequest pageable = PageRequest.of(page, size, toSpringSort(sort));
+        Page<StationSummary> result = jpaRepository.findAllSummaries(pageable);
+        List<StationSummary> items = result.getContent();
         return PageResponse.of(items, page, size, result.hasNext(), result.getTotalElements());
     }
 

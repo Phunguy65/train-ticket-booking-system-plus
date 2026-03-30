@@ -12,6 +12,21 @@ import org.springframework.data.repository.query.Param;
 
 interface BookingJpaRepository extends JpaRepository<BookingEntity, UUID> {
 
+    @Query("""
+            SELECT e.id AS id,
+                   e.userId AS userId,
+                   e.scheduledTripId AS scheduledTripId,
+                   e.userInfoSnapshot AS userInfoSnapshot,
+                   e.totalPrice AS totalPrice,
+                   e.currency AS currency,
+                   e.status AS status,
+                   e.paymentDeadline AS paymentDeadline,
+                   e.createdAt AS createdAt
+            FROM BookingEntity e
+            WHERE e.id = :id
+            """)
+    Optional<BookingSummaryView> findSummaryById(@Param("id") UUID id);
+
     Optional<BookingEntity> findByIdempotencyKey(String idempotencyKey);
 
     boolean existsByUserIdAndStatusIn(UUID userId, Collection<String> statuses);
@@ -39,4 +54,24 @@ interface BookingCancellationCandidateView {
     UUID getId();
 
     String getStatus();
+}
+
+interface BookingSummaryView {
+    UUID getId();
+
+    UUID getUserId();
+
+    UUID getScheduledTripId();
+
+    BookingUserInfoSnapshotJson getUserInfoSnapshot();
+
+    long getTotalPrice();
+
+    String getCurrency();
+
+    String getStatus();
+
+    Instant getPaymentDeadline();
+
+    Instant getCreatedAt();
 }

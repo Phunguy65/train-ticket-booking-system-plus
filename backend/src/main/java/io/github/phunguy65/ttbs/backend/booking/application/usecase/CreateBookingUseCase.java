@@ -2,7 +2,7 @@ package io.github.phunguy65.ttbs.backend.booking.application.usecase;
 
 import io.github.phunguy65.ttbs.backend.booking.application.command.CreateBookingCommand;
 import io.github.phunguy65.ttbs.backend.booking.application.response.BookingResponse;
-import io.github.phunguy65.ttbs.backend.booking.application.response.BookingUserInfoResponse;
+import io.github.phunguy65.ttbs.backend.booking.application.response.BookingResponseMapper;
 import io.github.phunguy65.ttbs.backend.booking.domain.error.BookingError;
 import io.github.phunguy65.ttbs.backend.booking.domain.model.Booking;
 import io.github.phunguy65.ttbs.backend.booking.domain.model.BookingId;
@@ -36,6 +36,7 @@ public class CreateBookingUseCase {
     private final RouteTemplateRepository routeTemplateRepository;
     private final UserRepository userRepository;
     private final ApplicationEventPublisher eventPublisher;
+    private final BookingResponseMapper bookingResponseMapper;
 
     public CreateBookingUseCase(
             BookingRepository bookingRepository,
@@ -43,20 +44,22 @@ public class CreateBookingUseCase {
             ScheduledTripRepository scheduledTripRepository,
             RouteTemplateRepository routeTemplateRepository,
             UserRepository userRepository,
-            ApplicationEventPublisher eventPublisher) {
+            ApplicationEventPublisher eventPublisher,
+            BookingResponseMapper bookingResponseMapper) {
         this.bookingRepository = bookingRepository;
         this.seatAvailabilityPort = seatAvailabilityPort;
         this.scheduledTripRepository = scheduledTripRepository;
         this.routeTemplateRepository = routeTemplateRepository;
         this.userRepository = userRepository;
         this.eventPublisher = eventPublisher;
+        this.bookingResponseMapper = bookingResponseMapper;
     }
 
     @Transactional
     public Result<BookingResponse, BookingError> execute(CreateBookingCommand command) {
         var existing = bookingRepository.findByIdempotencyKey(command.idempotencyKey());
         if (existing.isPresent()) {
-            return Result.success(toDto(existing.get()));
+            return Result.success(bookingResponseMapper.fromBooking(existing.get()));
         }
 
         UserId userId = UserId.of(command.userId());
@@ -109,31 +112,7 @@ public class CreateBookingUseCase {
         }
         booking.clearDomainEvents();
 
-        return Result.success(toDto(saved));
-    }
-
-    private BookingResponse toDto(Booking booking) {
-        return new BookingResponse(
-                booking.getBookingId().value(),
-                booking.getUserId().value(),
-                booking.getScheduledTripId().value(),
-                toUserInfoResponse(booking.getUserInfo()),
-                booking.getTotalPrice().toLong(),
-                booking.getCurrency(),
-                booking.getStatus(),
-                booking.getPaymentDeadline(),
-                booking.getCreatedAt());
-    }
-
-    private BookingUserInfoResponse toUserInfoResponse(BookingUserInfo userInfo) {
-        return new BookingUserInfoResponse(
-                userInfo.fullName(),
-                userInfo.email(),
-                userInfo.phone(),
-                userInfo.dateOfBirth(),
-                userInfo.gender(),
-                userInfo.idDocumentNumber(),
-                userInfo.addressLine());
+        return Result.success(bookingResponseMapper.fromBooking(saved));
     }
 
     private BookingUserInfo toBookingUserInfo(UserSummary summary) {

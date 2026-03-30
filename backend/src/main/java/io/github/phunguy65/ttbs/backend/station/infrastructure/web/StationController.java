@@ -8,7 +8,7 @@ import io.github.phunguy65.ttbs.backend.station.application.response.StationResp
 import io.github.phunguy65.ttbs.backend.station.application.usecase.GetStationByIdUseCase;
 import io.github.phunguy65.ttbs.backend.station.application.usecase.GetStationsUseCase;
 import io.github.phunguy65.ttbs.backend.station.domain.error.StationError;
-import io.github.phunguy65.ttbs.backend.station.domain.model.StationId;
+import io.github.phunguy65.ttbs.backend.station.infrastructure.web.request.GetStationByIdRequest;
 import io.github.phunguy65.ttbs.backend.station.infrastructure.web.request.GetStationsRequest;
 import jakarta.validation.Valid;
 import java.util.List;
@@ -40,9 +40,10 @@ class StationController {
     }
 
     @GetMapping(value = "/{version}/stations/{id}", version = "1.0")
-    ResponseEntity<JsendResponse<?>> getById(@PathVariable UUID id) {
+    ResponseEntity<JsendResponse<?>> getById(
+            @PathVariable UUID id, @ModelAttribute GetStationByIdRequest request) {
         return getStationByIdUseCase
-                .execute(StationId.of(id))
+                .execute(request.toQuery(id))
                 .fold(
                         dto -> ResponseEntity.ok(JsendResponse.success(dto)),
                         error -> errorResponse(error));

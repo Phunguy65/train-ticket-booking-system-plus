@@ -8,7 +8,7 @@ import java.time.LocalDate;
 import java.util.UUID;
 import org.openapitools.jackson.nullable.JsonNullable;
 
-public record UpdateUserRequest(
+public record UpdateAuthenticatedUserRequest(
         @NotBlank JsonNullable<String> fullName,
         @NotBlank @Email JsonNullable<String> email,
         JsonNullable<String> phone,
@@ -17,7 +17,7 @@ public record UpdateUserRequest(
         JsonNullable<String> idDocumentNumber,
         JsonNullable<String> addressLine) {
 
-    UpdateUserRequest() {
+    UpdateAuthenticatedUserRequest() {
         this(
                 JsonNullable.undefined(),
                 JsonNullable.undefined(),

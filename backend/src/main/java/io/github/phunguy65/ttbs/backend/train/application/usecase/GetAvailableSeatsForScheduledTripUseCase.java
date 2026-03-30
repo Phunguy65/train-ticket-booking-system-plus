@@ -5,7 +5,7 @@ import io.github.phunguy65.ttbs.backend.shared.domain.SortOrder;
 import io.github.phunguy65.ttbs.backend.train.application.query.GetAvailableSeatsQuery;
 import io.github.phunguy65.ttbs.backend.train.application.response.SeatResponse;
 import io.github.phunguy65.ttbs.backend.train.domain.model.ScheduledTripId;
-import io.github.phunguy65.ttbs.backend.train.domain.model.Seat;
+import io.github.phunguy65.ttbs.backend.train.domain.projection.SeatSummary;
 import io.github.phunguy65.ttbs.backend.train.domain.repository.SeatRepository;
 import java.util.List;
 import org.springframework.stereotype.Service;
@@ -23,7 +23,7 @@ public class GetAvailableSeatsForScheduledTripUseCase {
     @Transactional(readOnly = true)
     public PageResponse<SeatResponse> execute(GetAvailableSeatsQuery query) {
         List<SortOrder> sort = List.of(SortOrder.asc("seatNumber"), SortOrder.asc("id"));
-        PageResponse<Seat> seats = seatRepository.findAllAvailable(
+        PageResponse<SeatSummary> seats = seatRepository.findAllAvailableSummaries(
                 query.page(), query.size(), sort, ScheduledTripId.of(query.scheduledTripId()));
         return PageResponse.of(
                 seats.content().stream().map(this::toDto).toList(),
@@ -33,11 +33,7 @@ public class GetAvailableSeatsForScheduledTripUseCase {
                 seats.total());
     }
 
-    private SeatResponse toDto(Seat seat) {
-        return new SeatResponse(
-                seat.getId().value(),
-                seat.getCoachId().value(),
-                seat.getSeatNumber(),
-                seat.getCreatedAt());
+    private SeatResponse toDto(SeatSummary seat) {
+        return new SeatResponse(seat.id(), seat.coachId(), seat.seatNumber(), seat.createdAt());
     }
 }

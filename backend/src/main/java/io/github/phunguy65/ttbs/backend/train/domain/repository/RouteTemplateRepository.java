@@ -5,6 +5,7 @@ import io.github.phunguy65.ttbs.backend.shared.domain.SortOrder;
 import io.github.phunguy65.ttbs.backend.station.domain.model.StationId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteTemplate;
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteTemplateId;
+import io.github.phunguy65.ttbs.backend.train.domain.projection.RouteTemplateSummary;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -15,7 +16,11 @@ public interface RouteTemplateRepository {
 
     Optional<RouteTemplate> findById(RouteTemplateId id);
 
+    Optional<RouteTemplateSummary> findSummaryById(RouteTemplateId id);
+
     PageResponse<RouteTemplate> findAll(int page, int size, List<SortOrder> sort);
+
+    PageResponse<RouteTemplateSummary> findAllSummaries(int page, int size, List<SortOrder> sort);
 
     boolean existsById(RouteTemplateId id);
 

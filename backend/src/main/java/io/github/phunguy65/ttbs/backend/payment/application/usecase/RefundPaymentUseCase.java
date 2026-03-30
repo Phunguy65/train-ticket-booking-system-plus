@@ -1,6 +1,6 @@
 package io.github.phunguy65.ttbs.backend.payment.application.usecase;
 
-import io.github.phunguy65.ttbs.backend.booking.domain.model.BookingId;
+import io.github.phunguy65.ttbs.backend.payment.application.command.RefundPaymentCommand;
 import io.github.phunguy65.ttbs.backend.payment.application.port.StripeGatewayPort;
 import io.github.phunguy65.ttbs.backend.payment.domain.model.Payment;
 import io.github.phunguy65.ttbs.backend.payment.domain.model.PaymentStatus;
@@ -30,7 +30,8 @@ public class RefundPaymentUseCase {
     }
 
     @Transactional
-    public void execute(BookingId bookingId) {
+    public void execute(RefundPaymentCommand command) {
+        var bookingId = command.bookingId();
         Payment payment = paymentRepository.findByBookingId(bookingId).orElse(null);
 
         if (payment == null) {
@@ -47,22 +48,13 @@ public class RefundPaymentUseCase {
         }
 
         String idempotencyKey = "refund_" + bookingId.value();
-        try {
-            stripeGatewayPort.createRefund(payment.getStripePaymentIntentId(), idempotencyKey);
-            payment.markRefunded();
-            paymentRepository.save(payment);
+        stripeGatewayPort.createRefund(payment.getStripePaymentIntentId(), idempotencyKey);
+        payment.markRefunded();
+        paymentRepository.save(payment);
 
-            payment.getDomainEvents().forEach(eventPublisher::publishEvent);
-            payment.clearDomainEvents();
+        payment.getDomainEvents().forEach(eventPublisher::publishEvent);
+        payment.clearDomainEvents();
 
-            log.info("Refund issued for bookingId={}", bookingId);
-        } catch (Exception e) {
-            log.error(
-                    "Refund failed for bookingId={}, paymentIntentId={}: {}",
-                    bookingId,
-                    payment.getStripePaymentIntentId(),
-                    e.getMessage(),
-                    e);
-        }
+        log.info("Refund issued for bookingId={}", bookingId);
     }
 }

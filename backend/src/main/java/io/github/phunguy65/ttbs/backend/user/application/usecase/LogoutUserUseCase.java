@@ -1,6 +1,7 @@
 package io.github.phunguy65.ttbs.backend.user.application.usecase;
 
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
+import io.github.phunguy65.ttbs.backend.user.application.command.LogoutUserCommand;
 import io.github.phunguy65.ttbs.backend.user.application.port.RefreshTokenManager;
 import io.github.phunguy65.ttbs.backend.user.domain.error.UserError;
 import io.github.phunguy65.ttbs.backend.user.domain.repository.RefreshTokenRepository;
@@ -27,8 +28,8 @@ public class LogoutUserUseCase {
      * revoked, returns success anyway (no error to expose token existence).
      */
     @Transactional
-    public Result<Void, UserError> execute(String rawRefreshToken) {
-        String tokenHash = refreshTokenManager.hashToken(rawRefreshToken);
+    public Result<Void, UserError> execute(LogoutUserCommand command) {
+        String tokenHash = refreshTokenManager.hashToken(command.refreshToken());
         Optional<RefreshTokenData> tokenData =
                 refreshTokenRepository.findActiveByTokenHash(tokenHash);
         tokenData.ifPresent(t -> refreshTokenRepository.revokeById(t.id()));

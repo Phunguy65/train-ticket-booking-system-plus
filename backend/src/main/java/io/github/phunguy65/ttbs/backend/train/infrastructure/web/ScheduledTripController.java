@@ -8,7 +8,7 @@ import io.github.phunguy65.ttbs.backend.train.application.response.ScheduledTrip
 import io.github.phunguy65.ttbs.backend.train.application.usecase.GetScheduledTripByIdUseCase;
 import io.github.phunguy65.ttbs.backend.train.application.usecase.GetScheduledTripsUseCase;
 import io.github.phunguy65.ttbs.backend.train.domain.error.ScheduledTripError;
-import io.github.phunguy65.ttbs.backend.train.domain.model.ScheduledTripId;
+import io.github.phunguy65.ttbs.backend.train.infrastructure.web.request.GetScheduledTripByIdRequest;
 import io.github.phunguy65.ttbs.backend.train.infrastructure.web.request.GetScheduledTripsRequest;
 import jakarta.validation.Valid;
 import java.util.List;
@@ -41,9 +41,10 @@ class ScheduledTripController {
     }
 
     @GetMapping(value = "/{version}/scheduled-trips/{id}", version = "1.0")
-    ResponseEntity<JsendResponse<?>> getById(@PathVariable UUID id) {
+    ResponseEntity<JsendResponse<?>> getById(
+            @PathVariable UUID id, @ModelAttribute GetScheduledTripByIdRequest request) {
         return getScheduledTripByIdUseCase
-                .execute(ScheduledTripId.of(id))
+                .execute(request.toQuery(id))
                 .fold(dto -> ResponseEntity.ok(JsendResponse.success(dto)), this::errorResponse);
     }
 

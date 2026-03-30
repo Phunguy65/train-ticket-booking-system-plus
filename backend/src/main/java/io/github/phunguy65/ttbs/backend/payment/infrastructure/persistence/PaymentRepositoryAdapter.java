@@ -2,6 +2,8 @@ package io.github.phunguy65.ttbs.backend.payment.infrastructure.persistence;
 
 import io.github.phunguy65.ttbs.backend.booking.domain.model.BookingId;
 import io.github.phunguy65.ttbs.backend.payment.domain.model.Payment;
+import io.github.phunguy65.ttbs.backend.payment.domain.model.PaymentId;
+import io.github.phunguy65.ttbs.backend.payment.domain.projection.PaymentSummary;
 import io.github.phunguy65.ttbs.backend.payment.domain.repository.PaymentRepository;
 import java.util.List;
 import java.util.Optional;
@@ -24,8 +26,18 @@ class PaymentRepositoryAdapter implements PaymentRepository {
     }
 
     @Override
+    public Optional<PaymentSummary> findSummaryById(PaymentId paymentId) {
+        return jpaRepository.findSummaryById(paymentId.value());
+    }
+
+    @Override
     public Optional<Payment> findByBookingId(BookingId bookingId) {
         return jpaRepository.findByBookingId(bookingId.value()).map(mapper::toDomain);
+    }
+
+    @Override
+    public Optional<PaymentSummary> findSummaryByBookingId(BookingId bookingId) {
+        return jpaRepository.findSummaryByBookingId(bookingId.value());
     }
 
     @Override

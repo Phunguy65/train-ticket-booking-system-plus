@@ -1,3 +1,5 @@
 package io.github.phunguy65.ttbs.backend.train.application.query;
 
-public record GetScheduledTripsQuery(int page, int size) {}
+import io.github.phunguy65.ttbs.backend.shared.application.query.PagedQuery;
+
+public record GetScheduledTripsQuery(int page, int size) implements PagedQuery {}

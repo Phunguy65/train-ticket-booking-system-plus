@@ -5,6 +5,7 @@ import io.github.phunguy65.ttbs.backend.shared.domain.SortOrder;
 import io.github.phunguy65.ttbs.backend.station.domain.model.StationId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteTemplate;
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteTemplateId;
+import io.github.phunguy65.ttbs.backend.train.domain.projection.RouteTemplateSummary;
 import io.github.phunguy65.ttbs.backend.train.domain.repository.RouteTemplateRepository;
 import java.time.Instant;
 import java.util.List;
@@ -36,11 +37,25 @@ class RouteTemplateRepositoryAdapter implements RouteTemplateRepository {
     }
 
     @Override
+    public java.util.Optional<RouteTemplateSummary> findSummaryById(RouteTemplateId id) {
+        return jpaRepository.findSummaryById(id.value());
+    }
+
+    @Override
     public PageResponse<RouteTemplate> findAll(int page, int size, List<SortOrder> sort) {
         PageRequest pageable = PageRequest.of(page, size, toSpringSort(sort));
         Page<RouteTemplateEntity> result = jpaRepository.findAllActive(pageable);
         List<RouteTemplate> items =
                 result.getContent().stream().map(mapper::toDomain).toList();
+        return PageResponse.of(items, page, size, result.hasNext(), result.getTotalElements());
+    }
+
+    @Override
+    public PageResponse<RouteTemplateSummary> findAllSummaries(
+            int page, int size, List<SortOrder> sort) {
+        PageRequest pageable = PageRequest.of(page, size, toSpringSort(sort));
+        Page<RouteTemplateSummary> result = jpaRepository.findAllSummaries(pageable);
+        List<RouteTemplateSummary> items = result.getContent();
         return PageResponse.of(items, page, size, result.hasNext(), result.getTotalElements());
     }
 
