@@ -14,6 +14,7 @@ class RouteSeatAvailabilityEntityMapper {
                 ScheduledTripId.of(entity.getId().getScheduledTripId()),
                 SeatId.of(entity.getId().getSeatId()),
                 RouteSeatAvailabilityStatus.valueOf(entity.getStatus()),
+                entity.getBookingId(),
                 entity.getVersion());
     }
 
@@ -22,6 +23,7 @@ class RouteSeatAvailabilityEntityMapper {
         entity.setId(new RouteSeatAvailabilityId(
                 domain.getScheduledTripId().value(), domain.getSeatId().value()));
         entity.setStatus(domain.getStatus().name());
+        entity.setBookingId(domain.getBookingId());
         entity.setVersion(domain.getVersion());
         return entity;
     }

@@ -8,8 +8,12 @@ import io.github.phunguy65.ttbs.backend.booking.domain.model.BookingStatus;
 import io.github.phunguy65.ttbs.backend.booking.domain.repository.BookingRepository;
 import io.github.phunguy65.ttbs.backend.shared.domain.DomainEvent;
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
+import io.github.phunguy65.ttbs.backend.shared.domain.event.SeatStatusChangedEvent;
 import io.github.phunguy65.ttbs.backend.train.application.port.RouteSeatAvailabilityManager;
+import io.github.phunguy65.ttbs.backend.train.domain.model.RouteSeatAvailability;
+import io.github.phunguy65.ttbs.backend.train.domain.model.ScheduledTripId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.SeatId;
+import java.time.Instant;
 import java.util.List;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -50,13 +54,14 @@ public class CancelBookingUseCase {
             return cancelResult;
         }
 
+        ScheduledTripId scheduledTripId = booking.getScheduledTripId();
         List<SeatId> seatIds = seatAvailabilityPort.findSeatIdsByBookingId(command.bookingId());
 
         if (!seatIds.isEmpty()) {
             if (previousStatus == BookingStatus.HELD) {
-                seatAvailabilityPort.releaseHeldSeats(booking.getScheduledTripId(), seatIds);
+                seatAvailabilityPort.releaseHeldSeats(scheduledTripId, seatIds);
             } else if (previousStatus == BookingStatus.CONFIRMED) {
-                seatAvailabilityPort.cancelBookedSeats(booking.getScheduledTripId(), seatIds);
+                seatAvailabilityPort.cancelBookedSeats(scheduledTripId, seatIds);
             }
         }
 
@@ -66,6 +71,19 @@ public class CancelBookingUseCase {
             eventPublisher.publishEvent(event);
         }
         booking.clearDomainEvents();
+
+        // Emit SSE event for released/cancelled seats (HELD->AVAILABLE or BOOKED->CANCELLED)
+        if (!seatIds.isEmpty()) {
+            List<RouteSeatAvailability> affectedSeats =
+                    seatAvailabilityPort.findByScheduledTripIdAndSeatIds(scheduledTripId, seatIds);
+            List<SeatStatusChangedEvent.SeatChange> changes = affectedSeats.stream()
+                    .map(seat -> new SeatStatusChangedEvent.SeatChange(
+                            seat.getSeatId().value(), seat.getStatus().name(), seat.getBookingId()))
+                    .toList();
+            SeatStatusChangedEvent sseEvent =
+                    new SeatStatusChangedEvent(scheduledTripId.value(), changes, Instant.now());
+            eventPublisher.publishEvent(sseEvent);
+        }
 
         return Result.success();
     }

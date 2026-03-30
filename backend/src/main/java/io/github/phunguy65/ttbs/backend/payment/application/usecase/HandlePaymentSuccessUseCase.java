@@ -8,7 +8,11 @@ import io.github.phunguy65.ttbs.backend.payment.application.command.HandlePaymen
 import io.github.phunguy65.ttbs.backend.payment.application.port.StripeGatewayPort;
 import io.github.phunguy65.ttbs.backend.payment.domain.model.Payment;
 import io.github.phunguy65.ttbs.backend.payment.domain.repository.PaymentRepository;
+import io.github.phunguy65.ttbs.backend.shared.domain.event.SeatStatusChangedEvent;
 import io.github.phunguy65.ttbs.backend.train.application.port.RouteSeatAvailabilityManager;
+import io.github.phunguy65.ttbs.backend.train.domain.model.RouteSeatAvailability;
+import java.time.Instant;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
@@ -99,6 +103,18 @@ public class HandlePaymentSuccessUseCase {
         // Publish payment domain events
         payment.getDomainEvents().forEach(eventPublisher::publishEvent);
         payment.clearDomainEvents();
+
+        List<RouteSeatAvailability> confirmedSeats =
+                seatAvailabilityPort.findByBookingId(bookingId.value());
+        if (!confirmedSeats.isEmpty()) {
+            List<SeatStatusChangedEvent.SeatChange> changes = confirmedSeats.stream()
+                    .map(seat -> new SeatStatusChangedEvent.SeatChange(
+                            seat.getSeatId().value(), seat.getStatus().name(), bookingId.value()))
+                    .toList();
+            SeatStatusChangedEvent sseEvent = new SeatStatusChangedEvent(
+                    booking.getScheduledTripId().value(), changes, Instant.now());
+            eventPublisher.publishEvent(sseEvent);
+        }
 
         log.info("Payment success processed for bookingId={}", bookingId);
     }

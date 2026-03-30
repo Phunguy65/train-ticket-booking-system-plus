@@ -1,4 +1,4 @@
-package io.github.phunguy65.ttbs.backend.payment.application.usecase;
+package io.github.phunguy65.ttbs.backend.payment.application.helper;
 
 import io.github.phunguy65.ttbs.backend.payment.application.response.PaymentResponse;
 import io.github.phunguy65.ttbs.backend.payment.domain.error.PaymentError;
@@ -10,9 +10,9 @@ import java.util.UUID;
 import org.springframework.stereotype.Component;
 
 @Component
-class PaymentReadAuthorizer {
+public class PaymentReadAuthorizer {
 
-    Result<PaymentResponse, PaymentError> authorizeAndMap(
+    public Result<PaymentResponse, PaymentError> authorizeAndMap(
             PaymentSummary payment, UUID requestingUserId) {
         if (payment == null) {
             return Result.failure(new PaymentError.PaymentNotFound());

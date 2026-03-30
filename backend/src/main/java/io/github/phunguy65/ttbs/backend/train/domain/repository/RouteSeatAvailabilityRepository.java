@@ -15,6 +15,12 @@ public interface RouteSeatAvailabilityRepository {
 
     List<RouteSeatAvailability> findAvailableByScheduledTripId(ScheduledTripId scheduledTripId);
 
+    /**
+     * Returns ALL seat availability records for a given scheduled trip, regardless of status.
+     * Used to support SSE initial state and full seat map display.
+     */
+    List<RouteSeatAvailability> findAllByScheduledTripId(ScheduledTripId scheduledTripId);
+
     Optional<RouteSeatAvailability> findByScheduledTripIdAndSeatId(
             ScheduledTripId scheduledTripId, SeatId seatId);
 

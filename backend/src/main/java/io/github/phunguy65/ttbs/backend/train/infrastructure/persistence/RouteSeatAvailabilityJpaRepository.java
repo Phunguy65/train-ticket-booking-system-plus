@@ -26,6 +26,12 @@ interface RouteSeatAvailabilityJpaRepository
     List<RouteSeatAvailabilityEntity> findAvailableByScheduledTripId(
             @Param("scheduledTripId") java.util.UUID scheduledTripId);
 
+    @Query("SELECT e FROM RouteSeatAvailabilityEntity e "
+            + "WHERE e.id.scheduledTripId = :scheduledTripId "
+            + "ORDER BY e.id.seatId ASC")
+    List<RouteSeatAvailabilityEntity> findAllByScheduledTripId(
+            @Param("scheduledTripId") java.util.UUID scheduledTripId);
+
     @Query(
             "SELECT e FROM RouteSeatAvailabilityEntity e WHERE e.id.scheduledTripId = :scheduledTripId AND e.id.seatId = :seatId")
     Optional<RouteSeatAvailabilityEntity> findByScheduledTripIdAndSeatId(

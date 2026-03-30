@@ -32,6 +32,13 @@ class RouteSeatAvailabilityRepositoryAdapter implements RouteSeatAvailabilityRep
     }
 
     @Override
+    public List<RouteSeatAvailability> findAllByScheduledTripId(ScheduledTripId scheduledTripId) {
+        return jpaRepository.findAllByScheduledTripId(scheduledTripId.value()).stream()
+                .map(mapper::toDomain)
+                .toList();
+    }
+
+    @Override
     public Optional<RouteSeatAvailability> findByScheduledTripIdAndSeatId(
             ScheduledTripId scheduledTripId, SeatId seatId) {
         return jpaRepository

@@ -25,16 +25,19 @@ public class RouteSeatAvailability {
     private final ScheduledTripId scheduledTripId;
     private final SeatId seatId;
     private RouteSeatAvailabilityStatus status;
+    private java.util.UUID bookingId;
     private final Integer version;
 
     private RouteSeatAvailability(
             ScheduledTripId scheduledTripId,
             SeatId seatId,
             RouteSeatAvailabilityStatus status,
+            java.util.UUID bookingId,
             Integer version) {
         this.scheduledTripId = scheduledTripId;
         this.seatId = seatId;
         this.status = status;
+        this.bookingId = bookingId;
         this.version = version;
     }
 
@@ -43,15 +46,18 @@ public class RouteSeatAvailability {
      */
     public static RouteSeatAvailability create(ScheduledTripId scheduledTripId, SeatId seatId) {
         return new RouteSeatAvailability(
-                scheduledTripId, seatId, RouteSeatAvailabilityStatus.AVAILABLE, null);
+                scheduledTripId, seatId, RouteSeatAvailabilityStatus.AVAILABLE, null, null);
     }
 
     /**
      * Factory method for reconstituting from persistence.
      */
     public static RouteSeatAvailability reconstitute(
-            ScheduledTripId scheduledTripId, SeatId seatId, RouteSeatAvailabilityStatus status) {
-        return new RouteSeatAvailability(scheduledTripId, seatId, status, null);
+            ScheduledTripId scheduledTripId,
+            SeatId seatId,
+            RouteSeatAvailabilityStatus status,
+            java.util.UUID bookingId) {
+        return new RouteSeatAvailability(scheduledTripId, seatId, status, bookingId, null);
     }
 
     /**
@@ -61,8 +67,9 @@ public class RouteSeatAvailability {
             ScheduledTripId scheduledTripId,
             SeatId seatId,
             RouteSeatAvailabilityStatus status,
+            java.util.UUID bookingId,
             Integer version) {
-        return new RouteSeatAvailability(scheduledTripId, seatId, status, version);
+        return new RouteSeatAvailability(scheduledTripId, seatId, status, bookingId, version);
     }
 
     /**
@@ -70,12 +77,30 @@ public class RouteSeatAvailability {
      *
      * @return success if the seat was AVAILABLE; failure with {@code SeatNotAvailable} otherwise
      */
-    public Result<Void, RouteSeatAvailabilityError> hold() {
+    public Result<Void, RouteSeatAvailabilityError> hold(java.util.UUID bookingId) {
         if (status != RouteSeatAvailabilityStatus.AVAILABLE) {
             return Result.failure(new RouteSeatAvailabilityError.SeatNotAvailable());
         }
         this.status = RouteSeatAvailabilityStatus.HELD;
+        this.bookingId = bookingId;
         return Result.success();
+    }
+
+    /**
+     * Transitions status from {@code AVAILABLE} to {@code HELD}.
+     * Booking ID is set separately via {@link #setBookingId(java.util.UUID)}.
+     *
+     * @return success if the seat was AVAILABLE; failure with {@code SeatNotAvailable} otherwise
+     */
+    public Result<Void, RouteSeatAvailabilityError> hold() {
+        return hold(null);
+    }
+
+    /**
+     * Sets the booking ID associated with this seat when it is HELD or BOOKED.
+     */
+    public void setBookingId(java.util.UUID bookingId) {
+        this.bookingId = bookingId;
     }
 
     /**
@@ -101,6 +126,7 @@ public class RouteSeatAvailability {
             return Result.failure(new RouteSeatAvailabilityError.SeatNotAvailable());
         }
         this.status = RouteSeatAvailabilityStatus.AVAILABLE;
+        this.bookingId = null;
         return Result.success();
     }
 
@@ -127,6 +153,7 @@ public class RouteSeatAvailability {
             return Result.failure(new RouteSeatAvailabilityError.SeatNotAvailable());
         }
         this.status = RouteSeatAvailabilityStatus.CANCELLED;
+        this.bookingId = null;
         return Result.success();
     }
 
@@ -153,6 +180,10 @@ public class RouteSeatAvailability {
 
     public RouteSeatAvailabilityStatus getStatus() {
         return status;
+    }
+
+    public java.util.UUID getBookingId() {
+        return bookingId;
     }
 
     public Integer getVersion() {

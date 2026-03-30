@@ -12,8 +12,10 @@ import io.github.phunguy65.ttbs.backend.shared.domain.DomainEvent;
 import io.github.phunguy65.ttbs.backend.shared.domain.Money;
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.shared.domain.UuidGenerator;
+import io.github.phunguy65.ttbs.backend.shared.domain.event.SeatStatusChangedEvent;
 import io.github.phunguy65.ttbs.backend.train.application.port.RouteSeatAvailabilityManager;
 import io.github.phunguy65.ttbs.backend.train.domain.error.RouteSeatAvailabilityError;
+import io.github.phunguy65.ttbs.backend.train.domain.model.RouteSeatAvailability;
 import io.github.phunguy65.ttbs.backend.train.domain.model.ScheduledTripId;
 import io.github.phunguy65.ttbs.backend.train.domain.repository.RouteTemplateRepository;
 import io.github.phunguy65.ttbs.backend.train.domain.repository.ScheduledTripRepository;
@@ -21,6 +23,7 @@ import io.github.phunguy65.ttbs.backend.user.domain.model.UserId;
 import io.github.phunguy65.ttbs.backend.user.domain.projection.UserSummary;
 import io.github.phunguy65.ttbs.backend.user.domain.repository.UserRepository;
 import java.time.Instant;
+import java.util.List;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -111,6 +114,20 @@ public class CreateBookingUseCase {
             eventPublisher.publishEvent(event);
         }
         booking.clearDomainEvents();
+
+        List<RouteSeatAvailability> bookedSeats =
+                seatAvailabilityPort.findByBookingId(saved.getBookingId().value());
+        if (!bookedSeats.isEmpty()) {
+            List<SeatStatusChangedEvent.SeatChange> changes = bookedSeats.stream()
+                    .map(seat -> new SeatStatusChangedEvent.SeatChange(
+                            seat.getSeatId().value(),
+                            seat.getStatus().name(),
+                            saved.getBookingId().value()))
+                    .toList();
+            SeatStatusChangedEvent sseEvent =
+                    new SeatStatusChangedEvent(scheduledTripId.value(), changes, Instant.now());
+            eventPublisher.publishEvent(sseEvent);
+        }
 
         return Result.success(bookingResponseMapper.fromBooking(saved));
     }

@@ -109,6 +109,22 @@ public class RouteSeatAvailabilityManagerAdapter implements RouteSeatAvailabilit
     }
 
     @Override
+    public List<RouteSeatAvailability> findByBookingId(java.util.UUID bookingId) {
+        return repository.findByBookingId(bookingId);
+    }
+
+    @Override
+    public List<RouteSeatAvailability> findByScheduledTripIdAndSeatIds(
+            ScheduledTripId scheduledTripId, List<SeatId> seatIds) {
+        return repository.findByScheduledTripIdAndSeatIds(scheduledTripId, seatIds);
+    }
+
+    @Override
+    public List<RouteSeatAvailability> findAllByScheduledTripId(ScheduledTripId scheduledTripId) {
+        return repository.findAllByScheduledTripId(scheduledTripId);
+    }
+
+    @Override
     @Transactional
     public Result<Void, RouteSeatAvailabilityError> confirmHeldSeats(java.util.UUID bookingId) {
         List<RouteSeatAvailability> seats = repository.findByBookingId(bookingId);
@@ -127,6 +143,38 @@ public class RouteSeatAvailabilityManagerAdapter implements RouteSeatAvailabilit
         if (!toSave.isEmpty()) {
             repository.saveAll(toSave);
         }
+        return Result.success();
+    }
+
+    /**
+     * Atomically transitions all specified seats from {@code AVAILABLE} to {@code HELD} with
+     * a specific booking ID.
+     *
+     * @param scheduledTripId the scheduled trip
+     * @param seatIds the seats to hold
+     * @param bookingId the booking ID to associate with the held seats
+     * @return success if all seats were AVAILABLE and are now HELD;
+     * failure with {@link RouteSeatAvailabilityError.SeatNotAvailable} otherwise
+     */
+    public Result<Void, RouteSeatAvailabilityError> holdSeatsWithBookingId(
+            ScheduledTripId scheduledTripId, List<SeatId> seatIds, java.util.UUID bookingId) {
+        List<RouteSeatAvailability> seats =
+                repository.findByScheduledTripIdAndSeatIds(scheduledTripId, seatIds);
+
+        if (seats.size() != seatIds.size()) {
+            return Result.failure(new RouteSeatAvailabilityError.SeatNotAvailable());
+        }
+
+        List<RouteSeatAvailability> toSave = new ArrayList<>();
+        for (RouteSeatAvailability domain : seats) {
+            Result<Void, RouteSeatAvailabilityError> holdResult = domain.hold(bookingId);
+            if (holdResult.isFailure()) {
+                return holdResult;
+            }
+            toSave.add(domain);
+        }
+
+        repository.saveAll(toSave);
         return Result.success();
     }
 }

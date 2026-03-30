@@ -6,6 +6,7 @@ import io.github.phunguy65.ttbs.backend.train.domain.model.RouteTemplateId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.ScheduledTrip;
 import io.github.phunguy65.ttbs.backend.train.domain.model.ScheduledTripId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.TrainId;
+import io.github.phunguy65.ttbs.backend.train.domain.projection.ScheduledTripEnrichedSummary;
 import io.github.phunguy65.ttbs.backend.train.domain.projection.ScheduledTripSummary;
 import io.github.phunguy65.ttbs.backend.train.domain.repository.ScheduledTripRepository;
 import java.time.Instant;
@@ -44,6 +45,11 @@ class ScheduledTripRepositoryAdapter implements ScheduledTripRepository {
     }
 
     @Override
+    public java.util.Optional<ScheduledTripEnrichedSummary> findEnrichedById(ScheduledTripId id) {
+        return jpaRepository.findEnrichedById(id.value()).map(this::toEnrichedSummary);
+    }
+
+    @Override
     public PageResponse<ScheduledTrip> findAll(int page, int size, List<SortOrder> sort) {
         PageRequest pageable = PageRequest.of(page, size, toSpringSort(sort));
         Page<ScheduledTripEntity> result = jpaRepository.findAllActive(pageable);
@@ -58,6 +64,16 @@ class ScheduledTripRepositoryAdapter implements ScheduledTripRepository {
         PageRequest pageable = PageRequest.of(page, size, toSpringSort(sort));
         Page<ScheduledTripSummary> result = jpaRepository.findAllSummaries(pageable);
         List<ScheduledTripSummary> items = result.getContent();
+        return PageResponse.of(items, page, size, result.hasNext(), result.getTotalElements());
+    }
+
+    @Override
+    public PageResponse<ScheduledTripEnrichedSummary> findAllEnrichedSummaries(int page, int size) {
+        PageRequest pageable = PageRequest.of(page, size);
+        Page<ScheduledTripEnrichedSummaryView> result =
+                jpaRepository.findAllEnrichedSummaries(pageable);
+        List<ScheduledTripEnrichedSummary> items =
+                result.getContent().stream().map(this::toEnrichedSummary).toList();
         return PageResponse.of(items, page, size, result.hasNext(), result.getTotalElements());
     }
 
@@ -99,5 +115,31 @@ class ScheduledTripRepositoryAdapter implements ScheduledTripRepository {
                         : Sort.Order.desc(o.field()))
                 .toList();
         return Sort.by(springOrders);
+    }
+
+    private ScheduledTripEnrichedSummary toEnrichedSummary(ScheduledTripEnrichedSummaryView view) {
+        return new ScheduledTripEnrichedSummary(
+                view.getId(),
+                view.getRouteTemplateId(),
+                view.getTrainId(),
+                view.getDepartureTime(),
+                view.getArrivalTime(),
+                view.getStatus(),
+                view.getCreatedAt(),
+                view.getDurationMinutes(),
+                view.getAvailableSeatCount(),
+                view.getTrainNumber(),
+                view.getTrainName(),
+                view.getTrainTotalSeats(),
+                view.getOriginStationId(),
+                view.getOriginStationCode(),
+                view.getOriginStationName(),
+                view.getOriginStationCity(),
+                view.getDestinationStationId(),
+                view.getDestinationStationCode(),
+                view.getDestinationStationName(),
+                view.getDestinationStationCity(),
+                view.getRouteBasePrice(),
+                view.getRouteCurrency());
     }
 }

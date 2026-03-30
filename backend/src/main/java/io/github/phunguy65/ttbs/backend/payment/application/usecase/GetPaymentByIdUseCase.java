@@ -1,5 +1,6 @@
 package io.github.phunguy65.ttbs.backend.payment.application.usecase;
 
+import io.github.phunguy65.ttbs.backend.payment.application.helper.PaymentReadAuthorizer;
 import io.github.phunguy65.ttbs.backend.payment.application.query.GetPaymentByIdQuery;
 import io.github.phunguy65.ttbs.backend.payment.application.response.PaymentResponse;
 import io.github.phunguy65.ttbs.backend.payment.domain.error.PaymentError;

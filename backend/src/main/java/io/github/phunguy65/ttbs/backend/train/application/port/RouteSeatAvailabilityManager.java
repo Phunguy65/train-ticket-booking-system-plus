@@ -2,6 +2,7 @@ package io.github.phunguy65.ttbs.backend.train.application.port;
 
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.train.domain.error.RouteSeatAvailabilityError;
+import io.github.phunguy65.ttbs.backend.train.domain.model.RouteSeatAvailability;
 import io.github.phunguy65.ttbs.backend.train.domain.model.ScheduledTripId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.SeatId;
 import java.util.List;
@@ -70,4 +71,31 @@ public interface RouteSeatAvailabilityManager {
      * @return list of seat IDs linked to this booking via {@code route_seat_availability.booking_id}
      */
     List<SeatId> findSeatIdsByBookingId(java.util.UUID bookingId);
+
+    /**
+     * Returns all seat availability records associated with the given booking.
+     *
+     * @param bookingId the booking UUID
+     * @return list of seat availability records linked to this booking
+     */
+    List<RouteSeatAvailability> findByBookingId(java.util.UUID bookingId);
+
+    /**
+     * Returns the seat availability records for the given seats on a scheduled trip.
+     *
+     * @param scheduledTripId the scheduled trip
+     * @param seatIds the seat IDs to look up
+     * @return list of seat availability records (order: ascending seatId)
+     */
+    List<RouteSeatAvailability> findByScheduledTripIdAndSeatIds(
+            ScheduledTripId scheduledTripId, List<SeatId> seatIds);
+
+    /**
+     * Returns ALL seat availability records for a given scheduled trip.
+     * Used by SSE to send initial seat state to newly connected clients.
+     *
+     * @param scheduledTripId the scheduled trip
+     * @return all seat availability records (order: ascending seatId)
+     */
+    List<RouteSeatAvailability> findAllByScheduledTripId(ScheduledTripId scheduledTripId);
 }
