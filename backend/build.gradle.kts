@@ -30,10 +30,12 @@ configurations {
 
 dependencies {
     implementation(libs.spring.boot.starter.actuator)
+    implementation(libs.spring.boot.starter.cache)
     implementation(libs.spring.boot.starter.flyway)
     runtimeOnly(libs.flyway.database.postgresql)
     implementation(libs.spring.boot.starter.amqp)
     implementation(libs.spring.boot.starter.data.jpa)
+    implementation(libs.spring.boot.starter.data.redis)
     implementation(libs.spring.boot.starter.integration)
     implementation(libs.spring.boot.starter.security)
     implementation(libs.spring.boot.starter.webmvc)

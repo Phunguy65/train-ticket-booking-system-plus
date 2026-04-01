@@ -3,6 +3,14 @@ jwt:
     access-token-expiry: 900
     refresh-token-expiry: 604800
 
+spring:
+    cache:
+        type: simple
+    data:
+        redis:
+            repositories:
+                enabled: false
+
 stripe:
     api-key: sk_test_dummy_key_for_testing
     webhook-secret: whsec_dummy_webhook_secret_for_testing

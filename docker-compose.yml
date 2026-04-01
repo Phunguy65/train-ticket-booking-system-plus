@@ -1,4 +1,17 @@
 services:
+    valkey:
+        image: valkey/valkey:latest
+        container_name: trainbooking-valkey
+        ports:
+            - '6379:6379'
+        networks:
+            - trainbooking-network
+        healthcheck:
+            test: ['CMD', 'valkey-cli', 'ping']
+            interval: 10s
+            timeout: 5s
+            retries: 5
+
     postgres:
         image: postgres:18-alpine
         container_name: trainbooking-postgres
@@ -34,10 +47,14 @@ services:
             SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/trainbooking
             SPRING_DATASOURCE_USERNAME: postgres
             SPRING_DATASOURCE_PASSWORD: postgres
+            VALKEY_HOST: valkey
+            VALKEY_PORT: 6379
             TZ: UTC
         ports:
             - '8080:8080'
         depends_on:
+            valkey:
+                condition: service_healthy
             postgres:
                 condition: service_healthy
         networks:

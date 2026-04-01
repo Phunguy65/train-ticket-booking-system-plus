@@ -2,6 +2,7 @@ package io.github.phunguy65.ttbs.backend.train.application.usecase;
 
 import io.github.phunguy65.ttbs.backend.shared.domain.PageResponse;
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
+import io.github.phunguy65.ttbs.backend.shared.infrastructure.cache.ValkeyCacheConfig;
 import io.github.phunguy65.ttbs.backend.train.application.query.GetCoachSeatMapQuery;
 import io.github.phunguy65.ttbs.backend.train.application.response.CoachSeatMapResponse;
 import io.github.phunguy65.ttbs.backend.train.domain.error.ScheduledTripError;
@@ -15,6 +16,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,6 +34,11 @@ public class GetCoachSeatMapByScheduledTripUseCase {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(
+            cacheNames = ValkeyCacheConfig.COACH_SEAT_MAP_CACHE,
+            key =
+                    "'st-coach:' + #query.scheduledTripId() + ':' + #query.page() + ':' + #query.size()",
+            unless = "#result.isFailure() || #result.value.content.isEmpty()")
     public Result<PageResponse<CoachSeatMapResponse>, ScheduledTripError> execute(
             GetCoachSeatMapQuery query) {
         ScheduledTripId scheduledTripId = ScheduledTripId.of(query.scheduledTripId());

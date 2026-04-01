@@ -12,6 +12,18 @@ spring:
         locations: classpath:db/migration
         baseline-on-migrate: true
         baseline-version: 0
+    cache:
+        type: redis
+        cache-names:
+            - scheduledTripList
+            - scheduledTripById
+            - coachSeatMap
+    data:
+        redis:
+            host: ${VALKEY_HOST:localhost}
+            port: ${VALKEY_PORT:6379}
+            repositories:
+                enabled: false
     mvc:
         apiversion:
             use:
