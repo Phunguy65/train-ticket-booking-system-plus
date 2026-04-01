@@ -6,7 +6,9 @@ import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.FailData;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.JsendResponse;
 import io.github.phunguy65.ttbs.backend.train.application.response.SeatResponse;
 import io.github.phunguy65.ttbs.backend.train.application.usecase.GetAvailableSeatsForScheduledTripUseCase;
+import io.github.phunguy65.ttbs.backend.train.application.usecase.GetCoachSeatMapByScheduledTripUseCase;
 import io.github.phunguy65.ttbs.backend.train.application.usecase.GetSeatsByTrainUseCase;
+import io.github.phunguy65.ttbs.backend.train.domain.error.ScheduledTripError;
 import io.github.phunguy65.ttbs.backend.train.domain.error.SeatError;
 import io.github.phunguy65.ttbs.backend.train.infrastructure.web.request.*;
 import jakarta.validation.Valid;
@@ -22,12 +24,15 @@ class SeatController {
 
     private final GetSeatsByTrainUseCase getSeatsByTrainUseCase;
     private final GetAvailableSeatsForScheduledTripUseCase getAvailableSeatsForScheduledTripUseCase;
+    private final GetCoachSeatMapByScheduledTripUseCase getCoachSeatMapByScheduledTripUseCase;
 
     SeatController(
             GetSeatsByTrainUseCase getSeatsByTrainUseCase,
-            GetAvailableSeatsForScheduledTripUseCase getAvailableSeatsForScheduledTripUseCase) {
+            GetAvailableSeatsForScheduledTripUseCase getAvailableSeatsForScheduledTripUseCase,
+            GetCoachSeatMapByScheduledTripUseCase getCoachSeatMapByScheduledTripUseCase) {
         this.getSeatsByTrainUseCase = getSeatsByTrainUseCase;
         this.getAvailableSeatsForScheduledTripUseCase = getAvailableSeatsForScheduledTripUseCase;
+        this.getCoachSeatMapByScheduledTripUseCase = getCoachSeatMapByScheduledTripUseCase;
     }
 
     @GetMapping(value = "/{version}/trains/{trainId}/seats", version = "1.0")
@@ -47,6 +52,17 @@ class SeatController {
         PageResponse<SeatResponse> result =
                 getAvailableSeatsForScheduledTripUseCase.execute(request.toQuery(scheduledTripId));
         return ResponseEntity.ok(JsendResponse.success(result));
+    }
+
+    @GetMapping(value = "/{version}/scheduled-trips/{scheduledTripId}/coach-seats", version = "1.0")
+    ResponseEntity<JsendResponse<?>> getCoachSeatMap(
+            @PathVariable UUID scheduledTripId,
+            @ModelAttribute @Valid GetCoachSeatMapRequest request) {
+        return getCoachSeatMapByScheduledTripUseCase
+                .execute(request.toQuery(scheduledTripId))
+                .fold(
+                        dto -> ResponseEntity.ok(JsendResponse.success(dto)),
+                        this::scheduledTripErrorResponse);
     }
 
     private ResponseEntity<JsendResponse<?>> seatErrorResponse(SeatError error) {
@@ -93,5 +109,11 @@ class SeatController {
 
         return ResponseEntity.status(status)
                 .body(JsendResponse.fail(new FailData(error.message(), code, List.of())));
+    }
+
+    private ResponseEntity<JsendResponse<?>> scheduledTripErrorResponse(ScheduledTripError error) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(JsendResponse.fail(new FailData(
+                        error.message(), ErrorCode.SCHEDULED_TRIP_NOT_FOUND, List.of())));
     }
 }

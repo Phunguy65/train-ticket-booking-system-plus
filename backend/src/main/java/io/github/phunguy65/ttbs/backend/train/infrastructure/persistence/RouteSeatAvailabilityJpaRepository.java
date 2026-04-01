@@ -3,6 +3,8 @@ package io.github.phunguy65.ttbs.backend.train.infrastructure.persistence;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -54,6 +56,36 @@ interface RouteSeatAvailabilityJpaRepository
     List<RouteSeatAvailabilityEntity> findByBookingId(@Param("bookingId") UUID bookingId);
 
     @Query(
+            value =
+                    "SELECT DISTINCT c.id AS id, c.car_number AS carNumber, c.total_seats AS totalSeats "
+                            + "FROM trip_seat_availability tsa "
+                            + "JOIN seats s ON s.id = tsa.seat_id AND s.deleted_at IS NULL "
+                            + "JOIN coaches c ON c.id = s.coach_id AND c.deleted_at IS NULL "
+                            + "WHERE tsa.scheduled_trip_id = :scheduledTripId "
+                            + "ORDER BY c.car_number ASC, c.id ASC",
+            countQuery = "SELECT COUNT(DISTINCT c.id) "
+                    + "FROM trip_seat_availability tsa "
+                    + "JOIN seats s ON s.id = tsa.seat_id AND s.deleted_at IS NULL "
+                    + "JOIN coaches c ON c.id = s.coach_id AND c.deleted_at IS NULL "
+                    + "WHERE tsa.scheduled_trip_id = :scheduledTripId",
+            nativeQuery = true)
+    Page<CoachSeatMapCoachSummaryView> findCoachSummariesByScheduledTripId(
+            @Param("scheduledTripId") UUID scheduledTripId, Pageable pageable);
+
+    @Query(
+            value =
+                    "SELECT s.id AS id, c.id AS coachId, s.seat_number AS seatNumber, tsa.status AS status "
+                            + "FROM trip_seat_availability tsa "
+                            + "JOIN seats s ON s.id = tsa.seat_id AND s.deleted_at IS NULL "
+                            + "JOIN coaches c ON c.id = s.coach_id AND c.deleted_at IS NULL "
+                            + "WHERE tsa.scheduled_trip_id = :scheduledTripId "
+                            + "AND c.id IN :coachIds "
+                            + "ORDER BY c.car_number ASC, c.id ASC, s.seat_number ASC, s.id ASC",
+            nativeQuery = true)
+    List<CoachSeatMapSeatSummaryView> findSeatSummariesByScheduledTripIdAndCoachIds(
+            @Param("scheduledTripId") UUID scheduledTripId, @Param("coachIds") List<UUID> coachIds);
+
+    @Query(
             "SELECT COUNT(e) > 0 FROM RouteSeatAvailabilityEntity e WHERE e.id.seatId = :seatId AND e.status IN ('HELD', 'BOOKED')")
     boolean existsActiveBySeatId(@Param("seatId") java.util.UUID seatId);
 
@@ -84,4 +116,22 @@ interface RouteSeatAvailabilityJpaRepository
             value = "DELETE FROM trip_seat_availability WHERE seat_id IN :seatIds",
             nativeQuery = true)
     void hardDeleteBySeatIds(@Param("seatIds") List<UUID> seatIds);
+}
+
+interface CoachSeatMapCoachSummaryView {
+    UUID getId();
+
+    int getCarNumber();
+
+    int getTotalSeats();
+}
+
+interface CoachSeatMapSeatSummaryView {
+    UUID getId();
+
+    UUID getCoachId();
+
+    String getSeatNumber();
+
+    String getStatus();
 }
