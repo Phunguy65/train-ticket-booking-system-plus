@@ -1,15 +1,19 @@
 package io.github.phunguy65.ttbs.backend.train.infrastructure.web;
 
 import io.github.phunguy65.ttbs.backend.shared.domain.PageResponse;
+import io.github.phunguy65.ttbs.backend.shared.domain.SliceResponse;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.ErrorCode;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.FailData;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.JsendResponse;
 import io.github.phunguy65.ttbs.backend.train.application.response.ScheduledTripResponse;
+import io.github.phunguy65.ttbs.backend.train.application.response.SearchScheduledTripsResponse;
 import io.github.phunguy65.ttbs.backend.train.application.usecase.GetScheduledTripByIdUseCase;
 import io.github.phunguy65.ttbs.backend.train.application.usecase.GetScheduledTripsUseCase;
+import io.github.phunguy65.ttbs.backend.train.application.usecase.SearchScheduledTripsUseCase;
 import io.github.phunguy65.ttbs.backend.train.domain.error.ScheduledTripError;
 import io.github.phunguy65.ttbs.backend.train.infrastructure.web.request.GetScheduledTripByIdRequest;
 import io.github.phunguy65.ttbs.backend.train.infrastructure.web.request.GetScheduledTripsRequest;
+import io.github.phunguy65.ttbs.backend.train.infrastructure.web.request.SearchScheduledTripsRequest;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
@@ -25,12 +29,15 @@ class ScheduledTripController {
 
     private final GetScheduledTripByIdUseCase getScheduledTripByIdUseCase;
     private final GetScheduledTripsUseCase getScheduledTripsUseCase;
+    private final SearchScheduledTripsUseCase searchScheduledTripsUseCase;
 
     ScheduledTripController(
             GetScheduledTripByIdUseCase getScheduledTripByIdUseCase,
-            GetScheduledTripsUseCase getScheduledTripsUseCase) {
+            GetScheduledTripsUseCase getScheduledTripsUseCase,
+            SearchScheduledTripsUseCase searchScheduledTripsUseCase) {
         this.getScheduledTripByIdUseCase = getScheduledTripByIdUseCase;
         this.getScheduledTripsUseCase = getScheduledTripsUseCase;
+        this.searchScheduledTripsUseCase = searchScheduledTripsUseCase;
     }
 
     @GetMapping(value = "/{version}/scheduled-trips", version = "1.0")
@@ -38,6 +45,17 @@ class ScheduledTripController {
         PageResponse<ScheduledTripResponse> result =
                 getScheduledTripsUseCase.execute(request.toQuery());
         return ResponseEntity.ok(JsendResponse.success(result));
+    }
+
+    @GetMapping(value = "/{version}/scheduled-trips:filter", version = "1.0")
+    ResponseEntity<JsendResponse<?>> filter(
+            @ModelAttribute @Valid SearchScheduledTripsRequest request) {
+        SliceResponse<SearchScheduledTripsResponse> result =
+                searchScheduledTripsUseCase.execute(request.toQuery());
+        String message = result.content().isEmpty()
+                ? "No scheduled trips matched the selected filters."
+                : null;
+        return ResponseEntity.ok(new JsendResponse<>("success", result, message));
     }
 
     @GetMapping(value = "/{version}/scheduled-trips/{id}", version = "1.0")

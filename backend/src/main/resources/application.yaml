@@ -18,10 +18,19 @@ spring:
             - scheduledTripList
             - scheduledTripById
             - coachSeatMap
+            - scheduledTripFilter
+            - stationSearch
     data:
         redis:
             host: ${VALKEY_HOST:localhost}
             port: ${VALKEY_PORT:6379}
+            lettuce:
+                pool:
+                    enabled: true
+                    max-active: 8
+                    max-idle: 8
+                    min-idle: 2
+                    max-wait: 2s
             repositories:
                 enabled: false
     mvc:

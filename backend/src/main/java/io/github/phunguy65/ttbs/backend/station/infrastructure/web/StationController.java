@@ -5,11 +5,14 @@ import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.ErrorCode;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.FailData;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.JsendResponse;
 import io.github.phunguy65.ttbs.backend.station.application.response.StationResponse;
+import io.github.phunguy65.ttbs.backend.station.application.response.StationSearchResponse;
 import io.github.phunguy65.ttbs.backend.station.application.usecase.GetStationByIdUseCase;
 import io.github.phunguy65.ttbs.backend.station.application.usecase.GetStationsUseCase;
+import io.github.phunguy65.ttbs.backend.station.application.usecase.SearchStationsUseCase;
 import io.github.phunguy65.ttbs.backend.station.domain.error.StationError;
 import io.github.phunguy65.ttbs.backend.station.infrastructure.web.request.GetStationByIdRequest;
 import io.github.phunguy65.ttbs.backend.station.infrastructure.web.request.GetStationsRequest;
+import io.github.phunguy65.ttbs.backend.station.infrastructure.web.request.SearchStationsRequest;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
@@ -25,11 +28,15 @@ class StationController {
 
     private final GetStationByIdUseCase getStationByIdUseCase;
     private final GetStationsUseCase getStationsUseCase;
+    private final SearchStationsUseCase searchStationsUseCase;
 
     StationController(
-            GetStationByIdUseCase getStationByIdUseCase, GetStationsUseCase getStationsUseCase) {
+            GetStationByIdUseCase getStationByIdUseCase,
+            GetStationsUseCase getStationsUseCase,
+            SearchStationsUseCase searchStationsUseCase) {
         this.getStationByIdUseCase = getStationByIdUseCase;
         this.getStationsUseCase = getStationsUseCase;
+        this.searchStationsUseCase = searchStationsUseCase;
     }
 
     @GetMapping(value = "/{version}/stations", version = "1.0")
@@ -37,6 +44,13 @@ class StationController {
         PageResponse<StationResponse> result = getStationsUseCase.execute(request.toQuery());
 
         return ResponseEntity.ok(JsendResponse.success(result));
+    }
+
+    @GetMapping(value = "/{version}/stations/search", version = "1.0")
+    ResponseEntity<JsendResponse<?>> search(@ModelAttribute @Valid SearchStationsRequest request) {
+        List<StationSearchResponse> result = searchStationsUseCase.execute(request.toQuery());
+        String message = result.isEmpty() ? "No stations matched your search." : null;
+        return ResponseEntity.ok(new JsendResponse<>("success", result, message));
     }
 
     @GetMapping(value = "/{version}/stations/{id}", version = "1.0")

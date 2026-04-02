@@ -85,6 +85,7 @@ jjwt-jackson = { module = "io.jsonwebtoken:jjwt-jackson", version.ref = "jjwt" }
 
 # PostgreSQL
 postgresql = { module = "org.postgresql:postgresql" }
+commons-pool2 = { module = "org.apache.commons:commons-pool2" }
 
 # JUnit Platform
 junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }

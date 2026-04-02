@@ -11,6 +11,7 @@ public enum ErrorCode {
 
     // ── Bean Validation umbrella ──────────────────────────────────────────────
     VALIDATION_ERROR,
+    CURSOR_INVALID,
 
     // ── Authorization ─────────────────────────────────────────────────────────
     ACCESS_DENIED,

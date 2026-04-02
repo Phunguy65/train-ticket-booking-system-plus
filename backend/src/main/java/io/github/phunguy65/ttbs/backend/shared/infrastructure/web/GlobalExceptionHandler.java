@@ -1,6 +1,7 @@
 package io.github.phunguy65.ttbs.backend.shared.infrastructure.web;
 
 import io.github.phunguy65.ttbs.backend.payment.StripeGatewayException;
+import io.github.phunguy65.ttbs.backend.shared.infrastructure.cursor.InvalidCursorException;
 import jakarta.persistence.LockTimeoutException;
 import jakarta.persistence.OptimisticLockException;
 import jakarta.persistence.PessimisticLockException;
@@ -23,6 +24,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 /**
  * Translates <em>technical</em> exceptions into JSend-compliant HTTP responses.
@@ -129,6 +131,23 @@ public class GlobalExceptionHandler {
                         "Required header '" + ex.getHeaderName() + "' is missing",
                         ErrorCode.VALIDATION_ERROR,
                         List.of())));
+    }
+
+    @ExceptionHandler(InvalidCursorException.class)
+    ResponseEntity<JsendResponse<FailData>> handleInvalidCursor(InvalidCursorException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(JsendResponse.fail(new FailData(
+                        "The pagination cursor is malformed or expired",
+                        ErrorCode.CURSOR_INVALID,
+                        List.of())));
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    ResponseEntity<JsendResponse<FailData>> handleTypeMismatch(
+            MethodArgumentTypeMismatchException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(JsendResponse.fail(new FailData(
+                        "Invalid request parameter", ErrorCode.VALIDATION_ERROR, List.of())));
     }
 
     /**
