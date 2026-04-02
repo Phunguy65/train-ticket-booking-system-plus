@@ -4,11 +4,14 @@ import io.github.phunguy65.ttbs.backend.booking.domain.model.Booking;
 import io.github.phunguy65.ttbs.backend.booking.domain.model.BookingId;
 import io.github.phunguy65.ttbs.backend.booking.domain.model.BookingStatus;
 import io.github.phunguy65.ttbs.backend.booking.domain.model.BookingUserInfo;
+import io.github.phunguy65.ttbs.backend.booking.domain.projection.BookingSummary;
+import io.github.phunguy65.ttbs.backend.booking.domain.projection.BookingUserInfoSummary;
 import io.github.phunguy65.ttbs.backend.shared.domain.Money;
 import io.github.phunguy65.ttbs.backend.train.domain.model.ScheduledTripId;
 import io.github.phunguy65.ttbs.backend.user.domain.model.UserId;
 import java.math.BigDecimal;
 import java.util.Currency;
+import java.util.Objects;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -51,6 +54,28 @@ class BookingEntityMapper {
         entity.setPaymentDeadline(domain.getPaymentDeadline());
         entity.setCreatedAt(domain.getCreatedAt());
         return entity;
+    }
+
+    BookingSummary toSummary(BookingEntity entity) {
+        BookingUserInfoSnapshotJson snapshot = Objects.requireNonNull(
+                entity.getUserInfoSnapshot(), "Booking user info snapshot must not be null");
+        return new BookingSummary(
+                entity.getId(),
+                entity.getUserId(),
+                entity.getScheduledTripId(),
+                new BookingUserInfoSummary(
+                        snapshot.fullName(),
+                        snapshot.email(),
+                        snapshot.phone(),
+                        snapshot.dateOfBirth(),
+                        snapshot.gender(),
+                        snapshot.idDocumentNumber(),
+                        snapshot.addressLine()),
+                entity.getTotalPrice(),
+                entity.getCurrency(),
+                entity.getStatus(),
+                entity.getPaymentDeadline(),
+                entity.getCreatedAt());
     }
 
     private BookingUserInfoSnapshotJson toSnapshot(BookingUserInfo userInfo) {

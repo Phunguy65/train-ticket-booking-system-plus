@@ -4,9 +4,11 @@ import io.github.phunguy65.ttbs.backend.booking.application.command.CancelBookin
 import io.github.phunguy65.ttbs.backend.booking.application.usecase.CancelBookingUseCase;
 import io.github.phunguy65.ttbs.backend.booking.application.usecase.CreateBookingUseCase;
 import io.github.phunguy65.ttbs.backend.booking.application.usecase.GetBookingByIdUseCase;
+import io.github.phunguy65.ttbs.backend.booking.application.usecase.GetUserBookingsUseCase;
 import io.github.phunguy65.ttbs.backend.booking.domain.error.BookingError;
 import io.github.phunguy65.ttbs.backend.booking.infrastructure.web.request.CreateBookingRequest;
 import io.github.phunguy65.ttbs.backend.booking.infrastructure.web.request.GetBookingByIdRequest;
+import io.github.phunguy65.ttbs.backend.booking.infrastructure.web.request.GetUserBookingsRequest;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.ErrorCode;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.FailData;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.JsendResponse;
@@ -30,14 +32,32 @@ class BookingController {
     private final CreateBookingUseCase createBookingUseCase;
     private final CancelBookingUseCase cancelBookingUseCase;
     private final GetBookingByIdUseCase getBookingByIdUseCase;
+    private final GetUserBookingsUseCase getUserBookingsUseCase;
 
     BookingController(
             CreateBookingUseCase createBookingUseCase,
             CancelBookingUseCase cancelBookingUseCase,
-            GetBookingByIdUseCase getBookingByIdUseCase) {
+            GetBookingByIdUseCase getBookingByIdUseCase,
+            GetUserBookingsUseCase getUserBookingsUseCase) {
         this.createBookingUseCase = createBookingUseCase;
         this.cancelBookingUseCase = cancelBookingUseCase;
         this.getBookingByIdUseCase = getBookingByIdUseCase;
+        this.getUserBookingsUseCase = getUserBookingsUseCase;
+    }
+
+    @org.springframework.web.bind.annotation.GetMapping(
+            value = "/{version}/users/{userId}/bookings",
+            version = "1.0")
+    @PreAuthorize("isAuthenticated()")
+    ResponseEntity<JsendResponse<?>> listByUser(
+            @PathVariable UUID userId,
+            Authentication auth,
+            @ModelAttribute @Valid GetUserBookingsRequest request) {
+        UUID requestingUserId = UUID.fromString(auth.getName());
+
+        return getUserBookingsUseCase
+                .execute(request.toQuery(userId, requestingUserId))
+                .fold(page -> ResponseEntity.ok(JsendResponse.success(page)), this::errorResponse);
     }
 
     @org.springframework.web.bind.annotation.GetMapping(
