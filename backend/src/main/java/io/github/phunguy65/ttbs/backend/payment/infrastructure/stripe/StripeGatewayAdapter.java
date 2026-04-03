@@ -20,7 +20,6 @@ class StripeGatewayAdapter implements StripeGatewayPort {
 
     private static final Logger log = LoggerFactory.getLogger(StripeGatewayAdapter.class);
 
-    // Stripe minimum session expiry is 30 minutes; backend enforces 15-min window separately
     private static final long SESSION_EXPIRY_SECONDS = 1800L;
 
     @Override
