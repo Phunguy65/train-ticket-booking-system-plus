@@ -87,14 +87,8 @@ public class CreateBookingUseCase {
         if (routeTemplateOpt.isEmpty()) {
             return Result.failure(new BookingError.ScheduledTripNotFound());
         }
-        Money totalPrice = Money.vnd(routeTemplateOpt.get().getBasePrice().toLong()
-                * command.seatIds().size());
-
-        Result<Void, RouteSeatAvailabilityError> holdResult =
-                seatAvailabilityPort.holdSeats(scheduledTripId, command.seatIds());
-        if (holdResult.isFailure()) {
-            return Result.failure(new BookingError.SeatNotAvailable());
-        }
+        Money pricePerSeat = routeTemplateOpt.get().getBasePrice();
+        Money totalPrice = Money.vnd(pricePerSeat.toLong() * command.seatIds().size());
 
         BookingUserInfo userInfo = userInfoOpt.get();
 
@@ -109,6 +103,16 @@ public class CreateBookingUseCase {
                 paymentDeadline);
 
         Booking saved = bookingRepository.save(booking);
+
+        Result<Void, RouteSeatAvailabilityError> holdResult =
+                seatAvailabilityPort.holdSeatsWithBookingId(
+                        scheduledTripId,
+                        command.seatIds(),
+                        saved.getBookingId().value(),
+                        pricePerSeat);
+        if (holdResult.isFailure()) {
+            return Result.failure(new BookingError.SeatNotAvailable());
+        }
 
         for (DomainEvent event : booking.getDomainEvents()) {
             eventPublisher.publishEvent(event);

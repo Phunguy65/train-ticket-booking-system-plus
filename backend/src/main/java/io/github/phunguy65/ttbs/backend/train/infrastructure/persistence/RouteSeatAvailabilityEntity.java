@@ -15,6 +15,9 @@ class RouteSeatAvailabilityEntity {
     @Column(name = "booking_id")
     private java.util.UUID bookingId;
 
+    @Column(name = "price_at_booking")
+    private Long priceAtBooking;
+
     @Version
     @Column(name = "version", nullable = false)
     private Integer version;
@@ -51,5 +54,13 @@ class RouteSeatAvailabilityEntity {
 
     void setBookingId(java.util.UUID bookingId) {
         this.bookingId = bookingId;
+    }
+
+    Long getPriceAtBooking() {
+        return priceAtBooking;
+    }
+
+    void setPriceAtBooking(Long priceAtBooking) {
+        this.priceAtBooking = priceAtBooking;
     }
 }

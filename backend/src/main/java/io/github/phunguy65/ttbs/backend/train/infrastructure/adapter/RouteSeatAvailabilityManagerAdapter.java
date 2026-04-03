@@ -1,5 +1,6 @@
 package io.github.phunguy65.ttbs.backend.train.infrastructure.adapter;
 
+import io.github.phunguy65.ttbs.backend.shared.domain.Money;
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.train.application.port.RouteSeatAvailabilityManager;
 import io.github.phunguy65.ttbs.backend.train.domain.error.RouteSeatAvailabilityError;
@@ -148,16 +149,22 @@ public class RouteSeatAvailabilityManagerAdapter implements RouteSeatAvailabilit
 
     /**
      * Atomically transitions all specified seats from {@code AVAILABLE} to {@code HELD} with
-     * a specific booking ID.
+     * a specific booking ID and price snapshot.
      *
      * @param scheduledTripId the scheduled trip
      * @param seatIds the seats to hold
      * @param bookingId the booking ID to associate with the held seats
-     * @return success if all seats were AVAILABLE and are now HELD;
+     * @param price the price snapshot captured at booking time
+     * @return success if all seats were AVAILABLE and are now HELD with price captured;
      * failure with {@link RouteSeatAvailabilityError.SeatNotAvailable} otherwise
      */
+    @Override
+    @Transactional
     public Result<Void, RouteSeatAvailabilityError> holdSeatsWithBookingId(
-            ScheduledTripId scheduledTripId, List<SeatId> seatIds, java.util.UUID bookingId) {
+            ScheduledTripId scheduledTripId,
+            List<SeatId> seatIds,
+            java.util.UUID bookingId,
+            Money price) {
         List<RouteSeatAvailability> seats =
                 repository.findByScheduledTripIdAndSeatIds(scheduledTripId, seatIds);
 
@@ -167,7 +174,7 @@ public class RouteSeatAvailabilityManagerAdapter implements RouteSeatAvailabilit
 
         List<RouteSeatAvailability> toSave = new ArrayList<>();
         for (RouteSeatAvailability domain : seats) {
-            Result<Void, RouteSeatAvailabilityError> holdResult = domain.hold(bookingId);
+            Result<Void, RouteSeatAvailabilityError> holdResult = domain.hold(bookingId, price);
             if (holdResult.isFailure()) {
                 return holdResult;
             }

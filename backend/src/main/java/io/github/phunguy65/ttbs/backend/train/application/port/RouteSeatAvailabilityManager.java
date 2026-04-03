@@ -1,5 +1,6 @@
 package io.github.phunguy65.ttbs.backend.train.application.port;
 
+import io.github.phunguy65.ttbs.backend.shared.domain.Money;
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.train.domain.error.RouteSeatAvailabilityError;
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteSeatAvailability;
@@ -29,6 +30,26 @@ public interface RouteSeatAvailabilityManager {
      */
     Result<Void, RouteSeatAvailabilityError> holdSeats(
             ScheduledTripId scheduledTripId, List<SeatId> seatIds);
+
+    /**
+     * Atomically transitions all specified seats from {@code AVAILABLE} to {@code HELD},
+     * capturing the price snapshot at booking time.
+     *
+     * <p>Seat IDs are sorted ascending before locking to prevent deadlocks.
+     * All-or-nothing: if any seat is not AVAILABLE, no seats are modified.
+     *
+     * @param scheduledTripId the scheduled trip
+     * @param seatIds the seats to hold
+     * @param bookingId the booking ID to associate with the held seats
+     * @param price the price snapshot captured at booking time
+     * @return success if all seats were AVAILABLE and are now HELD with price captured;
+     * failure with {@link RouteSeatAvailabilityError.SeatNotAvailable} otherwise
+     */
+    Result<Void, RouteSeatAvailabilityError> holdSeatsWithBookingId(
+            ScheduledTripId scheduledTripId,
+            List<SeatId> seatIds,
+            java.util.UUID bookingId,
+            Money price);
 
     /**
      * Atomically transitions all specified seats from {@code HELD} back to {@code AVAILABLE}.
