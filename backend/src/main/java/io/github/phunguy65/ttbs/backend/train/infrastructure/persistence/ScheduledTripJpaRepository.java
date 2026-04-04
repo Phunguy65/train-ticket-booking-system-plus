@@ -54,6 +54,44 @@ interface ScheduledTripJpaRepository extends JpaRepository<ScheduledTripEntity, 
             nativeQuery = true)
     Optional<ScheduledTripEnrichedSummaryView> findEnrichedById(@Param("id") UUID id);
 
+    @Query(
+            value = "SELECT st.id AS id, "
+                    + "st.route_template_id AS routeTemplateId, "
+                    + "st.train_id AS trainId, "
+                    + "st.departure_time AS departureTime, "
+                    + "st.arrival_time AS arrivalTime, "
+                    + "st.status AS status, "
+                    + "st.created_at AS createdAt, "
+                    + "CAST(EXTRACT(EPOCH FROM (st.arrival_time - st.departure_time)) / 60 AS BIGINT) AS durationMinutes, "
+                    + "(SELECT COUNT(*) "
+                    + " FROM trip_seat_availability tsa "
+                    + " LEFT JOIN bookings b ON b.id = tsa.booking_id "
+                    + " WHERE tsa.scheduled_trip_id = st.id "
+                    + "   AND (tsa.status = 'AVAILABLE' "
+                    + "        OR (tsa.status = 'HELD' AND b.payment_deadline < CURRENT_TIMESTAMP))) AS availableSeatCount, "
+                    + "t.train_number AS trainNumber, "
+                    + "t.name AS trainName, "
+                    + "t.total_seats AS trainTotalSeats, "
+                    + "os.id AS originStationId, "
+                    + "os.code AS originStationCode, "
+                    + "os.name AS originStationName, "
+                    + "os.city AS originStationCity, "
+                    + "ds.id AS destinationStationId, "
+                    + "ds.code AS destinationStationCode, "
+                    + "ds.name AS destinationStationName, "
+                    + "ds.city AS destinationStationCity, "
+                    + "rt.base_price AS routeBasePrice, "
+                    + "'VND' AS routeCurrency "
+                    + "FROM scheduled_trips st "
+                    + "JOIN route_templates rt ON rt.id = st.route_template_id AND rt.deleted_at IS NULL "
+                    + "LEFT JOIN trains t ON t.id = st.train_id AND t.deleted_at IS NULL "
+                    + "JOIN stations os ON os.id = rt.origin_station_id AND os.deleted_at IS NULL "
+                    + "JOIN stations ds ON ds.id = rt.destination_station_id AND ds.deleted_at IS NULL "
+                    + "WHERE st.id = :id",
+            nativeQuery = true)
+    Optional<ScheduledTripEnrichedSummaryView> findEnrichedByIdIncludingDeleted(
+            @Param("id") UUID id);
+
     @Query("""
             SELECT new io.github.phunguy65.ttbs.backend.train.domain.projection.ScheduledTripSummary(
                 e.id,

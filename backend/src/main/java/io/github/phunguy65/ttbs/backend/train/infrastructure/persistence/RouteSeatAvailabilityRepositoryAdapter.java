@@ -1,8 +1,10 @@
 package io.github.phunguy65.ttbs.backend.train.infrastructure.persistence;
 
+import io.github.phunguy65.ttbs.backend.booking.domain.model.BookingId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteSeatAvailability;
 import io.github.phunguy65.ttbs.backend.train.domain.model.ScheduledTripId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.SeatId;
+import io.github.phunguy65.ttbs.backend.train.domain.projection.BookedSeatSummary;
 import io.github.phunguy65.ttbs.backend.train.domain.repository.RouteSeatAvailabilityRepository;
 import java.util.Comparator;
 import java.util.List;
@@ -61,9 +63,22 @@ class RouteSeatAvailabilityRepositoryAdapter implements RouteSeatAvailabilityRep
     }
 
     @Override
-    public List<RouteSeatAvailability> findByBookingId(java.util.UUID bookingId) {
-        return jpaRepository.findByBookingId(bookingId).stream()
+    public List<RouteSeatAvailability> findByBookingId(BookingId bookingId) {
+        return jpaRepository.findByBookingId(bookingId.value()).stream()
                 .map(mapper::toDomain)
+                .toList();
+    }
+
+    @Override
+    public List<BookedSeatSummary> findBookedSeatSummariesByBookingId(BookingId bookingId) {
+        return jpaRepository.findBookedSeatSummariesByBookingId(bookingId.value()).stream()
+                .map(view -> new BookedSeatSummary(
+                        view.getSeatId(),
+                        view.getCoachId(),
+                        view.getCoachNumber(),
+                        view.getSeatNumber(),
+                        view.getStatus(),
+                        view.getPriceAtBooking()))
                 .toList();
     }
 

@@ -50,6 +50,14 @@ class ScheduledTripRepositoryAdapter implements ScheduledTripRepository {
     }
 
     @Override
+    public java.util.Optional<ScheduledTripEnrichedSummary> findEnrichedByIdIncludingDeleted(
+            ScheduledTripId id) {
+        return jpaRepository
+                .findEnrichedByIdIncludingDeleted(id.value())
+                .map(this::toEnrichedSummary);
+    }
+
+    @Override
     public PageResponse<ScheduledTrip> findAll(int page, int size, List<SortOrder> sort) {
         PageRequest pageable = PageRequest.of(page, size, toSpringSort(sort));
         Page<ScheduledTripEntity> result = jpaRepository.findAllActive(pageable);

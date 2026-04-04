@@ -8,7 +8,7 @@ public record BookingResponse(
         UUID id,
         UUID userId,
         UUID scheduledTripId,
-        BookingUserInfoResponse userInfo,
+        PassengerInfoResponse userInfo,
         long totalPrice,
         String currency,
         BookingStatus status,

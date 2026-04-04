@@ -36,8 +36,8 @@ public class BookingResponseMapper {
                 summary.createdAt());
     }
 
-    private BookingUserInfoResponse toUserInfoResponse(BookingUserInfo userInfo) {
-        return new BookingUserInfoResponse(
+    private PassengerInfoResponse toUserInfoResponse(BookingUserInfo userInfo) {
+        return new PassengerInfoResponse(
                 userInfo.fullName(),
                 userInfo.email(),
                 userInfo.phone(),
@@ -47,8 +47,8 @@ public class BookingResponseMapper {
                 userInfo.addressLine());
     }
 
-    private BookingUserInfoResponse toUserInfoResponse(BookingUserInfoSummary userInfo) {
-        return new BookingUserInfoResponse(
+    private PassengerInfoResponse toUserInfoResponse(BookingUserInfoSummary userInfo) {
+        return new PassengerInfoResponse(
                 userInfo.fullName(),
                 userInfo.email(),
                 userInfo.phone(),

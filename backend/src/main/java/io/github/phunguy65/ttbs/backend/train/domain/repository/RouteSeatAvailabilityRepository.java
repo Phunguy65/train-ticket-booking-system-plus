@@ -1,8 +1,10 @@
 package io.github.phunguy65.ttbs.backend.train.domain.repository;
 
+import io.github.phunguy65.ttbs.backend.booking.domain.model.BookingId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteSeatAvailability;
 import io.github.phunguy65.ttbs.backend.train.domain.model.ScheduledTripId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.SeatId;
+import io.github.phunguy65.ttbs.backend.train.domain.projection.BookedSeatSummary;
 import java.util.List;
 import java.util.Optional;
 
@@ -31,7 +33,9 @@ public interface RouteSeatAvailabilityRepository {
     List<RouteSeatAvailability> findByScheduledTripIdAndSeatIds(
             ScheduledTripId scheduledTripId, List<SeatId> seatIds);
 
-    List<RouteSeatAvailability> findByBookingId(java.util.UUID bookingId);
+    List<RouteSeatAvailability> findByBookingId(BookingId bookingId);
+
+    List<BookedSeatSummary> findBookedSeatSummariesByBookingId(BookingId bookingId);
 
     List<RouteSeatAvailability> saveAll(List<RouteSeatAvailability> records);
 

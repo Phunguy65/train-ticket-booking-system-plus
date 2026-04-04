@@ -3,11 +3,11 @@ package io.github.phunguy65.ttbs.backend.booking.infrastructure.web;
 import io.github.phunguy65.ttbs.backend.booking.application.command.CancelBookingCommand;
 import io.github.phunguy65.ttbs.backend.booking.application.usecase.CancelBookingUseCase;
 import io.github.phunguy65.ttbs.backend.booking.application.usecase.CreateBookingUseCase;
-import io.github.phunguy65.ttbs.backend.booking.application.usecase.GetBookingByIdUseCase;
+import io.github.phunguy65.ttbs.backend.booking.application.usecase.GetBookingDetailUseCase;
 import io.github.phunguy65.ttbs.backend.booking.application.usecase.GetUserBookingsUseCase;
 import io.github.phunguy65.ttbs.backend.booking.domain.error.BookingError;
 import io.github.phunguy65.ttbs.backend.booking.infrastructure.web.request.CreateBookingRequest;
-import io.github.phunguy65.ttbs.backend.booking.infrastructure.web.request.GetBookingByIdRequest;
+import io.github.phunguy65.ttbs.backend.booking.infrastructure.web.request.GetBookingDetailRequest;
 import io.github.phunguy65.ttbs.backend.booking.infrastructure.web.request.GetUserBookingsRequest;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.ErrorCode;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.FailData;
@@ -31,17 +31,17 @@ class BookingController {
 
     private final CreateBookingUseCase createBookingUseCase;
     private final CancelBookingUseCase cancelBookingUseCase;
-    private final GetBookingByIdUseCase getBookingByIdUseCase;
+    private final GetBookingDetailUseCase getBookingDetailUseCase;
     private final GetUserBookingsUseCase getUserBookingsUseCase;
 
     BookingController(
             CreateBookingUseCase createBookingUseCase,
             CancelBookingUseCase cancelBookingUseCase,
-            GetBookingByIdUseCase getBookingByIdUseCase,
+            GetBookingDetailUseCase getBookingDetailUseCase,
             GetUserBookingsUseCase getUserBookingsUseCase) {
         this.createBookingUseCase = createBookingUseCase;
         this.cancelBookingUseCase = cancelBookingUseCase;
-        this.getBookingByIdUseCase = getBookingByIdUseCase;
+        this.getBookingDetailUseCase = getBookingDetailUseCase;
         this.getUserBookingsUseCase = getUserBookingsUseCase;
     }
 
@@ -67,10 +67,10 @@ class BookingController {
     ResponseEntity<JsendResponse<?>> getById(
             @PathVariable UUID id,
             Authentication auth,
-            @ModelAttribute GetBookingByIdRequest request) {
+            @ModelAttribute GetBookingDetailRequest request) {
         UUID userId = UUID.fromString(auth.getName());
 
-        return getBookingByIdUseCase
+        return getBookingDetailUseCase
                 .execute(request.toQuery(id, userId))
                 .fold(
                         dto -> ResponseEntity.ok(JsendResponse.success(dto)),

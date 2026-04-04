@@ -22,6 +22,8 @@ public interface ScheduledTripRepository {
 
     Optional<ScheduledTripEnrichedSummary> findEnrichedById(ScheduledTripId id);
 
+    Optional<ScheduledTripEnrichedSummary> findEnrichedByIdIncludingDeleted(ScheduledTripId id);
+
     PageResponse<ScheduledTrip> findAll(int page, int size, List<SortOrder> sort);
 
     PageResponse<ScheduledTripSummary> findAllSummaries(int page, int size, List<SortOrder> sort);

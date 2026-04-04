@@ -1,6 +1,5 @@
 package io.github.phunguy65.ttbs.backend.payment.infrastructure.persistence;
 
-import io.github.phunguy65.ttbs.backend.payment.domain.projection.PaymentSummary;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -10,33 +9,26 @@ import org.springframework.data.repository.query.Param;
 
 interface PaymentJpaRepository extends JpaRepository<PaymentEntity, UUID> {
 
-    @Query("""
-            SELECT new io.github.phunguy65.ttbs.backend.payment.domain.projection.PaymentSummary(
-                p.id,
-                p.bookingId,
-                p.userId,
-                p.status,
-                p.checkoutUrl,
-                p.amount,
-                p.currency
-            ) FROM PaymentEntity p WHERE p.id = :id
-            """)
-    Optional<PaymentSummary> findSummaryById(@Param("id") UUID id);
+    @Query(
+            value = "SELECT p.id AS id, p.booking_id AS bookingId, b.user_id AS userId, "
+                    + "p.status AS status, NULL AS checkoutUrl, p.amount AS amount, "
+                    + "p.currency AS currency, p.stripe_payment_intent_id AS stripePaymentIntentId, "
+                    + "p.created_at AS createdAt "
+                    + "FROM payments p JOIN bookings b ON b.id = p.booking_id WHERE p.id = :id",
+            nativeQuery = true)
+    Optional<PaymentSummaryView> findPaymentSummaryById(@Param("id") UUID id);
 
     Optional<PaymentEntity> findByBookingId(UUID bookingId);
 
-    @Query("""
-            SELECT new io.github.phunguy65.ttbs.backend.payment.domain.projection.PaymentSummary(
-                p.id,
-                p.bookingId,
-                p.userId,
-                p.status,
-                p.checkoutUrl,
-                p.amount,
-                p.currency
-            ) FROM PaymentEntity p WHERE p.bookingId = :bookingId
-            """)
-    Optional<PaymentSummary> findSummaryByBookingId(@Param("bookingId") UUID bookingId);
+    @Query(
+            value =
+                    "SELECT p.id AS id, p.booking_id AS bookingId, b.user_id AS userId, "
+                            + "p.status AS status, NULL AS checkoutUrl, p.amount AS amount, "
+                            + "p.currency AS currency, p.stripe_payment_intent_id AS stripePaymentIntentId, "
+                            + "p.created_at AS createdAt "
+                            + "FROM payments p JOIN bookings b ON b.id = p.booking_id WHERE p.booking_id = :bookingId",
+            nativeQuery = true)
+    Optional<PaymentSummaryView> findPaymentSummaryByBookingId(@Param("bookingId") UUID bookingId);
 
     List<PaymentEntity> findByBookingIdIn(List<UUID> bookingIds);
 
@@ -45,4 +37,24 @@ interface PaymentJpaRepository extends JpaRepository<PaymentEntity, UUID> {
     Optional<PaymentEntity> findByStripeEventId(String stripeEventId);
 
     Optional<PaymentEntity> findByStripePaymentIntentId(String stripePaymentIntentId);
+}
+
+interface PaymentSummaryView {
+    UUID getId();
+
+    UUID getBookingId();
+
+    UUID getUserId();
+
+    String getStatus();
+
+    String getCheckoutUrl();
+
+    long getAmount();
+
+    String getCurrency();
+
+    String getStripePaymentIntentId();
+
+    java.time.Instant getCreatedAt();
 }

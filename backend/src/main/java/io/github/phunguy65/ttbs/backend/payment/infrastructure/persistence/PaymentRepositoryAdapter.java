@@ -27,7 +27,7 @@ class PaymentRepositoryAdapter implements PaymentRepository {
 
     @Override
     public Optional<PaymentSummary> findSummaryById(PaymentId paymentId) {
-        return jpaRepository.findSummaryById(paymentId.value());
+        return jpaRepository.findPaymentSummaryById(paymentId.value()).map(this::toSummary);
     }
 
     @Override
@@ -37,7 +37,7 @@ class PaymentRepositoryAdapter implements PaymentRepository {
 
     @Override
     public Optional<PaymentSummary> findSummaryByBookingId(BookingId bookingId) {
-        return jpaRepository.findSummaryByBookingId(bookingId.value());
+        return jpaRepository.findPaymentSummaryByBookingId(bookingId.value()).map(this::toSummary);
     }
 
     @Override
@@ -46,6 +46,19 @@ class PaymentRepositoryAdapter implements PaymentRepository {
         return jpaRepository.findByBookingIdIn(uuids).stream()
                 .map(mapper::toDomain)
                 .toList();
+    }
+
+    private PaymentSummary toSummary(PaymentSummaryView view) {
+        return new PaymentSummary(
+                view.getId(),
+                view.getBookingId(),
+                view.getUserId(),
+                view.getStatus(),
+                view.getCheckoutUrl(),
+                view.getAmount(),
+                view.getCurrency(),
+                view.getStripePaymentIntentId(),
+                view.getCreatedAt());
     }
 
     @Override

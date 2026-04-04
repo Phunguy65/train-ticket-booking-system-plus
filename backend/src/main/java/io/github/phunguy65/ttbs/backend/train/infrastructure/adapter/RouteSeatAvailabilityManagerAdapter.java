@@ -1,5 +1,6 @@
 package io.github.phunguy65.ttbs.backend.train.infrastructure.adapter;
 
+import io.github.phunguy65.ttbs.backend.booking.domain.model.BookingId;
 import io.github.phunguy65.ttbs.backend.shared.domain.Money;
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.train.application.port.RouteSeatAvailabilityManager;
@@ -104,14 +105,14 @@ public class RouteSeatAvailabilityManagerAdapter implements RouteSeatAvailabilit
 
     @Override
     public List<SeatId> findSeatIdsByBookingId(java.util.UUID bookingId) {
-        return repository.findByBookingId(bookingId).stream()
+        return repository.findByBookingId(BookingId.of(bookingId)).stream()
                 .map(RouteSeatAvailability::getSeatId)
                 .toList();
     }
 
     @Override
     public List<RouteSeatAvailability> findByBookingId(java.util.UUID bookingId) {
-        return repository.findByBookingId(bookingId);
+        return repository.findByBookingId(BookingId.of(bookingId));
     }
 
     @Override
@@ -128,7 +129,7 @@ public class RouteSeatAvailabilityManagerAdapter implements RouteSeatAvailabilit
     @Override
     @Transactional
     public Result<Void, RouteSeatAvailabilityError> confirmHeldSeats(java.util.UUID bookingId) {
-        List<RouteSeatAvailability> seats = repository.findByBookingId(bookingId);
+        List<RouteSeatAvailability> seats = repository.findByBookingId(BookingId.of(bookingId));
 
         List<RouteSeatAvailability> toSave = new ArrayList<>();
         for (RouteSeatAvailability domain : seats) {

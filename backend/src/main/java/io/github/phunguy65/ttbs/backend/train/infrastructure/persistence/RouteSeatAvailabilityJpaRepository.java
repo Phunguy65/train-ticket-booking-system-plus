@@ -56,6 +56,18 @@ interface RouteSeatAvailabilityJpaRepository
     List<RouteSeatAvailabilityEntity> findByBookingId(@Param("bookingId") UUID bookingId);
 
     @Query(
+            value = "SELECT s.id AS seatId, c.id AS coachId, c.car_number AS coachNumber, "
+                    + "s.seat_number AS seatNumber, tsa.status AS status, tsa.price_at_booking AS priceAtBooking "
+                    + "FROM trip_seat_availability tsa "
+                    + "JOIN seats s ON s.id = tsa.seat_id AND s.deleted_at IS NULL "
+                    + "JOIN coaches c ON c.id = s.coach_id AND c.deleted_at IS NULL "
+                    + "WHERE tsa.booking_id = :bookingId "
+                    + "ORDER BY c.car_number ASC, s.seat_number ASC, s.id ASC",
+            nativeQuery = true)
+    List<BookedSeatSummaryView> findBookedSeatSummariesByBookingId(
+            @Param("bookingId") UUID bookingId);
+
+    @Query(
             value =
                     "SELECT DISTINCT c.id AS id, c.car_number AS carNumber, c.total_seats AS totalSeats "
                             + "FROM trip_seat_availability tsa "
@@ -116,6 +128,20 @@ interface RouteSeatAvailabilityJpaRepository
             value = "DELETE FROM trip_seat_availability WHERE seat_id IN :seatIds",
             nativeQuery = true)
     void hardDeleteBySeatIds(@Param("seatIds") List<UUID> seatIds);
+}
+
+interface BookedSeatSummaryView {
+    UUID getSeatId();
+
+    UUID getCoachId();
+
+    int getCoachNumber();
+
+    String getSeatNumber();
+
+    String getStatus();
+
+    Long getPriceAtBooking();
 }
 
 interface CoachSeatMapCoachSummaryView {
