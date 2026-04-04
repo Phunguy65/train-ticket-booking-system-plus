@@ -40,26 +40,13 @@ pre-commit:
         # ── Frontend / Customer ──────────────────────────────────
         customer-lint:
             root: 'frontend/customer/'
-            glob: '**/*.{kt,kts}'
-            run: ./gradlew ktlintCheck
-            stage_fixed: false
-
-        customer-format:
-            root: 'frontend/customer/'
-            glob: '**/*.{kt,kts}'
-            run: ./gradlew ktlintFormat
-            stage_fixed: true
-
-        # ── Frontend / Admin – TypeScript (Biome) ─────────────────────
-        admin-lint:
-            root: 'frontend/admin/'
             glob: '**/*.{ts,tsx,js,jsx,json}'
             run: bun --bun run lint
 
-        admin-format:
-            root: 'frontend/admin/'
+        customer-format:
+            root: 'frontend/customer/'
             glob: '**/*.{ts,tsx,js,jsx,json}'
-            run: bun --bun run format
+            run: bun --bun run lint:fix
             stage_fixed: true
 
         # ── Database – SQL (Prettier) ─────────────────────────────────────

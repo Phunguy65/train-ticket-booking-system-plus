@@ -1,16 +1,7 @@
 {
     "$schema": "https://biomejs.dev/schemas/latest/schema.json",
     "files": {
-        "includes": [
-            "**",
-            "!**/*.test.js",
-            "**/special.test.js",
-            "!!test",
-            "!!**/dist",
-            "!!**/build",
-            "!!**/.next",
-            "!!**/node_modules"
-        ]
+        "includes": ["src/**/*.{ts,tsx,js,jsx,json,css}"]
     },
     "vcs": {
         "enabled": false
@@ -31,19 +22,12 @@
                 "useImportExtensions": {
                     "level": "error",
                     "options": {
-                        "extensionMappings": {
-                            "css": "css",
-                            "js": "js",
-                            "ts": "js"
-                        }
+                        "forceJsExtensions": true
                     }
                 },
                 "noUnusedVariables": "error",
                 "noUnusedImports": "error"
             }
-        },
-        "domains": {
-            "next": "all"
         }
     },
     "javascript": {

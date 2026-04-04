@@ -1,9 +1,42 @@
 {
-  "name": "customer",
-  "version": "1.0.0",
-  "private": true,
-  "scripts": {
-    "lint": "cd composeApp && ../gradlew ktlintCheck",
-    "format": "cd composeApp && ../gradlew ktlintFormat"
-  }
+    "name": "customer",
+    "version": "0.1.0",
+    "private": true,
+    "scripts": {
+        "dev": "next dev",
+        "build": "next build",
+        "start": "next start",
+        "lint": "biome check",
+        "lint:fix": "biome check --fix",
+        "format": "biome format --write",
+        "codegen": "openapi-ts",
+        "codegen:check": "bun run codegen && biome check src/lib/api"
+    },
+    "dependencies": {
+        "@hey-api/client-fetch": "0.13.1",
+        "@tanstack/react-query": "5.90.2",
+        "next": "16.2.2",
+        "react": "19.2.4",
+        "react-dom": "19.2.4",
+        "zod": "4.1.11"
+    },
+    "devDependencies": {
+        "@biomejs/biome": "2.2.0",
+        "@hey-api/openapi-ts": "0.95.0",
+        "@tailwindcss/postcss": "^4",
+        "@types/node": "^20",
+        "@types/react": "^19",
+        "@types/react-dom": "^19",
+        "babel-plugin-react-compiler": "1.0.0",
+        "tailwindcss": "^4",
+        "typescript": "^5"
+    },
+    "ignoreScripts": [
+        "sharp",
+        "unrs-resolver"
+    ],
+    "trustedDependencies": [
+        "sharp",
+        "unrs-resolver"
+    ]
 }
