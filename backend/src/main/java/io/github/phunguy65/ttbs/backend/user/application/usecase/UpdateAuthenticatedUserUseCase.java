@@ -9,7 +9,6 @@ import io.github.phunguy65.ttbs.backend.shared.domain.PhoneNumber;
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.user.application.command.UpdateUserCommand;
 import io.github.phunguy65.ttbs.backend.user.application.response.UserResponse;
-import io.github.phunguy65.ttbs.backend.user.application.response.UserResponseMapper;
 import io.github.phunguy65.ttbs.backend.user.domain.error.UserError;
 import io.github.phunguy65.ttbs.backend.user.domain.model.User;
 import io.github.phunguy65.ttbs.backend.user.domain.repository.UserRepository;
@@ -23,12 +22,9 @@ import org.springframework.transaction.annotation.Transactional;
 public class UpdateAuthenticatedUserUseCase {
 
     private final UserRepository userRepository;
-    private final UserResponseMapper userResponseMapper;
 
-    public UpdateAuthenticatedUserUseCase(
-            UserRepository userRepository, UserResponseMapper userResponseMapper) {
+    public UpdateAuthenticatedUserUseCase(UserRepository userRepository) {
         this.userRepository = userRepository;
-        this.userResponseMapper = userResponseMapper;
     }
 
     @Transactional
@@ -90,6 +86,16 @@ public class UpdateAuthenticatedUserUseCase {
                 user.getDeletedAt());
 
         User saved = userRepository.save(updated);
-        return Result.success(userResponseMapper.fromUser(saved));
+        return Result.success(new UserResponse(
+                saved.getId().value(),
+                saved.getEmail().value(),
+                saved.getFullName().value(),
+                saved.getPhone().map(PhoneNumber::value).orElse(null),
+                saved.getDateOfBirth().orElse(null),
+                saved.getGender().map(Gender::value).orElse(null),
+                saved.getIdDocumentNumber().map(IdDocumentNumber::value).orElse(null),
+                saved.getAddressLine().map(AddressLine::value).orElse(null),
+                saved.getRole().name(),
+                saved.getCreatedAt()));
     }
 }

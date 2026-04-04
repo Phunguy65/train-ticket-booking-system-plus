@@ -1,15 +1,18 @@
 package io.github.phunguy65.ttbs.backend.user.application.usecase;
 
+import io.github.phunguy65.ttbs.backend.shared.domain.AddressLine;
 import io.github.phunguy65.ttbs.backend.shared.domain.DomainEvent;
 import io.github.phunguy65.ttbs.backend.shared.domain.EmailAddress;
+import io.github.phunguy65.ttbs.backend.shared.domain.Gender;
+import io.github.phunguy65.ttbs.backend.shared.domain.IdDocumentNumber;
 import io.github.phunguy65.ttbs.backend.shared.domain.PasswordHash;
 import io.github.phunguy65.ttbs.backend.shared.domain.PersonName;
+import io.github.phunguy65.ttbs.backend.shared.domain.PhoneNumber;
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.shared.domain.UuidGenerator;
 import io.github.phunguy65.ttbs.backend.user.application.command.RegisterUserCommand;
 import io.github.phunguy65.ttbs.backend.user.application.port.PasswordEncoder;
 import io.github.phunguy65.ttbs.backend.user.application.response.UserResponse;
-import io.github.phunguy65.ttbs.backend.user.application.response.UserResponseMapper;
 import io.github.phunguy65.ttbs.backend.user.domain.error.UserError;
 import io.github.phunguy65.ttbs.backend.user.domain.model.User;
 import io.github.phunguy65.ttbs.backend.user.domain.model.UserId;
@@ -24,17 +27,14 @@ public class RegisterUserUseCase {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final ApplicationEventPublisher eventPublisher;
-    private final UserResponseMapper userResponseMapper;
 
     public RegisterUserUseCase(
             UserRepository userRepository,
             PasswordEncoder passwordEncoder,
-            ApplicationEventPublisher eventPublisher,
-            UserResponseMapper userResponseMapper) {
+            ApplicationEventPublisher eventPublisher) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.eventPublisher = eventPublisher;
-        this.userResponseMapper = userResponseMapper;
     }
 
     @Transactional
@@ -63,6 +63,16 @@ public class RegisterUserUseCase {
         }
         user.clearDomainEvents();
 
-        return Result.success(userResponseMapper.fromUser(saved));
+        return Result.success(new UserResponse(
+                saved.getId().value(),
+                saved.getEmail().value(),
+                saved.getFullName().value(),
+                saved.getPhone().map(PhoneNumber::value).orElse(null),
+                saved.getDateOfBirth().orElse(null),
+                saved.getGender().map(Gender::value).orElse(null),
+                saved.getIdDocumentNumber().map(IdDocumentNumber::value).orElse(null),
+                saved.getAddressLine().map(AddressLine::value).orElse(null),
+                saved.getRole().name(),
+                saved.getCreatedAt()));
     }
 }

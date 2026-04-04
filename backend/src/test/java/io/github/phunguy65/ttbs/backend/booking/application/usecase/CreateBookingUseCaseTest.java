@@ -8,7 +8,6 @@ import static org.mockito.Mockito.when;
 
 import io.github.phunguy65.ttbs.backend.booking.application.command.CreateBookingCommand;
 import io.github.phunguy65.ttbs.backend.booking.application.response.BookingResponse;
-import io.github.phunguy65.ttbs.backend.booking.application.response.BookingResponseMapper;
 import io.github.phunguy65.ttbs.backend.booking.domain.model.Booking;
 import io.github.phunguy65.ttbs.backend.booking.domain.model.BookingStatus;
 import io.github.phunguy65.ttbs.backend.booking.domain.repository.BookingRepository;
@@ -84,15 +83,13 @@ class CreateBookingUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        var mapper = new BookingResponseMapper();
         useCase = new CreateBookingUseCase(
                 bookingRepository,
                 seatAvailabilityPort,
                 scheduledTripRepository,
                 routeTemplateRepository,
                 userRepository,
-                eventPublisher,
-                mapper);
+                eventPublisher);
     }
 
     private UserSummary userSummary() {

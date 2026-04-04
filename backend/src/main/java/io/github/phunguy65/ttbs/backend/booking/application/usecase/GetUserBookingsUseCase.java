@@ -2,7 +2,6 @@ package io.github.phunguy65.ttbs.backend.booking.application.usecase;
 
 import io.github.phunguy65.ttbs.backend.booking.application.query.GetUserBookingsQuery;
 import io.github.phunguy65.ttbs.backend.booking.application.response.UserBookingResponse;
-import io.github.phunguy65.ttbs.backend.booking.application.response.UserBookingResponseMapper;
 import io.github.phunguy65.ttbs.backend.booking.domain.error.BookingError;
 import io.github.phunguy65.ttbs.backend.booking.domain.projection.BookingSummary;
 import io.github.phunguy65.ttbs.backend.booking.domain.repository.BookingRepository;
@@ -18,13 +17,9 @@ import org.springframework.transaction.annotation.Transactional;
 public class GetUserBookingsUseCase {
 
     private final BookingRepository bookingRepository;
-    private final UserBookingResponseMapper userBookingResponseMapper;
 
-    public GetUserBookingsUseCase(
-            BookingRepository bookingRepository,
-            UserBookingResponseMapper userBookingResponseMapper) {
+    public GetUserBookingsUseCase(BookingRepository bookingRepository) {
         this.bookingRepository = bookingRepository;
-        this.userBookingResponseMapper = userBookingResponseMapper;
     }
 
     @Transactional(readOnly = true)
@@ -40,12 +35,23 @@ public class GetUserBookingsUseCase {
                 query.size(),
                 List.of(SortOrder.desc("createdAt"), SortOrder.desc("id")));
         return Result.success(PageResponse.of(
-                bookings.content().stream()
-                        .map(userBookingResponseMapper::fromSummary)
-                        .toList(),
+                bookings.content().stream().map(this::toUserBookingResponse).toList(),
                 bookings.page(),
                 bookings.size(),
                 bookings.hasNext(),
                 bookings.total()));
+    }
+
+    private UserBookingResponse toUserBookingResponse(BookingSummary s) {
+        return new UserBookingResponse(
+                s.id(),
+                s.userId(),
+                s.scheduledTripId(),
+                s.totalPrice(),
+                s.currency(),
+                io.github.phunguy65.ttbs.backend.booking.domain.model.BookingStatus.valueOf(
+                        s.status()),
+                s.paymentDeadline(),
+                s.createdAt());
     }
 }

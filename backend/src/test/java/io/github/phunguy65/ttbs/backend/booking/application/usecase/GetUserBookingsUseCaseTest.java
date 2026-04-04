@@ -9,7 +9,6 @@ import static org.mockito.Mockito.when;
 
 import io.github.phunguy65.ttbs.backend.booking.application.query.GetUserBookingsQuery;
 import io.github.phunguy65.ttbs.backend.booking.application.response.UserBookingResponse;
-import io.github.phunguy65.ttbs.backend.booking.application.response.UserBookingResponseMapper;
 import io.github.phunguy65.ttbs.backend.booking.domain.error.BookingError;
 import io.github.phunguy65.ttbs.backend.booking.domain.model.BookingStatus;
 import io.github.phunguy65.ttbs.backend.booking.domain.projection.BookingSummary;
@@ -29,11 +28,8 @@ class GetUserBookingsUseCaseTest {
     private static final UUID USER_ID = UUID.fromString("11111111-1111-1111-1111-111111111111");
 
     private final BookingRepository bookingRepository = mock(BookingRepository.class);
-    private final UserBookingResponseMapper userBookingResponseMapper =
-            new UserBookingResponseMapper();
 
-    private final GetUserBookingsUseCase useCase =
-            new GetUserBookingsUseCase(bookingRepository, userBookingResponseMapper);
+    private final GetUserBookingsUseCase useCase = new GetUserBookingsUseCase(bookingRepository);
 
     @Test
     void returnsForbiddenWhenAuthenticatedUserDoesNotMatchPathUser() {
