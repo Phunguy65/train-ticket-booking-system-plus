@@ -8,6 +8,8 @@ import io.github.phunguy65.ttbs.backend.payment.infrastructure.web.request.GetPa
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.ErrorCode;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.FailData;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.JsendResponse;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
@@ -20,6 +22,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@Tag(name = "Payments")
 class PaymentController {
 
     private final GetPaymentByIdUseCase getPaymentByIdUseCase;
@@ -32,6 +35,7 @@ class PaymentController {
         this.getPaymentByBookingIdUseCase = getPaymentByBookingIdUseCase;
     }
 
+    @Operation(operationId = "getPayment", summary = "Get a payment by id")
     @GetMapping(value = "/{version}/payments/{paymentId}", version = "1.0")
     @PreAuthorize("isAuthenticated()")
     ResponseEntity<JsendResponse<?>> getPaymentById(
@@ -47,6 +51,7 @@ class PaymentController {
                         error -> errorResponse(error));
     }
 
+    @Operation(operationId = "getBookingPayment", summary = "Get the payment linked to a booking")
     @GetMapping(value = "/{version}/bookings/{bookingId}/payment", version = "1.0")
     @PreAuthorize("isAuthenticated()")
     ResponseEntity<JsendResponse<?>> getPaymentByBookingId(

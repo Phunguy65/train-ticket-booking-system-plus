@@ -41,6 +41,7 @@ dependencies {
     implementation(libs.spring.boot.starter.security)
     implementation(libs.spring.boot.starter.webmvc)
     implementation(libs.spring.boot.starter.validation)
+    implementation(libs.springdoc.openapi.starter.webmvc.ui)
     implementation(libs.spring.rabbit.stream)
     implementation(libs.spring.integration.amqp)
     implementation(libs.spring.integration.http)

@@ -14,6 +14,8 @@ import io.github.phunguy65.ttbs.backend.train.domain.error.ScheduledTripError;
 import io.github.phunguy65.ttbs.backend.train.infrastructure.web.request.GetScheduledTripByIdRequest;
 import io.github.phunguy65.ttbs.backend.train.infrastructure.web.request.GetScheduledTripsRequest;
 import io.github.phunguy65.ttbs.backend.train.infrastructure.web.request.SearchScheduledTripsRequest;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
@@ -25,6 +27,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@Tag(name = "Scheduled Trips")
 class ScheduledTripController {
 
     private final GetScheduledTripByIdUseCase getScheduledTripByIdUseCase;
@@ -40,6 +43,7 @@ class ScheduledTripController {
         this.searchScheduledTripsUseCase = searchScheduledTripsUseCase;
     }
 
+    @Operation(operationId = "getScheduledTrips", summary = "List scheduled trips")
     @GetMapping(value = "/{version}/scheduled-trips", version = "1.0")
     ResponseEntity<JsendResponse<?>> list(@ModelAttribute @Valid GetScheduledTripsRequest request) {
         PageResponse<ScheduledTripResponse> result =
@@ -47,6 +51,7 @@ class ScheduledTripController {
         return ResponseEntity.ok(JsendResponse.success(result));
     }
 
+    @Operation(operationId = "filterScheduledTrips", summary = "Filter scheduled trips")
     @GetMapping(value = "/{version}/scheduled-trips:filter", version = "1.0")
     ResponseEntity<JsendResponse<?>> filter(
             @ModelAttribute @Valid SearchScheduledTripsRequest request) {
@@ -58,6 +63,7 @@ class ScheduledTripController {
         return ResponseEntity.ok(new JsendResponse<>("success", result, message));
     }
 
+    @Operation(operationId = "getScheduledTrip", summary = "Get a scheduled trip by id")
     @GetMapping(value = "/{version}/scheduled-trips/{id}", version = "1.0")
     ResponseEntity<JsendResponse<?>> getById(
             @PathVariable UUID id, @ModelAttribute GetScheduledTripByIdRequest request) {

@@ -53,3 +53,12 @@ stripe:
 
 booking:
     cancel-url: ${STRIPE_CANCEL_URL}
+
+springdoc:
+    api-docs:
+        path: /v3/api-docs
+    swagger-ui:
+        path: /swagger-ui.html
+        enabled: true
+    auto-disable-spring-security: false
+    override-with-generic-response: false

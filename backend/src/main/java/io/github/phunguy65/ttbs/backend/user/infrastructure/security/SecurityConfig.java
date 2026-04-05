@@ -46,6 +46,14 @@ public class SecurityConfig {
                         .permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/*/webhooks/stripe")
                         .permitAll()
+                        .requestMatchers(
+                                "/v3/api-docs/**",
+                                "/swagger-ui.html",
+                                "/swagger-ui/**",
+                                "/api/v3/api-docs/**",
+                                "/api/swagger-ui.html",
+                                "/api/swagger-ui/**")
+                        .permitAll()
                         .requestMatchers("/actuator/**")
                         .permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/*/trains/**")

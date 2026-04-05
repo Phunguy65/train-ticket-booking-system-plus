@@ -1,6 +1,9 @@
 package io.github.phunguy65.ttbs.backend.booking.infrastructure.web;
 
 import io.github.phunguy65.ttbs.backend.booking.application.command.CancelBookingCommand;
+import io.github.phunguy65.ttbs.backend.booking.application.response.BookingDetailResponse;
+import io.github.phunguy65.ttbs.backend.booking.application.response.BookingResponse;
+import io.github.phunguy65.ttbs.backend.booking.application.response.UserBookingResponse;
 import io.github.phunguy65.ttbs.backend.booking.application.usecase.CancelBookingUseCase;
 import io.github.phunguy65.ttbs.backend.booking.application.usecase.CreateBookingUseCase;
 import io.github.phunguy65.ttbs.backend.booking.application.usecase.GetBookingDetailUseCase;
@@ -12,6 +15,15 @@ import io.github.phunguy65.ttbs.backend.booking.infrastructure.web.request.GetUs
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.ErrorCode;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.FailData;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.JsendResponse;
+import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.SuccessPayload;
+import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.SuccessResponseKind;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
@@ -27,6 +39,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 @RestController
+@Tag(name = "Bookings")
 class BookingController {
 
     private final CreateBookingUseCase createBookingUseCase;
@@ -45,12 +58,28 @@ class BookingController {
         this.getUserBookingsUseCase = getUserBookingsUseCase;
     }
 
+    @Operation(operationId = "getUserBookings", summary = "List bookings for a customer")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Paged booking history"),
+        @ApiResponse(
+                responseCode = "400",
+                description = "Invalid pagination parameters",
+                content =
+                        @Content(schema = @Schema(ref = "#/components/schemas/JsendFailResponse"))),
+        @ApiResponse(
+                responseCode = "403",
+                description = "Customer cannot access another customer's bookings",
+                content =
+                        @Content(schema = @Schema(ref = "#/components/schemas/JsendFailResponse")))
+    })
+    @SuccessPayload(value = UserBookingResponse.class, kind = SuccessResponseKind.PAGE)
     @org.springframework.web.bind.annotation.GetMapping(
             value = "/{version}/users/{userId}/bookings",
             version = "1.0")
     @PreAuthorize("isAuthenticated()")
     ResponseEntity<JsendResponse<?>> listByUser(
-            @PathVariable UUID userId,
+            @Parameter(description = "Customer identifier that owns the bookings") @PathVariable
+                    UUID userId,
             Authentication auth,
             @ModelAttribute @Valid GetUserBookingsRequest request) {
         UUID requestingUserId = UUID.fromString(auth.getName());
@@ -60,12 +89,27 @@ class BookingController {
                 .fold(page -> ResponseEntity.ok(JsendResponse.success(page)), this::errorResponse);
     }
 
+    @Operation(operationId = "getBooking", summary = "Get a booking by id")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Booking detail"),
+        @ApiResponse(
+                responseCode = "403",
+                description = "Customer cannot access this booking",
+                content =
+                        @Content(schema = @Schema(ref = "#/components/schemas/JsendFailResponse"))),
+        @ApiResponse(
+                responseCode = "404",
+                description = "Booking not found",
+                content =
+                        @Content(schema = @Schema(ref = "#/components/schemas/JsendFailResponse")))
+    })
+    @SuccessPayload(BookingDetailResponse.class)
     @org.springframework.web.bind.annotation.GetMapping(
             value = "/{version}/bookings/{id}",
             version = "1.0")
     @PreAuthorize("isAuthenticated()")
     ResponseEntity<JsendResponse<?>> getById(
-            @PathVariable UUID id,
+            @Parameter(description = "Booking identifier") @PathVariable UUID id,
             Authentication auth,
             @ModelAttribute GetBookingDetailRequest request) {
         UUID userId = UUID.fromString(auth.getName());
@@ -77,6 +121,27 @@ class BookingController {
                         error -> errorResponse(error));
     }
 
+    @Operation(operationId = "createBooking", summary = "Create a booking")
+    @ApiResponses({
+        @ApiResponse(responseCode = "201", description = "Booking created"),
+        @ApiResponse(
+                responseCode = "400",
+                description = "Invalid booking payload",
+                content =
+                        @Content(schema = @Schema(ref = "#/components/schemas/JsendFailResponse"))),
+        @ApiResponse(
+                responseCode = "404",
+                description = "Scheduled trip or customer not found",
+                content =
+                        @Content(schema = @Schema(ref = "#/components/schemas/JsendFailResponse"))),
+        @ApiResponse(
+                responseCode = "409",
+                description =
+                        "Booking cannot be created because seats are unavailable or already held",
+                content =
+                        @Content(schema = @Schema(ref = "#/components/schemas/JsendFailResponse")))
+    })
+    @SuccessPayload(value = BookingResponse.class, responseCode = "201")
     @PostMapping(value = "/{version}/bookings", version = "1.0")
     @PreAuthorize("isAuthenticated()")
     ResponseEntity<JsendResponse<?>> create(
@@ -97,9 +162,31 @@ class BookingController {
                         error -> errorResponse(error));
     }
 
+    @Operation(operationId = "cancelBooking", summary = "Cancel an existing booking")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Booking cancelled"),
+        @ApiResponse(
+                responseCode = "403",
+                description = "Customer cannot cancel this booking",
+                content =
+                        @Content(schema = @Schema(ref = "#/components/schemas/JsendFailResponse"))),
+        @ApiResponse(
+                responseCode = "404",
+                description = "Booking not found",
+                content =
+                        @Content(schema = @Schema(ref = "#/components/schemas/JsendFailResponse"))),
+        @ApiResponse(
+                responseCode = "409",
+                description = "Booking cannot transition to cancelled state",
+                content =
+                        @Content(schema = @Schema(ref = "#/components/schemas/JsendFailResponse")))
+    })
+    @SuccessPayload
     @PostMapping(value = "/{version}/bookings/{id}/cancel", version = "1.0")
     @PreAuthorize("isAuthenticated()")
-    ResponseEntity<JsendResponse<?>> cancel(@PathVariable UUID id, Authentication auth) {
+    ResponseEntity<JsendResponse<?>> cancel(
+            @Parameter(description = "Booking identifier") @PathVariable UUID id,
+            Authentication auth) {
         UUID userId = UUID.fromString(auth.getName());
 
         return cancelBookingUseCase

@@ -10,6 +10,8 @@ import io.github.phunguy65.ttbs.backend.train.application.usecase.GetTrainsUseCa
 import io.github.phunguy65.ttbs.backend.train.domain.error.TrainError;
 import io.github.phunguy65.ttbs.backend.train.infrastructure.web.request.GetTrainByIdRequest;
 import io.github.phunguy65.ttbs.backend.train.infrastructure.web.request.GetTrainsRequest;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
@@ -18,6 +20,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
+@Tag(name = "Trains")
 class TrainController {
 
     private final GetTrainByIdUseCase getTrainByIdUseCase;
@@ -28,6 +31,7 @@ class TrainController {
         this.getTrainsUseCase = getTrainsUseCase;
     }
 
+    @Operation(operationId = "getTrains", summary = "List trains")
     @GetMapping(value = "/{version}/trains", version = "1.0")
     ResponseEntity<JsendResponse<?>> list(@ModelAttribute @Valid GetTrainsRequest request) {
         PageResponse<TrainResponse> result = getTrainsUseCase.execute(request.toQuery());
@@ -35,6 +39,7 @@ class TrainController {
         return ResponseEntity.ok(JsendResponse.success(result));
     }
 
+    @Operation(operationId = "getTrain", summary = "Get a train by id")
     @GetMapping(value = "/{version}/trains/{id}", version = "1.0")
     ResponseEntity<JsendResponse<?>> getById(
             @PathVariable UUID id, @ModelAttribute GetTrainByIdRequest request) {

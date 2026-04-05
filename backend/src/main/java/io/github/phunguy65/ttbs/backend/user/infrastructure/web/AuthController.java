@@ -3,8 +3,11 @@ package io.github.phunguy65.ttbs.backend.user.infrastructure.web;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.ErrorCode;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.FailData;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.JsendResponse;
+import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.SuccessPayload;
 import io.github.phunguy65.ttbs.backend.user.application.command.SoftDeleteUserCommand;
 import io.github.phunguy65.ttbs.backend.user.application.query.GetUserByIdQuery;
+import io.github.phunguy65.ttbs.backend.user.application.response.LoginResultResponse;
+import io.github.phunguy65.ttbs.backend.user.application.response.UserResponse;
 import io.github.phunguy65.ttbs.backend.user.application.usecase.DeleteAuthenticatedUserUseCase;
 import io.github.phunguy65.ttbs.backend.user.application.usecase.GetAuthenticatedUserUseCase;
 import io.github.phunguy65.ttbs.backend.user.application.usecase.LoginUserUseCase;
@@ -18,6 +21,13 @@ import io.github.phunguy65.ttbs.backend.user.infrastructure.web.request.LoginReq
 import io.github.phunguy65.ttbs.backend.user.infrastructure.web.request.RefreshTokenRequest;
 import io.github.phunguy65.ttbs.backend.user.infrastructure.web.request.RegisterRequest;
 import io.github.phunguy65.ttbs.backend.user.infrastructure.web.request.UpdateAuthenticatedUserRequest;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
@@ -30,6 +40,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 @RestController
 @RequestMapping("/{version}/auth")
+@Tag(name = "Authentication")
 class AuthController {
 
     private final RegisterUserUseCase registerUserUseCase;
@@ -57,6 +68,22 @@ class AuthController {
         this.deleteAuthenticatedUserUseCase = deleteAuthenticatedUserUseCase;
     }
 
+    @Operation(operationId = "register", summary = "Register a customer account")
+    @ApiResponses({
+        @ApiResponse(responseCode = "201", description = "Customer account created"),
+        @ApiResponse(
+                responseCode = "400",
+                description = "Invalid registration payload",
+                content =
+                        @Content(schema = @Schema(ref = "#/components/schemas/JsendFailResponse"))),
+        @ApiResponse(
+                responseCode = "409",
+                description = "Email address already exists",
+                content =
+                        @Content(schema = @Schema(ref = "#/components/schemas/JsendFailResponse")))
+    })
+    @SecurityRequirement(name = "")
+    @SuccessPayload(value = UserResponse.class, responseCode = "201")
     @PostMapping(value = "/register", version = "1.0")
     ResponseEntity<JsendResponse<?>> register(@Valid @RequestBody RegisterRequest request) {
         return registerUserUseCase
@@ -72,6 +99,22 @@ class AuthController {
                         error -> errorResponse(error));
     }
 
+    @Operation(operationId = "login", summary = "Authenticate a customer")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Authentication successful"),
+        @ApiResponse(
+                responseCode = "400",
+                description = "Invalid login payload",
+                content =
+                        @Content(schema = @Schema(ref = "#/components/schemas/JsendFailResponse"))),
+        @ApiResponse(
+                responseCode = "401",
+                description = "Invalid customer credentials",
+                content =
+                        @Content(schema = @Schema(ref = "#/components/schemas/JsendFailResponse")))
+    })
+    @SecurityRequirement(name = "")
+    @SuccessPayload(LoginResultResponse.class)
     @PostMapping(value = "/login", version = "1.0")
     ResponseEntity<JsendResponse<?>> login(@Valid @RequestBody LoginRequest request) {
         return loginUserUseCase
@@ -81,6 +124,22 @@ class AuthController {
                         error -> errorResponse(error));
     }
 
+    @Operation(operationId = "refreshToken", summary = "Rotate access and refresh tokens")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Token pair rotated"),
+        @ApiResponse(
+                responseCode = "400",
+                description = "Invalid refresh-token payload",
+                content =
+                        @Content(schema = @Schema(ref = "#/components/schemas/JsendFailResponse"))),
+        @ApiResponse(
+                responseCode = "401",
+                description = "Refresh token is invalid or expired",
+                content =
+                        @Content(schema = @Schema(ref = "#/components/schemas/JsendFailResponse")))
+    })
+    @SecurityRequirement(name = "")
+    @SuccessPayload(LoginResultResponse.class)
     @PostMapping(value = "/refresh", version = "1.0")
     ResponseEntity<JsendResponse<?>> refresh(@Valid @RequestBody RefreshTokenRequest request) {
         return refreshTokenUseCase
@@ -90,6 +149,22 @@ class AuthController {
                         error -> errorResponse(error));
     }
 
+    @Operation(operationId = "logout", summary = "Revoke the current refresh token")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Refresh token revoked"),
+        @ApiResponse(
+                responseCode = "400",
+                description = "Invalid refresh-token payload",
+                content =
+                        @Content(schema = @Schema(ref = "#/components/schemas/JsendFailResponse"))),
+        @ApiResponse(
+                responseCode = "401",
+                description = "Refresh token is invalid or expired",
+                content =
+                        @Content(schema = @Schema(ref = "#/components/schemas/JsendFailResponse")))
+    })
+    @SecurityRequirement(name = "")
+    @SuccessPayload
     @PostMapping(value = "/logout", version = "1.0")
     ResponseEntity<JsendResponse<?>> logout(@Valid @RequestBody RefreshTokenRequest request) {
         return logoutUserUseCase
@@ -99,6 +174,21 @@ class AuthController {
                         error -> errorResponse(error));
     }
 
+    @Operation(operationId = "getAuthenticatedUser", summary = "Get the current customer profile")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Authenticated customer profile"),
+        @ApiResponse(
+                responseCode = "401",
+                description = "Authentication required",
+                content =
+                        @Content(schema = @Schema(ref = "#/components/schemas/JsendFailResponse"))),
+        @ApiResponse(
+                responseCode = "404",
+                description = "Customer profile not found",
+                content =
+                        @Content(schema = @Schema(ref = "#/components/schemas/JsendFailResponse")))
+    })
+    @SuccessPayload(UserResponse.class)
     @GetMapping(value = "/me", version = "1.0")
     @PreAuthorize("isAuthenticated()")
     ResponseEntity<JsendResponse<?>> me(Authentication auth) {
@@ -110,6 +200,28 @@ class AuthController {
                         error -> errorResponse(error));
     }
 
+    @Operation(
+            operationId = "updateAuthenticatedUser",
+            summary = "Update the current customer profile")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Customer profile updated"),
+        @ApiResponse(
+                responseCode = "400",
+                description = "Invalid update payload",
+                content =
+                        @Content(schema = @Schema(ref = "#/components/schemas/JsendFailResponse"))),
+        @ApiResponse(
+                responseCode = "401",
+                description = "Authentication required",
+                content =
+                        @Content(schema = @Schema(ref = "#/components/schemas/JsendFailResponse"))),
+        @ApiResponse(
+                responseCode = "404",
+                description = "Customer profile not found",
+                content =
+                        @Content(schema = @Schema(ref = "#/components/schemas/JsendFailResponse")))
+    })
+    @SuccessPayload(UserResponse.class)
     @PatchMapping(value = "/me", version = "1.0")
     @PreAuthorize("isAuthenticated()")
     ResponseEntity<JsendResponse<?>> updateMe(
@@ -122,6 +234,28 @@ class AuthController {
                         error -> errorResponse(error));
     }
 
+    @Operation(
+            operationId = "deleteAuthenticatedUser",
+            summary = "Soft-delete the current customer account")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Customer account deleted"),
+        @ApiResponse(
+                responseCode = "401",
+                description = "Authentication required",
+                content =
+                        @Content(schema = @Schema(ref = "#/components/schemas/JsendFailResponse"))),
+        @ApiResponse(
+                responseCode = "404",
+                description = "Customer profile not found",
+                content =
+                        @Content(schema = @Schema(ref = "#/components/schemas/JsendFailResponse"))),
+        @ApiResponse(
+                responseCode = "409",
+                description = "Customer still has active bookings",
+                content =
+                        @Content(schema = @Schema(ref = "#/components/schemas/JsendFailResponse")))
+    })
+    @SuccessPayload
     @DeleteMapping(value = "/me", version = "1.0")
     @PreAuthorize("isAuthenticated()")
     ResponseEntity<JsendResponse<?>> deleteMe(Authentication auth) {

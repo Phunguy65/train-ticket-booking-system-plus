@@ -13,6 +13,8 @@ import io.github.phunguy65.ttbs.backend.station.domain.error.StationError;
 import io.github.phunguy65.ttbs.backend.station.infrastructure.web.request.GetStationByIdRequest;
 import io.github.phunguy65.ttbs.backend.station.infrastructure.web.request.GetStationsRequest;
 import io.github.phunguy65.ttbs.backend.station.infrastructure.web.request.SearchStationsRequest;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
@@ -24,6 +26,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@Tag(name = "Stations")
 class StationController {
 
     private final GetStationByIdUseCase getStationByIdUseCase;
@@ -39,6 +42,7 @@ class StationController {
         this.searchStationsUseCase = searchStationsUseCase;
     }
 
+    @Operation(operationId = "getStations", summary = "List stations")
     @GetMapping(value = "/{version}/stations", version = "1.0")
     ResponseEntity<JsendResponse<?>> list(@ModelAttribute @Valid GetStationsRequest request) {
         PageResponse<StationResponse> result = getStationsUseCase.execute(request.toQuery());
@@ -46,6 +50,7 @@ class StationController {
         return ResponseEntity.ok(JsendResponse.success(result));
     }
 
+    @Operation(operationId = "searchStations", summary = "Search stations by keyword")
     @GetMapping(value = "/{version}/stations/search", version = "1.0")
     ResponseEntity<JsendResponse<?>> search(@ModelAttribute @Valid SearchStationsRequest request) {
         List<StationSearchResponse> result = searchStationsUseCase.execute(request.toQuery());
@@ -53,6 +58,7 @@ class StationController {
         return ResponseEntity.ok(new JsendResponse<>("success", result, message));
     }
 
+    @Operation(operationId = "getStation", summary = "Get a station by id")
     @GetMapping(value = "/{version}/stations/{id}", version = "1.0")
     ResponseEntity<JsendResponse<?>> getById(
             @PathVariable UUID id, @ModelAttribute GetStationByIdRequest request) {

@@ -10,6 +10,8 @@ import io.github.phunguy65.ttbs.backend.train.application.usecase.GetCoachesByTr
 import io.github.phunguy65.ttbs.backend.train.domain.error.CoachError;
 import io.github.phunguy65.ttbs.backend.train.infrastructure.web.request.GetCoachByIdRequest;
 import io.github.phunguy65.ttbs.backend.train.infrastructure.web.request.GetCoachesRequest;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Map;
@@ -19,6 +21,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
+@Tag(name = "Coaches")
 class CoachController {
 
     private final GetCoachByIdUseCase getCoachByIdUseCase;
@@ -32,6 +35,7 @@ class CoachController {
         this.getCoachesByTrainUseCase = getCoachesByTrainUseCase;
     }
 
+    @Operation(operationId = "getTrainCoaches", summary = "List coaches for a train")
     @GetMapping(value = "/{version}/trains/{trainId}/coaches", version = "1.0")
     ResponseEntity<JsendResponse<?>> getCoachesByTrain(
             @PathVariable UUID trainId, @ModelAttribute @Valid GetCoachesRequest request) {
@@ -40,6 +44,7 @@ class CoachController {
         return ResponseEntity.ok(JsendResponse.success(result));
     }
 
+    @Operation(operationId = "getTrainCoach", summary = "Get a coach by id")
     @GetMapping(value = "/{version}/trains/{trainId}/coaches/{id}", version = "1.0")
     ResponseEntity<JsendResponse<?>> getCoachById(
             @PathVariable UUID trainId,

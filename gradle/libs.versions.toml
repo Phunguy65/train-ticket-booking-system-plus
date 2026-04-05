@@ -6,6 +6,7 @@ jacksonDatabindNullable = "0.2.9"
 java = "25"
 # ─── Backend ─────────────────────────────────────────────────────────────────
 springBoot = "4.0.3"
+springdocOpenapi = "2.8.14"
 jjwt = "0.13.0"
 uuidCreator = "6.1.1"
 springDependencyManagement = "1.1.7"
@@ -54,6 +55,7 @@ spring-boot-starter-integration = { module = "org.springframework.boot:spring-bo
 spring-boot-starter-security = { module = "org.springframework.boot:spring-boot-starter-security" }
 spring-boot-starter-webmvc = { module = "org.springframework.boot:spring-boot-starter-webmvc" }
 spring-boot-starter-validation = { module = "org.springframework.boot:spring-boot-starter-validation" }
+springdoc-openapi-starter-webmvc-ui = { module = "org.springdoc:springdoc-openapi-starter-webmvc-ui", version.ref = "springdocOpenapi" }
 spring-boot-devtools = { module = "org.springframework.boot:spring-boot-devtools" }
 spring-boot-configuration-processor = { module = "org.springframework.boot:spring-boot-configuration-processor" }
 

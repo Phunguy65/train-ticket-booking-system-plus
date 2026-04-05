@@ -21,7 +21,7 @@
         "zod": "4.1.11"
     },
     "devDependencies": {
-        "@biomejs/biome": "2.2.0",
+        "@biomejs/biome": "2.4.10",
         "@hey-api/openapi-ts": "0.95.0",
         "@tailwindcss/postcss": "^4",
         "@types/node": "^20",

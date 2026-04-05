@@ -10,6 +10,8 @@ import io.github.phunguy65.ttbs.backend.train.application.usecase.GetRouteTempla
 import io.github.phunguy65.ttbs.backend.train.domain.error.RouteTemplateError;
 import io.github.phunguy65.ttbs.backend.train.infrastructure.web.request.GetRouteTemplateByIdRequest;
 import io.github.phunguy65.ttbs.backend.train.infrastructure.web.request.GetRouteTemplatesRequest;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
@@ -21,6 +23,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@Tag(name = "Route Templates")
 class RouteTemplateController {
 
     private final GetRouteTemplateByIdUseCase getRouteTemplateByIdUseCase;
@@ -33,6 +36,7 @@ class RouteTemplateController {
         this.getRouteTemplatesUseCase = getRouteTemplatesUseCase;
     }
 
+    @Operation(operationId = "getRouteTemplates", summary = "List route templates")
     @GetMapping(value = "/{version}/route-templates", version = "1.0")
     ResponseEntity<JsendResponse<?>> list(@ModelAttribute @Valid GetRouteTemplatesRequest request) {
         PageResponse<RouteTemplateResponse> result =
@@ -40,6 +44,7 @@ class RouteTemplateController {
         return ResponseEntity.ok(JsendResponse.success(result));
     }
 
+    @Operation(operationId = "getRouteTemplate", summary = "Get a route template by id")
     @GetMapping(value = "/{version}/route-templates/{id}", version = "1.0")
     ResponseEntity<JsendResponse<?>> getById(
             @PathVariable UUID id, @ModelAttribute GetRouteTemplateByIdRequest request) {
