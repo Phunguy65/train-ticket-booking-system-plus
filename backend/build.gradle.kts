@@ -84,3 +84,17 @@ tasks.withType<Test> {
 tasks.withType<JavaCompile>().configureEach {
     options.compilerArgs.add("-parameters")
 }
+
+tasks.register<JavaExec>("exportCustomerOpenApi") {
+    group = "documentation"
+    description = "Exports the generated customer OpenAPI YAML artifact"
+    dependsOn(tasks.named("testClasses"))
+    classpath(
+        layout.buildDirectory.dir("classes/java/main"),
+        layout.buildDirectory.dir("resources/main"),
+        layout.buildDirectory.dir("classes/java/test"),
+        layout.buildDirectory.dir("resources/test"),
+        configurations.named("testRuntimeClasspath")
+    )
+    mainClass.set("io.github.phunguy65.ttbs.backend.shared.infrastructure.web.CustomerOpenApiExporter")
+}

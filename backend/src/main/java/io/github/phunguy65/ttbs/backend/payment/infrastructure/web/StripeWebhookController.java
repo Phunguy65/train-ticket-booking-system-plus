@@ -13,6 +13,7 @@ import io.github.phunguy65.ttbs.backend.payment.application.usecase.HandlePaymen
 import io.github.phunguy65.ttbs.backend.payment.application.usecase.HandlePaymentSuccessUseCase;
 import io.github.phunguy65.ttbs.backend.payment.infrastructure.stripe.StripeConfig;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.JsendResponse;
+import io.swagger.v3.oas.annotations.Hidden;
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -24,6 +25,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@Hidden
 class StripeWebhookController {
 
     private static final Logger log = LoggerFactory.getLogger(StripeWebhookController.class);

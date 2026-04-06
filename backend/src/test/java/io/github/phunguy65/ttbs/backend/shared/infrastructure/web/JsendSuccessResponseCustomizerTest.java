@@ -7,6 +7,7 @@ import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.media.ArraySchema;
 import io.swagger.v3.oas.models.media.Content;
 import io.swagger.v3.oas.models.media.MediaType;
+import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.oas.models.responses.ApiResponse;
 import io.swagger.v3.oas.models.responses.ApiResponses;
 import java.lang.reflect.Method;
@@ -24,6 +25,7 @@ class JsendSuccessResponseCustomizerTest {
         customizer.customize(operation, handlerMethod("objectResponse"));
 
         assertThat(schemaRef(operation, "200")).isEqualTo("#/components/schemas/TestPayload");
+        assertTechnicalFailureResponse(operation);
     }
 
     @Test
@@ -35,6 +37,7 @@ class JsendSuccessResponseCustomizerTest {
         assertThat(jsonSchema(operation, "200")).isInstanceOf(ArraySchema.class);
         ArraySchema schema = (ArraySchema) jsonSchema(operation, "200");
         assertThat(schema.getItems().get$ref()).isEqualTo("#/components/schemas/TestPayload");
+        assertTechnicalFailureResponse(operation);
     }
 
     @Test
@@ -44,6 +47,7 @@ class JsendSuccessResponseCustomizerTest {
         customizer.customize(operation, handlerMethod("pageResponse"));
 
         assertThat(schemaRef(operation, "200")).contains("PageResponse");
+        assertTechnicalFailureResponse(operation);
     }
 
     @Test
@@ -53,6 +57,7 @@ class JsendSuccessResponseCustomizerTest {
         customizer.customize(operation, handlerMethod("sliceResponse"));
 
         assertThat(schemaRef(operation, "200")).contains("SliceResponse");
+        assertTechnicalFailureResponse(operation);
     }
 
     @Test
@@ -62,6 +67,7 @@ class JsendSuccessResponseCustomizerTest {
         customizer.customize(operation, handlerMethod("voidResponse"));
 
         assertThat(operation.getResponses().get("200").getContent()).isNull();
+        assertTechnicalFailureResponse(operation);
     }
 
     @Test
@@ -90,6 +96,53 @@ class JsendSuccessResponseCustomizerTest {
                         .getSchema())
                 .isNull();
         assertThat(schemaRef(operation, "201")).isEqualTo("#/components/schemas/TestPayload");
+        assertTechnicalFailureResponse(operation);
+    }
+
+    @Test
+    void addsTechnicalFailureResponseToCustomizedOperations() throws NoSuchMethodException {
+        Operation operation = operationWithJsonResponse("200");
+
+        customizer.customize(operation, handlerMethod("objectResponse"));
+
+        assertTechnicalFailureResponse(operation);
+    }
+
+    @Test
+    void leavesNonAnnotatedSuccessResponsesUntouchedWhileAddingTechnicalFailureResponse()
+            throws NoSuchMethodException {
+        Operation operation = operationWithJsonResponse("200");
+
+        customizer.customize(operation, handlerMethod("noAnnotation"));
+
+        assertThat(jsonSchema(operation, "200")).isNull();
+        assertTechnicalFailureResponse(operation);
+    }
+
+    @Test
+    void ignoresOperationsWithoutResponses() throws NoSuchMethodException {
+        Operation operation = new Operation();
+
+        customizer.customize(operation, handlerMethod("objectResponse"));
+
+        assertThat(operation.getResponses()).isNull();
+    }
+
+    @Test
+    void preservesExistingTechnicalFailureResponse() throws NoSuchMethodException {
+        ApiResponse existingFailure = new ApiResponse().description("Already documented");
+        Operation operation = new Operation()
+                .responses(new ApiResponses()
+                        .addApiResponse(
+                                "200",
+                                new ApiResponse()
+                                        .content(new Content()
+                                                .addMediaType("application/json", new MediaType())))
+                        .addApiResponse("500", existingFailure));
+
+        customizer.customize(operation, handlerMethod("objectResponse"));
+
+        assertThat(operation.getResponses().get("500")).isSameAs(existingFailure);
     }
 
     @Test
@@ -152,6 +205,20 @@ class JsendSuccessResponseCustomizerTest {
         return jsonSchema(operation, responseCode).get$ref();
     }
 
+    private void assertTechnicalFailureResponse(Operation operation) {
+        assertThat(operation.getResponses()).containsKey("500");
+        assertThat(operation.getResponses().get("500").getDescription())
+                .isEqualTo("Unexpected technical failure.");
+        assertThat(operation
+                        .getResponses()
+                        .get("500")
+                        .getContent()
+                        .get("application/json")
+                        .getSchema())
+                .extracting(Schema::get$ref)
+                .isEqualTo("#/components/schemas/JsendErrorResponse");
+    }
+
     static final class TestPayload {
         public String value;
     }
@@ -177,5 +244,7 @@ class JsendSuccessResponseCustomizerTest {
 
         @SuccessPayload
         void defaultResponse() {}
+
+        void noAnnotation() {}
     }
 }

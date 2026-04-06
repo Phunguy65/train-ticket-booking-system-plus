@@ -1,5 +1,7 @@
 package io.github.phunguy65.ttbs.backend.shared.domain;
 
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.List;
 
 /**
@@ -14,8 +16,28 @@ import java.util.List;
  *
  * @param <T> the domain type for each item in the page
  */
+@Schema(description = "Offset-based pagination wrapper.")
 public record PageResponse<T>(
-        List<T> content, int page, int size, boolean hasNext, boolean hasPrevious, long total) {
+        @ArraySchema(schema = @Schema(description = "Items in the current page."))
+        List<T> content,
+
+        @Schema(description = "Zero-based page index.", minimum = "0", example = "0")
+        int page,
+
+        @Schema(description = "Requested page size.", minimum = "1", example = "20")
+        int size,
+
+        @Schema(description = "Whether a subsequent page exists.")
+        boolean hasNext,
+
+        @Schema(description = "Whether a previous page exists.")
+        boolean hasPrevious,
+
+        @Schema(
+                description = "Total number of matching items across all pages.",
+                minimum = "0",
+                example = "125")
+        long total) {
 
     /**
      * Compact canonical constructor – defensively copies {@code content} to make the record

@@ -25,6 +25,9 @@ public final class JsendSuccessResponseCustomizer
         implements OperationCustomizer, OpenApiCustomizer {
 
     private static final String APPLICATION_JSON = "application/json";
+    private static final String TECHNICAL_FAILURE_RESPONSE_CODE = "500";
+    private static final String JSEND_ERROR_RESPONSE_REF =
+            "#/components/schemas/JsendErrorResponse";
 
     // Springdoc invokes this singleton bean across operation scans before the final OpenAPI object
     // is built.
@@ -34,8 +37,14 @@ public final class JsendSuccessResponseCustomizer
 
     @Override
     public Operation customize(Operation operation, HandlerMethod handlerMethod) {
+        if (operation.getResponses() == null) {
+            return operation;
+        }
+
+        ensureTechnicalFailureResponse(operation);
+
         SuccessPayload successPayload = handlerMethod.getMethodAnnotation(SuccessPayload.class);
-        if (successPayload == null || operation.getResponses() == null) {
+        if (successPayload == null) {
             return operation;
         }
 
@@ -94,6 +103,19 @@ public final class JsendSuccessResponseCustomizer
             content.addMediaType(APPLICATION_JSON, mediaType);
         }
         mediaType.setSchema(schema);
+    }
+
+    private void ensureTechnicalFailureResponse(Operation operation) {
+        operation
+                .getResponses()
+                .computeIfAbsent(TECHNICAL_FAILURE_RESPONSE_CODE, ignored -> new ApiResponse()
+                        .description("Unexpected technical failure.")
+                        .content(new Content()
+                                .addMediaType(
+                                        APPLICATION_JSON,
+                                        new MediaType()
+                                                .schema(new Schema<>()
+                                                        .$ref(JSEND_ERROR_RESPONSE_REF)))));
     }
 
     private Schema<?> resolveSchema(SuccessPayload successPayload) {

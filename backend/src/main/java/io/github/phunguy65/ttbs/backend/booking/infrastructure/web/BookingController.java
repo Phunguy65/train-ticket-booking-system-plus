@@ -23,6 +23,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
@@ -72,6 +73,7 @@ class BookingController {
                 content =
                         @Content(schema = @Schema(ref = "#/components/schemas/JsendFailResponse")))
     })
+    @SecurityRequirement(name = "bearerAuth")
     @SuccessPayload(value = UserBookingResponse.class, kind = SuccessResponseKind.PAGE)
     @org.springframework.web.bind.annotation.GetMapping(
             value = "/{version}/users/{userId}/bookings",
@@ -80,7 +82,7 @@ class BookingController {
     ResponseEntity<JsendResponse<?>> listByUser(
             @Parameter(description = "Customer identifier that owns the bookings") @PathVariable
                     UUID userId,
-            Authentication auth,
+            @Parameter(hidden = true) Authentication auth,
             @ModelAttribute @Valid GetUserBookingsRequest request) {
         UUID requestingUserId = UUID.fromString(auth.getName());
 
@@ -103,6 +105,7 @@ class BookingController {
                 content =
                         @Content(schema = @Schema(ref = "#/components/schemas/JsendFailResponse")))
     })
+    @SecurityRequirement(name = "bearerAuth")
     @SuccessPayload(BookingDetailResponse.class)
     @org.springframework.web.bind.annotation.GetMapping(
             value = "/{version}/bookings/{id}",
@@ -110,7 +113,7 @@ class BookingController {
     @PreAuthorize("isAuthenticated()")
     ResponseEntity<JsendResponse<?>> getById(
             @Parameter(description = "Booking identifier") @PathVariable UUID id,
-            Authentication auth,
+            @Parameter(hidden = true) Authentication auth,
             @ModelAttribute GetBookingDetailRequest request) {
         UUID userId = UUID.fromString(auth.getName());
 
@@ -141,11 +144,13 @@ class BookingController {
                 content =
                         @Content(schema = @Schema(ref = "#/components/schemas/JsendFailResponse")))
     })
+    @SecurityRequirement(name = "bearerAuth")
     @SuccessPayload(value = BookingResponse.class, responseCode = "201")
     @PostMapping(value = "/{version}/bookings", version = "1.0")
     @PreAuthorize("isAuthenticated()")
     ResponseEntity<JsendResponse<?>> create(
-            @Valid @RequestBody CreateBookingRequest request, Authentication auth) {
+            @Valid @RequestBody CreateBookingRequest request,
+            @Parameter(hidden = true) Authentication auth) {
         UUID userId = UUID.fromString(auth.getName());
 
         return createBookingUseCase
@@ -181,12 +186,13 @@ class BookingController {
                 content =
                         @Content(schema = @Schema(ref = "#/components/schemas/JsendFailResponse")))
     })
+    @SecurityRequirement(name = "bearerAuth")
     @SuccessPayload
     @PostMapping(value = "/{version}/bookings/{id}/cancel", version = "1.0")
     @PreAuthorize("isAuthenticated()")
     ResponseEntity<JsendResponse<?>> cancel(
             @Parameter(description = "Booking identifier") @PathVariable UUID id,
-            Authentication auth) {
+            @Parameter(hidden = true) Authentication auth) {
         UUID userId = UUID.fromString(auth.getName());
 
         return cancelBookingUseCase

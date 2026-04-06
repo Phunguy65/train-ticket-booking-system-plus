@@ -5,6 +5,7 @@ import io.github.phunguy65.ttbs.backend.train.application.port.RouteSeatAvailabi
 import io.github.phunguy65.ttbs.backend.train.application.sse.SeatEventBroadcaster;
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteSeatAvailability;
 import io.github.phunguy65.ttbs.backend.train.domain.model.ScheduledTripId;
+import io.swagger.v3.oas.annotations.Hidden;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -27,6 +28,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
  * respecting the layer boundary (controller → application port → domain repository).
  */
 @RestController
+@Hidden
 @RequestMapping("/sse/trips")
 public class SeatEventController {
 

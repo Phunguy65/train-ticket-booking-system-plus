@@ -9,6 +9,7 @@
         "lint": "biome check",
         "lint:fix": "biome check --fix",
         "format": "biome format --write",
+        "test": "vitest run",
         "codegen": "openapi-ts",
         "codegen:check": "bun run codegen && biome check src/lib/api"
     },
@@ -29,7 +30,8 @@
         "@types/react-dom": "^19",
         "babel-plugin-react-compiler": "1.0.0",
         "tailwindcss": "^4",
-        "typescript": "^5"
+        "typescript": "^5",
+        "vitest": "^3.2.4"
     },
     "ignoreScripts": [
         "sharp",

@@ -1,5 +1,6 @@
 package io.github.phunguy65.ttbs.backend.payment.infrastructure.web;
 
+import io.github.phunguy65.ttbs.backend.payment.application.response.PaymentResponse;
 import io.github.phunguy65.ttbs.backend.payment.application.usecase.GetPaymentByBookingIdUseCase;
 import io.github.phunguy65.ttbs.backend.payment.application.usecase.GetPaymentByIdUseCase;
 import io.github.phunguy65.ttbs.backend.payment.domain.error.PaymentError;
@@ -8,7 +9,14 @@ import io.github.phunguy65.ttbs.backend.payment.infrastructure.web.request.GetPa
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.ErrorCode;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.FailData;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.JsendResponse;
+import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.SuccessPayload;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import java.util.UUID;
@@ -36,11 +44,26 @@ class PaymentController {
     }
 
     @Operation(operationId = "getPayment", summary = "Get a payment by id")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Payment detail"),
+        @ApiResponse(
+                responseCode = "403",
+                description = "Customer cannot access this payment",
+                content =
+                        @Content(schema = @Schema(ref = "#/components/schemas/JsendFailResponse"))),
+        @ApiResponse(
+                responseCode = "404",
+                description = "Payment not found",
+                content =
+                        @Content(schema = @Schema(ref = "#/components/schemas/JsendFailResponse")))
+    })
+    @SecurityRequirement(name = "bearerAuth")
+    @SuccessPayload(PaymentResponse.class)
     @GetMapping(value = "/{version}/payments/{paymentId}", version = "1.0")
     @PreAuthorize("isAuthenticated()")
     ResponseEntity<JsendResponse<?>> getPaymentById(
-            @PathVariable UUID paymentId,
-            Authentication auth,
+            @Parameter(description = "Payment identifier") @PathVariable UUID paymentId,
+            @Parameter(hidden = true) Authentication auth,
             @ModelAttribute GetPaymentByIdRequest request) {
         UUID userId = UUID.fromString(auth.getName());
 
@@ -52,11 +75,26 @@ class PaymentController {
     }
 
     @Operation(operationId = "getBookingPayment", summary = "Get the payment linked to a booking")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Payment linked to the booking"),
+        @ApiResponse(
+                responseCode = "403",
+                description = "Customer cannot access this booking payment",
+                content =
+                        @Content(schema = @Schema(ref = "#/components/schemas/JsendFailResponse"))),
+        @ApiResponse(
+                responseCode = "404",
+                description = "Payment or booking not found",
+                content =
+                        @Content(schema = @Schema(ref = "#/components/schemas/JsendFailResponse")))
+    })
+    @SecurityRequirement(name = "bearerAuth")
+    @SuccessPayload(PaymentResponse.class)
     @GetMapping(value = "/{version}/bookings/{bookingId}/payment", version = "1.0")
     @PreAuthorize("isAuthenticated()")
     ResponseEntity<JsendResponse<?>> getPaymentByBookingId(
-            @PathVariable UUID bookingId,
-            Authentication auth,
+            @Parameter(description = "Booking identifier") @PathVariable UUID bookingId,
+            @Parameter(hidden = true) Authentication auth,
             @ModelAttribute GetPaymentByBookingIdRequest request) {
         UUID userId = UUID.fromString(auth.getName());
 

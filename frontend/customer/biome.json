@@ -1,7 +1,10 @@
 {
     "$schema": "https://biomejs.dev/schemas/latest/schema.json",
     "files": {
-        "includes": ["src/**/*.{ts,tsx,js,jsx,json,css}"]
+        "includes": [
+            "src/**/*.{ts,tsx,js,jsx,json,css}",
+            "!src/lib/api/generated/**/*"
+        ]
     },
     "vcs": {
         "enabled": false

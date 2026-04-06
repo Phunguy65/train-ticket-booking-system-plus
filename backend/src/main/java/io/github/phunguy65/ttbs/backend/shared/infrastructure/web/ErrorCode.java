@@ -1,5 +1,7 @@
 package io.github.phunguy65.ttbs.backend.shared.infrastructure.web;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 /**
  * Machine-readable error codes for all JSend {@code fail} responses.
  *
@@ -7,6 +9,7 @@ package io.github.phunguy65.ttbs.backend.shared.infrastructure.web;
  * and make provenance clear. {@code VALIDATION_ERROR} is the umbrella code used when Bean
  * Validation fails; individual field violations carry a {@link ViolationCode}.
  */
+@Schema(description = "Machine-readable error code carried by shared fail responses.")
 public enum ErrorCode {
 
     // ── Bean Validation umbrella ──────────────────────────────────────────────

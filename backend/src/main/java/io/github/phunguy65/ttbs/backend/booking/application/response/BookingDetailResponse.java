@@ -5,38 +5,85 @@ import io.github.phunguy65.ttbs.backend.train.application.response.ScheduledTrip
 import io.github.phunguy65.ttbs.backend.train.application.response.ScheduledTripDetailResponse.Route;
 import io.github.phunguy65.ttbs.backend.train.application.response.ScheduledTripDetailResponse.Train;
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteSeatAvailabilityStatus;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
+@Schema(description = "Detailed booking resource with trip, seat, and payment information.")
 public record BookingDetailResponse(
+        @Schema(
+                description = "Booking identifier.",
+                format = "uuid",
+                accessMode = Schema.AccessMode.READ_ONLY)
         UUID id,
+
+        @Schema(description = "Customer identifier that owns the booking.", format = "uuid")
         UUID userId,
+
+        @Schema(description = "Scheduled trip identifier.", format = "uuid")
         UUID scheduledTripId,
+
+        @Schema(description = "Passenger information stored with the booking.")
         PassengerInfoResponse passengerInfo,
+
+        @Schema(description = "Booking total in minor currency units.", example = "650000")
         long totalPrice,
+
+        @Schema(description = "ISO-like currency code.", example = "VND")
         String currency,
-        BookingStatus status,
+
+        @Schema(description = "Booking lifecycle status.") BookingStatus status,
+
+        @Schema(
+                description = "Deadline for completing payment before the booking expires.",
+                format = "date-time")
         Instant paymentDeadline,
+
+        @Schema(
+                description = "Booking creation timestamp.",
+                format = "date-time",
+                accessMode = Schema.AccessMode.READ_ONLY)
         Instant createdAt,
+
+        @Schema(description = "Scheduled trip summary linked to the booking.")
         Trip trip,
+
+        @Schema(description = "Payment details linked to the booking.")
         PaymentDetailResponse payment,
+
+        @ArraySchema(schema = @Schema(implementation = Seat.class))
         List<Seat> seats) {
 
     public BookingDetailResponse {
         seats = List.copyOf(seats);
     }
 
+    @Schema(description = "Trip summary embedded inside a booking detail.")
     public record Trip(
+            @Schema(description = "Scheduled trip identifier.", format = "uuid")
             UUID id,
+
+            @Schema(description = "Route template identifier.", format = "uuid")
             UUID routeTemplateId,
+
+            @Schema(description = "Train identifier.", format = "uuid")
             UUID trainId,
+
+            @Schema(description = "Scheduled departure timestamp.", format = "date-time")
             Instant departureTime,
+
+            @Schema(description = "Scheduled arrival timestamp.", format = "date-time")
             Instant arrivalTime,
-            String status,
+
+            @Schema(description = "Scheduled trip status.") String status,
+
+            @Schema(description = "Scheduled trip creation timestamp.", format = "date-time")
             Instant createdAt,
-            Train train,
-            Route route) {
+
+            @Schema(description = "Train summary.") Train train,
+            @Schema(description = "Route summary.") Route route) {
 
         public static Trip fromScheduledTripDetail(ScheduledTripDetailResponse response) {
             return new Trip(
@@ -52,11 +99,25 @@ public record BookingDetailResponse(
         }
     }
 
+    @Schema(description = "Seat reserved within a booking.")
     public record Seat(
+            @Schema(description = "Seat identifier.", format = "uuid")
             UUID seatId,
+
+            @Schema(description = "Coach identifier.", format = "uuid")
             UUID coachId,
+
+            @Schema(description = "Coach car number.", example = "5")
             int coachNumber,
+
+            @Schema(description = "Seat label shown to customers.", example = "12A")
             String seatNumber,
+
+            @Schema(description = "Seat status at the time the booking detail is viewed.")
             RouteSeatAvailabilityStatus status,
+
+            @Schema(
+                    description = "Seat price captured at booking time in minor currency units.",
+                    example = "325000")
             Long priceAtBooking) {}
 }

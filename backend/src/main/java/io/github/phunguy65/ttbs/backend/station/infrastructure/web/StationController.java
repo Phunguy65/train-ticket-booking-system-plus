@@ -4,6 +4,8 @@ import io.github.phunguy65.ttbs.backend.shared.domain.PageResponse;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.ErrorCode;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.FailData;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.JsendResponse;
+import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.SuccessPayload;
+import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.SuccessResponseKind;
 import io.github.phunguy65.ttbs.backend.station.application.response.StationResponse;
 import io.github.phunguy65.ttbs.backend.station.application.response.StationSearchResponse;
 import io.github.phunguy65.ttbs.backend.station.application.usecase.GetStationByIdUseCase;
@@ -14,6 +16,11 @@ import io.github.phunguy65.ttbs.backend.station.infrastructure.web.request.GetSt
 import io.github.phunguy65.ttbs.backend.station.infrastructure.web.request.GetStationsRequest;
 import io.github.phunguy65.ttbs.backend.station.infrastructure.web.request.SearchStationsRequest;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
@@ -43,6 +50,15 @@ class StationController {
     }
 
     @Operation(operationId = "getStations", summary = "List stations")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Paged station catalog"),
+        @ApiResponse(
+                responseCode = "400",
+                description = "Invalid pagination parameters",
+                content =
+                        @Content(schema = @Schema(ref = "#/components/schemas/JsendFailResponse")))
+    })
+    @SuccessPayload(value = StationResponse.class, kind = SuccessResponseKind.PAGE)
     @GetMapping(value = "/{version}/stations", version = "1.0")
     ResponseEntity<JsendResponse<?>> list(@ModelAttribute @Valid GetStationsRequest request) {
         PageResponse<StationResponse> result = getStationsUseCase.execute(request.toQuery());
@@ -51,6 +67,15 @@ class StationController {
     }
 
     @Operation(operationId = "searchStations", summary = "Search stations by keyword")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Matching station suggestions"),
+        @ApiResponse(
+                responseCode = "400",
+                description = "Invalid station search parameters",
+                content =
+                        @Content(schema = @Schema(ref = "#/components/schemas/JsendFailResponse")))
+    })
+    @SuccessPayload(value = StationSearchResponse.class, kind = SuccessResponseKind.ARRAY)
     @GetMapping(value = "/{version}/stations/search", version = "1.0")
     ResponseEntity<JsendResponse<?>> search(@ModelAttribute @Valid SearchStationsRequest request) {
         List<StationSearchResponse> result = searchStationsUseCase.execute(request.toQuery());
@@ -59,9 +84,19 @@ class StationController {
     }
 
     @Operation(operationId = "getStation", summary = "Get a station by id")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Station detail"),
+        @ApiResponse(
+                responseCode = "404",
+                description = "Station not found",
+                content =
+                        @Content(schema = @Schema(ref = "#/components/schemas/JsendFailResponse")))
+    })
+    @SuccessPayload(StationResponse.class)
     @GetMapping(value = "/{version}/stations/{id}", version = "1.0")
     ResponseEntity<JsendResponse<?>> getById(
-            @PathVariable UUID id, @ModelAttribute GetStationByIdRequest request) {
+            @Parameter(description = "Station identifier") @PathVariable UUID id,
+            @ModelAttribute GetStationByIdRequest request) {
         return getStationByIdUseCase
                 .execute(request.toQuery(id))
                 .fold(

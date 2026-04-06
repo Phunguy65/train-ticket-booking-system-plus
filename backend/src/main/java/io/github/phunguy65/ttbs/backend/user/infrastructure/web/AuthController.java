@@ -22,6 +22,7 @@ import io.github.phunguy65.ttbs.backend.user.infrastructure.web.request.RefreshT
 import io.github.phunguy65.ttbs.backend.user.infrastructure.web.request.RegisterRequest;
 import io.github.phunguy65.ttbs.backend.user.infrastructure.web.request.UpdateAuthenticatedUserRequest;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -188,10 +189,11 @@ class AuthController {
                 content =
                         @Content(schema = @Schema(ref = "#/components/schemas/JsendFailResponse")))
     })
+    @SecurityRequirement(name = "bearerAuth")
     @SuccessPayload(UserResponse.class)
     @GetMapping(value = "/me", version = "1.0")
     @PreAuthorize("isAuthenticated()")
-    ResponseEntity<JsendResponse<?>> me(Authentication auth) {
+    ResponseEntity<JsendResponse<?>> me(@Parameter(hidden = true) Authentication auth) {
         UUID principalId = UUID.fromString(auth.getName());
         return getAuthenticatedUserUseCase
                 .execute(new GetUserByIdQuery(principalId))
@@ -221,11 +223,13 @@ class AuthController {
                 content =
                         @Content(schema = @Schema(ref = "#/components/schemas/JsendFailResponse")))
     })
+    @SecurityRequirement(name = "bearerAuth")
     @SuccessPayload(UserResponse.class)
     @PatchMapping(value = "/me", version = "1.0")
     @PreAuthorize("isAuthenticated()")
     ResponseEntity<JsendResponse<?>> updateMe(
-            Authentication auth, @Valid @RequestBody UpdateAuthenticatedUserRequest request) {
+            @Parameter(hidden = true) Authentication auth,
+            @Valid @RequestBody UpdateAuthenticatedUserRequest request) {
         UUID principalId = UUID.fromString(auth.getName());
         return updateAuthenticatedUserUseCase
                 .execute(request.toCommand(principalId))
@@ -255,10 +259,11 @@ class AuthController {
                 content =
                         @Content(schema = @Schema(ref = "#/components/schemas/JsendFailResponse")))
     })
+    @SecurityRequirement(name = "bearerAuth")
     @SuccessPayload
     @DeleteMapping(value = "/me", version = "1.0")
     @PreAuthorize("isAuthenticated()")
-    ResponseEntity<JsendResponse<?>> deleteMe(Authentication auth) {
+    ResponseEntity<JsendResponse<?>> deleteMe(@Parameter(hidden = true) Authentication auth) {
         UUID principalId = UUID.fromString(auth.getName());
         return deleteAuthenticatedUserUseCase
                 .execute(new SoftDeleteUserCommand(UserId.of(principalId)))

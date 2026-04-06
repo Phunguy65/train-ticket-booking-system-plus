@@ -4,6 +4,8 @@ import io.github.phunguy65.ttbs.backend.shared.domain.PageResponse;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.ErrorCode;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.FailData;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.JsendResponse;
+import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.SuccessPayload;
+import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.SuccessResponseKind;
 import io.github.phunguy65.ttbs.backend.train.application.response.TrainResponse;
 import io.github.phunguy65.ttbs.backend.train.application.usecase.GetTrainByIdUseCase;
 import io.github.phunguy65.ttbs.backend.train.application.usecase.GetTrainsUseCase;
@@ -11,6 +13,11 @@ import io.github.phunguy65.ttbs.backend.train.domain.error.TrainError;
 import io.github.phunguy65.ttbs.backend.train.infrastructure.web.request.GetTrainByIdRequest;
 import io.github.phunguy65.ttbs.backend.train.infrastructure.web.request.GetTrainsRequest;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
@@ -32,6 +39,15 @@ class TrainController {
     }
 
     @Operation(operationId = "getTrains", summary = "List trains")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Paged train catalog"),
+        @ApiResponse(
+                responseCode = "400",
+                description = "Invalid pagination parameters",
+                content =
+                        @Content(schema = @Schema(ref = "#/components/schemas/JsendFailResponse")))
+    })
+    @SuccessPayload(value = TrainResponse.class, kind = SuccessResponseKind.PAGE)
     @GetMapping(value = "/{version}/trains", version = "1.0")
     ResponseEntity<JsendResponse<?>> list(@ModelAttribute @Valid GetTrainsRequest request) {
         PageResponse<TrainResponse> result = getTrainsUseCase.execute(request.toQuery());
@@ -40,9 +56,19 @@ class TrainController {
     }
 
     @Operation(operationId = "getTrain", summary = "Get a train by id")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Train detail"),
+        @ApiResponse(
+                responseCode = "404",
+                description = "Train not found",
+                content =
+                        @Content(schema = @Schema(ref = "#/components/schemas/JsendFailResponse")))
+    })
+    @SuccessPayload(TrainResponse.class)
     @GetMapping(value = "/{version}/trains/{id}", version = "1.0")
     ResponseEntity<JsendResponse<?>> getById(
-            @PathVariable UUID id, @ModelAttribute GetTrainByIdRequest request) {
+            @Parameter(description = "Train identifier") @PathVariable UUID id,
+            @ModelAttribute GetTrainByIdRequest request) {
         return getTrainByIdUseCase
                 .execute(request.toQuery(id))
                 .fold(

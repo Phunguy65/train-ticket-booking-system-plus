@@ -4,6 +4,8 @@ import io.github.phunguy65.ttbs.backend.shared.domain.PageResponse;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.ErrorCode;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.FailData;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.JsendResponse;
+import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.SuccessPayload;
+import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.SuccessResponseKind;
 import io.github.phunguy65.ttbs.backend.train.application.response.CoachResponse;
 import io.github.phunguy65.ttbs.backend.train.application.usecase.GetCoachByIdUseCase;
 import io.github.phunguy65.ttbs.backend.train.application.usecase.GetCoachesByTrainUseCase;
@@ -11,6 +13,11 @@ import io.github.phunguy65.ttbs.backend.train.domain.error.CoachError;
 import io.github.phunguy65.ttbs.backend.train.infrastructure.web.request.GetCoachByIdRequest;
 import io.github.phunguy65.ttbs.backend.train.infrastructure.web.request.GetCoachesRequest;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
@@ -21,7 +28,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@Tag(name = "Coaches")
+@Tag(name = "Trains")
 class CoachController {
 
     private final GetCoachByIdUseCase getCoachByIdUseCase;
@@ -36,19 +43,43 @@ class CoachController {
     }
 
     @Operation(operationId = "getTrainCoaches", summary = "List coaches for a train")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Paged coaches for the train"),
+        @ApiResponse(
+                responseCode = "400",
+                description = "Invalid pagination parameters",
+                content =
+                        @Content(schema = @Schema(ref = "#/components/schemas/JsendFailResponse"))),
+        @ApiResponse(
+                responseCode = "404",
+                description = "Train not found",
+                content =
+                        @Content(schema = @Schema(ref = "#/components/schemas/JsendFailResponse")))
+    })
+    @SuccessPayload(value = CoachResponse.class, kind = SuccessResponseKind.PAGE)
     @GetMapping(value = "/{version}/trains/{trainId}/coaches", version = "1.0")
     ResponseEntity<JsendResponse<?>> getCoachesByTrain(
-            @PathVariable UUID trainId, @ModelAttribute @Valid GetCoachesRequest request) {
+            @Parameter(description = "Train identifier") @PathVariable UUID trainId,
+            @ModelAttribute @Valid GetCoachesRequest request) {
         PageResponse<CoachResponse> result =
                 getCoachesByTrainUseCase.execute(request.toQuery(trainId));
         return ResponseEntity.ok(JsendResponse.success(result));
     }
 
     @Operation(operationId = "getTrainCoach", summary = "Get a coach by id")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Coach detail"),
+        @ApiResponse(
+                responseCode = "404",
+                description = "Coach or train not found",
+                content =
+                        @Content(schema = @Schema(ref = "#/components/schemas/JsendFailResponse")))
+    })
+    @SuccessPayload(CoachResponse.class)
     @GetMapping(value = "/{version}/trains/{trainId}/coaches/{id}", version = "1.0")
     ResponseEntity<JsendResponse<?>> getCoachById(
-            @PathVariable UUID trainId,
-            @PathVariable UUID id,
+            @Parameter(description = "Train identifier") @PathVariable UUID trainId,
+            @Parameter(description = "Coach identifier") @PathVariable UUID id,
             @ModelAttribute GetCoachByIdRequest request) {
         return getCoachByIdUseCase
                 .execute(request.toQuery(id, trainId))

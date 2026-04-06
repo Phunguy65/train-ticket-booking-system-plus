@@ -72,7 +72,7 @@ public class OpenApiConfig {
         return GroupedOpenApi.builder()
                 .group("customer")
                 .pathsToMatch("/api/**")
-                .pathsToExclude("/api/sse/**", "/api/*/webhooks/**")
+                .pathsToExclude("/api/sse/**", "/api/**/webhooks/**")
                 .addOperationCustomizer(jsendSuccessResponseCustomizer)
                 .addOpenApiCustomizer(jsendSuccessResponseCustomizer)
                 .build();

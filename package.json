@@ -6,7 +6,9 @@
     "scripts": {
         "lint": "markdownlint-cli2 --fix '**.md'",
         "format": "prettier --write '**.{md, json, toml, yaml, yml, sh}'",
-        "turbo": "turbo"
+        "turbo": "turbo",
+        "customer:contract:refresh": "./backend/gradlew -p ./backend exportCustomerOpenApi",
+        "customer:sdk:generate": "pnpm run customer:contract:refresh && pnpm --dir frontend/customer codegen"
     },
     "keywords": [],
     "author": "",
@@ -20,7 +22,7 @@
         "markdownlint-cli2": "^0.21.0",
         "prettier": "^3.8.1",
         "lefthook": "^2.1.1",
-		"prettier-plugin-sql": "^0.19.2"
+        "prettier-plugin-sql": "^0.19.2"
     },
     "workspaces": [
         "frontend",
