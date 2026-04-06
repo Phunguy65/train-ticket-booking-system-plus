@@ -1,0 +1,44 @@
+# ── Frontend ──────────────────────────────────────────────────────────────────
+frontend/customer/node_modules/
+frontend/customer/.bun/
+frontend/customer/.next/
+frontend/customer/.cache/
+frontend/customer/coverage/
+frontend/customer/bun.lockb
+frontend/customer/src/lib/api/generated/
+frontend/customer/*.tsbuildinfo
+frontend/customer/*.log
+
+# ── Git / CI ──────────────────────────────────────────────────────────────────
+.git/
+.github/
+openspec/
+
+# ── Environment files (may contain secrets) ───────────────────────────────────
+.env
+.env.*
+!.env.example
+
+# ── IDE / OS metadata ─────────────────────────────────────────────────────────
+.idea/
+.vscode/
+*.iml
+*.iws
+*.ipr
+.DS_Store
+
+# ── Backend build artifacts (rebuilt inside Docker) ───────────────────────────
+backend/build/
+backend/.gradle/
+backend/.idea/
+backend/.settings/
+backend/.classpath
+backend/.project
+backend/.factorypath
+backend/bin/
+backend/out/
+backend/.springBeans
+backend/.sts4-cache
+backend/.ace-tool/
+backend/.apt_generated/
+backend/.apt_generated_tests/

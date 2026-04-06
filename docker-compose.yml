@@ -1,6 +1,6 @@
 services:
     valkey:
-        image: valkey/valkey:latest
+        image: valkey/valkey:8.0-alpine
         container_name: trainbooking-valkey
         ports:
             - '6379:6379'
@@ -37,42 +37,89 @@ services:
             - '-c'
             - 'timezone=UTC'
 
+    rabbitmq:
+        image: rabbitmq:3.13-management
+        container_name: trainbooking-rabbitmq
+        ports:
+            - '5672:5672'
+            - '15672:15672'
+        networks:
+            - trainbooking-network
+        healthcheck:
+            test: ['CMD', 'rabbitmq-diagnostics', '-q', 'ping']
+            interval: 10s
+            timeout: 5s
+            retries: 5
+
     backend:
         build:
-            context: ./backend
-            dockerfile: Dockerfile
+            # Context is the project root so the Gradle build can reach
+            # build-logic/ and gradle/libs.versions.toml (referenced from
+            # backend/settings.gradle.kts via relative paths).
+            context: .
+            dockerfile: backend/Dockerfile
         container_name: trainbooking-backend
+        env_file: .env
         environment:
             SPRING_PROFILES_ACTIVE: dev
             SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/trainbooking
             SPRING_DATASOURCE_USERNAME: postgres
             SPRING_DATASOURCE_PASSWORD: postgres
+            SPRING_RABBITMQ_HOST: rabbitmq
+            SPRING_RABBITMQ_PORT: 5672
             VALKEY_HOST: valkey
             VALKEY_PORT: 6379
             TZ: UTC
         ports:
             - '8080:8080'
+        healthcheck:
+            test:
+                [
+                    'CMD-SHELL',
+                    'wget -qO- http://localhost:8080/actuator/health || exit 1',
+                ]
+            interval: 15s
+            timeout: 5s
+            retries: 10
+            start_period: 60s
         depends_on:
             valkey:
                 condition: service_healthy
             postgres:
                 condition: service_healthy
+            rabbitmq:
+                condition: service_healthy
         networks:
             - trainbooking-network
 
-    admin:
+    customer:
         build:
-            context: ./frontend/admin
-            dockerfile: Dockerfile
-        container_name: trainbooking-admin
+            # Context is the project root so the codegen step in the Dockerfile
+            # can read shared/api-contracts/openapi.yaml (referenced by
+            # frontend/customer/openapi-ts.config.ts via a relative path).
+            context: .
+            dockerfile: frontend/customer/Dockerfile
+        container_name: trainbooking-customer
         environment:
             NEXT_PUBLIC_API_URL: http://localhost:8080/api/v1
-            NEXTAUTH_URL: http://localhost:3000
-            NEXTAUTH_SECRET: dev-secret-change-in-production
         ports:
             - '3000:3000'
+        healthcheck:
+            test:
+                [
+                    'CMD',
+                    'bun',
+                    '-e',
+                    "const res = await fetch('http://127.0.0.1:3000/'); if
+                    (!res.ok) throw new Error(`HTTP ${res.status}`);",
+                ]
+            interval: 15s
+            timeout: 5s
+            retries: 10
+            start_period: 30s
         depends_on:
-            - backend
+            backend:
+                condition: service_healthy
         networks:
             - trainbooking-network
 
