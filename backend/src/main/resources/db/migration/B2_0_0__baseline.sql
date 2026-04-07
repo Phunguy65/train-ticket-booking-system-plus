@@ -224,7 +224,9 @@ CREATE TABLE refresh_tokens (
 CREATE TABLE payments (
     id UUID NOT NULL DEFAULT uuidv7(),
     booking_id UUID NOT NULL,
+    user_id UUID NOT NULL,
     checkout_session_id VARCHAR(255) NOT NULL,
+    checkout_url VARCHAR(2048),
     stripe_event_id VARCHAR(255),
     amount BIGINT NOT NULL,
     currency VARCHAR(10) NOT NULL DEFAULT 'VND',
@@ -235,6 +237,7 @@ CREATE TABLE payments (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT pk_payments PRIMARY KEY (id),
     CONSTRAINT fk_payments_booking FOREIGN KEY (booking_id) REFERENCES bookings (id),
+    CONSTRAINT fk_payments_user FOREIGN KEY (user_id) REFERENCES users (id),
     CONSTRAINT uq_payments_checkout_session_id UNIQUE (checkout_session_id),
     CONSTRAINT uq_payments_stripe_event_id UNIQUE (stripe_event_id),
     CONSTRAINT uq_payments_stripe_payment_intent_id UNIQUE (stripe_payment_intent_id),
@@ -251,11 +254,15 @@ CREATE TABLE payments (
 
 COMMENT ON TABLE payments IS 'Stripe Checkout Session payment records';
 
+COMMENT ON COLUMN payments.user_id IS 'Owner of the payment (denormalized from bookings for direct lookup)';
+
 COMMENT ON COLUMN payments.checkout_session_id IS 'Stripe Checkout Session ID (cs_...)';
+
+COMMENT ON COLUMN payments.checkout_url IS 'Stripe hosted checkout page URL';
 
 COMMENT ON COLUMN payments.stripe_event_id IS 'Stripe webhook event ID for idempotency';
 
-COMMENT ON COLUMN payments.status IS 'Payment lifecycle: PENDING -> PAID or CANCELLED';
+COMMENT ON COLUMN payments.status IS 'Payment lifecycle: PENDING -> PAID / CANCELLED / FAILED, PAID -> REFUNDED';
 
 -- ============================================================
 -- INDEXES

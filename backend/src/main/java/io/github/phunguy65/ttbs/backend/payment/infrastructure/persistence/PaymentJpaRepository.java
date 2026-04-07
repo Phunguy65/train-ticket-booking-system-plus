@@ -10,23 +10,22 @@ import org.springframework.data.repository.query.Param;
 interface PaymentJpaRepository extends JpaRepository<PaymentEntity, UUID> {
 
     @Query(
-            value = "SELECT p.id AS id, p.booking_id AS bookingId, b.user_id AS userId, "
-                    + "p.status AS status, NULL AS checkoutUrl, p.amount AS amount, "
+            value = "SELECT p.id AS id, p.booking_id AS bookingId, p.user_id AS userId, "
+                    + "p.status AS status, p.checkout_url AS checkoutUrl, p.amount AS amount, "
                     + "p.currency AS currency, p.stripe_payment_intent_id AS stripePaymentIntentId, "
                     + "p.created_at AS createdAt "
-                    + "FROM payments p JOIN bookings b ON b.id = p.booking_id WHERE p.id = :id",
+                    + "FROM payments p WHERE p.id = :id",
             nativeQuery = true)
     Optional<PaymentSummaryView> findPaymentSummaryById(@Param("id") UUID id);
 
     Optional<PaymentEntity> findByBookingId(UUID bookingId);
 
     @Query(
-            value =
-                    "SELECT p.id AS id, p.booking_id AS bookingId, b.user_id AS userId, "
-                            + "p.status AS status, NULL AS checkoutUrl, p.amount AS amount, "
-                            + "p.currency AS currency, p.stripe_payment_intent_id AS stripePaymentIntentId, "
-                            + "p.created_at AS createdAt "
-                            + "FROM payments p JOIN bookings b ON b.id = p.booking_id WHERE p.booking_id = :bookingId",
+            value = "SELECT p.id AS id, p.booking_id AS bookingId, p.user_id AS userId, "
+                    + "p.status AS status, p.checkout_url AS checkoutUrl, p.amount AS amount, "
+                    + "p.currency AS currency, p.stripe_payment_intent_id AS stripePaymentIntentId, "
+                    + "p.created_at AS createdAt "
+                    + "FROM payments p WHERE p.booking_id = :bookingId",
             nativeQuery = true)
     Optional<PaymentSummaryView> findPaymentSummaryByBookingId(@Param("bookingId") UUID bookingId);
 

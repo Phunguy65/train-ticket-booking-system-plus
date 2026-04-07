@@ -29,8 +29,7 @@ public class HandlePaymentFailedByPaymentIntentUseCase {
 
         paymentRepository
                 .findByStripePaymentIntentId(command.stripePaymentIntentId())
-                .filter(p -> p.getStatus() == PaymentStatus.PENDING
-                        || p.getStatus() == PaymentStatus.PAID)
+                .filter(p -> p.getStatus() == PaymentStatus.PENDING)
                 .ifPresentOrElse(
                         p -> {
                             p.markFailed(command.errorMessage(), command.stripeEventId());
