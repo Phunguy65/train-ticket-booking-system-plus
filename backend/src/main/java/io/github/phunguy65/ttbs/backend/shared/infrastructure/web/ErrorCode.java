@@ -59,5 +59,7 @@ public enum ErrorCode {
     // ── Payment module ────────────────────────────────────────────────────────
     PAYMENT_NOT_FOUND,
     PAYMENT_ALREADY_PROCESSED,
-    PAYMENT_REFUND_FAILED
+    PAYMENT_REFUND_FAILED,
+    PAYMENT_BOOKING_NOT_FOUND,
+    PAYMENT_BOOKING_INVALID_STATE
 }

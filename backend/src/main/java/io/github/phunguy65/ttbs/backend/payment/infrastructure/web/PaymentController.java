@@ -1,9 +1,12 @@
 package io.github.phunguy65.ttbs.backend.payment.infrastructure.web;
 
+import io.github.phunguy65.ttbs.backend.payment.application.response.CheckoutSessionResponse;
 import io.github.phunguy65.ttbs.backend.payment.application.response.PaymentResponse;
+import io.github.phunguy65.ttbs.backend.payment.application.usecase.CreateCheckoutSessionUseCase;
 import io.github.phunguy65.ttbs.backend.payment.application.usecase.GetPaymentByBookingIdUseCase;
 import io.github.phunguy65.ttbs.backend.payment.application.usecase.GetPaymentByIdUseCase;
 import io.github.phunguy65.ttbs.backend.payment.domain.error.PaymentError;
+import io.github.phunguy65.ttbs.backend.payment.infrastructure.web.request.CreateCheckoutRequest;
 import io.github.phunguy65.ttbs.backend.payment.infrastructure.web.request.GetPaymentByBookingIdRequest;
 import io.github.phunguy65.ttbs.backend.payment.infrastructure.web.request.GetPaymentByIdRequest;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.ErrorCode;
@@ -27,6 +30,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -35,12 +39,15 @@ class PaymentController {
 
     private final GetPaymentByIdUseCase getPaymentByIdUseCase;
     private final GetPaymentByBookingIdUseCase getPaymentByBookingIdUseCase;
+    private final CreateCheckoutSessionUseCase createCheckoutSessionUseCase;
 
     PaymentController(
             GetPaymentByIdUseCase getPaymentByIdUseCase,
-            GetPaymentByBookingIdUseCase getPaymentByBookingIdUseCase) {
+            GetPaymentByBookingIdUseCase getPaymentByBookingIdUseCase,
+            CreateCheckoutSessionUseCase createCheckoutSessionUseCase) {
         this.getPaymentByIdUseCase = getPaymentByIdUseCase;
         this.getPaymentByBookingIdUseCase = getPaymentByBookingIdUseCase;
+        this.createCheckoutSessionUseCase = createCheckoutSessionUseCase;
     }
 
     @Operation(operationId = "getPayment", summary = "Get a payment by id")
@@ -105,19 +112,70 @@ class PaymentController {
                         error -> errorResponse(error));
     }
 
+    @Operation(
+            operationId = "createCheckoutSession",
+            summary = "Create a Stripe checkout session for a booking")
+    @ApiResponses({
+        @ApiResponse(responseCode = "201", description = "Checkout session created"),
+        @ApiResponse(
+                responseCode = "200",
+                description = "Checkout session already exists (idempotent)"),
+        @ApiResponse(
+                responseCode = "403",
+                description = "Customer cannot create a payment for this booking",
+                content =
+                        @Content(schema = @Schema(ref = "#/components/schemas/JsendFailResponse"))),
+        @ApiResponse(
+                responseCode = "404",
+                description = "Booking not found",
+                content =
+                        @Content(schema = @Schema(ref = "#/components/schemas/JsendFailResponse"))),
+        @ApiResponse(
+                responseCode = "409",
+                description = "Booking is not in a payable state or payment was already processed",
+                content =
+                        @Content(schema = @Schema(ref = "#/components/schemas/JsendFailResponse")))
+    })
+    @SecurityRequirement(name = "bearerAuth")
+    @SuccessPayload(value = CheckoutSessionResponse.class, responseCode = "201")
+    @PostMapping(value = "/{version}/bookings/{bookingId}/checkout", version = "1.0")
+    @PreAuthorize("isAuthenticated()")
+    ResponseEntity<JsendResponse<?>> createCheckout(
+            @Parameter(description = "Booking identifier") @PathVariable UUID bookingId,
+            @Parameter(hidden = true) Authentication auth) {
+        UUID userId = UUID.fromString(auth.getName());
+        var command = new CreateCheckoutRequest().toCommand(bookingId, userId);
+
+        return createCheckoutSessionUseCase
+                .execute(command)
+                .fold(
+                        result -> {
+                            HttpStatus status =
+                                    result.created() ? HttpStatus.CREATED : HttpStatus.OK;
+                            return ResponseEntity.status(status)
+                                    .body(JsendResponse.success(result.response()));
+                        },
+                        error -> errorResponse(error));
+    }
+
     private ResponseEntity<JsendResponse<?>> errorResponse(PaymentError error) {
         HttpStatus status =
                 switch (error) {
                     case PaymentError.PaymentNotFound e -> HttpStatus.NOT_FOUND;
+                    case PaymentError.BookingNotFound e -> HttpStatus.NOT_FOUND;
                     case PaymentError.Forbidden e -> HttpStatus.FORBIDDEN;
                     case PaymentError.AlreadyProcessed e -> HttpStatus.CONFLICT;
+                    case PaymentError.InvalidBookingState e -> HttpStatus.CONFLICT;
                     case PaymentError.RefundFailed e -> HttpStatus.INTERNAL_SERVER_ERROR;
                 };
         ErrorCode code =
                 switch (error) {
                     case PaymentError.PaymentNotFound e -> ErrorCode.PAYMENT_NOT_FOUND;
+                    case PaymentError.BookingNotFound e -> ErrorCode.PAYMENT_BOOKING_NOT_FOUND;
                     case PaymentError.Forbidden e -> ErrorCode.ACCESS_DENIED;
                     case PaymentError.AlreadyProcessed e -> ErrorCode.PAYMENT_ALREADY_PROCESSED;
+                    case PaymentError.InvalidBookingState e ->
+                        ErrorCode.PAYMENT_BOOKING_INVALID_STATE;
                     case PaymentError.RefundFailed e -> ErrorCode.PAYMENT_REFUND_FAILED;
                 };
         return ResponseEntity.status(status)

@@ -35,6 +35,20 @@ public sealed interface PaymentError {
         }
     }
 
+    record BookingNotFound() implements PaymentError {
+        @Override
+        public String message() {
+            return "Booking not found";
+        }
+    }
+
+    record InvalidBookingState(String reason) implements PaymentError {
+        @Override
+        public String message() {
+            return reason;
+        }
+    }
+
     /** Human-readable description suitable for a JSend {@code fail} data payload. */
     String message();
 }
