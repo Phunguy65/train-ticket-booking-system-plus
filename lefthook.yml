@@ -55,6 +55,11 @@ pre-commit:
             run: bunx prettier --write {staged_files}
             stage_fixed: true
 
+        # ── Docs – PlantUML syntax ────────────────────────────────────────
+        plantuml-lint:
+            glob: 'docs/**/*.md'
+            run: pnpm run lint:plantuml
+
 commit-msg:
     commands:
         commitlint:

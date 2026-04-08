@@ -50,3 +50,7 @@ dist/
 
 # java
 *.hprof
+
+# Report build output
+docs/report/**/*.docx
+docs/report/**/media/

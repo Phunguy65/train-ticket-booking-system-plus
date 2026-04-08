@@ -5,7 +5,9 @@
     "type": "module",
     "scripts": {
         "lint": "markdownlint-cli2 --fix '**.md'",
+        "lint:plantuml": "node scripts/lint-plantuml.mjs 'docs/**/*.md'",
         "format": "prettier --write '**.{md, json, toml, yaml, yml, sh}'",
+        "report:middle": "bash scripts/build-report-middle.sh",
         "turbo": "turbo",
         "customer:contract:refresh": "./backend/gradlew -p ./backend exportCustomerOpenApi",
         "customer:sdk:generate": "pnpm run customer:contract:refresh && pnpm --dir frontend/customer codegen"
@@ -17,12 +19,16 @@
     "devDependencies": {
         "@commitlint/cli": "^20.4.2",
         "@commitlint/config-conventional": "^20.4.2",
-        "prettier-plugin-toml": "^2.0.6",
-        "prettier-plugin-sh": "^0.18.0",
+        "glob": "^13.0.6",
+        "lefthook": "^2.1.1",
         "markdownlint-cli2": "^0.21.0",
         "prettier": "^3.8.1",
-        "lefthook": "^2.1.1",
-        "prettier-plugin-sql": "^0.19.2"
+        "prettier-plugin-sh": "^0.18.0",
+        "prettier-plugin-sql": "^0.19.2",
+        "prettier-plugin-toml": "^2.0.6",
+        "remark-parse": "^11.0.0",
+        "unified": "^11.0.0",
+        "unist-util-visit": "^5.0.0"
     },
     "workspaces": [
         "frontend",
