@@ -4,15 +4,15 @@
 
 The backend currently implements a complete booking flow:
 
-- **Hold seats**: `CreateBookingUseCase` holds seats (AVAILABLE → HELD) with
+-  **Hold seats**: `CreateBookingUseCase` holds seats (AVAILABLE → HELD) with
   15-minute payment deadline
-- **Payment**: `CreateCheckoutSessionUseCase` creates Stripe Checkout Session
+-  **Payment**: `CreateCheckoutSessionUseCase` creates Stripe Checkout Session
   (30-min timeout)
-- **Confirmation**: `HandlePaymentSuccessUseCase` confirms booking (HELD →
+-  **Confirmation**: `HandlePaymentSuccessUseCase` confirms booking (HELD →
   CONFIRMED) and seats (HELD → BOOKED)
-- **Expiry**: `BookingExpiryScheduler` (60s interval) releases expired held
+-  **Expiry**: `BookingExpiryScheduler` (60s interval) releases expired held
   seats (HELD → AVAILABLE)
-- **Cancellation**: `CancelBookingUseCase` releases or cancels booked seats
+-  **Cancellation**: `CancelBookingUseCase` releases or cancels booked seats
 
 The frontend needs real-time seat status updates so users can see which seats
 are available, held, or booked on a scheduled trip without manually refreshing
@@ -20,33 +20,33 @@ the page. This is a net-new capability — no SSE infrastructure exists today.
 
 **Constraints:**
 
-- Spring Boot backend (no WebFlux — use `SseEmitter` from `spring-web`)
-- Vertical Slice Architecture per module
-- No events between modules — use
+-  Spring Boot backend (no WebFlux — use `SseEmitter` from `spring-web`)
+-  Vertical Slice Architecture per module
+-  No events between modules — use
   `@TransactionalEventListener(phase = AFTER_COMMIT)` for SSE broadcasts
-- Optimistic locking via `@Version` already implemented on
+-  Optimistic locking via `@Version` already implemented on
   `RouteSeatAvailabilityEntity`
-- SSE event format: bulk update (all changed seats in one event)
-- Auth: JWT `@AuthenticationPrincipal`, any authenticated user can subscribe
+-  SSE event format: bulk update (all changed seats in one event)
+-  Auth: JWT `@AuthenticationPrincipal`, any authenticated user can subscribe
 
 ## Goals / Non-Goals
 
 **Goals:**
 
-- SSE endpoint `GET /sse/trips/{scheduledTripId}/seats` for real-time seat
+-  SSE endpoint `GET /sse/trips/{scheduledTripId}/seats` for real-time seat
   status
-- Seat status broadcasting after DB commit (AFTER_COMMIT)
-- Full seat map query (not just available seats) for SSE initial state
-- Broadcast on all seat status transitions: HELD, BOOKED, AVAILABLE
+-  Seat status broadcasting after DB commit (AFTER_COMMIT)
+-  Full seat map query (not just available seats) for SSE initial state
+-  Broadcast on all seat status transitions: HELD, BOOKED, AVAILABLE
 
 **Non-Goals:**
 
-- No WebSocket — use Spring SSE (`SseEmitter`) only
-- No per-seat SSE events — bulk format only
-- No heartbeat — only change events
-- No admin-only SSE — any authenticated user can subscribe
-- No frontend implementation (this is backend-only change)
-- No SSE for booking status changes (only seat status)
+-  No WebSocket — use Spring SSE (`SseEmitter`) only
+-  No per-seat SSE events — bulk format only
+-  No heartbeat — only change events
+-  No admin-only SSE — any authenticated user can subscribe
+-  No frontend implementation (this is backend-only change)
+-  No SSE for booking status changes (only seat status)
 
 ## Decisions
 
@@ -63,11 +63,11 @@ capability in its own module.
 
 **Alternatives considered:**
 
-- Put SSE in `train` module → violates SRP, train module already has seat
+-  Put SSE in `train` module → violates SRP, train module already has seat
   management
-- Put SSE in `booking` module → booking owns the booking aggregate, not the seat
+-  Put SSE in `booking` module → booking owns the booking aggregate, not the seat
   availability aggregate
-- Put SSE in `shared` → SSE is too domain-specific for a shared module
+-  Put SSE in `shared` → SSE is too domain-specific for a shared module
 
 ### 2. `@TransactionalEventListener(phase = AFTER_COMMIT)` for broadcasting
 
@@ -81,11 +81,11 @@ This prevents clients from seeing "ghost" holds that never persisted.
 
 **Alternatives considered:**
 
-- Broadcast inside `@Transactional` method → client may see event before DB
+-  Broadcast inside `@Transactional` method → client may see event before DB
   commit (race condition)
-- Broadcast in `@Transactional.afterCommit()` callback → works but less
+-  Broadcast in `@Transactional.afterCommit()` callback → works but less
   idiomatic than `@TransactionalEventListener`
-- Async queue (Redis, Kafka) → overkill for this use case; adds operational
+-  Async queue (Redis, Kafka) → overkill for this use case; adds operational
   complexity
 
 ### 3. `ConcurrentHashMap<UUID, CopyOnWriteArrayList<SseEmitter>>` for subscriptions
@@ -100,11 +100,11 @@ memory is not a concern.
 
 **Alternatives considered:**
 
-- `Collections.synchronizedMap` with `ArrayList` → every operation acquires
+-  `Collections.synchronizedMap` with `ArrayList` → every operation acquires
   lock, worse contention
-- External pub/sub (Redis) → adds infrastructure dependency; SSE is local to
+-  External pub/sub (Redis) → adds infrastructure dependency; SSE is local to
   this app
-- Database-backed subscription tracking → adds DB overhead for every event
+-  Database-backed subscription tracking → adds DB overhead for every event
 
 ### 4. `SseEmitter` timeout = 0 (no server-side timeout)
 
@@ -129,13 +129,13 @@ transition; `seat-initial` conveys the full snapshot on subscription.
 **Decision**: SSE broadcasts are triggered on ALL seat status changes across all
 use cases:
 
-- `CreateBookingUseCase` → seats transition AVAILABLE → HELD → emit
+-  `CreateBookingUseCase` → seats transition AVAILABLE → HELD → emit
   `SeatStatusChangedEvent` with status=HELD
-- `HandlePaymentSuccessUseCase` → seats transition HELD → BOOKED → emit
+-  `HandlePaymentSuccessUseCase` → seats transition HELD → BOOKED → emit
   `SeatStatusChangedEvent` with status=BOOKED
-- `ExpireHeldBookingsUseCase` → seats transition HELD → AVAILABLE → emit
+-  `ExpireHeldBookingsUseCase` → seats transition HELD → AVAILABLE → emit
   `SeatStatusChangedEvent` with status=AVAILABLE
-- `CancelBookingUseCase` → seats transition HELD → AVAILABLE or BOOKED →
+-  `CancelBookingUseCase` → seats transition HELD → AVAILABLE or BOOKED →
   CANCELLED → emit `SeatStatusChangedEvent` with status=AVAILABLE
 
 **Rationale**: Users need to see all seat state changes, not just their own.

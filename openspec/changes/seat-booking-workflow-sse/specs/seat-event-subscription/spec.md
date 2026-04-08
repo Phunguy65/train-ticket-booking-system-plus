@@ -9,33 +9,33 @@ scheduled trip.
 
 The endpoint MUST:
 
-- Return an `SseEmitter` that remains open until the client disconnects or the
+-  Return an `SseEmitter` that remains open until the client disconnects or the
   connection times out
-- Send an initial `seat-initial` event containing all seats for the scheduled
+-  Send an initial `seat-initial` event containing all seats for the scheduled
   trip (AVAILABLE, HELD, BOOKED, CANCELLED)
-- Send subsequent `seat-changed` events whenever any seat status changes for
+-  Send subsequent `seat-changed` events whenever any seat status changes for
   that trip
-- Support multiple concurrent subscribers per `scheduledTripId`
+-  Support multiple concurrent subscribers per `scheduledTripId`
 
 ### Scenario: Client connects to SSE endpoint
 
-- **WHEN** a client with a valid JWT calls `GET /sse/trips/{tripId}/seats`
-- **THEN** the server responds with HTTP 200 and
+-  **WHEN** a client with a valid JWT calls `GET /sse/trips/{tripId}/seats`
+-  **THEN** the server responds with HTTP 200 and
   `Content-Type: text/event-stream`
-- **AND** the server immediately sends a `seat-initial` event with all seats for
+-  **AND** the server immediately sends a `seat-initial` event with all seats for
   that scheduled trip
-- **AND** the SSE connection remains open for subsequent event delivery
+-  **AND** the SSE connection remains open for subsequent event delivery
 
 ### Scenario: Client disconnects
 
-- **WHEN** the SSE client disconnects (browser close, network drop, or timeout)
-- **THEN** the server removes the `SseEmitter` from the subscription map
-- **AND** no further events are sent to that emitter
+-  **WHEN** the SSE client disconnects (browser close, network drop, or timeout)
+-  **THEN** the server removes the `SseEmitter` from the subscription map
+-  **AND** no further events are sent to that emitter
 
 ### Scenario: Unauthenticated request is rejected
 
-- **WHEN** a request without a valid JWT calls `GET /sse/trips/{tripId}/seats`
-- **THEN** the server responds with HTTP 401 Unauthorized
+-  **WHEN** a request without a valid JWT calls `GET /sse/trips/{tripId}/seats`
+-  **THEN** the server responds with HTTP 401 Unauthorized
 
 ---
 
@@ -52,38 +52,38 @@ committed state.
 
 ### Scenario: Hold seats triggers SSE broadcast
 
-- **WHEN** `CreateBookingUseCase` successfully holds seats and the transaction
+-  **WHEN** `CreateBookingUseCase` successfully holds seats and the transaction
   commits
-- **THEN** a `seat-changed` event is sent to all SSE subscribers of that
+-  **THEN** a `seat-changed` event is sent to all SSE subscribers of that
   `scheduledTripId`
-- **AND** the event payload contains each held seat's `seatId`, `status: HELD`,
+-  **AND** the event payload contains each held seat's `seatId`, `status: HELD`,
   and `bookingId`
 
 ### Scenario: Confirm seats triggers SSE broadcast
 
-- **WHEN** `HandlePaymentSuccessUseCase` successfully confirms held seats and
+-  **WHEN** `HandlePaymentSuccessUseCase` successfully confirms held seats and
   the transaction commits
-- **THEN** a `seat-changed` event is sent to all SSE subscribers of that
+-  **THEN** a `seat-changed` event is sent to all SSE subscribers of that
   `scheduledTripId`
-- **AND** the event payload contains each confirmed seat's `seatId`,
+-  **AND** the event payload contains each confirmed seat's `seatId`,
   `status: BOOKED`, and `bookingId`
 
 ### Scenario: Expire held seats triggers SSE broadcast
 
-- **WHEN** `ExpireHeldBookingsUseCase` successfully releases expired held seats
+-  **WHEN** `ExpireHeldBookingsUseCase` successfully releases expired held seats
   and the transaction commits
-- **THEN** a `seat-changed` event is sent to all SSE subscribers of that
+-  **THEN** a `seat-changed` event is sent to all SSE subscribers of that
   `scheduledTripId`
-- **AND** the event payload contains each released seat's `seatId`,
+-  **AND** the event payload contains each released seat's `seatId`,
   `status: AVAILABLE`, and `bookingId: null`
 
 ### Scenario: Cancel booking triggers SSE broadcast
 
-- **WHEN** `CancelBookingUseCase` successfully releases or cancels booked seats
+-  **WHEN** `CancelBookingUseCase` successfully releases or cancels booked seats
   and the transaction commits
-- **THEN** a `seat-changed` event is sent to all SSE subscribers of that
+-  **THEN** a `seat-changed` event is sent to all SSE subscribers of that
   `scheduledTripId`
-- **AND** the event payload contains each affected seat's `seatId`,
+-  **AND** the event payload contains each affected seat's `seatId`,
   `status: AVAILABLE`, and `bookingId: null`
 
 ---
@@ -111,15 +111,15 @@ The event format SHALL be:
 
 ### Scenario: Multiple seats change in one transaction
 
-- **WHEN** a client holds 3 seats in a single booking
-- **THEN** one `seat-changed` event is sent with all 3 seats in the `seats`
+-  **WHEN** a client holds 3 seats in a single booking
+-  **THEN** one `seat-changed` event is sent with all 3 seats in the `seats`
   array
-- **AND NOT** 3 separate single-seat events
+-  **AND NOT** 3 separate single-seat events
 
 ### Scenario: Bulk release of expired seats
 
-- **WHEN** the expiry scheduler releases 10 expired held seats
-- **THEN** one `seat-changed` event is sent with all 10 seats in the `seats`
+-  **WHEN** the expiry scheduler releases 10 expired held seats
+-  **THEN** one `seat-changed` event is sent with all 10 seats in the `seats`
   array
 
 ---
@@ -131,15 +131,15 @@ The system SHALL manage SSE subscriptions using a thread-safe data structure
 
 ### Scenario: Concurrent subscribe/unsubscribe
 
-- **WHEN** multiple clients subscribe and unsubscribe concurrently on the same
+-  **WHEN** multiple clients subscribe and unsubscribe concurrently on the same
   `scheduledTripId`
-- **THEN** no race conditions occur in the subscription map
-- **AND** each subscriber receives all events for their subscribed
+-  **THEN** no race conditions occur in the subscription map
+-  **AND** each subscriber receives all events for their subscribed
   `scheduledTripId`
 
 ### Scenario: Dead emitter cleanup
 
-- **WHEN** an `SseEmitter.send()` throws an exception (broken pipe, client
+-  **WHEN** an `SseEmitter.send()` throws an exception (broken pipe, client
   disconnected)
-- **THEN** the dead emitter is removed from the subscription map
-- **AND** subsequent broadcasts do not iterate over the dead emitter
+-  **THEN** the dead emitter is removed from the subscription map
+-  **AND** subsequent broadcasts do not iterate over the dead emitter

@@ -19,21 +19,23 @@ với các bounded context tách biệt: User, Station, Train, Booking và Payme
 
 ### Quy ước chung
 
-- **Soft delete**: Các bảng chính sử dụng cột `deleted_at TIMESTAMPTZ`. Bản ghi
+-  **Soft delete**: Các bảng chính sử dụng cột `deleted_at TIMESTAMPTZ`. Bản ghi
   đang hoạt động có `deleted_at IS NULL`.
-- **Unique constraints**: Sử dụng partial unique index với điều kiện
+-  **Unique constraints**: Sử dụng partial unique index với điều kiện
   `WHERE deleted_at IS NULL` để cho phép tái sử dụng giá trị đã xóa.
-- **Audit timestamps**: `created_at` (bắt buộc, không cập nhật), `updated_at`
+-  **Audit timestamps**: `created_at` (bắt buộc, không cập nhật), `updated_at`
   (nếu có, tự động cập nhật).
-- **Naming**: Tên bảng số nhiều tiếng Anh (`users`, `trains`), tên cột
+-  **Naming**: Tên bảng số nhiều tiếng Anh (`users`, `trains`), tên cột
   `snake_case`.
-- **Source of truth**: Tài liệu này dựa trên **JPA entities** (code là truth).
+-  **Source of truth**: Tài liệu này dựa trên **JPA entities** (code là truth).
   Một số cột (`payments.user_id`, `payments.checkout_url`) có trong code nhưng
   chưa có SQL migration tương ứng.
 
 ---
 
-## 2. Sơ đồ thực thể — Class Entity Diagram
+## 2. ERD / Lược đồ thực thể
+
+### 2.1 Sơ đồ thực thể — Class Entity Diagram
 
 ```plantuml
 @startuml
@@ -209,194 +211,181 @@ bookings ||--o{ payments : "thanh toán"
 
 ---
 
-## 3. Sơ đồ quan hệ — Chen Notation ER Diagram
+### 2.2 Sơ đồ quan hệ — Chen Notation ER Diagram
+
+Sơ đồ Chen dưới đây là góc nhìn ý niệm: chỉ giữ các thuộc tính nghiệp vụ cốt
+lõi, lược bỏ kiểu dữ liệu và các cột khóa ngoại đã được thể hiện bằng quan hệ.
+Các trường audit như `created_at`, `updated_at`, `deleted_at` cũng được lược bỏ.
+Chi tiết physical schema xem ở mục 3. `trip_seat_availability` được biểu diễn
+như thực thể kết hợp giữa chuyến tàu và ghế.
 
 ```plantuml
 @startchen
 left to right direction
 
 entity "users" as USERS {
-    id : UUID <<key>>
-    email : VARCHAR(255)
-    password_hash : VARCHAR(255)
-    full_name : VARCHAR(255)
-    phone : VARCHAR(20)
-    date_of_birth : DATE
-    gender : VARCHAR(20)
-    id_document_number : VARCHAR(50)
-    address_line : VARCHAR(255)
-    role : VARCHAR(20)
-    created_at : TIMESTAMPTZ
-    updated_at : TIMESTAMPTZ
-    deleted_at : TIMESTAMPTZ
+    id <<key>>
+    email
+    password_hash
+    full_name
+    phone
+    date_of_birth
+    gender
+    id_document_number
+    address_line
+    role
 }
 
 entity "refresh_tokens" as REFRESH_TOKENS {
-    id : UUID <<key>>
-    user_id : UUID
-    token_hash : VARCHAR(255)
-    expires_at : TIMESTAMPTZ
-    revoked_at : TIMESTAMPTZ
-    created_at : TIMESTAMPTZ
+    id <<key>>
+    token_hash
+    expires_at
+    revoked_at
 }
 
 entity "stations" as STATIONS {
-    id : UUID <<key>>
-    code : VARCHAR(10)
-    name : VARCHAR(255)
-    city : VARCHAR(100)
-    created_at : TIMESTAMPTZ
-    deleted_at : TIMESTAMPTZ
+    id <<key>>
+    code
+    name
+    city
 }
 
 entity "trains" as TRAINS {
-    id : UUID <<key>>
-    train_number : VARCHAR(20)
-    name : VARCHAR(255)
-    total_seats : INTEGER
-    created_at : TIMESTAMPTZ
-    deleted_at : TIMESTAMPTZ
+    id <<key>>
+    train_number
+    name
+    total_seats
 }
 
 entity "coaches" as COACHES {
-    id : UUID <<key>>
-    train_id : UUID
-    car_number : INTEGER
-    total_seats : INTEGER
-    created_at : TIMESTAMPTZ
-    deleted_at : TIMESTAMPTZ
+    id <<key>>
+    car_number
+    total_seats
 }
 
 entity "seats" as SEATS {
-    id : UUID <<key>>
-    coach_id : UUID
-    seat_number : VARCHAR(10)
-    created_at : TIMESTAMPTZ
-    deleted_at : TIMESTAMPTZ
+    id <<key>>
+    seat_number
 }
 
 entity "route_templates" as ROUTE_TEMPLATES {
-    id : UUID <<key>>
-    origin_station_id : UUID
-    destination_station_id : UUID
-    base_price : BIGINT
-    created_at : TIMESTAMPTZ
-    deleted_at : TIMESTAMPTZ
+    id <<key>>
+    base_price
 }
 
 entity "scheduled_trips" as SCHEDULED_TRIPS {
-    id : UUID <<key>>
-    route_template_id : UUID
-    train_id : UUID
-    departure_time : TIMESTAMPTZ
-    arrival_time : TIMESTAMPTZ
-    status : VARCHAR(20)
-    created_at : TIMESTAMPTZ
-    deleted_at : TIMESTAMPTZ
+    id <<key>>
+    departure_time
+    arrival_time
+    status
 }
 
 entity "bookings" as BOOKINGS {
-    id : UUID <<key>>
-    user_id : UUID
-    scheduled_trip_id : UUID
-    user_info_snapshot : JSONB
-    total_price : BIGINT
-    currency : VARCHAR(10)
-    status : VARCHAR(20)
-    idempotency_key : VARCHAR(255)
-    payment_deadline : TIMESTAMPTZ
-    created_at : TIMESTAMPTZ
+    id <<key>>
+    user_info_snapshot
+    total_price
+    currency
+    status
+    idempotency_key
+    payment_deadline
 }
 
 entity "trip_seat_availability" as TSA {
-    scheduled_trip_id : UUID <<key>>
-    seat_id : UUID <<key>>
-    status : VARCHAR(20)
-    booking_id : UUID
-    price_at_booking : BIGINT
-    version : INTEGER
+    status
+    price_at_booking
+    version
 }
 
 entity "payments" as PAYMENTS {
-    id : UUID <<key>>
-    booking_id : UUID
-    user_id : UUID
-    checkout_session_id : VARCHAR(255)
-    checkout_url : VARCHAR(2048)
-    stripe_event_id : VARCHAR(255)
-    stripe_payment_intent_id : VARCHAR(255)
-    amount : BIGINT
-    currency : VARCHAR(10)
-    status : VARCHAR(20)
-    error_message : VARCHAR(1024)
-    created_at : TIMESTAMPTZ
-    updated_at : TIMESTAMPTZ
+    id <<key>>
+    checkout_session_id
+    checkout_url
+    stripe_event_id
+    stripe_payment_intent_id
+    amount
+    currency
+    status
+    error_message
 }
 
-relationship "SỞ_HỮU_TOKEN" { }
-USERS -1- SỞ_HỮU_TOKEN
-SỞ_HỮU_TOKEN -N- REFRESH_TOKENS
+relationship "SỞ HỮU TOKEN" as OWNS_TOKEN {
+}
+USERS -1- OWNS_TOKEN
+OWNS_TOKEN -N- REFRESH_TOKENS
 
-relationship "ĐẶT_VÉ" { }
-USERS -1- ĐẶT_VÉ
-ĐẶT_VÉ -N- BOOKINGS
+relationship "ĐẶT VÉ" as MAKES_BOOKING {
+}
+USERS -1- MAKES_BOOKING
+MAKES_BOOKING -N- BOOKINGS
 
-relationship "THANH_TOÁN" { }
-USERS -1- THANH_TOÁN
-THANH_TOÁN -N- PAYMENTS
+relationship "THANH TOÁN" as USER_PAYMENT {
+}
+USERS -1- USER_PAYMENT
+USER_PAYMENT -N- PAYMENTS
 
-relationship "GA_ĐI_CỦA" { }
-STATIONS -1- GA_ĐI_CỦA
-GA_ĐI_CỦA -N- ROUTE_TEMPLATES
+relationship "GA ĐI CỦA" as ORIGIN_OF_ROUTE {
+}
+STATIONS -1- ORIGIN_OF_ROUTE
+ORIGIN_OF_ROUTE -N- ROUTE_TEMPLATES
 
-relationship "GA_ĐẾN_CỦA" { }
-STATIONS -1- GA_ĐẾN_CỦA
-GA_ĐẾN_CỦA -N- ROUTE_TEMPLATES
+relationship "GA ĐẾN CỦA" as DESTINATION_OF_ROUTE {
+}
+STATIONS -1- DESTINATION_OF_ROUTE
+DESTINATION_OF_ROUTE -N- ROUTE_TEMPLATES
 
-relationship "CÓ_TOA" { }
-TRAINS -1- CÓ_TOA
-CÓ_TOA -N- COACHES
+relationship "CÓ TOA" as HAS_COACH {
+}
+TRAINS -1- HAS_COACH
+HAS_COACH -N- COACHES
 
-relationship "CÓ_GHẾ" { }
-COACHES -1- CÓ_GHẾ
-CÓ_GHẾ -N- SEATS
+relationship "CÓ GHẾ" as HAS_SEAT {
+}
+COACHES -1- HAS_SEAT
+HAS_SEAT -N- SEATS
 
-relationship "ĐƯỢC_PHÂN_CÔNG" { }
-TRAINS -(0,N)- ĐƯỢC_PHÂN_CÔNG
-ĐƯỢC_PHÂN_CÔNG -(0,1)- SCHEDULED_TRIPS
+relationship "ĐƯỢC PHÂN CÔNG" as ASSIGNED_TO_TRIP {
+}
+TRAINS -(0,N)- ASSIGNED_TO_TRIP
+ASSIGNED_TO_TRIP -(0,1)- SCHEDULED_TRIPS
 
-relationship "TẠO_TỪ" { }
-ROUTE_TEMPLATES -1- TẠO_TỪ
-TẠO_TỪ -N- SCHEDULED_TRIPS
+relationship "TẠO TỪ" as DERIVED_FROM_ROUTE {
+}
+ROUTE_TEMPLATES -1- DERIVED_FROM_ROUTE
+DERIVED_FROM_ROUTE -N- SCHEDULED_TRIPS
 
-relationship "CHO_CHUYẾN" { }
-SCHEDULED_TRIPS -1- CHO_CHUYẾN
-CHO_CHUYẾN -N- BOOKINGS
+relationship "CHO CHUYẾN" as BOOKING_FOR_TRIP {
+}
+SCHEDULED_TRIPS -1- BOOKING_FOR_TRIP
+BOOKING_FOR_TRIP -N- BOOKINGS
 
-relationship "GHẾ_THEO_CHUYẾN" { }
-SCHEDULED_TRIPS -1- GHẾ_THEO_CHUYẾN
-GHẾ_THEO_CHUYẾN -N- TSA
+relationship "GHẾ THEO CHUYẾN" as TRIP_SEAT_STATE {
+}
+SCHEDULED_TRIPS -1- TRIP_SEAT_STATE
+TRIP_SEAT_STATE -N- TSA
 
-relationship "TRẠNG_THÁI_GHẾ" { }
-SEATS -1- TRẠNG_THÁI_GHẾ
-TRẠNG_THÁI_GHẾ -N- TSA
+relationship "TRẠNG THÁI GHẾ" as SEAT_STATUS {
+}
+SEATS -1- SEAT_STATUS
+SEAT_STATUS -N- TSA
 
-relationship "GIỮ_GHẾ" { }
-BOOKINGS -(0,N)- GIỮ_GHẾ
-GIỮ_GHẾ -(0,1)- TSA
+relationship "GIỮ GHẾ" as HOLDS_SEAT {
+}
+BOOKINGS -(0,N)- HOLDS_SEAT
+HOLDS_SEAT -(0,1)- TSA
 
-relationship "CÓ_THANH_TOÁN" { }
-BOOKINGS -1- CÓ_THANH_TOÁN
-CÓ_THANH_TOÁN -N- PAYMENTS
+relationship "CÓ THANH TOÁN" as HAS_PAYMENT {
+}
+BOOKINGS -1- HAS_PAYMENT
+HAS_PAYMENT -N- PAYMENTS
 
 @endchen
 ```
 
 ---
 
-## 4. Tham chiếu chi tiết theo module
+## 3. Bảng chi tiết (3NF)
 
-### 4.1 User Module
+### 3.1 User Module
 
 #### `users`
 
@@ -451,7 +440,7 @@ Token làm mới phiên đăng nhập. Hỗ trợ thu hồi (revoke) bằng cộ
 
 ---
 
-### 4.2 Station Module
+### 3.2 Station Module
 
 #### `stations`
 
@@ -475,7 +464,7 @@ Ga tàu hỏa. Hỗ trợ soft delete.
 
 ---
 
-### 4.3 Train Module
+### 3.3 Train Module
 
 #### `trains`
 
@@ -597,7 +586,7 @@ Mỗi bản ghi là một chuyến khởi hành cụ thể với thời gian và
 
 ---
 
-### 4.4 Booking Module
+### 3.4 Booking Module
 
 #### `bookings`
 
@@ -672,7 +661,7 @@ Tình trạng ghế theo chuyến tàu — bảng liên kết giữa `scheduled_
 
 ---
 
-### 4.5 Payment Module
+### 3.5 Payment Module
 
 #### `payments`
 
@@ -709,7 +698,19 @@ Bản ghi thanh toán qua Stripe Checkout Session. Mỗi thanh toán gắn với
 
 ---
 
-## 5. Giá trị enum / CHECK constraint
+## 4. Stored Procedure
+
+Bổ sung sau.
+
+---
+
+## 5. Trigger
+
+Bổ sung sau.
+
+---
+
+## 6. Giá trị enum / CHECK constraint
 
 ### `UserRole`
 
@@ -774,3 +775,7 @@ PAID → REFUNDED        (hoàn tiền)
 | `CANCELLED` | Đã hủy                   |
 | `FAILED`    | Thanh toán thất bại      |
 | `REFUNDED`  | Đã hoàn tiền             |
+
+---
+
+## 7. Bảng tham chiếu

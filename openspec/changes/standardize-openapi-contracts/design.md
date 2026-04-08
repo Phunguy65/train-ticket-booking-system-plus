@@ -18,28 +18,28 @@ fetch-based frontend SDK without depending on handwritten OpenAPI maintenance.
 
 **Goals:**
 
-- Make springdoc the single source of truth for the customer-facing REST
+-  Make springdoc the single source of truth for the customer-facing REST
   contract.
-- Standardize public controller annotations, request DTO annotations, response
+-  Standardize public controller annotations, request DTO annotations, response
   DTO annotations, and shared web payload annotations so the generated OpenAPI
   document is accurate and stable.
-- Represent public success payloads in a way that keeps heyapi-generated client
+-  Represent public success payloads in a way that keeps heyapi-generated client
   types ergonomic while still documenting shared failure envelopes and
   validation errors.
-- Distinguish offset-based pagination and cursor-based pagination clearly in the
+-  Distinguish offset-based pagination and cursor-based pagination clearly in the
   generated contract.
-- Keep internal-only endpoints such as Stripe webhooks and SSE streams out of
+-  Keep internal-only endpoints such as Stripe webhooks and SSE streams out of
   the customer API contract.
-- Mirror the generated contract into `shared/api-contracts/openapi.yaml` so
+-  Mirror the generated contract into `shared/api-contracts/openapi.yaml` so
   shared tooling can consume a checked-in artifact.
 
 **Non-Goals:**
 
-- Changing business logic, authorization rules, endpoint semantics, or response
+-  Changing business logic, authorization rules, endpoint semantics, or response
   payload content beyond annotation and documentation alignment.
-- Publishing an admin/internal API contract.
-- Replacing JSend in runtime responses.
-- Converting the frontend to a different HTTP client or SDK generator.
+-  Publishing an admin/internal API contract.
+-  Replacing JSend in runtime responses.
+-  Converting the frontend to a different HTTP client or SDK generator.
 
 ## Decisions
 
@@ -51,17 +51,17 @@ mirrored/generated artifact instead of a handwritten source.
 
 Why this choice:
 
-- The current handwritten YAML is already drifted from the codebase.
-- Controllers, DTOs, enums, and validation rules already exist in code and can
+-  The current handwritten YAML is already drifted from the codebase.
+-  Controllers, DTOs, enums, and validation rules already exist in code and can
   be annotated directly.
-- heyapi can consume the generated contract from the backend and avoids
+-  heyapi can consume the generated contract from the backend and avoids
   duplicated manual maintenance.
 
 Alternatives considered:
 
-- Keep handwritten YAML and verify it against code: rejected because it
+-  Keep handwritten YAML and verify it against code: rejected because it
   preserves double maintenance.
-- Maintain separate backend and frontend specs: rejected because it duplicates
+-  Maintain separate backend and frontend specs: rejected because it duplicates
   the same public API contract.
 
 ### 2. Public success schemas are unwrapped for SDK generation
@@ -73,41 +73,41 @@ as shared JSend-based error envelopes.
 
 Why this choice:
 
-- The frontend decided to use heyapi with fetch and wants ergonomic generated
+-  The frontend decided to use heyapi with fetch and wants ergonomic generated
   types for successful responses.
-- The outer `status` wrapper does not add meaningful type value for successful
+-  The outer `status` wrapper does not add meaningful type value for successful
   client calls.
-- Validation and domain failures still need explicit shared documentation
+-  Validation and domain failures still need explicit shared documentation
   because they influence error handling.
 
 Alternatives considered:
 
-- Model all success responses as full JSend envelopes: rejected because it makes
+-  Model all success responses as full JSend envelopes: rejected because it makes
   generated client usage noisier and less aligned with consumer intent.
-- Hide JSend entirely, including failures: rejected because fail/error shapes
+-  Hide JSend entirely, including failures: rejected because fail/error shapes
   are contractually important for frontend error handling.
 
 ### 3. Annotation work stays close to existing web and shared layers
 
 Swagger/OpenAPI metadata will be added directly to:
 
-- public customer controllers,
-- request records in `infrastructure/web/request`,
-- response records in `application/response`, and
-- shared web payload records/enums in `shared/infrastructure/web` and pagination
+-  public customer controllers,
+-  request records in `infrastructure/web/request`,
+-  response records in `application/response`, and
+-  shared web payload records/enums in `shared/infrastructure/web` and pagination
   wrappers in `shared/domain`.
 
 Why this choice:
 
-- It keeps documentation adjacent to the types that actually define the API
+-  It keeps documentation adjacent to the types that actually define the API
   contract.
-- It avoids introducing parallel documentation-only DTOs or adapter layers.
-- It preserves the current clean architecture boundaries because only web-facing
+-  It avoids introducing parallel documentation-only DTOs or adapter layers.
+-  It preserves the current clean architecture boundaries because only web-facing
   and shared boundary types are annotated.
 
 Alternatives considered:
 
-- Introduce separate OpenAPI-only schema classes: rejected because it duplicates
+-  Introduce separate OpenAPI-only schema classes: rejected because it duplicates
   boundary models and creates new drift risk.
 
 ### 4. Pagination is documented explicitly by transport style
@@ -119,13 +119,13 @@ the difference explicit.
 
 Why this choice:
 
-- The codebase already implements both styles.
-- Consumers need to know when to send `page` versus `cursor`.
-- Generated types should preserve the distinct response metadata fields.
+-  The codebase already implements both styles.
+-  Consumers need to know when to send `page` versus `cursor`.
+-  Generated types should preserve the distinct response metadata fields.
 
 Alternatives considered:
 
-- Normalize everything to one pagination model: rejected because it would
+-  Normalize everything to one pagination model: rejected because it would
   require behavioral changes outside the contract-standardization scope.
 
 ### 5. Internal-only endpoints remain excluded from the customer contract
@@ -135,12 +135,12 @@ contract.
 
 Why this choice:
 
-- They are not frontend-consumed customer APIs.
-- Including them pollutes the SDK surface and introduces irrelevant schemas.
+-  They are not frontend-consumed customer APIs.
+-  Including them pollutes the SDK surface and introduces irrelevant schemas.
 
 Alternatives considered:
 
-- Include them and mark them internal: rejected because the generated customer
+-  Include them and mark them internal: rejected because the generated customer
   SDK should expose only consumer-relevant endpoints.
 
 ### 6. Sensitive fields are documented conservatively
@@ -151,30 +151,30 @@ and minimal descriptive exposure.
 
 Why this choice:
 
-- The frontend requested extra care for sensitive values.
-- OpenAPI examples should not normalize leaking secrets or high-sensitivity
+-  The frontend requested extra care for sensitive values.
+-  OpenAPI examples should not normalize leaking secrets or high-sensitivity
   identifiers.
 
 Alternatives considered:
 
-- Provide realistic examples for all fields: rejected for privacy and security
+-  Provide realistic examples for all fields: rejected for privacy and security
   reasons.
 
 ## Risks / Trade-offs
 
-- [Generated contract still misrepresents wrapped success payloads] ->
+-  [Generated contract still misrepresents wrapped success payloads] ->
   Mitigation: add a focused springdoc customization layer and verify generated
   output against representative endpoints before mirroring YAML.
-- [Large annotation pass introduces inconsistency across controllers and DTOs]
+-  [Large annotation pass introduces inconsistency across controllers and DTOs]
   -> Mitigation: standardize a shared pattern for parameters, success responses,
   failure responses, and sensitive-field schema metadata.
-- [Mirrored `shared/api-contracts/openapi.yaml` becomes stale again] ->
+-  [Mirrored `shared/api-contracts/openapi.yaml` becomes stale again] ->
   Mitigation: define an explicit regeneration workflow tied to backend contract
   changes and heyapi generation.
-- [Springdoc generic handling for pagination remains ambiguous] -> Mitigation:
+-  [Springdoc generic handling for pagination remains ambiguous] -> Mitigation:
   explicitly annotate paginated endpoints and shared pagination wrappers rather
   than relying on default generic inference.
-- [Global security configuration accidentally marks public auth endpoints as
+-  [Global security configuration accidentally marks public auth endpoints as
   protected] -> Mitigation: override security metadata on public auth operations
   and verify generated security sections.
 
@@ -189,12 +189,12 @@ Alternatives considered:
 
 Rollback strategy:
 
-- Revert the annotation/configuration change set and restore the previous
+-  Revert the annotation/configuration change set and restore the previous
   checked-in YAML if the generated contract is not acceptable.
-- Because runtime business behavior is not being changed, rollback is primarily
+-  Because runtime business behavior is not being changed, rollback is primarily
   a source-control rollback of documentation/configuration changes.
 
 ## Open Questions
 
-- None at proposal time; the contract direction, SDK target, pagination
+-  None at proposal time; the contract direction, SDK target, pagination
   treatment, and endpoint scope were all decided during exploration.
