@@ -48,7 +48,6 @@ dependencies {
     implementation(libs.spring.integration.jpa)
     implementation(libs.spring.security.messaging)
     implementation(libs.jjwt.api)
-    implementation(libs.jackson.databind.nullable)
     compileOnly(libs.jspecify)
     implementation(libs.stripe.java)
     implementation(libs.uuid.creator)

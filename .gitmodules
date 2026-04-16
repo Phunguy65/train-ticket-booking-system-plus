@@ -1,3 +1,0 @@
-[submodule "backend/third-party/jackson-databind-nullable"]
-	path = backend/third-party/jackson-databind-nullable
-	url = https://github.com/OpenAPITools/jackson-databind-nullable.git

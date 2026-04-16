@@ -21,6 +21,131 @@ tags:
 - name: "Trains"
   description: "Train, coach, seat, and route lookup endpoints."
 paths:
+  /api/{version}/auth/me:
+    get:
+      tags:
+      - "Authentication"
+      summary: "Get the current customer profile"
+      operationId: "getAuthenticatedUser"
+      responses:
+        "200":
+          description: "Authenticated customer profile"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendResponseObject"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+        "401":
+          description: "Authentication required"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendFailResponse"
+        "404":
+          description: "Customer profile not found"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendFailResponse"
+        "500":
+          description: "Unexpected technical failure."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JsendErrorResponse"
+      security:
+      - bearerAuth: []
+    put:
+      tags:
+      - "Authentication"
+      summary: "Replace the current customer profile"
+      description: "Performs a full replacement of the authenticated customer's editable\
+        \ profile fields."
+      operationId: "updateAuthenticatedUser"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateAuthenticatedUserRequest"
+        required: true
+      responses:
+        "200":
+          description: "Customer profile updated"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendResponseObject"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+        "400":
+          description: "Invalid update payload"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendFailResponse"
+        "401":
+          description: "Authentication required"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendFailResponse"
+        "404":
+          description: "Customer profile not found"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendFailResponse"
+        "409":
+          description: "Email address already exists"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendFailResponse"
+        "500":
+          description: "Unexpected technical failure."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JsendErrorResponse"
+      security:
+      - bearerAuth: []
+    delete:
+      tags:
+      - "Authentication"
+      summary: "Soft-delete the current customer account"
+      operationId: "deleteAuthenticatedUser"
+      responses:
+        "200":
+          description: "Customer account deleted"
+        "401":
+          description: "Authentication required"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendFailResponse"
+        "404":
+          description: "Customer profile not found"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendFailResponse"
+        "409":
+          description: "Customer still has active bookings"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendFailResponse"
+        "500":
+          description: "Unexpected technical failure."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JsendErrorResponse"
+      security:
+      - bearerAuth: []
   /api/{version}/bookings:
     post:
       tags:
@@ -101,6 +226,62 @@ paths:
                 $ref: "#/components/schemas/JsendFailResponse"
         "409":
           description: "Booking cannot transition to cancelled state"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendFailResponse"
+        "500":
+          description: "Unexpected technical failure."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JsendErrorResponse"
+      security:
+      - bearerAuth: []
+  /api/{version}/bookings/{bookingId}/checkout:
+    post:
+      tags:
+      - "Payments"
+      summary: "Create a Stripe checkout session for a booking"
+      operationId: "createCheckoutSession"
+      parameters:
+      - name: "bookingId"
+        in: "path"
+        description: "Booking identifier"
+        required: true
+        schema:
+          type: "string"
+          format: "uuid"
+      responses:
+        "201":
+          description: "Checkout session created"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendResponseObject"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CheckoutSessionResponse"
+        "200":
+          description: "Checkout session already exists (idempotent)"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendResponseObject"
+        "403":
+          description: "Customer cannot create a payment for this booking"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendFailResponse"
+        "404":
+          description: "Booking not found"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendFailResponse"
+        "409":
+          description: "Booking is not in a payable state or payment was already processed"
           content:
             '*/*':
               schema:
@@ -266,123 +447,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/JsendErrorResponse"
-  /api/{version}/auth/me:
-    get:
-      tags:
-      - "Authentication"
-      summary: "Get the current customer profile"
-      operationId: "getAuthenticatedUser"
-      responses:
-        "200":
-          description: "Authenticated customer profile"
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/JsendResponseObject"
-            application/json:
-              schema:
-                $ref: "#/components/schemas/UserResponse"
-        "401":
-          description: "Authentication required"
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/JsendFailResponse"
-        "404":
-          description: "Customer profile not found"
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/JsendFailResponse"
-        "500":
-          description: "Unexpected technical failure."
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/JsendErrorResponse"
-      security:
-      - bearerAuth: []
-    delete:
-      tags:
-      - "Authentication"
-      summary: "Soft-delete the current customer account"
-      operationId: "deleteAuthenticatedUser"
-      responses:
-        "200":
-          description: "Customer account deleted"
-        "401":
-          description: "Authentication required"
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/JsendFailResponse"
-        "404":
-          description: "Customer profile not found"
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/JsendFailResponse"
-        "409":
-          description: "Customer still has active bookings"
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/JsendFailResponse"
-        "500":
-          description: "Unexpected technical failure."
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/JsendErrorResponse"
-      security:
-      - bearerAuth: []
-    patch:
-      tags:
-      - "Authentication"
-      summary: "Update the current customer profile"
-      operationId: "updateAuthenticatedUser"
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/UpdateAuthenticatedUserRequest"
-        required: true
-      responses:
-        "200":
-          description: "Customer profile updated"
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/JsendResponseObject"
-            application/json:
-              schema:
-                $ref: "#/components/schemas/UserResponse"
-        "400":
-          description: "Invalid update payload"
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/JsendFailResponse"
-        "401":
-          description: "Authentication required"
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/JsendFailResponse"
-        "404":
-          description: "Customer profile not found"
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/JsendFailResponse"
-        "500":
-          description: "Unexpected technical failure."
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/JsendErrorResponse"
-      security:
-      - bearerAuth: []
   /api/{version}/users/{userId}/bookings:
     get:
       tags:
@@ -1232,6 +1296,8 @@ components:
       - "PAYMENT_NOT_FOUND"
       - "PAYMENT_ALREADY_PROCESSED"
       - "PAYMENT_REFUND_FAILED"
+      - "PAYMENT_BOOKING_NOT_FOUND"
+      - "PAYMENT_BOOKING_INVALID_STATE"
     Violation:
       description: "Field-level validation issue inside a fail response."
       properties:
@@ -1273,6 +1339,76 @@ components:
         message:
           type: "string"
           description: "Human-readable technical failure message."
+    UpdateAuthenticatedUserRequest:
+      type: "object"
+      description: "Full replacement payload for the authenticated customer profile.\
+        \ Send the complete editable profile state."
+      properties:
+        fullName:
+          type: "string"
+          description: "Updated full name."
+          example: "Nguyen Phuong"
+          minLength: 1
+        email:
+          type: "string"
+          format: "email"
+          description: "Updated email address."
+          example: "customer@example.com"
+          minLength: 1
+        phone:
+          type:
+          - "string"
+          - "null"
+          description: "Updated phone number."
+          example: "+84901234567"
+          pattern: ".*\\S.*"
+        dateOfBirth:
+          type:
+          - "string"
+          - "null"
+          format: "date"
+          description: "Updated date of birth."
+        gender:
+          type:
+          - "string"
+          - "null"
+          description: "Updated self-declared gender label."
+          example: "female"
+          pattern: ".*\\S.*"
+        idDocumentNumber:
+          type:
+          - "string"
+          - "null"
+          description: "Updated government-issued identity document number."
+          example: "redacted-id-document"
+          pattern: ".*\\S.*"
+          writeOnly: true
+        addressLine:
+          type:
+          - "string"
+          - "null"
+          description: "Updated address line."
+          example: "redacted-address"
+          pattern: ".*\\S.*"
+      required:
+      - "email"
+      - "fullName"
+    JsendResponseObject:
+      type: "object"
+      description: "Runtime JSend response envelope used by the API implementation."
+      properties:
+        status:
+          type: "string"
+          description: "JSend status value."
+          enum:
+          - "success"
+          - "fail"
+          - "error"
+        data:
+          description: "Payload returned for the response status."
+        message:
+          type: "string"
+          description: "Human-readable technical error message for error responses."
     CreateBookingRequest:
       type: "object"
       description: "Booking creation payload."
@@ -1299,22 +1435,6 @@ components:
       - "idempotencyKey"
       - "scheduledTripId"
       - "seatIds"
-    JsendResponseObject:
-      type: "object"
-      description: "Runtime JSend response envelope used by the API implementation."
-      properties:
-        status:
-          type: "string"
-          description: "JSend status value."
-          enum:
-          - "success"
-          - "fail"
-          - "error"
-        data:
-          description: "Payload returned for the response status."
-        message:
-          type: "string"
-          description: "Human-readable technical error message for error responses."
     RegisterRequest:
       type: "object"
       description: "Customer registration payload."
@@ -1375,50 +1495,6 @@ components:
       required:
       - "email"
       - "password"
-    JsonNullableString:
-      type: "object"
-      properties:
-        present:
-          type: "boolean"
-        undefined:
-          type: "boolean"
-    UpdateAuthenticatedUserRequest:
-      type: "object"
-      description: "Patch payload for the authenticated customer profile. Omit a field\
-        \ to leave it unchanged."
-      properties:
-        fullName:
-          $ref: "#/components/schemas/JsonNullableString"
-          description: "Updated full name."
-          example: "Nguyen Phuong"
-        email:
-          $ref: "#/components/schemas/JsonNullableString"
-          description: "Updated email address."
-          example: "customer@example.com"
-        phone:
-          $ref: "#/components/schemas/JsonNullableString"
-          description: "Updated phone number."
-          example: "+84901234567"
-        dateOfBirth:
-          type: "string"
-          format: "date"
-          description: "Updated date of birth."
-        gender:
-          $ref: "#/components/schemas/JsonNullableString"
-          description: "Updated self-declared gender label."
-          example: "female"
-        idDocumentNumber:
-          $ref: "#/components/schemas/JsonNullableString"
-          description: "Updated government-issued identity document number."
-          example: "redacted-id-document"
-          writeOnly: true
-        addressLine:
-          $ref: "#/components/schemas/JsonNullableString"
-          description: "Updated address line."
-          example: "redacted-address"
-      required:
-      - "email"
-      - "fullName"
     GetUserBookingsRequest:
       type: "object"
       description: "Offset-based pagination query for a customer's booking history."
@@ -1680,6 +1756,51 @@ components:
     GetPaymentByBookingIdRequest:
       description: "No additional query parameters are accepted when fetching the\
         \ payment for a booking."
+    UserResponse:
+      description: "Customer profile returned by authenticated user endpoints."
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+          description: "Customer identifier."
+          readOnly: true
+        email:
+          type: "string"
+          description: "Customer email address."
+          example: "customer@example.com"
+        fullName:
+          type: "string"
+          description: "Customer full name."
+          example: "Nguyen Phuong"
+        phone:
+          type: "string"
+          description: "Customer phone number."
+          example: "+84901234567"
+        dateOfBirth:
+          type: "string"
+          format: "date"
+          description: "Customer date of birth."
+        gender:
+          type: "string"
+          description: "Customer self-declared gender label."
+          example: "female"
+        idDocumentNumber:
+          type: "string"
+          description: "Government-issued identity document number on file."
+          example: "redacted-id-document"
+        addressLine:
+          type: "string"
+          description: "Primary address line on file."
+          example: "redacted-address"
+        role:
+          type: "string"
+          description: "Customer role granted by the system."
+          example: "CUSTOMER"
+        createdAt:
+          type: "string"
+          format: "date-time"
+          description: "Profile creation timestamp."
+          readOnly: true
     BookingResponse:
       description: "Booking resource returned after successful booking creation."
       properties:
@@ -1754,51 +1875,27 @@ components:
           type: "string"
           description: "Passenger address line."
           example: "redacted-address"
-    UserResponse:
-      description: "Customer profile returned by authenticated user endpoints."
+    CheckoutSessionResponse:
+      description: "Checkout session resource returned after creating or retrieving\
+        \ a payment."
       properties:
-        id:
+        paymentId:
           type: "string"
           format: "uuid"
-          description: "Customer identifier."
-          readOnly: true
-        email:
+          description: "Payment identifier."
+        checkoutUrl:
           type: "string"
-          description: "Customer email address."
-          example: "customer@example.com"
-        fullName:
+          format: "uri"
+          description: "Hosted checkout URL where the customer completes the payment."
+        status:
           type: "string"
-          description: "Customer full name."
-          example: "Nguyen Phuong"
-        phone:
-          type: "string"
-          description: "Customer phone number."
-          example: "+84901234567"
-        dateOfBirth:
-          type: "string"
-          format: "date"
-          description: "Customer date of birth."
-        gender:
-          type: "string"
-          description: "Customer self-declared gender label."
-          example: "female"
-        idDocumentNumber:
-          type: "string"
-          description: "Government-issued identity document number on file."
-          example: "redacted-id-document"
-        addressLine:
-          type: "string"
-          description: "Primary address line on file."
-          example: "redacted-address"
-        role:
-          type: "string"
-          description: "Customer role granted by the system."
-          example: "CUSTOMER"
-        createdAt:
-          type: "string"
-          format: "date-time"
-          description: "Profile creation timestamp."
-          readOnly: true
+          description: "Payment lifecycle status."
+          enum:
+          - "PENDING"
+          - "PAID"
+          - "CANCELLED"
+          - "FAILED"
+          - "REFUNDED"
     LoginResultResponse:
       description: "Authentication result containing rotated tokens and the authenticated\
         \ customer profile."

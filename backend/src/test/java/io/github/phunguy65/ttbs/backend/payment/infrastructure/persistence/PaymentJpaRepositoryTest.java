@@ -144,11 +144,12 @@ class PaymentJpaRepositoryTest {
     private void insertPayment() {
         jdbcTemplate.update(
                 """
-                INSERT INTO payments (id, booking_id, checkout_session_id, amount, currency, status, stripe_payment_intent_id, created_at, updated_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO payments (id, booking_id, user_id, checkout_session_id, amount, currency, status, stripe_payment_intent_id, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 PAYMENT_ID,
                 BOOKING_ID,
+                USER_ID,
                 "cs_test_123",
                 450_000,
                 "VND",

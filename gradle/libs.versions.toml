@@ -2,11 +2,10 @@
 # ─── Java ─────────────────────────────────────────────────────────────────
 archunitJunit5 = "1.4.1"
 testcontainers = "2.0.3"
-jacksonDatabindNullable = "0.2.9"
 java = "25"
 # ─── Backend ─────────────────────────────────────────────────────────────────
 springBoot = "4.0.3"
-springdocOpenapi = "2.8.14"
+springdocOpenapi = "3.0.3"
 jjwt = "0.13.0"
 uuidCreator = "6.1.1"
 springDependencyManagement = "1.1.7"
@@ -42,7 +41,6 @@ stripeJava = "31.4.0"
 
 [libraries]
 # ─── Backend ─────────────────────────────────────────────────────────────────
-jackson-databind-nullable = { module = "org.openapitools:jackson-databind-nullable", version.ref = "jacksonDatabindNullable" }
 # Spring Boot Starters (version managed by Spring Boot BOM)
 spring-boot-starter-flyway = { module = "org.springframework.boot:spring-boot-starter-flyway" }
 spring-boot-starter-cache = { module = "org.springframework.boot:spring-boot-starter-cache" }

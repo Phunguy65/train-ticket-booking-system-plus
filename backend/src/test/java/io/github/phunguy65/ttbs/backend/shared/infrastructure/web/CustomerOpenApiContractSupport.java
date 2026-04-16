@@ -56,6 +56,21 @@ final class CustomerOpenApiContractSupport {
                 hasBearerAuth(getAuthenticatedUser),
                 "getAuthenticatedUser should require bearerAuth");
 
+        OperationEntry updateAuthenticatedUser =
+                operationEntryById(root, "updateAuthenticatedUser");
+        require(
+                "put".equals(updateAuthenticatedUser.method()),
+                "updateAuthenticatedUser should use PUT rather than PATCH");
+        require(
+                hasBearerAuth(updateAuthenticatedUser.operation()),
+                "updateAuthenticatedUser should require bearerAuth");
+        require(
+                hasFailResponse(updateAuthenticatedUser.operation(), "400"),
+                "updateAuthenticatedUser should reference JsendFailResponse for 400");
+        require(
+                hasFailResponse(updateAuthenticatedUser.operation(), "409"),
+                "updateAuthenticatedUser should reference JsendFailResponse for 409");
+
         JsonNode getUserBookings = operationById(root, "getUserBookings");
         require(hasBearerAuth(getUserBookings), "getUserBookings should require bearerAuth");
         require(
@@ -111,20 +126,27 @@ final class CustomerOpenApiContractSupport {
     }
 
     private static JsonNode operationById(JsonNode root, String operationId) {
+        return operationEntryById(root, operationId).operation();
+    }
+
+    private static OperationEntry operationEntryById(JsonNode root, String operationId) {
         JsonNode paths = root.path("paths");
-        Iterator<JsonNode> pathEntries = paths.elements();
-        while (pathEntries.hasNext()) {
-            JsonNode pathItem = pathEntries.next();
-            Iterator<JsonNode> operations = pathItem.elements();
-            while (operations.hasNext()) {
-                JsonNode operation = operations.next();
+        Iterator<JsonNode> pathItems = paths.elements();
+        while (pathItems.hasNext()) {
+            JsonNode pathItem = pathItems.next();
+            Iterator<String> methods = pathItem.fieldNames();
+            while (methods.hasNext()) {
+                String method = methods.next();
+                JsonNode operation = pathItem.path(method);
                 if (operationId.equals(operation.path("operationId").asText())) {
-                    return operation;
+                    return new OperationEntry(method, operation);
                 }
             }
         }
         throw new IllegalStateException("Operation not found: " + operationId);
     }
+
+    private record OperationEntry(String method, JsonNode operation) {}
 
     private static boolean isUnauthenticated(JsonNode operation) {
         JsonNode security = operation.path("security");

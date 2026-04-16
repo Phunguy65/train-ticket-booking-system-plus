@@ -204,7 +204,9 @@ class AuthController {
 
     @Operation(
             operationId = "updateAuthenticatedUser",
-            summary = "Update the current customer profile")
+            summary = "Replace the current customer profile",
+            description =
+                    "Performs a full replacement of the authenticated customer's editable profile fields.")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Customer profile updated"),
         @ApiResponse(
@@ -221,11 +223,16 @@ class AuthController {
                 responseCode = "404",
                 description = "Customer profile not found",
                 content =
+                        @Content(schema = @Schema(ref = "#/components/schemas/JsendFailResponse"))),
+        @ApiResponse(
+                responseCode = "409",
+                description = "Email address already exists",
+                content =
                         @Content(schema = @Schema(ref = "#/components/schemas/JsendFailResponse")))
     })
     @SecurityRequirement(name = "bearerAuth")
     @SuccessPayload(UserResponse.class)
-    @PatchMapping(value = "/me", version = "1.0")
+    @PutMapping(value = "/me", version = "1.0")
     @PreAuthorize("isAuthenticated()")
     ResponseEntity<JsendResponse<?>> updateMe(
             @Parameter(hidden = true) Authentication auth,

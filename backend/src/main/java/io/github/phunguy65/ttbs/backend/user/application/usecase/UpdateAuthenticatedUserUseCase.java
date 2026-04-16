@@ -14,7 +14,6 @@ import io.github.phunguy65.ttbs.backend.user.domain.model.User;
 import io.github.phunguy65.ttbs.backend.user.domain.repository.UserRepository;
 import java.time.Instant;
 import java.time.LocalDate;
-import org.openapitools.jackson.nullable.JsonNullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,41 +33,25 @@ public class UpdateAuthenticatedUserUseCase {
             return Result.failure(new UserError.UserNotFound());
         }
 
-        JsonNullable<String> emailField = command.email();
+        EmailAddress newEmail = EmailAddress.of(command.email());
         EmailAddress currentEmail = user.getEmail();
-        if (emailField.isPresent()) {
-            EmailAddress newEmail = EmailAddress.of(emailField.get());
-            if (!newEmail.value().equals(currentEmail.value())) {
-                boolean takenByOther = userRepository
-                        .findByEmail(newEmail.value())
-                        .filter(other -> !other.getId().equals(user.getId()))
-                        .isPresent();
-                if (takenByOther) {
-                    return Result.failure(new UserError.EmailAlreadyExists());
-                }
+        if (!newEmail.value().equals(currentEmail.value())) {
+            boolean takenByOther = userRepository
+                    .findByEmail(newEmail.value())
+                    .filter(other -> !other.getId().equals(user.getId()))
+                    .isPresent();
+            if (takenByOther) {
+                return Result.failure(new UserError.EmailAlreadyExists());
             }
         }
 
-        PersonName newFullName = command.fullName().isPresent()
-                ? PersonName.of(command.fullName().get())
-                : user.getFullName();
-        EmailAddress newEmail =
-                emailField.isPresent() ? EmailAddress.of(emailField.get()) : currentEmail;
-        PhoneNumber newPhone = command.phone().isPresent()
-                ? PhoneNumber.ofNullable(command.phone().get())
-                : user.getPhone().orElse(null);
-        LocalDate newDateOfBirth = command.dateOfBirth().isPresent()
-                ? command.dateOfBirth().get()
-                : user.getDateOfBirth().orElse(null);
-        Gender newGender = command.gender().isPresent()
-                ? Gender.ofNullable(command.gender().get())
-                : user.getGender().orElse(null);
-        IdDocumentNumber newIdDocumentNumber = command.idDocumentNumber().isPresent()
-                ? IdDocumentNumber.ofNullable(command.idDocumentNumber().get())
-                : user.getIdDocumentNumber().orElse(null);
-        AddressLine newAddressLine = command.addressLine().isPresent()
-                ? AddressLine.ofNullable(command.addressLine().get())
-                : user.getAddressLine().orElse(null);
+        PersonName newFullName = PersonName.of(command.fullName());
+        PhoneNumber newPhone = PhoneNumber.ofNullable(command.phone());
+        LocalDate newDateOfBirth = command.dateOfBirth();
+        Gender newGender = Gender.ofNullable(command.gender());
+        IdDocumentNumber newIdDocumentNumber =
+                IdDocumentNumber.ofNullable(command.idDocumentNumber());
+        AddressLine newAddressLine = AddressLine.ofNullable(command.addressLine());
 
         User updated = User.reconstitute(
                 user.getId(),
