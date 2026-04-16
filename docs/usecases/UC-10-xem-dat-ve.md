@@ -1,6 +1,6 @@
-# UC-10: Xem đặt vé
+## UC-10: Xem đặt vé
 
-## 1. Mô tả use case
+### 1. Mô tả use case
 
 | Mục                            | Nội dung                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
 | ------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -15,7 +15,7 @@
 | Hậu điều kiện (thất bại)       | Không có thay đổi trạng thái. Đây là thao tác chỉ đọc.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
 | Xử lý ngoại lệ                 | Chưa xác thực → 401 Unauthorized. <br> Xem đặt vé của người khác (list) → 403 + `ACCESS_DENIED`. <br> Đặt vé không tồn tại (detail) → 404 + `BOOKING_NOT_FOUND`. <br> Xem đặt vé của người khác (detail) → 403 + `ACCESS_DENIED`. <br> Tham số phân trang không hợp lệ → 400 + `VALIDATION_ERROR`.                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
 
-## 2. Lược đồ tuần tự
+### 2. Lược đồ tuần tự
 
 ```plantuml
 @startuml UC-10
@@ -54,7 +54,7 @@ end
 @enduml
 ```
 
-## 3. Lược đồ hoạt động
+### 3. Lược đồ hoạt động
 
 ```plantuml
 @startuml UC-10-activity
@@ -117,13 +117,13 @@ stop
 @enduml
 ```
 
-## 4. Lược đồ trạng thái
+### 4. Lược đồ trạng thái
 
 <!-- UC-10 là thao tác chỉ đọc, không có thay đổi trạng thái. Mục này bỏ qua. -->
 
 _Không áp dụng — UC-10 là thao tác chỉ đọc._
 
-## 5. Lược đồ lớp ý niệm
+### 5. Lược đồ lớp ý niệm
 
 ```plantuml
 @startuml UC-10-class
@@ -238,43 +238,43 @@ DetailDTO *-- PassengerDTO
 @enduml
 ```
 
-## 6. Phân rã thành phần PM
+### 6. Phân rã thành phần PM
 
-### 6.1 Controller: `BookingController`
+#### 6.1 Controller: `BookingController`
 
 **Endpoint 1 — Danh sách đặt vé:**
 
--  **Nhiệm vụ**: Nhận HTTP request xem danh sách đặt vé, lấy `requestingUserId`
+- **Nhiệm vụ**: Nhận HTTP request xem danh sách đặt vé, lấy `requestingUserId`
   từ `Authentication`, ủy thác cho `GetUserBookingsUseCase`.
--  **Endpoint**: `GET /api/v1/users/{userId}/bookings`
--  **Input**: Path `userId: UUID` + Query `page: int` (default 0), `size: int`
+- **Endpoint**: `GET /api/v1/users/{userId}/bookings`
+- **Input**: Path `userId: UUID` + Query `page: int` (default 0), `size: int`
   (default 20, max 100)
--  **Output thành công**: `200` + `PageResponse<UserBookingResponse>` —
+- **Output thành công**: `200` + `PageResponse<UserBookingResponse>` —
   `{ content[{id, userId, scheduledTripId, totalPrice, currency, status, paymentDeadline, createdAt}], page, size, hasNext, hasPrevious, total }`
--  **Output lỗi**: `400` + `VALIDATION_ERROR` | `403` + `ACCESS_DENIED`
--  **Metadata**:
+- **Output lỗi**: `400` + `VALIDATION_ERROR` | `403` + `ACCESS_DENIED`
+- **Metadata**:
   `@SuccessPayload(value = UserBookingResponse.class, kind = SuccessResponseKind.PAGE)`
 
 **Endpoint 2 — Chi tiết đặt vé:**
 
--  **Nhiệm vụ**: Nhận HTTP request xem chi tiết đặt vé, lấy `requestingUserId` từ
+- **Nhiệm vụ**: Nhận HTTP request xem chi tiết đặt vé, lấy `requestingUserId` từ
   `Authentication`, ủy thác cho `GetBookingDetailUseCase`.
--  **Endpoint**: `GET /api/v1/bookings/{id}`
--  **Input**: Path `id: UUID`
--  **Output thành công**: `200` + `BookingDetailResponse` —
+- **Endpoint**: `GET /api/v1/bookings/{id}`
+- **Input**: Path `id: UUID`
+- **Output thành công**: `200` + `BookingDetailResponse` —
   `{ id, userId, scheduledTripId, passengerInfo, totalPrice, currency, status, paymentDeadline, createdAt, trip, payment, seats }`
--  **Output lỗi**: `403` + `ACCESS_DENIED` | `404` + `BOOKING_NOT_FOUND`
--  **Metadata**: `@SuccessPayload(BookingDetailResponse.class)`
+- **Output lỗi**: `403` + `ACCESS_DENIED` | `404` + `BOOKING_NOT_FOUND`
+- **Metadata**: `@SuccessPayload(BookingDetailResponse.class)`
 
-### 6.2 UseCase
+#### 6.2 UseCase
 
 **GetUserBookingsUseCase:**
 
--  **Nhiệm vụ**: Trả danh sách đặt vé phân trang cho khách hàng, kiểm tra quyền
+- **Nhiệm vụ**: Trả danh sách đặt vé phân trang cho khách hàng, kiểm tra quyền
   sở hữu.
--  **Input**: `GetUserBookingsQuery` — `{ userId, requestingUserId, page, size }`
--  **Output**: `Result<PageResponse<UserBookingResponse>, BookingError>`
--  **Logic**:
+- **Input**: `GetUserBookingsQuery` — `{ userId, requestingUserId, page, size }`
+- **Output**: `Result<PageResponse<UserBookingResponse>, BookingError>`
+- **Logic**:
     1. So sánh `userId == requestingUserId` → nếu khác, trả
        `BookingError.Forbidden`
     2. Gọi
@@ -284,63 +284,63 @@ DetailDTO *-- PassengerDTO
 
 **GetBookingDetailUseCase:**
 
--  **Nhiệm vụ**: Trả chi tiết đặt vé bao gồm thông tin chuyến tàu, thanh toán và
+- **Nhiệm vụ**: Trả chi tiết đặt vé bao gồm thông tin chuyến tàu, thanh toán và
   ghế, kiểm tra quyền sở hữu.
--  **Input**: `GetBookingDetailQuery` — `{ bookingId, requestingUserId }`
--  **Output**: `Result<BookingDetailResponse, BookingError>`
--  **Gọi đến**:
-    -  `BookingRepository.findById(bookingId)` — lấy booking entity
-    -  `ScheduledTripRepository.findEnrichedByIdIncludingDeleted(scheduledTripId)`
+- **Input**: `GetBookingDetailQuery` — `{ bookingId, requestingUserId }`
+- **Output**: `Result<BookingDetailResponse, BookingError>`
+- **Gọi đến**:
+    - `BookingRepository.findById(bookingId)` — lấy booking entity
+    - `ScheduledTripRepository.findEnrichedByIdIncludingDeleted(scheduledTripId)`
       — lấy thông tin chuyến tàu (bao gồm đã xóa mềm, có thể null)
-    -  `PaymentRepository.findSummaryByBookingId(bookingId)` — lấy thông tin
+    - `PaymentRepository.findSummaryByBookingId(bookingId)` — lấy thông tin
       thanh toán (có thể null nếu chưa tạo checkout session)
-    -  `RouteSeatAvailabilityRepository.findBookedSeatSummariesByBookingId(bookingId)`
+    - `RouteSeatAvailabilityRepository.findBookedSeatSummariesByBookingId(bookingId)`
       — lấy danh sách ghế đã đặt (JOIN seats + coaches, loại trừ soft-deleted)
--  **Lưu ý**: `trip` và `payment` có thể `null` trong response — trip null nếu
-  scheduled trip bị xóa hoàn toàn, payment null nếu chưa tạo checkout session.
+<!-- - **Lưu ý**: `trip` và `payment` có thể `null` trong response — trip null nếu
+  scheduled trip bị xóa hoàn toàn, payment null nếu chưa tạo checkout session. -->
 
-### 6.3 Repository
+#### 6.3 Repository
 
 **BookingRepository:**
 
--  **Nhiệm vụ**: Truy xuất domain entity `Booking` và projection
+- **Nhiệm vụ**: Truy xuất domain entity `Booking` và projection
   `BookingSummary`.
--  **Phương thức liên quan đến UC**:
-    -  `findById(BookingId): Optional<Booking>` — lấy booking entity đầy đủ
-    -  `findByUserId(UserId, page, size, sort): PageResponse<BookingSummary>` —
+- **Phương thức liên quan đến UC**:
+    - `findById(BookingId): Optional<Booking>` — lấy booking entity đầy đủ
+    - `findByUserId(UserId, page, size, sort): PageResponse<BookingSummary>` —
       danh sách đặt vé phân trang
--  **Table**: `bookings`
+- **Table**: `bookings`
 
 **ScheduledTripRepository:**
 
--  **Nhiệm vụ**: Truy xuất thông tin enriched của chuyến tàu.
--  **Phương thức liên quan đến UC**:
-    -  `findEnrichedByIdIncludingDeleted(ScheduledTripId): Optional<ScheduledTripEnrichedSummary>`
+- **Nhiệm vụ**: Truy xuất thông tin enriched của chuyến tàu.
+- **Phương thức liên quan đến UC**:
+    - `findEnrichedByIdIncludingDeleted(ScheduledTripId): Optional<ScheduledTripEnrichedSummary>`
       — lấy chuyến tàu kèm thông tin train, route, stations (bao gồm
       soft-deleted trips)
--  **Table**: `scheduled_trips` JOIN `route_templates`, `trains`, `stations`
+- **Table**: `scheduled_trips` JOIN `route_templates`, `trains`, `stations`
 
 **PaymentRepository:**
 
--  **Nhiệm vụ**: Truy xuất projection thanh toán.
--  **Phương thức liên quan đến UC**:
-    -  `findSummaryByBookingId(BookingId): Optional<PaymentSummary>` — lấy thông
+- **Nhiệm vụ**: Truy xuất projection thanh toán.
+- **Phương thức liên quan đến UC**:
+    - `findSummaryByBookingId(BookingId): Optional<PaymentSummary>` — lấy thông
       tin thanh toán theo booking
--  **Table**: `payments`
+- **Table**: `payments`
 
 **RouteSeatAvailabilityRepository:**
 
--  **Nhiệm vụ**: Truy xuất thông tin ghế đã đặt cho booking.
--  **Phương thức liên quan đến UC**:
-    -  `findBookedSeatSummariesByBookingId(BookingId): List<BookedSeatSummary>` —
+- **Nhiệm vụ**: Truy xuất thông tin ghế đã đặt cho booking.
+- **Phương thức liên quan đến UC**:
+    - `findBookedSeatSummariesByBookingId(BookingId): List<BookedSeatSummary>` —
       lấy danh sách ghế kèm coach info, loại trừ seats/coaches đã soft-delete
--  **Table**: `trip_seat_availability` JOIN `seats`, `coaches`
+- **Table**: `trip_seat_availability` JOIN `seats`, `coaches`
 
-### 6.4 Port
+#### 6.4 Port
 
 Không có actor hỗ trợ bên ngoài.
 
-### 6.5 Lược đồ tuần tự nội bộ PM
+#### 6.5 Lược đồ tuần tự nội bộ PM
 
 ```plantuml
 @startuml UC-10-internal
@@ -412,7 +412,63 @@ end
 @enduml
 ```
 
-## 7. Bảng tham chiếu dò vết
+#### 6.6 Giao diện
+
+##### 6.6.1 Giao diện mẫu
+
+```plantuml
+@startsalt
+{+
+  <b>Danh sách đặt vé của tôi
+  ..
+  {#
+    Mã đặt vé | Chuyến     | Ngày       | Trạng thái | Tổng tiền
+    BK001     | SE1        | 15/04/2026 | <color:Orange>HELD      | 1,000,000đ
+    BK002     | SE3        | 20/04/2026 | <color:Green>CONFIRMED | 850,000đ
+    BK003     | SE5        | 10/04/2026 | <color:Gray>CANCELLED | 480,000đ
+  }
+  ..
+  [< Trước] | Trang 1/2 | [Tiếp >]
+}
+@endsalt
+```
+
+```plantuml
+@startsalt
+{+
+  <b>Chi tiết đặt vé #BK001
+  ..
+  {^"Thông tin đặt vé"
+    Trạng thái      | <color:Orange>ĐANG GIỮ CHỖ
+    Hạn thanh toán  | 15/04/2026 10:30
+  }
+  {^"Thông tin chuyến tàu"
+    Chuyến      | SE1 - Sài Gòn → Đà Nẵng
+    Khởi hành   | 06:00, 15/04/2026
+    Đến         | 12:30, 15/04/2026
+  }
+  {^"Ghế đã đặt"
+    {#
+      Toa | Ghế  | Giá
+      1   | 01A  | 500,000đ
+      1   | 01B  | 500,000đ
+    }
+  }
+  {^"Thanh toán"
+    Trạng thái | PENDING
+    Tổng tiền  | 1,000,000đ
+  }
+  ==
+  [Hủy đặt vé] | [Thanh toán ngay]
+}
+@endsalt
+```
+
+##### 6.6.2 Giao diện ứng dụng
+
+Chưa hiện thực. Sẽ bổ sung ảnh chụp màn hình khi hoàn thành.
+
+### 7. Bảng tham chiếu dò vết
 
 | Use Case | Controller        | Endpoint                              | UseCase                 | Repository                                                           | Table                                              |
 | -------- | ----------------- | ------------------------------------- | ----------------------- | -------------------------------------------------------------------- | -------------------------------------------------- |
@@ -422,20 +478,10 @@ end
 |          |                   |                                       |                         | PaymentRepository.findSummaryByBookingId()                           | payments                                           |
 |          |                   |                                       |                         | RouteSeatAvailabilityRepository.findBookedSeatSummariesByBookingId() | trip_seat_availability, seats, coaches             |
 
-## 8. Tiêu chí kiểm thử
+### 8. Tiêu chí kiểm thử
 
 | Tiêu chí              | Phép thử                                                                   | Kết quả mong đợi                                                 | Ghi chú                                                       |
 | --------------------- | -------------------------------------------------------------------------- | ---------------------------------------------------------------- | ------------------------------------------------------------- |
 | Toàn diện (coverage)  | Đối chiếu Activity Diagram ↔ Sequence Diagram: mọi luồng đều được thể hiện | Không bỏ sót luồng chính lẫn ngoại lệ                            | Rà soát chéo giữa mục 2 và mục 3                              |
 | Nhất quán             | Rà soát tên lớp, trạng thái, API giữa các lược đồ trong cùng UC            | Không mâu thuẫn giữa các mục 2–6                                 | Đặc biệt kiểm tra tên trong mục 5–6                           |
 | Truy vết              | Đối chiếu bảng tham chiếu (mục 7) với lược đồ tuần tự nội bộ (mục 6.5)     | Mọi tương tác trong sequence đều có entry                        | Kiểm tra không thiếu endpoint/method                          |
-| Quyền sở hữu (list)   | Gọi `GET /api/v1/users/{userA}/bookings` với token của userB               | 403 + ACCESS_DENIED                                              | GetUserBookingsUseCase kiểm tra userId == requestingUserId    |
-| Quyền sở hữu (detail) | Gọi `GET /api/v1/bookings/{id}` với token khác chủ sở hữu                  | 403 + ACCESS_DENIED                                              | GetBookingDetailUseCase kiểm tra booking.userId == requesting |
-| Booking không tồn tại | Gọi `GET /api/v1/bookings/{random-uuid}`                                   | 404 + BOOKING_NOT_FOUND                                          |                                                               |
-| Phân trang hợp lệ     | Gọi với page=0, size=20; user có 25 booking                                | 200 + page=0, size=20, hasNext=true, total=25, content.length=20 | Sắp xếp createdAt DESC, id DESC                               |
-| Phân trang rỗng       | Gọi với user chưa có booking nào                                           | 200 + page=0, total=0, hasNext=false, content=[]                 |                                                               |
-| Phân trang lỗi        | Gọi với page=-1 hoặc size=0 hoặc size=101                                  | 400 + VALIDATION_ERROR                                           | Bean Validation: @Min(0) page, @Min(1) @Max(100) size         |
-| Detail enriched       | Gọi chi tiết booking đã có payment và trip                                 | 200 + BookingDetailResponse chứa trip, payment, seats đầy đủ     | Trip dùng findEnrichedByIdIncludingDeleted                    |
-| Detail trip null      | Gọi chi tiết booking mà scheduled trip đã bị xóa hoàn toàn (hard delete)   | 200 + BookingDetailResponse với trip=null                        | Hệ thống vẫn trả response thay vì lỗi                         |
-| Detail payment null   | Gọi chi tiết booking HELD chưa tạo checkout session                        | 200 + BookingDetailResponse với payment=null                     | Payment chỉ tồn tại sau khi checkout session được tạo         |
-| Detail seats empty    | Gọi chi tiết booking mà seats/coaches đã bị soft-delete                    | 200 + BookingDetailResponse với seats=[] (loại trừ soft-deleted) | Query JOIN seats + coaches với deleted_at IS NULL             |

@@ -1,6 +1,6 @@
-# UC-01: Đăng ký tài khoản
+## UC-01: Đăng ký tài khoản
 
-## 1. Mô tả use case
+### 1. Mô tả use case
 
 | Mục                            | Nội dung                                                                                                                                                                                                                                                                                                                                                                                                                                             |
 | ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -15,7 +15,7 @@
 | Hậu điều kiện (thất bại)       | Không có tài khoản nào được tạo. Dữ liệu trong hệ thống không thay đổi.                                                                                                                                                                                                                                                                                                                                                                              |
 | Xử lý ngoại lệ                 | Email đã tồn tại → Hệ thống từ chối đăng ký và trả về lỗi `USER_EMAIL_ALREADY_EXISTS`. <br> Dữ liệu đầu vào không hợp lệ, thiếu trường bắt buộc, email sai định dạng hoặc mật khẩu ngắn hơn 8 ký tự → Hệ thống trả về lỗi `VALIDATION_ERROR`.                                                                                                                                                                                                        |
 
-## 2. Lược đồ tuần tự
+### 2. Lược đồ tuần tự
 
 ```plantuml
 @startuml UC-01
@@ -37,7 +37,7 @@ end
 @enduml
 ```
 
-## 3. Lược đồ hoạt động
+### 3. Lược đồ hoạt động
 
 ```plantuml
 @startuml UC-01-activity
@@ -69,7 +69,7 @@ stop
 @enduml
 ```
 
-## 4. Lược đồ trạng thái
+### 4. Lược đồ trạng thái
 
 ```plantuml
 @startuml UC-01-state
@@ -81,7 +81,7 @@ ActiveCustomerAccount --> [*]
 @enduml
 ```
 
-## 5. Lược đồ lớp ý niệm
+### 5. Lược đồ lớp ý niệm
 
 ```plantuml
 @startuml UC-01-class
@@ -134,48 +134,48 @@ User *-- PersonName
 @enduml
 ```
 
-## 6. Phân rã thành phần PM
+### 6. Phân rã thành phần PM
 
-### 6.1 Controller: `AuthController`
+#### 6.1 Controller: `AuthController`
 
--  **Nhiệm vụ**: Nhận yêu cầu đăng ký từ khách hàng, kiểm tra tính hợp lệ của
+- **Nhiệm vụ**: Nhận yêu cầu đăng ký từ khách hàng, kiểm tra tính hợp lệ của
   payload và ủy thác cho lớp xử lý nghiệp vụ.
--  **Endpoint**: `POST /api/v1/auth/register`
--  **Input**: `RegisterRequest` —
+- **Endpoint**: `POST /api/v1/auth/register`
+- **Input**: `RegisterRequest` —
   `{ email: String, password: String, fullName: String }`
--  **Output thành công**: `201 Created` + `UserResponse` —
+- **Output thành công**: `201 Created` + `UserResponse` —
   `{ id, email, fullName, phone, dateOfBirth, gender, idDocumentNumber, addressLine, role, createdAt }`
--  **Output lỗi**: `400/409` + `JsendResponse` — `{ errorCode, message }`
+- **Output lỗi**: `400/409` + `JsendResponse` — `{ errorCode, message }`
 
-### 6.2 UseCase: `RegisterUserUseCase`
+#### 6.2 UseCase: `RegisterUserUseCase`
 
--  **Nhiệm vụ**: Kiểm tra email trùng lặp, băm mật khẩu, tạo `User` mới và phát
+- **Nhiệm vụ**: Kiểm tra email trùng lặp, băm mật khẩu, tạo `User` mới và phát
   sự kiện miền sau khi lưu thành công.
--  **Input**: `RegisterUserCommand` —
+- **Input**: `RegisterUserCommand` —
   `{ email: String, password: String, fullName: String }`
--  **Output**: `Result<UserResponse, UserError>`
--  **Gọi đến**:
-    -  `UserRepository.findByEmail(email)` — kiểm tra email đã tồn tại chưa
-    -  `PasswordEncoder.encode(password)` — băm mật khẩu trước khi lưu
-    -  `UserRepository.save(user)` — lưu tài khoản mới
--  **Phát sinh sự kiện**: `UserRegistered(userId, email, occurredAt)`
+- **Output**: `Result<UserResponse, UserError>`
+- **Gọi đến**:
+    - `UserRepository.findByEmail(email)` — kiểm tra email đã tồn tại chưa
+    - `PasswordEncoder.encode(password)` — băm mật khẩu trước khi lưu
+    - `UserRepository.save(user)` — lưu tài khoản mới
+- **Phát sinh sự kiện**: `UserRegistered(userId, email, occurredAt)`
 
-### 6.3 Repository: `UserRepository`
+#### 6.3 Repository: `UserRepository`
 
--  **Nhiệm vụ**: Truy xuất và lưu trữ domain entity `User`.
--  **Phương thức liên quan đến UC**:
-    -  `findByEmail(email): Optional<User>` — kiểm tra email đã tồn tại trong hệ
+- **Nhiệm vụ**: Truy xuất và lưu trữ domain entity `User`.
+- **Phương thức liên quan đến UC**:
+    - `findByEmail(email): Optional<User>` — kiểm tra email đã tồn tại trong hệ
       thống
-    -  `save(user): User` — lưu tài khoản khách hàng mới
--  **Table**: `users`
+    - `save(user): User` — lưu tài khoản khách hàng mới
+- **Table**: `users`
 
-### 6.4 Port: `PasswordEncoder`
+#### 6.4 Port: `PasswordEncoder`
 
--  **Nhiệm vụ**: Băm mật khẩu thô trước khi lưu vào cơ sở dữ liệu.
--  **Phương thức liên quan đến UC**:
-    -  `encode(password): String` — trả về chuỗi băm của mật khẩu
+- **Nhiệm vụ**: Băm mật khẩu thô trước khi lưu vào cơ sở dữ liệu.
+- **Phương thức liên quan đến UC**:
+    - `encode(password): String` — trả về chuỗi băm của mật khẩu
 
-### 6.5 Lược đồ tuần tự nội bộ PM
+#### 6.5 Lược đồ tuần tự nội bộ PM
 
 ```plantuml
 @startuml UC-01-internal
@@ -213,13 +213,35 @@ CTL --> Actor: 201 + JsendResponse(UserResponse)
 @enduml
 ```
 
-## 7. Bảng tham chiếu dò vết
+#### 6.6 Giao diện
+
+##### 6.6.1 Giao diện mẫu
+
+```plantuml
+@startsalt
+{+
+  <b>Đăng ký tài khoản
+  ..
+  Họ và tên  | "                              "
+  Email      | "                              "
+  Mật khẩu   | "                              "
+  ==
+  [Đăng ký]
+}
+@endsalt
+```
+
+##### 6.6.2 Giao diện ứng dụng
+
+Chưa hiện thực. Sẽ bổ sung ảnh chụp màn hình khi hoàn thành.
+
+### 7. Bảng tham chiếu dò vết
 
 | Use Case | Controller     | Endpoint                     | UseCase             | Repository                               | Table   |
 | -------- | -------------- | ---------------------------- | ------------------- | ---------------------------------------- | ------- |
 | UC-01    | AuthController | `POST /api/v1/auth/register` | RegisterUserUseCase | `UserRepository.findByEmail()`, `save()` | `users` |
 
-## 8. Tiêu chí kiểm thử
+### 8. Tiêu chí kiểm thử
 
 | Tiêu chí             | Phép thử                                                                   | Kết quả mong đợi                          | Ghi chú                              |
 | -------------------- | -------------------------------------------------------------------------- | ----------------------------------------- | ------------------------------------ |

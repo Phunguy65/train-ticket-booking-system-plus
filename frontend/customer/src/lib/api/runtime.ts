@@ -1,5 +1,5 @@
-import { createApiFetch } from './fetch-runtime.js';
-import type { CreateClientConfig } from './generated/client.gen.js';
+import { createApiFetch } from './fetch-runtime.ts';
+import type { CreateClientConfig } from './generated/client.gen.ts';
 
 export const createClientConfig: CreateClientConfig = (config) => ({
     ...config,

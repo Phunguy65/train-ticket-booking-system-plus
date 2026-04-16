@@ -1,6 +1,6 @@
-# UC-08: Xem sơ đồ ghế chuyến tàu
+## UC-08: Xem sơ đồ ghế chuyến tàu
 
-## 1. Mô tả use case
+### 1. Mô tả use case
 
 | Mục                            | Nội dung                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -10,12 +10,12 @@
 | Actor chính                    | Khách hàng đã đăng nhập                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
 | Actor liên quan                | Không                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 | Tiền điều kiện                 | Khách hàng đã đăng nhập và có access token hợp lệ. Khách hàng đã biết mã chuyến tàu (`scheduledTripId`) từ UC-07.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
-| Dãy lệnh thực hiện bình thường | **Xem danh sách ghế trống:** <br> 1. Khách hàng gửi yêu cầu xem ghế trống của chuyến tàu với `scheduledTripId` và tham số phân trang (`page`, `size`). <br> 2. Hệ thống trả về danh sách ghế có trạng thái `AVAILABLE` (bao gồm cả ghế `HELD` đã quá hạn thanh toán), sắp xếp theo số ghế. <br> **Lưu ý:** Endpoint này không kiểm tra chuyến tàu tồn tại; nếu `scheduledTripId` không hợp lệ, hệ thống trả về trang rỗng. <br><br> **Xem sơ đồ ghế theo toa:** <br> 1. Khách hàng gửi yêu cầu xem sơ đồ ghế theo toa của chuyến tàu với `scheduledTripId` và tham số phân trang (`page`, `size`). <br> 2. Hệ thống trả về danh sách toa phân trang, mỗi toa kèm danh sách ghế với trạng thái hiện tại (`AVAILABLE`, `HELD`, `BOOKED`) (kết quả được cache). <br> **Lưu ý:** Endpoint này kiểm tra chuyến tàu tồn tại; nếu không tìm thấy, trả lỗi 404. |
+| Dãy lệnh thực hiện bình thường | **Xem danh sách ghế trống:** <br> 1. Khách hàng gửi yêu cầu xem ghế trống của chuyến tàu với `scheduledTripId` và tham số phân trang (`page`, `size`). <br> 2. Hệ thống trả về danh sách ghế có trạng thái `AVAILABLE` (bao gồm cả ghế `HELD` đã quá hạn thanh toán), sắp xếp theo số ghế.<br> **Xem sơ đồ ghế theo toa:** <br> 1. Khách hàng gửi yêu cầu xem sơ đồ ghế theo toa của chuyến tàu với `scheduledTripId` và tham số phân trang (`page`, `size`). <br> 2. Hệ thống trả về danh sách toa phân trang, mỗi toa kèm danh sách ghế với trạng thái hiện tại (`AVAILABLE`, `HELD`, `BOOKED`) (kết quả được cache). <br> **Lưu ý:** Endpoint này kiểm tra chuyến tàu tồn tại; nếu không tìm thấy, trả lỗi 404. |
 | Hậu điều kiện (thành công)     | Không có thay đổi trạng thái. Đây là thao tác chỉ đọc.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 | Hậu điều kiện (thất bại)       | Không có thay đổi trạng thái. Dữ liệu trong hệ thống không bị ảnh hưởng.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | Xử lý ngoại lệ                 | Chưa xác thực (thiếu hoặc sai access token) → Hệ thống trả về lỗi 401. <br> Chuyến tàu không tồn tại (sơ đồ ghế theo toa) → Hệ thống trả về lỗi `SCHEDULED_TRIP_NOT_FOUND`. <br> Chuyến tàu không tồn tại (danh sách ghế trống) → Hệ thống trả về trang rỗng (không kiểm tra tồn tại). <br> Chuyến tàu tồn tại nhưng chưa có toa → Hệ thống trả về trang rỗng. <br> Tham số phân trang không hợp lệ → Hệ thống trả về lỗi `VALIDATION_ERROR`.                                                                                                                                                                                                                                                                                                                                                                                                           |
 
-## 2. Lược đồ tuần tự
+### 2. Lược đồ tuần tự
 
 ```plantuml
 @startuml UC-08
@@ -54,7 +54,7 @@ end
 @enduml
 ```
 
-## 3. Lược đồ hoạt động
+### 3. Lược đồ hoạt động
 
 ```plantuml
 @startuml UC-08-activity
@@ -81,7 +81,6 @@ case (Available Seats)
   :Truy vấn ghế AVAILABLE theo scheduledTripId;
   note right
     Bao gồm ghế HELD đã quá hạn.
-    Không kiểm tra trip tồn tại —
     nếu trip không có, trả trang rỗng.
   end note
 
@@ -118,7 +117,7 @@ stop
 @enduml
 ```
 
-## 5. Lược đồ lớp ý niệm
+### 5. Lược đồ lớp ý niệm
 
 ```plantuml
 @startuml UC-08-class
@@ -181,84 +180,83 @@ CoachRes *-- CoachSeat
 @enduml
 ```
 
-## 6. Phân rã thành phần PM
+### 6. Phân rã thành phần PM
 
-### 6.1 Controller: `SeatController`
+#### 6.1 Controller: `SeatController`
 
--  **Nhiệm vụ**: Nhận HTTP request từ khách hàng, xác thực đầu vào, ủy thác cho
+- **Nhiệm vụ**: Nhận HTTP request từ khách hàng, xác thực đầu vào, ủy thác cho
   UseCase tương ứng.
 
 **Endpoint 1 — Danh sách ghế trống:**
 
--  **Endpoint**: `GET /api/v1/scheduled-trips/{scheduledTripId}/seats/available`
--  **Input**: `scheduledTripId` (UUID path variable) + `GetAvailableSeatsRequest`
+- **Endpoint**: `GET /api/v1/scheduled-trips/{scheduledTripId}/seats/available`
+- **Input**: `scheduledTripId` (UUID path variable) + `GetAvailableSeatsRequest`
   — `{ page, size }`
--  **Output thành công**: `200` + `PageResponse<SeatResponse>`
--  **Output lỗi**: `400` + `JsendResponse` —
+- **Output thành công**: `200` + `PageResponse<SeatResponse>`
+- **Output lỗi**: `400` + `JsendResponse` —
   `{ errorCode: VALIDATION_ERROR, message }`
--  **Ghi chú metadata**: Controller annotation hiện còn khai báo `404` cho
+- **Ghi chú metadata**: Controller annotation hiện còn khai báo `404` cho
   endpoint này, nhưng runtime code hiện chỉ trả `200` hoặc lỗi validation.
 
 **Endpoint 2 — Sơ đồ ghế theo toa:**
 
--  **Endpoint**: `GET /api/v1/scheduled-trips/{scheduledTripId}/coach-seats`
--  **Input**: `scheduledTripId` (UUID path variable) + `GetCoachSeatMapRequest` —
+- **Endpoint**: `GET /api/v1/scheduled-trips/{scheduledTripId}/coach-seats`
+- **Input**: `scheduledTripId` (UUID path variable) + `GetCoachSeatMapRequest` —
   `{ page, size }`
--  **Output thành công**: `200` + `PageResponse<CoachSeatMapResponse>`
--  **Output lỗi**: `404` + `JsendResponse` —
+- **Output thành công**: `200` + `PageResponse<CoachSeatMapResponse>`
+- **Output lỗi**: `404` + `JsendResponse` —
   `{ errorCode: SCHEDULED_TRIP_NOT_FOUND, message }` hoặc `400` +
   `VALIDATION_ERROR`
--  **Ghi chú metadata**: Runtime trả `PageResponse<CoachSeatMapResponse>`, nhưng
+- **Ghi chú metadata**: Runtime trả `PageResponse<CoachSeatMapResponse>`, nhưng
   `@SuccessPayload` hiện dùng mặc định object metadata thay vì page metadata.
 
-### 6.2 UseCase
+#### 6.2 UseCase
 
 **GetAvailableSeatsForScheduledTripUseCase:**
 
--  **Nhiệm vụ**: Truy vấn danh sách ghế trống cho chuyến tàu, sắp xếp theo số
+- **Nhiệm vụ**: Truy vấn danh sách ghế trống cho chuyến tàu, sắp xếp theo số
   ghế.
--  **Input**: `GetAvailableSeatsQuery` — `{ page, size, scheduledTripId }`
--  **Output**: `PageResponse<SeatResponse>`
--  **Gọi đến**:
-    -  `SeatRepository.findAllAvailableSummaries(page, size, sort, scheduledTripId)`
+- **Input**: `GetAvailableSeatsQuery` — `{ page, size, scheduledTripId }`
+- **Output**: `PageResponse<SeatResponse>`
+- **Gọi đến**:
+    - `SeatRepository.findAllAvailableSummaries(page, size, sort, scheduledTripId)`
       — truy vấn ghế AVAILABLE (bao gồm HELD quá hạn)
--  **Lưu ý**: Không kiểm tra chuyến tàu tồn tại. Nếu scheduledTripId không hợp
-  lệ, trả trang rỗng. Không cache.
+
 
 **GetCoachSeatMapByScheduledTripUseCase:**
 
--  **Nhiệm vụ**: Truy vấn sơ đồ ghế theo toa cho chuyến tàu, cache kết quả.
--  **Input**: `GetCoachSeatMapQuery` — `{ page, size, scheduledTripId }`
--  **Output**: `Result<PageResponse<CoachSeatMapResponse>, ScheduledTripError>`
--  **Gọi đến**:
-    -  `ScheduledTripSeatMapRepository.findCoachSummariesByScheduledTripId(page, size, scheduledTripId)`
+- **Nhiệm vụ**: Truy vấn sơ đồ ghế theo toa cho chuyến tàu, cache kết quả.
+- **Input**: `GetCoachSeatMapQuery` — `{ page, size, scheduledTripId }`
+- **Output**: `Result<PageResponse<CoachSeatMapResponse>, ScheduledTripError>`
+- **Gọi đến**:
+    - `ScheduledTripSeatMapRepository.findCoachSummariesByScheduledTripId(page, size, scheduledTripId)`
       — lấy danh sách toa phân trang
-    -  `ScheduledTripSeatMapRepository.findSeatSummariesByScheduledTripIdAndCoachIds(scheduledTripId, coachIds)`
+    - `ScheduledTripSeatMapRepository.findSeatSummariesByScheduledTripIdAndCoachIds(scheduledTripId, coachIds)`
       — lấy ghế cho các toa
-    -  `ScheduledTripRepository.existsById(scheduledTripId)` — kiểm tra tồn tại
+    - `ScheduledTripRepository.existsById(scheduledTripId)` — kiểm tra tồn tại
       (chỉ khi không có toa)
--  **Cache**: `coachSeatMap`, key = `st-coach:{scheduledTripId}:{page}:{size}`,
+- **Cache**: `coachSeatMap`, key = `st-coach:{scheduledTripId}:{page}:{size}`,
   trừ khi failure hoặc content rỗng
 
-### 6.3 Repository
+#### 6.3 Repository
 
 **SeatRepository:**
 
--  **Nhiệm vụ**: Truy xuất domain entity `Seat` và các projection summary.
--  **Phương thức liên quan đến UC**:
-    -  `findAllAvailableSummaries(page, size, sort, scheduledTripId): PageResponse<SeatSummary>`
+- **Nhiệm vụ**: Truy xuất domain entity `Seat` và các projection summary.
+- **Phương thức liên quan đến UC**:
+    - `findAllAvailableSummaries(page, size, sort, scheduledTripId): PageResponse<SeatSummary>`
       — danh sách ghế trống (AVAILABLE + HELD quá hạn)
 
 **ScheduledTripSeatMapRepository:**
 
--  **Nhiệm vụ**: Truy xuất sơ đồ ghế theo toa cho chuyến tàu.
--  **Phương thức liên quan đến UC**:
-    -  `findCoachSummariesByScheduledTripId(page, size, scheduledTripId): PageResponse<CoachSeatMapCoachSummary>`
+- **Nhiệm vụ**: Truy xuất sơ đồ ghế theo toa cho chuyến tàu.
+- **Phương thức liên quan đến UC**:
+    - `findCoachSummariesByScheduledTripId(page, size, scheduledTripId): PageResponse<CoachSeatMapCoachSummary>`
       — danh sách toa phân trang
-    -  `findSeatSummariesByScheduledTripIdAndCoachIds(scheduledTripId, coachIds): List<CoachSeatMapSeatSummary>`
+    - `findSeatSummariesByScheduledTripIdAndCoachIds(scheduledTripId, coachIds): List<CoachSeatMapSeatSummary>`
       — ghế cho các toa kèm trạng thái
 
-### 6.4 Lược đồ tuần tự nội bộ PM
+#### 6.4 Lược đồ tuần tự nội bộ PM
 
 ```plantuml
 @startuml UC-08-internal
@@ -318,25 +316,51 @@ end
 @enduml
 ```
 
-## 7. Bảng tham chiếu dò vết
+#### 6.5 Giao diện
+
+##### 6.5.1 Giao diện mẫu
+
+```plantuml
+@startsalt
+{+
+  <b>Sơ đồ ghế - Chuyến SE1 (SGN → DNA)
+  ..
+  {/ Toa 1 | Toa 2 | Toa 3 | Toa 4 }
+  {
+    {#
+      .         | A      | B      | .  | C      | D
+      Hàng 1    | [01A]  | [01B]  | .  | <color:Gray>[01C] | [01D]
+      Hàng 2    | <color:Gray>[02A] | [02B]  | .  | [02C]  | [02D]
+      Hàng 3    | [03A]  | [03B]  | .  | [03C]  | <color:Gray>[03D]
+      Hàng 4    | [04A]  | <color:Gray>[04B] | .  | [04C]  | [04D]
+      Hàng 5    | [05A]  | [05B]  | .  | [05C]  | [05D]
+    }
+  }
+  ..
+  {
+    Chú thích: [ ] Trống | <color:Gray>[ ] Đã đặt/Đang giữ
+  }
+  ==
+  Đã chọn: 0 ghế | Tổng: 0đ | [Tiếp tục đặt vé]
+}
+@endsalt
+```
+
+##### 6.5.2 Giao diện ứng dụng
+
+Chưa hiện thực. Sẽ bổ sung ảnh chụp màn hình khi hoàn thành.
+
+### 7. Bảng tham chiếu dò vết
 
 | Use Case | Controller     | Endpoint                                                        | UseCase                                  | Repository / Port                                                                                                                                           | Table                                                   |
 | -------- | -------------- | --------------------------------------------------------------- | ---------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------- |
 | UC-08    | SeatController | `GET /api/v1/scheduled-trips/{scheduledTripId}/seats/available` | GetAvailableSeatsForScheduledTripUseCase | SeatRepository.findAllAvailableSummaries()                                                                                                                  | seats, trip_seat_availability, bookings                 |
 |          | SeatController | `GET /api/v1/scheduled-trips/{scheduledTripId}/coach-seats`     | GetCoachSeatMapByScheduledTripUseCase    | ScheduledTripSeatMapRepository.findCoachSummariesByScheduledTripId(), findSeatSummariesByScheduledTripIdAndCoachIds(); ScheduledTripRepository.existsById() | coaches, seats, trip_seat_availability, scheduled_trips |
 
-## 8. Tiêu chí kiểm thử
+### 8. Tiêu chí kiểm thử
 
 | Tiêu chí                              | Phép thử                                                                   | Kết quả mong đợi                                                                 | Ghi chú                                 |
 | ------------------------------------- | -------------------------------------------------------------------------- | -------------------------------------------------------------------------------- | --------------------------------------- |
 | Toàn diện (coverage)                  | Đối chiếu Activity Diagram ↔ Sequence Diagram: mọi luồng đều được thể hiện | Không bỏ sót luồng chính lẫn ngoại lệ                                            | Rà soát chéo giữa mục 2 và mục 3        |
 | Nhất quán                             | Rà soát tên lớp, trạng thái, API giữa các lược đồ trong cùng UC            | Không mâu thuẫn giữa các mục 2–6                                                 | Đặc biệt kiểm tra tên DTO trong mục 5–6 |
 | Truy vết                              | Đối chiếu bảng tham chiếu (mục 7) với lược đồ tuần tự nội bộ (mục 6.4)     | Mọi tương tác trong sequence đều có entry                                        | Kiểm tra không thiếu endpoint/method    |
-| Available — happy path                | Gửi request với scheduledTripId hợp lệ, page=0, size=20                    | 200 + PageResponse<SeatResponse> chứa ghế AVAILABLE, sắp xếp theo seatNumber ASC |                                         |
-| Available — trip không tồn tại        | Gửi request với scheduledTripId không tồn tại                              | 200 + PageResponse rỗng (content=[], total=0)                                    | Không trả 404 — behavior by design      |
-| Available — bad pagination            | Gửi request với size=0 hoặc size > 100                                     | 400 + VALIDATION_ERROR                                                           |                                         |
-| Coach map — happy path                | Gửi request với scheduledTripId hợp lệ có toa và ghế                       | 200 + PageResponse<CoachSeatMapResponse> chứa toa kèm ghế với trạng thái         | Kiểm tra cache hit lần gọi thứ 2        |
-| Coach map — trip không tồn tại        | Gửi request với scheduledTripId không tồn tại                              | 404 + SCHEDULED_TRIP_NOT_FOUND                                                   |                                         |
-| Coach map — trip có nhưng chưa có toa | Gửi request với scheduledTripId tồn tại nhưng chưa gán toa                 | 200 + PageResponse rỗng                                                          | Kết quả rỗng không được cache           |
-| Coach map — bad pagination            | Gửi request với size < 1 hoặc size > 100                                   | 400 + VALIDATION_ERROR                                                           |                                         |
-| Unauthenticated                       | Gửi bất kỳ request nào không có access token                               | 401 Unauthorized                                                                 | Xử lý bởi Spring Security filter chain  |

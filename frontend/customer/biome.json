@@ -25,7 +25,10 @@
                 "useImportExtensions": {
                     "level": "error",
                     "options": {
-                        "forceJsExtensions": true
+                        "extensionMappings": {
+                            "ts": "ts",
+                            "tsx": "tsx"
+                        }
                     }
                 },
                 "noUnusedVariables": "error",

@@ -1,6 +1,6 @@
-# UC-02: Đăng nhập
+## UC-02: Đăng nhập
 
-## 1. Mô tả use case
+### 1. Mô tả use case
 
 | Mục                            | Nội dung                                                                                                                                                                                                                                                                                                                                                                                                               |
 | ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -15,7 +15,7 @@
 | Hậu điều kiện (thất bại)       | Không có token nào được tạo hoặc lưu. Dữ liệu người dùng không thay đổi.                                                                                                                                                                                                                                                                                                                                               |
 | Xử lý ngoại lệ                 | Email không tồn tại hoặc mật khẩu không đúng → Hệ thống trả về lỗi `USER_INVALID_CREDENTIALS`. <br> Dữ liệu đầu vào không hợp lệ, thiếu trường bắt buộc hoặc email sai định dạng → Hệ thống trả về lỗi `VALIDATION_ERROR`.                                                                                                                                                                                             |
 
-## 2. Lược đồ tuần tự
+### 2. Lược đồ tuần tự
 
 ```plantuml
 @startuml UC-02
@@ -37,7 +37,7 @@ end
 @enduml
 ```
 
-## 3. Lược đồ hoạt động
+### 3. Lược đồ hoạt động
 
 ```plantuml
 @startuml UC-02-activity
@@ -73,7 +73,7 @@ stop
 @enduml
 ```
 
-## 5. Lược đồ lớp ý niệm
+### 5. Lược đồ lớp ý niệm
 
 ```plantuml
 @startuml UC-02-class
@@ -125,50 +125,50 @@ LoginResultResponse o-- UserResponse
 @enduml
 ```
 
-## 6. Phân rã thành phần PM
+### 6. Phân rã thành phần PM
 
-### 6.1 Controller: `AuthController`
+#### 6.1 Controller: `AuthController`
 
--  **Nhiệm vụ**: Nhận yêu cầu đăng nhập, kiểm tra định dạng payload và chuyển
+- **Nhiệm vụ**: Nhận yêu cầu đăng nhập, kiểm tra định dạng payload và chuyển
   tiếp sang lớp nghiệp vụ để xác thực.
--  **Endpoint**: `POST /api/v1/auth/login`
--  **Input**: `LoginRequest` — `{ email: String, password: String }`
--  **Output thành công**: `200 OK` + `LoginResultResponse` —
+- **Endpoint**: `POST /api/v1/auth/login`
+- **Input**: `LoginRequest` — `{ email: String, password: String }`
+- **Output thành công**: `200 OK` + `LoginResultResponse` —
   `{ accessToken, refreshToken, user }`
--  **Output lỗi**: `400/401` + `JsendResponse` — `{ errorCode, message }`
+- **Output lỗi**: `400/401` + `JsendResponse` — `{ errorCode, message }`
 
-### 6.2 UseCase: `LoginUserUseCase`
+#### 6.2 UseCase: `LoginUserUseCase`
 
--  **Nhiệm vụ**: Tìm người dùng theo email, đối chiếu mật khẩu và tạo cặp token
+- **Nhiệm vụ**: Tìm người dùng theo email, đối chiếu mật khẩu và tạo cặp token
   mới khi xác thực thành công.
--  **Input**: `LoginCommand` — `{ email: String, password: String }`
--  **Output**: `Result<LoginResultResponse, UserError>`
--  **Gọi đến**:
-    -  `UserRepository.findByEmail(email)` — tìm tài khoản theo email
-    -  `PasswordEncoder.matches(rawPassword, passwordHash)` — xác thực mật khẩu
-    -  `RefreshTokenManager.generateAndSaveTokens(user)` — tạo và lưu cặp token
+- **Input**: `LoginCommand` — `{ email: String, password: String }`
+- **Output**: `Result<LoginResultResponse, UserError>`
+- **Gọi đến**:
+    - `UserRepository.findByEmail(email)` — tìm tài khoản theo email
+    - `PasswordEncoder.matches(rawPassword, passwordHash)` — xác thực mật khẩu
+    - `RefreshTokenManager.generateAndSaveTokens(user)` — tạo và lưu cặp token
       cho phiên đăng nhập
--  **Phát sinh sự kiện**: Không
+- **Phát sinh sự kiện**: Không
 
-### 6.3 Repository: `UserRepository`
+#### 6.3 Repository: `UserRepository`
 
--  **Nhiệm vụ**: Truy xuất domain entity `User` để phục vụ xác thực.
--  **Phương thức liên quan đến UC**:
-    -  `findByEmail(email): Optional<User>` — tìm người dùng theo email đang hoạt
+- **Nhiệm vụ**: Truy xuất domain entity `User` để phục vụ xác thực.
+- **Phương thức liên quan đến UC**:
+    - `findByEmail(email): Optional<User>` — tìm người dùng theo email đang hoạt
       động
--  **Table**: `users`
+- **Table**: `users`
 
-### 6.4 Port: `PasswordEncoder`, `RefreshTokenManager`
+#### 6.4 Port: `PasswordEncoder`, `RefreshTokenManager`
 
--  **Nhiệm vụ**: Hỗ trợ xác thực mật khẩu và quản lý vòng đời token cho phiên
+- **Nhiệm vụ**: Hỗ trợ xác thực mật khẩu và quản lý vòng đời token cho phiên
   đăng nhập.
--  **Phương thức liên quan đến UC**:
-    -  `PasswordEncoder.matches(rawPassword, passwordHash): boolean` — kiểm tra
+- **Phương thức liên quan đến UC**:
+    - `PasswordEncoder.matches(rawPassword, passwordHash): boolean` — kiểm tra
       mật khẩu hợp lệ
-    -  `RefreshTokenManager.generateAndSaveTokens(user): TokenPair` — trả về
+    - `RefreshTokenManager.generateAndSaveTokens(user): TokenPair` — trả về
       `{ accessToken, refreshToken }`
 
-### 6.5 Lược đồ tuần tự nội bộ PM
+#### 6.5 Lược đồ tuần tự nội bộ PM
 
 ```plantuml
 @startuml UC-02-internal
@@ -209,13 +209,36 @@ CTL --> Actor: 200 + JsendResponse(LoginResultResponse)
 @enduml
 ```
 
-## 7. Bảng tham chiếu dò vết
+#### 6.6 Giao diện
+
+##### 6.6.1 Giao diện mẫu
+
+```plantuml
+@startsalt
+{+
+  <b>Đăng nhập
+  ..
+  Email      | "                              "
+  Mật khẩu   | "                              "
+  ..
+  Chưa có tài khoản? <color:Blue>Đăng ký
+  ==
+  [Đăng nhập]
+}
+@endsalt
+```
+
+##### 6.6.2 Giao diện ứng dụng
+
+Chưa hiện thực. Sẽ bổ sung ảnh chụp màn hình khi hoàn thành.
+
+### 7. Bảng tham chiếu dò vết
 
 | Use Case | Controller     | Endpoint                  | UseCase          | Repository                     | Table                     |
 | -------- | -------------- | ------------------------- | ---------------- | ------------------------------ | ------------------------- |
 | UC-02    | AuthController | `POST /api/v1/auth/login` | LoginUserUseCase | `UserRepository.findByEmail()` | `users`, `refresh_tokens` |
 
-## 8. Tiêu chí kiểm thử
+### 8. Tiêu chí kiểm thử
 
 | Tiêu chí             | Phép thử                                                                   | Kết quả mong đợi                          | Ghi chú                              |
 | -------------------- | -------------------------------------------------------------------------- | ----------------------------------------- | ------------------------------------ |

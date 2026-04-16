@@ -1,6 +1,6 @@
-# UC-05: Xóa tài khoản
+## UC-05: Xóa tài khoản
 
-## 1. Mô tả use case
+### 1. Mô tả use case
 
 | Mục                            | Nội dung                                                                                                                                                                                                                                                                                                                                                                                                          |
 | ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -15,7 +15,7 @@
 | Hậu điều kiện (thất bại)       | Tài khoản không bị thay đổi. Không có token nào bị thu hồi. Không có sự kiện nào được phát.                                                                                                                                                                                                                                                                                                                       |
 | Xử lý ngoại lệ                 | Chưa xác thực (thiếu hoặc sai access token) → Hệ thống trả về lỗi 401. <br> Tài khoản không tìm thấy (bao gồm tài khoản đã bị xóa mềm trước đó, vì `findById` chỉ truy vấn tài khoản đang hoạt động) → Hệ thống trả về lỗi `USER_NOT_FOUND`. <br> Còn đặt vé đang hoạt động (HELD hoặc CONFIRMED) → Hệ thống trả về lỗi `USER_HAS_ACTIVE_BOOKINGS`.                                                               |
 
-## 2. Lược đồ tuần tự
+### 2. Lược đồ tuần tự
 
 ```plantuml
 @startuml UC-05
@@ -38,7 +38,7 @@ end
 @enduml
 ```
 
-## 3. Lược đồ hoạt động
+### 3. Lược đồ hoạt động
 
 ```plantuml
 @startuml UC-05-activity
@@ -77,7 +77,7 @@ stop
 @enduml
 ```
 
-## 4. Lược đồ trạng thái
+### 4. Lược đồ trạng thái
 
 ```plantuml
 @startuml UC-05-state
@@ -97,7 +97,7 @@ Deleted --> [*]
 @enduml
 ```
 
-## 5. Lược đồ lớp ý niệm
+### 5. Lược đồ lớp ý niệm
 
 ```plantuml
 @startuml UC-05-class
@@ -125,58 +125,58 @@ User ..> Event: publishes
 @enduml
 ```
 
-## 6. Phân rã thành phần PM
+### 6. Phân rã thành phần PM
 
-### 6.1 Controller: `AuthController`
+#### 6.1 Controller: `AuthController`
 
--  **Nhiệm vụ**: Nhận yêu cầu xóa tài khoản, trích xuất `userId` từ token xác
+- **Nhiệm vụ**: Nhận yêu cầu xóa tài khoản, trích xuất `userId` từ token xác
   thực và ủy thác cho use case.
--  **Endpoint**: `DELETE /api/v1/auth/me`
--  **Input**: access token (trong header `Authorization: Bearer ...`)
--  **Output thành công**: `200 OK` + `JsendResponse.success()`
--  **Output lỗi**: `401/404/409` + `JsendResponse` — `{ errorCode, message }`
+- **Endpoint**: `DELETE /api/v1/auth/me`
+- **Input**: access token (trong header `Authorization: Bearer ...`)
+- **Output thành công**: `200 OK` + `JsendResponse.success()`
+- **Output lỗi**: `401/404/409` + `JsendResponse` — `{ errorCode, message }`
 
-### 6.2 UseCase: `DeleteAuthenticatedUserUseCase`
+#### 6.2 UseCase: `DeleteAuthenticatedUserUseCase`
 
--  **Nhiệm vụ**: Tìm người dùng (chỉ tài khoản đang hoạt động), kiểm tra không có
+- **Nhiệm vụ**: Tìm người dùng (chỉ tài khoản đang hoạt động), kiểm tra không có
   đặt vé đang hoạt động (cross-BC access), thực hiện xóa mềm, thu hồi token và
   phát sự kiện miền.
--  **Input**: `SoftDeleteUserCommand` — `{ userId: UserId }`
--  **Output**: `Result<Void, UserError>`
--  **Gọi đến**:
-    -  `UserRepository.findById(userId)` — tìm tài khoản
-    -  `BookingRepository.existsActiveByUserId(userId)` — kiểm tra đặt vé đang
+- **Input**: `SoftDeleteUserCommand` — `{ userId: UserId }`
+- **Output**: `Result<Void, UserError>`
+- **Gọi đến**:
+    - `UserRepository.findById(userId)` — tìm tài khoản
+    - `BookingRepository.existsActiveByUserId(userId)` — kiểm tra đặt vé đang
       hoạt động _(cross-bounded context)_
-    -  `User.softDelete()` — đánh dấu xóa mềm, phát `UserDeleted` event
-    -  `RefreshTokenRepository.revokeAllByUserId(userId)` — thu hồi toàn bộ token
-    -  `UserRepository.save(user)` — lưu trạng thái mới
--  **Phát sinh sự kiện**: `UserDeleted(userId, occurredAt)`
+    - `User.softDelete()` — đánh dấu xóa mềm, phát `UserDeleted` event
+    - `RefreshTokenRepository.revokeAllByUserId(userId)` — thu hồi toàn bộ token
+    - `UserRepository.save(user)` — lưu trạng thái mới
+- **Phát sinh sự kiện**: `UserDeleted(userId, occurredAt)`
 
-### 6.3 Repository: `UserRepository`
+#### 6.3 Repository: `UserRepository`
 
--  **Nhiệm vụ**: Truy xuất và lưu trữ domain entity `User`.
--  **Phương thức liên quan đến UC**:
-    -  `findById(userId): Optional<User>` — tìm tài khoản đang hoạt động
-    -  `save(user): User` — lưu entity sau khi xóa mềm
--  **Table**: `users`
+- **Nhiệm vụ**: Truy xuất và lưu trữ domain entity `User`.
+- **Phương thức liên quan đến UC**:
+    - `findById(userId): Optional<User>` — tìm tài khoản đang hoạt động
+    - `save(user): User` — lưu entity sau khi xóa mềm
+- **Table**: `users`
 
-### 6.4 Repository: `BookingRepository`
+#### 6.4 Repository: `BookingRepository`
 
--  **Nhiệm vụ**: Kiểm tra sự tồn tại của đặt vé đang hoạt động thuộc về người
+- **Nhiệm vụ**: Kiểm tra sự tồn tại của đặt vé đang hoạt động thuộc về người
   dùng.
--  **Phương thức liên quan đến UC**:
-    -  `existsActiveByUserId(userId): boolean` — trả về `true` nếu còn booking ở
+- **Phương thức liên quan đến UC**:
+    - `existsActiveByUserId(userId): boolean` — trả về `true` nếu còn booking ở
       trạng thái `HELD` hoặc `CONFIRMED`
--  **Table**: `bookings`
+- **Table**: `bookings`
 
-### 6.5 Repository: `RefreshTokenRepository`
+#### 6.5 Repository: `RefreshTokenRepository`
 
--  **Nhiệm vụ**: Thu hồi toàn bộ refresh token của người dùng khi xóa tài khoản.
--  **Phương thức liên quan đến UC**:
-    -  `revokeAllByUserId(userId): void` — đánh dấu `revoked_at` cho tất cả token
--  **Table**: `refresh_tokens`
+- **Nhiệm vụ**: Thu hồi toàn bộ refresh token của người dùng khi xóa tài khoản.
+- **Phương thức liên quan đến UC**:
+    - `revokeAllByUserId(userId): void` — đánh dấu `revoked_at` cho tất cả token
+- **Table**: `refresh_tokens`
 
-### 6.6 Lược đồ tuần tự nội bộ PM
+#### 6.6 Lược đồ tuần tự nội bộ PM
 
 ```plantuml
 @startuml UC-05-internal
@@ -223,13 +223,43 @@ CTL --> Actor: 200 + JsendResponse.success()
 @enduml
 ```
 
-## 7. Bảng tham chiếu dò vết
+#### 6.7 Giao diện
+
+##### 6.7.1 Giao diện mẫu
+
+```plantuml
+@startsalt
+{+
+  <b>Xóa tài khoản
+  ..
+  {SI
+    Bạn có chắc chắn muốn xóa tài khoản?
+
+    Hành động này sẽ:
+    • Xóa vĩnh viễn tài khoản của bạn
+    • Hủy tất cả phiên đăng nhập
+    • Không thể khôi phục lại
+
+    Lưu ý: Bạn không thể xóa tài khoản
+    nếu còn vé đang giữ hoặc đã đặt.
+  }
+  ==
+  [Hủy bỏ] | [<color:Red>Xóa tài khoản]
+}
+@endsalt
+```
+
+##### 6.7.2 Giao diện ứng dụng
+
+Chưa hiện thực. Sẽ bổ sung ảnh chụp màn hình khi hoàn thành.
+
+### 7. Bảng tham chiếu dò vết
 
 | Use Case | Controller     | Endpoint                 | UseCase                        | Repository                                                                                                                              | Table                                 |
 | -------- | -------------- | ------------------------ | ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------- |
 | UC-05    | AuthController | `DELETE /api/v1/auth/me` | DeleteAuthenticatedUserUseCase | `UserRepository.findById()`, `save()` <br> `BookingRepository.existsActiveByUserId()` <br> `RefreshTokenRepository.revokeAllByUserId()` | `users`, `bookings`, `refresh_tokens` |
 
-## 8. Tiêu chí kiểm thử
+### 8. Tiêu chí kiểm thử
 
 | Tiêu chí             | Phép thử                                                                   | Kết quả mong đợi                          | Ghi chú                              |
 | -------------------- | -------------------------------------------------------------------------- | ----------------------------------------- | ------------------------------------ |

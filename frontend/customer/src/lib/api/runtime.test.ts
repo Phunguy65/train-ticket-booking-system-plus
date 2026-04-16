@@ -23,7 +23,7 @@ describe('createClientConfig', () => {
                 ),
         );
 
-        const { createClientConfig } = await import('./runtime.js');
+        const { createClientConfig } = await import('./runtime.ts');
         const config = createClientConfig({ fetch: delegatedFetch } as never);
 
         expect(typeof config.fetch).toBe('function');
@@ -54,7 +54,7 @@ describe('createClientConfig', () => {
         globalThis.fetch = delegatedFetch as typeof fetch;
 
         try {
-            const { createClientConfig } = await import('./runtime.js');
+            const { createClientConfig } = await import('./runtime.ts');
             const config = createClientConfig({} as never);
 
             expect(typeof config.fetch).toBe('function');

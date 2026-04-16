@@ -1,6 +1,6 @@
-# UC-03: Đăng xuất
+## UC-03: Đăng xuất
 
-## 1. Mô tả use case
+### 1. Mô tả use case
 
 | Mục                            | Nội dung                                                                                                                                                                                                                                                                                                                                                                                              |
 | ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -15,7 +15,7 @@
 | Hậu điều kiện (thất bại)       | Khi dữ liệu đầu vào không hợp lệ, hệ thống không thực hiện thu hồi token nào.                                                                                                                                                                                                                                                                                                                         |
 | Xử lý ngoại lệ                 | Refresh token không tồn tại hoặc đã bị thu hồi trước đó → Hệ thống vẫn trả về thành công (idempotent, không để lộ thông tin token). <br> Dữ liệu đầu vào không hợp lệ, thiếu trường `refreshToken` → Hệ thống trả về lỗi `VALIDATION_ERROR`. <br> Hợp đồng API tại controller hiện công bố thêm khả năng trả về `401` khi refresh token không hợp lệ hoặc hết hạn.                                    |
 
-## 2. Lược đồ tuần tự
+### 2. Lược đồ tuần tự
 
 ```plantuml
 @startuml UC-03
@@ -34,7 +34,7 @@ end
 @enduml
 ```
 
-## 3. Lược đồ hoạt động
+### 3. Lược đồ hoạt động
 
 ```plantuml
 @startuml UC-03-activity
@@ -64,7 +64,7 @@ stop
 @enduml
 ```
 
-## 5. Lược đồ lớp ý niệm
+### 5. Lược đồ lớp ý niệm
 
 ```plantuml
 @startuml UC-03-class
@@ -89,48 +89,48 @@ RefreshTokenRequest ..> LogoutUserCommand
 @enduml
 ```
 
-## 6. Phân rã thành phần PM
+### 6. Phân rã thành phần PM
 
-### 6.1 Controller: `AuthController`
+#### 6.1 Controller: `AuthController`
 
--  **Nhiệm vụ**: Nhận payload đăng xuất, kiểm tra dữ liệu đầu vào và chuyển yêu
+- **Nhiệm vụ**: Nhận payload đăng xuất, kiểm tra dữ liệu đầu vào và chuyển yêu
   cầu thu hồi token sang lớp nghiệp vụ.
--  **Endpoint**: `POST /api/v1/auth/logout`
--  **Input**: `RefreshTokenRequest` — `{ refreshToken: String }`
--  **Output thành công**: `200 OK` + `JsendResponse.success()`
--  **Output lỗi**: `400/401` + `JsendResponse` — `{ errorCode, message }`
+- **Endpoint**: `POST /api/v1/auth/logout`
+- **Input**: `RefreshTokenRequest` — `{ refreshToken: String }`
+- **Output thành công**: `200 OK` + `JsendResponse.success()`
+- **Output lỗi**: `400/401` + `JsendResponse` — `{ errorCode, message }`
 
-### 6.2 UseCase: `LogoutUserUseCase`
+#### 6.2 UseCase: `LogoutUserUseCase`
 
--  **Nhiệm vụ**: Băm refresh token nhận được, tìm token đang hoạt động tương ứng
+- **Nhiệm vụ**: Băm refresh token nhận được, tìm token đang hoạt động tương ứng
   và thu hồi token nếu tồn tại theo cách idempotent.
--  **Input**: `LogoutUserCommand` — `{ refreshToken: String }`
--  **Output**: `Result<Void, UserError>`
--  **Gọi đến**:
-    -  `RefreshTokenManager.hashToken(refreshToken)` — tính giá trị băm để tra
+- **Input**: `LogoutUserCommand` — `{ refreshToken: String }`
+- **Output**: `Result<Void, UserError>`
+- **Gọi đến**:
+    - `RefreshTokenManager.hashToken(refreshToken)` — tính giá trị băm để tra
       cứu
-    -  `RefreshTokenRepository.findActiveByTokenHash(tokenHash)` — tìm token đang
+    - `RefreshTokenRepository.findActiveByTokenHash(tokenHash)` — tìm token đang
       hoạt động
-    -  `RefreshTokenRepository.revokeById(tokenId)` — thu hồi token khi tìm thấy
--  **Phát sinh sự kiện**: Không
+    - `RefreshTokenRepository.revokeById(tokenId)` — thu hồi token khi tìm thấy
+- **Phát sinh sự kiện**: Không
 
-### 6.3 Repository: `RefreshTokenRepository`
+#### 6.3 Repository: `RefreshTokenRepository`
 
--  **Nhiệm vụ**: Truy xuất và cập nhật bản ghi refresh token trong hạ tầng lưu
+- **Nhiệm vụ**: Truy xuất và cập nhật bản ghi refresh token trong hạ tầng lưu
   trữ.
--  **Phương thức liên quan đến UC**:
-    -  `findActiveByTokenHash(tokenHash): Optional<RefreshTokenData>` — tìm token
+- **Phương thức liên quan đến UC**:
+    - `findActiveByTokenHash(tokenHash): Optional<RefreshTokenData>` — tìm token
       đang hoạt động theo hash
-    -  `revokeById(tokenId): void` — cập nhật `revoked_at` để thu hồi token
--  **Table**: `refresh_tokens`
+    - `revokeById(tokenId): void` — cập nhật `revoked_at` để thu hồi token
+- **Table**: `refresh_tokens`
 
-### 6.4 Port: `RefreshTokenManager`
+#### 6.4 Port: `RefreshTokenManager`
 
--  **Nhiệm vụ**: Băm refresh token thô để tra cứu an toàn trong cơ sở dữ liệu.
--  **Phương thức liên quan đến UC**:
-    -  `hashToken(token): String` — trả về chuỗi hash hex-encoded SHA-256
+- **Nhiệm vụ**: Băm refresh token thô để tra cứu an toàn trong cơ sở dữ liệu.
+- **Phương thức liên quan đến UC**:
+    - `hashToken(token): String` — trả về chuỗi hash hex-encoded SHA-256
 
-### 6.5 Lược đồ tuần tự nội bộ PM
+#### 6.5 Lược đồ tuần tự nội bộ PM
 
 ```plantuml
 @startuml UC-03-internal
@@ -163,13 +163,36 @@ CTL --> Actor: 200 + JsendResponse.success()
 @enduml
 ```
 
-## 7. Bảng tham chiếu dò vết
+#### 6.6 Giao diện
+
+##### 6.6.1 Giao diện mẫu
+
+```plantuml
+@startsalt
+{+
+  {* Trang chủ | Tra cứu | <&person> Tài khoản }
+  {
+    {^"Menu người dùng"
+      <&person> Hồ sơ cá nhân
+      --
+      <&account-logout> Đăng xuất
+    }
+  }
+}
+@endsalt
+```
+
+##### 6.6.2 Giao diện ứng dụng
+
+Chưa hiện thực. Sẽ bổ sung ảnh chụp màn hình khi hoàn thành.
+
+### 7. Bảng tham chiếu dò vết
 
 | Use Case | Controller     | Endpoint                   | UseCase           | Repository                                                       | Table            |
 | -------- | -------------- | -------------------------- | ----------------- | ---------------------------------------------------------------- | ---------------- |
 | UC-03    | AuthController | `POST /api/v1/auth/logout` | LogoutUserUseCase | `RefreshTokenRepository.findActiveByTokenHash()`, `revokeById()` | `refresh_tokens` |
 
-## 8. Tiêu chí kiểm thử
+### 8. Tiêu chí kiểm thử
 
 | Tiêu chí             | Phép thử                                                                   | Kết quả mong đợi                          | Ghi chú                              |
 | -------------------- | -------------------------------------------------------------------------- | ----------------------------------------- | ------------------------------------ |

@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { ApiFailError, ApiTechnicalError } from './errors.js';
+import { ApiFailError, ApiTechnicalError } from './errors.ts';
 import {
     createApiFetch,
     toApiClientError,
     unwrapJsendSuccessResponse,
-} from './setup.js';
+} from './setup.ts';
 
 describe('Api errors', () => {
     it('maps JSend fail payloads to ApiFailError', () => {

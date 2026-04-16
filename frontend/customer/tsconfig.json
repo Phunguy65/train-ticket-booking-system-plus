@@ -14,14 +14,15 @@
         "jsx": "react-jsx",
         "incremental": true,
         "allowImportingTsExtensions": true,
+        "types": ["bun"],
         "plugins": [
             {
-                "name": "next"
-            }
+                "name": "next",
+            },
         ],
         "paths": {
-            "@/*": ["./src/*"]
-        }
+            "@/*": ["./src/*"],
+        },
     },
     "include": [
         "next-env.d.ts",
@@ -29,7 +30,7 @@
         "**/*.tsx",
         ".next/types/**/*.ts",
         ".next/dev/types/**/*.ts",
-        "**/*.mts"
+        "**/*.mts",
     ],
-    "exclude": ["node_modules", "src/lib/api/generated"]
+    "exclude": ["node_modules", "src/lib/api/generated"],
 }

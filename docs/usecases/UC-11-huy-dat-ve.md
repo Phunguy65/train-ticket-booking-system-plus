@@ -1,6 +1,6 @@
-# UC-11: Hủy đặt vé
+## UC-11: Hủy đặt vé
 
-## 1. Mô tả use case
+### 1. Mô tả use case
 
 | Mục                            | Nội dung                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
 | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -15,7 +15,7 @@
 | Hậu điều kiện (thất bại)       | Không có thay đổi trạng thái. Transaction rollback nếu có lỗi.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
 | Xử lý ngoại lệ                 | Chưa xác thực → 401 Unauthorized. <br> Đặt vé không tồn tại → 404 + `BOOKING_NOT_FOUND`. <br> Hủy đặt vé của người khác → 403 + `ACCESS_DENIED`. <br> Đặt vé đã ở trạng thái `CANCELLED` → 409 + `BOOKING_ALREADY_CANCELLED` (do `InvalidStatusTransition`).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 
-## 2. Lược đồ tuần tự
+### 2. Lược đồ tuần tự
 
 ```plantuml
 @startuml UC-11
@@ -47,7 +47,7 @@ end
 @enduml
 ```
 
-## 3. Lược đồ hoạt động
+### 3. Lược đồ hoạt động
 
 ```plantuml
 @startuml UC-11-activity
@@ -109,7 +109,7 @@ stop
 @enduml
 ```
 
-## 4. Lược đồ trạng thái
+### 4. Lược đồ trạng thái
 
 ```plantuml
 @startuml UC-11-state
@@ -147,7 +147,7 @@ end note
 @enduml
 ```
 
-## 5. Lược đồ lớp ý niệm
+### 5. Lược đồ lớp ý niệm
 
 ```plantuml
 @startuml UC-11-class
@@ -215,81 +215,81 @@ SSEEvent *-- SeatChange
 @enduml
 ```
 
-## 6. Phân rã thành phần PM
+### 6. Phân rã thành phần PM
 
-### 6.1 Controller: `BookingController`
+#### 6.1 Controller: `BookingController`
 
--  **Nhiệm vụ**: Nhận HTTP request hủy đặt vé, lấy `requestingUserId` từ
+- **Nhiệm vụ**: Nhận HTTP request hủy đặt vé, lấy `requestingUserId` từ
   `Authentication`, ủy thác cho `CancelBookingUseCase`.
--  **Endpoint**: `POST /api/v1/bookings/{id}/cancel`
--  **Input**: Path `id: UUID`
--  **Output thành công**: `200` + `JsendResponse.success()` (body trống, không có
+- **Endpoint**: `POST /api/v1/bookings/{id}/cancel`
+- **Input**: Path `id: UUID`
+- **Output thành công**: `200` + `JsendResponse.success()` (body trống, không có
   data payload)
--  **Output lỗi**: `403` + `ACCESS_DENIED` | `404` + `BOOKING_NOT_FOUND` |
+- **Output lỗi**: `403` + `ACCESS_DENIED` | `404` + `BOOKING_NOT_FOUND` |
   `409` + `BOOKING_ALREADY_CANCELLED`
--  **Metadata**: `@SuccessPayload` (không có value — response body trống)
--  **Error mapping**:
-    -  `BookingError.BookingNotFound` → `404` + `BOOKING_NOT_FOUND`
-    -  `BookingError.Forbidden` → `403` + `ACCESS_DENIED`
-    -  `BookingError.InvalidStatusTransition` → `409` +
+- **Metadata**: `@SuccessPayload` (không có value — response body trống)
+- **Error mapping**:
+    - `BookingError.BookingNotFound` → `404` + `BOOKING_NOT_FOUND`
+    - `BookingError.Forbidden` → `403` + `ACCESS_DENIED`
+    - `BookingError.InvalidStatusTransition` → `409` +
       `BOOKING_ALREADY_CANCELLED`
 
-### 6.2 UseCase: `CancelBookingUseCase`
+#### 6.2 UseCase: `CancelBookingUseCase`
 
--  **Nhiệm vụ**: Orchestrate luồng hủy đặt vé đồng bộ, bao gồm giải phóng ghế và
+- **Nhiệm vụ**: Orchestrate luồng hủy đặt vé đồng bộ, bao gồm giải phóng ghế và
   phát sinh sự kiện.
--  **Input**: `CancelBookingCommand` — `{ bookingId, requestingUserId }`
--  **Output**: `Result<Void, BookingError>`
--  **Annotation**: `@Transactional`
--  **Gọi đến**:
-    -  `BookingRepository.findById(bookingId)` — lấy booking entity
-    -  `Booking.cancel()` — chuyển trạng thái và register `BookingCancelled`
+- **Input**: `CancelBookingCommand` — `{ bookingId, requestingUserId }`
+- **Output**: `Result<Void, BookingError>`
+- **Annotation**: `@Transactional`
+- **Gọi đến**:
+    - `BookingRepository.findById(bookingId)` — lấy booking entity
+    - `Booking.cancel()` — chuyển trạng thái và register `BookingCancelled`
       event
-    -  `RouteSeatAvailabilityManager.findSeatIdsByBookingId(bookingId)` — lấy
+    - `RouteSeatAvailabilityManager.findSeatIdsByBookingId(bookingId)` — lấy
       danh sách ghế liên quan
-    -  `RouteSeatAvailabilityManager.releaseHeldSeats(scheduledTripId, seatIds)`
+    - `RouteSeatAvailabilityManager.releaseHeldSeats(scheduledTripId, seatIds)`
       — giải phóng ghế HELD → AVAILABLE (nếu previousStatus == HELD)
-    -  `RouteSeatAvailabilityManager.cancelBookedSeats(scheduledTripId, seatIds)`
+    - `RouteSeatAvailabilityManager.cancelBookedSeats(scheduledTripId, seatIds)`
       — hủy ghế BOOKED → CANCELLED (nếu previousStatus == CONFIRMED)
-    -  `BookingRepository.save(booking)` — lưu booking đã hủy
-    -  `ApplicationEventPublisher.publishEvent(DomainEvent)` — publish
+    - `BookingRepository.save(booking)` — lưu booking đã hủy
+    - `ApplicationEventPublisher.publishEvent(DomainEvent)` — publish
       `BookingCancelled`
-    -  `RouteSeatAvailabilityManager.findByScheduledTripIdAndSeatIds(...)` — lấy
+    - `RouteSeatAvailabilityManager.findByScheduledTripIdAndSeatIds(...)` — lấy
       trạng thái ghế sau cập nhật
-    -  `ApplicationEventPublisher.publishEvent(SeatStatusChangedEvent)` — SSE
+    - `ApplicationEventPublisher.publishEvent(SeatStatusChangedEvent)` — SSE
       push
--  **Phát sinh sự kiện**:
-    -  `BookingCancelled(bookingId, userId, scheduledTripId, requiresRefund, occurredAt)`
+- **Phát sinh sự kiện**:
+    - `BookingCancelled(bookingId, userId, scheduledTripId, requiresRefund, occurredAt)`
       — `requiresRefund=false` nếu HELD, `true` nếu CONFIRMED
-    -  `SeatStatusChangedEvent(scheduledTripId, changes, occurredAt)` — SSE push
+    - `SeatStatusChangedEvent(scheduledTripId, changes, occurredAt)` — SSE push
       cho real-time seat map update
 
-### 6.3 Repository
+#### 6.3 Repository
 
 **BookingRepository:**
 
--  **Nhiệm vụ**: Truy xuất và lưu trữ domain entity `Booking`.
--  **Phương thức liên quan đến UC**:
-    -  `findById(BookingId): Optional<Booking>` — lấy booking entity
-    -  `save(Booking): Booking` — lưu booking đã hủy
--  **Table**: `bookings`
+- **Nhiệm vụ**: Truy xuất và lưu trữ domain entity `Booking`.
+- **Phương thức liên quan đến UC**:
+    - `findById(BookingId): Optional<Booking>` — lấy booking entity
+    - `save(Booking): Booking` — lưu booking đã hủy
+- **Table**: `bookings`
 
-### 6.4 Port: `RouteSeatAvailabilityManager`
+#### 6.4 Port: `RouteSeatAvailabilityManager`
 
--  **Nhiệm vụ**: Cross-module port cho phép booking module thao tác trạng thái
+- **Nhiệm vụ**: Cross-module port cho phép booking module thao tác trạng thái
   ghế trên scheduled trip.
--  **Phương thức liên quan đến UC**:
-    -  `findSeatIdsByBookingId(UUID): List<SeatId>` — tìm ghế liên quan đến
+- **Phương thức liên quan đến UC**:
+    - `findSeatIdsByBookingId(UUID): List<SeatId>` — tìm ghế liên quan đến
       booking
-    -  `releaseHeldSeats(ScheduledTripId, List<SeatId>): Result<Void, Error>` —
+    - `releaseHeldSeats(ScheduledTripId, List<SeatId>): Result<Void, Error>` —
       giải phóng ghế `HELD → AVAILABLE`
-    -  `cancelBookedSeats(ScheduledTripId, List<SeatId>): Result<Void, Error>` —
+    - `cancelBookedSeats(ScheduledTripId, List<SeatId>): Result<Void, Error>` —
       hủy ghế `BOOKED → CANCELLED`
-    -  `findByScheduledTripIdAndSeatIds(ScheduledTripId, List<SeatId>): List<RouteSeatAvailability>`
+    - `findByScheduledTripIdAndSeatIds(ScheduledTripId, List<SeatId>): List<RouteSeatAvailability>`
       — lấy trạng thái ghế sau cập nhật (cho SSE event)
--  **Implementation**: `RouteSeatAvailabilityManagerAdapter` (train BC)
+- **Implementation**: `RouteSeatAvailabilityManagerAdapter` (train BC)
 
-### 6.5 Lược đồ tuần tự nội bộ PM
+#### 6.5 Lược đồ tuần tự nội bộ PM
 
 ```plantuml
 @startuml UC-11-internal
@@ -363,7 +363,39 @@ end
 @enduml
 ```
 
-## 7. Bảng tham chiếu dò vết
+#### 6.6 Giao diện
+
+##### 6.6.1 Giao diện mẫu
+
+```plantuml
+@startsalt
+{+
+  <b>Xác nhận hủy đặt vé
+  ..
+  {SI
+    Bạn có chắc chắn muốn hủy đặt vé #BK001?
+
+    Thông tin đặt vé:
+    • Chuyến: SE1 (SGN → DNA)
+    • Ngày: 15/04/2026
+    • Ghế: Toa 1 - 01A, 01B
+    • Tổng tiền: 1,000,000đ
+
+    Lưu ý:
+    • Nếu đã thanh toán, bạn sẽ được hoàn tiền
+    • Bạn có thể đặt lại ghế sau khi hủy
+  }
+  ==
+  [Quay lại] | [<color:Red>Xác nhận hủy]
+}
+@endsalt
+```
+
+##### 6.6.2 Giao diện ứng dụng
+
+Chưa hiện thực. Sẽ bổ sung ảnh chụp màn hình khi hoàn thành.
+
+### 7. Bảng tham chiếu dò vết
 
 | Use Case | Controller        | Endpoint                            | UseCase              | Repository / Port                                              | Table                  |
 | -------- | ----------------- | ----------------------------------- | -------------------- | -------------------------------------------------------------- | ---------------------- |
@@ -374,19 +406,10 @@ end
 |          |                   |                                     |                      | RouteSeatAvailabilityManager.cancelBookedSeats()               | trip_seat_availability |
 |          |                   |                                     |                      | RouteSeatAvailabilityManager.findByScheduledTripIdAndSeatIds() | trip_seat_availability |
 
-## 8. Tiêu chí kiểm thử
+### 8. Tiêu chí kiểm thử
 
 | Tiêu chí                      | Phép thử                                                                   | Kết quả mong đợi                                                                                       | Ghi chú                                                   |
 | ----------------------------- | -------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ | --------------------------------------------------------- |
 | Toàn diện (coverage)          | Đối chiếu Activity Diagram ↔ Sequence Diagram: mọi luồng đều được thể hiện | Không bỏ sót luồng chính lẫn ngoại lệ                                                                  | Rà soát chéo giữa mục 2 và mục 3                          |
 | Nhất quán                     | Rà soát tên lớp, trạng thái, API giữa các lược đồ trong cùng UC            | Không mâu thuẫn giữa các mục 2–6                                                                       | Đặc biệt kiểm tra tên trong mục 5–6                       |
 | Truy vết                      | Đối chiếu bảng tham chiếu (mục 7) với lược đồ tuần tự nội bộ (mục 6.5)     | Mọi tương tác trong sequence đều có entry                                                              | Kiểm tra không thiếu endpoint/method                      |
-| Booking không tồn tại         | Gọi `POST /api/v1/bookings/{random-uuid}/cancel`                           | 404 + BOOKING_NOT_FOUND                                                                                |                                                           |
-| Quyền sở hữu                  | Gọi cancel với token khác chủ sở hữu                                       | 403 + ACCESS_DENIED                                                                                    |                                                           |
-| Hủy booking HELD              | Hủy booking đang HELD                                                      | 200 OK, booking → CANCELLED, ghế → AVAILABLE, BookingCancelled(requiresRefund=false) published         | releaseHeldSeats được gọi                                 |
-| Hủy booking CONFIRMED         | Hủy booking đang CONFIRMED                                                 | 200 OK, booking → CANCELLED, ghế → BOOKED → CANCELLED, BookingCancelled(requiresRefund=true) published | cancelBookedSeats được gọi                                |
-| Hủy booking đã CANCELLED      | Hủy booking đã ở trạng thái CANCELLED                                      | 409 + BOOKING_ALREADY_CANCELLED                                                                        | booking.cancel() trả InvalidStatusTransition              |
-| SSE event published           | Hủy booking có ghế                                                         | SeatStatusChangedEvent được publish với danh sách changes                                              | Event chứa scheduledTripId, seatId, status mới, bookingId |
-| Booking không có ghế          | Hủy booking mà seatIds rỗng (edge case: ghế đã bị hard-delete)             | 200 OK, booking → CANCELLED, không gọi releaseHeldSeats/cancelBookedSeats, không publish SSE           | Guard `if (!seatIds.isEmpty())`                           |
-| Transactional rollback        | Lỗi xảy ra sau cancel() nhưng trước save()                                 | Transaction rollback, booking và ghế giữ nguyên trạng thái                                             | @Transactional trên CancelBookingUseCase                  |
-| Event requiresRefund accuracy | Hủy HELD → requiresRefund=false; Hủy CONFIRMED → requiresRefund=true       | Đúng giá trị requiresRefund trong BookingCancelled event                                               | Logic: `boolean requiresRefund = (status == CONFIRMED)`   |

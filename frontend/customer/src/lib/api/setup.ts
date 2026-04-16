@@ -1,2 +1,2 @@
-export { createApiFetch } from './fetch-runtime.js';
-export { toApiClientError, unwrapJsendSuccessResponse } from './jsend.js';
+export { createApiFetch } from './fetch-runtime.ts';
+export { toApiClientError, unwrapJsendSuccessResponse } from './jsend.ts';

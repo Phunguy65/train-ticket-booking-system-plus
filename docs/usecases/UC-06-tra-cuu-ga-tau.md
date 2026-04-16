@@ -1,6 +1,6 @@
-# UC-06: Tra cứu ga tàu
+## UC-06: Tra cứu ga tàu
 
-## 1. Mô tả use case
+### 1. Mô tả use case
 
 | Mục                            | Nội dung                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
 | ------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -15,7 +15,7 @@
 | Hậu điều kiện (thất bại)       | Không có thay đổi trạng thái. Hệ thống trả về lỗi hoặc danh sách rỗng tùy trường hợp.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 | Xử lý ngoại lệ                 | Chưa xác thực (thiếu hoặc sai access token) → Hệ thống trả về lỗi 401. <br> Tìm kiếm không có kết quả → Hệ thống trả về danh sách rỗng kèm thông báo "No stations matched your search.". <br> Ga không tồn tại (xem chi tiết) → Hệ thống trả về lỗi `STATION_NOT_FOUND`. <br> Tham số phân trang không hợp lệ → Hệ thống trả về lỗi `VALIDATION_ERROR`.                                                                                                                                                                                                                                                                                                        |
 
-## 2. Lược đồ tuần tự
+### 2. Lược đồ tuần tự
 
 ```plantuml
 @startuml UC-06
@@ -53,7 +53,7 @@ end
 @enduml
 ```
 
-## 3. Lược đồ hoạt động
+### 3. Lược đồ hoạt động
 
 ```plantuml
 @startuml UC-06-activity
@@ -98,7 +98,7 @@ endif
 @enduml
 ```
 
-## 5. Lược đồ lớp ý niệm
+### 5. Lược đồ lớp ý niệm
 
 ```plantuml
 @startuml UC-06-class
@@ -145,9 +145,9 @@ Station *-- StationCode
 @enduml
 ```
 
-## 6. Phân rã thành phần PM
+### 6. Phân rã thành phần PM
 
-### 6.1 Controller: `StationController`
+#### 6.1 Controller: `StationController`
 
 - **Nhiệm vụ**: Nhận yêu cầu tra cứu ga tàu qua ba endpoint và ủy thác cho use
   case tương ứng.
@@ -166,7 +166,7 @@ Station *-- StationCode
     - Output thành công: `200 OK` + `StationResponse`
     - Output lỗi: `404` + `JsendResponse`
 
-### 6.2 UseCase: `SearchStationsUseCase` (tìm kiếm)
+#### 6.2 UseCase: `SearchStationsUseCase` (tìm kiếm)
 
 - **Nhiệm vụ**: Tra cứu ga tàu theo từ khóa thông qua port tìm kiếm chuyên dụng.
   Kết quả được cache.
@@ -179,7 +179,7 @@ Station *-- StationCode
   `@Cacheable(cacheNames = "stationSearch", key = "'station-search:' + #query.cacheKey()")`
 - **Phát sinh sự kiện**: Không
 
-### 6.3 UseCase: `GetStationsUseCase` (danh sách)
+#### 6.3 UseCase: `GetStationsUseCase` (danh sách)
 
 - **Nhiệm vụ**: Trả về danh sách ga phân trang, sắp xếp theo mã ga rồi theo id.
 - **Input**: `GetStationsQuery` — `{ page: int, size: int }`
@@ -189,7 +189,7 @@ Station *-- StationCode
       trang
 - **Phát sinh sự kiện**: Không
 
-### 6.4 UseCase: `GetStationByIdUseCase` (chi tiết)
+#### 6.4 UseCase: `GetStationByIdUseCase` (chi tiết)
 
 - **Nhiệm vụ**: Trả về chi tiết một ga theo ID.
 - **Input**: `GetStationByIdQuery` — `{ stationId: UUID }`
@@ -199,7 +199,7 @@ Station *-- StationCode
       tiết
 - **Phát sinh sự kiện**: Không
 
-### 6.5 Repository: `StationRepository`
+#### 6.5 Repository: `StationRepository`
 
 - **Nhiệm vụ**: Truy xuất dữ liệu ga tàu từ cơ sở dữ liệu.
 - **Phương thức liên quan đến UC**:
@@ -208,17 +208,17 @@ Station *-- StationCode
     - `findSummaryById(stationId): Optional<StationSummary>` — chi tiết một ga
 - **Table**: `stations`
 
-### 6.6 Port: `StationSearchPort`
+#### 6.6 Port: `StationSearchPort`
 
-- **Nhiệm vụ**: Định nghĩa hợp đồng tìm kiếm ga tàu ở tầng application. Cài đặt nằm trong tầng infrastructure, sử dụng JDBC
-  trực tiếp với ILIKE trên tổ hợp `code || name || city`, ưu tiên kết quả khớp
-  prefix.
+- **Nhiệm vụ**: Định nghĩa hợp đồng tìm kiếm ga tàu ở tầng application. Cài đặt
+  nằm trong tầng infrastructure, sử dụng JDBC trực tiếp với ILIKE trên tổ hợp
+  `code || name || city`, ưu tiên kết quả khớp prefix.
 - **Phương thức liên quan đến UC**:
     - `search(query): List<StationSummary>` — trả về danh sách ga phù hợp từ
       khóa
 - **Implementation**: `StationSearchReader` (JDBC `NamedParameterJdbcTemplate`)
 
-### 6.7 Lược đồ tuần tự nội bộ PM
+#### 6.7 Lược đồ tuần tự nội bộ PM
 
 ```plantuml
 @startuml UC-06-internal
@@ -273,7 +273,36 @@ CTL --> Actor: 200 + JsendResponse(StationResponse)
 @enduml
 ```
 
-## 7. Bảng tham chiếu dò vết
+#### 6.8 Giao diện
+
+##### 6.8.1 Giao diện mẫu
+
+```plantuml
+@startsalt
+{+
+  <b>Tra cứu ga tàu
+  ..
+  Tìm kiếm | "Nhập tên ga, mã ga hoặc thành phố..." | [Tìm]
+  ==
+  {#
+    Mã ga | Tên ga            | Thành phố
+    SGN   | Ga Sài Gòn        | TP. Hồ Chí Minh
+    HAN   | Ga Hà Nội         | Hà Nội
+    DNA   | Ga Đà Nẵng        | Đà Nẵng
+    NTR   | Ga Nha Trang      | Nha Trang
+    HUE   | Ga Huế            | Huế
+  }
+  ..
+  [< Trước] | Trang 1/5 | [Tiếp >]
+}
+@endsalt
+```
+
+##### 6.8.2 Giao diện ứng dụng
+
+Chưa hiện thực. Sẽ bổ sung ảnh chụp màn hình khi hoàn thành.
+
+### 7. Bảng tham chiếu dò vết
 
 | Use Case | Controller        | Endpoint                      | UseCase               | Repository / Port                      | Table      |
 | -------- | ----------------- | ----------------------------- | --------------------- | -------------------------------------- | ---------- |
@@ -281,7 +310,7 @@ CTL --> Actor: 200 + JsendResponse(StationResponse)
 | UC-06    | StationController | `GET /api/v1/stations`        | GetStationsUseCase    | `StationRepository.findAllSummaries()` | `stations` |
 | UC-06    | StationController | `GET /api/v1/stations/{id}`   | GetStationByIdUseCase | `StationRepository.findSummaryById()`  | `stations` |
 
-## 8. Tiêu chí kiểm thử
+### 8. Tiêu chí kiểm thử
 
 | Tiêu chí             | Phép thử                                                                   | Kết quả mong đợi                          | Ghi chú                              |
 | -------------------- | -------------------------------------------------------------------------- | ----------------------------------------- | ------------------------------------ |

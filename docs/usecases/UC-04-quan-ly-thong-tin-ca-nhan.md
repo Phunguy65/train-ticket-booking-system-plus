@@ -1,6 +1,6 @@
-# UC-04: Quản lý thông tin cá nhân
+## UC-04: Quản lý thông tin cá nhân
 
-## 1. Mô tả use case
+### 1. Mô tả use case
 
 | Mục                            | Nội dung                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
 | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -15,7 +15,7 @@
 | Hậu điều kiện (thất bại)       | Dữ liệu hồ sơ không thay đổi. Không có bản ghi nào bị cập nhật.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 | Xử lý ngoại lệ                 | Chưa xác thực (thiếu hoặc sai access token) → Hệ thống trả về lỗi 401. <br> Tài khoản không tìm thấy → Hệ thống trả về lỗi `USER_NOT_FOUND`. <br> Email mới đã được tài khoản khác sử dụng → Hệ thống trả về lỗi `USER_EMAIL_ALREADY_EXISTS`. <br> Dữ liệu đầu vào không hợp lệ → Hệ thống trả về lỗi `VALIDATION_ERROR`.                                                                                                                                                                                                                                                                                                                                                |
 
-## 2. Lược đồ tuần tự
+### 2. Lược đồ tuần tự
 
 ```plantuml
 @startuml UC-04
@@ -53,7 +53,7 @@ end
 @enduml
 ```
 
-## 3. Lược đồ hoạt động
+### 3. Lược đồ hoạt động
 
 ```plantuml
 @startuml UC-04-activity
@@ -110,7 +110,7 @@ endif
 @enduml
 ```
 
-## 5. Lược đồ lớp ý niệm
+### 5. Lược đồ lớp ý niệm
 
 ```plantuml
 @startuml UC-04-class
@@ -156,59 +156,59 @@ class "UserResponse" as ResDTO {
 @enduml
 ```
 
-## 6. Phân rã thành phần PM
+### 6. Phân rã thành phần PM
 
-### 6.1 Controller: `AuthController`
+#### 6.1 Controller: `AuthController`
 
--  **Nhiệm vụ**: Nhận yêu cầu xem và cập nhật hồ sơ, xác thực access token qua
+- **Nhiệm vụ**: Nhận yêu cầu xem và cập nhật hồ sơ, xác thực access token qua
   `@PreAuthorize("isAuthenticated()")` và ủy thác cho use case tương ứng.
--  **Endpoint xem**: `GET /api/v1/auth/me`
-    -  Input: access token (trong header `Authorization: Bearer ...`)
-    -  Output thành công: `200 OK` + `UserResponse`
-    -  Output lỗi: `401` / `404` + `JsendResponse`
--  **Endpoint cập nhật**: `PATCH /api/v1/auth/me`
-    -  Input: `UpdateAuthenticatedUserRequest` —
+- **Endpoint xem**: `GET /api/v1/auth/me`
+    - Input: access token (trong header `Authorization: Bearer ...`)
+    - Output thành công: `200 OK` + `UserResponse`
+    - Output lỗi: `401` / `404` + `JsendResponse`
+- **Endpoint cập nhật**: `PATCH /api/v1/auth/me`
+    - Input: `UpdateAuthenticatedUserRequest` —
       `{ fullName?, email?, phone?, dateOfBirth?, gender?, idDocumentNumber?, addressLine? }`
       (sử dụng `JsonNullable`)
-    -  Output thành công: `200 OK` + `UserResponse` (sau cập nhật)
-    -  Output lỗi: `400/401/404/409` + `JsendResponse`
+    - Output thành công: `200 OK` + `UserResponse` (sau cập nhật)
+    - Output lỗi: `400/401/404/409` + `JsendResponse`
 
-### 6.2 UseCase: `GetAuthenticatedUserUseCase` (xem hồ sơ)
+#### 6.2 UseCase: `GetAuthenticatedUserUseCase` (xem hồ sơ)
 
--  **Nhiệm vụ**: Truy vấn hồ sơ người dùng hiện tại theo ID từ token.
--  **Input**: `GetUserByIdQuery` — `{ userId: UUID }`
--  **Output**: `Result<UserResponse, UserError>`
--  **Gọi đến**:
-    -  `UserRepository.findSummaryById(userId)` — truy vấn projection hồ sơ
--  **Phát sinh sự kiện**: Không
+- **Nhiệm vụ**: Truy vấn hồ sơ người dùng hiện tại theo ID từ token.
+- **Input**: `GetUserByIdQuery` — `{ userId: UUID }`
+- **Output**: `Result<UserResponse, UserError>`
+- **Gọi đến**:
+    - `UserRepository.findSummaryById(userId)` — truy vấn projection hồ sơ
+- **Phát sinh sự kiện**: Không
 
-### 6.3 UseCase: `UpdateAuthenticatedUserUseCase` (cập nhật hồ sơ)
+#### 6.3 UseCase: `UpdateAuthenticatedUserUseCase` (cập nhật hồ sơ)
 
--  **Nhiệm vụ**: Tìm người dùng, kiểm tra email trùng nếu email thay đổi, hợp
+- **Nhiệm vụ**: Tìm người dùng, kiểm tra email trùng nếu email thay đổi, hợp
   nhất các trường `JsonNullable` được gửi lên với giá trị hiện tại, lưu và trả
   về hồ sơ mới.
--  **Input**: `UpdateUserCommand` —
+- **Input**: `UpdateUserCommand` —
   `{ userId, fullName?, email?, phone?, dateOfBirth?, gender?, idDocumentNumber?, addressLine? }`
--  **Output**: `Result<UserResponse, UserError>`
--  **Gọi đến**:
-    -  `UserRepository.findById(userId)` — tìm entity hiện tại
-    -  `UserRepository.findByEmail(newEmail)` — kiểm tra email trùng (chỉ khi
+- **Output**: `Result<UserResponse, UserError>`
+- **Gọi đến**:
+    - `UserRepository.findById(userId)` — tìm entity hiện tại
+    - `UserRepository.findByEmail(newEmail)` — kiểm tra email trùng (chỉ khi
       email thay đổi)
-    -  `UserRepository.save(updatedUser)` — lưu entity đã cập nhật
--  **Phát sinh sự kiện**: Không
+    - `UserRepository.save(updatedUser)` — lưu entity đã cập nhật
+- **Phát sinh sự kiện**: Không
 
-### 6.4 Repository: `UserRepository`
+#### 6.4 Repository: `UserRepository`
 
--  **Nhiệm vụ**: Truy xuất và lưu trữ domain entity `User`.
--  **Phương thức liên quan đến UC**:
-    -  `findSummaryById(userId): Optional<UserSummary>` — projection cho xem hồ
+- **Nhiệm vụ**: Truy xuất và lưu trữ domain entity `User`.
+- **Phương thức liên quan đến UC**:
+    - `findSummaryById(userId): Optional<UserSummary>` — projection cho xem hồ
       sơ
-    -  `findById(userId): Optional<User>` — tìm entity đầy đủ cho cập nhật
-    -  `findByEmail(email): Optional<User>` — kiểm tra email trùng
-    -  `save(user): User` — lưu entity đã cập nhật
--  **Table**: `users`
+    - `findById(userId): Optional<User>` — tìm entity đầy đủ cho cập nhật
+    - `findByEmail(email): Optional<User>` — kiểm tra email trùng
+    - `save(user): User` — lưu entity đã cập nhật
+- **Table**: `users`
 
-### 6.5 Lược đồ tuần tự nội bộ PM
+#### 6.5 Lược đồ tuần tự nội bộ PM
 
 ```plantuml
 @startuml UC-04-internal
@@ -269,14 +269,60 @@ CTL --> Actor: 200 + JsendResponse(UserResponse)
 @enduml
 ```
 
-## 7. Bảng tham chiếu dò vết
+#### 6.6 Giao diện
+
+##### 6.6.1 Giao diện mẫu
+
+```plantuml
+@startsalt
+{+
+  <b>Thông tin cá nhân
+  ..
+  {#
+    Họ và tên         | Nguyễn Văn A
+    Email             | example@email.com
+    Số điện thoại     | 0901234567
+    Ngày sinh         | 01/01/1990
+    Giới tính         | Nam
+    Số CMND/CCCD      | 012345678901
+    Địa chỉ           | 123 Đường ABC, Quận 1, TP.HCM
+  }
+  ==
+  [Chỉnh sửa]
+}
+@endsalt
+```
+
+```plantuml
+@startsalt
+{+
+  <b>Chỉnh sửa thông tin
+  ..
+  Họ và tên         | "Nguyễn Văn A                 "
+  Email             | "example@email.com            "
+  Số điện thoại     | "0901234567                   "
+  Ngày sinh         | "01/01/1990                   "
+  Giới tính         | ^Nam^
+  Số CMND/CCCD      | "012345678901                 "
+  Địa chỉ           | "123 Đường ABC, Quận 1, TP.HCM"
+  ==
+  [Hủy] | [Lưu thay đổi]
+}
+@endsalt
+```
+
+##### 6.6.2 Giao diện ứng dụng
+
+Chưa hiện thực. Sẽ bổ sung ảnh chụp màn hình khi hoàn thành.
+
+### 7. Bảng tham chiếu dò vết
 
 | Use Case | Controller     | Endpoint                | UseCase                        | Repository                                             | Table   |
 | -------- | -------------- | ----------------------- | ------------------------------ | ------------------------------------------------------ | ------- |
 | UC-04    | AuthController | `GET /api/v1/auth/me`   | GetAuthenticatedUserUseCase    | `UserRepository.findSummaryById()`                     | `users` |
 | UC-04    | AuthController | `PATCH /api/v1/auth/me` | UpdateAuthenticatedUserUseCase | `UserRepository.findById()`, `findByEmail()`, `save()` | `users` |
 
-## 8. Tiêu chí kiểm thử
+### 8. Tiêu chí kiểm thử
 
 | Tiêu chí             | Phép thử                                                                   | Kết quả mong đợi                          | Ghi chú                              |
 | -------------------- | -------------------------------------------------------------------------- | ----------------------------------------- | ------------------------------------ |

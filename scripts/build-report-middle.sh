@@ -75,6 +75,7 @@ download_verified "$DIAGRAM_LUA_URL" "$DIAGRAM_LUA" \
 INPUT_FILES=()
 INPUT_FILES+=("$REPO_ROOT/docs/overview.md")
 INPUT_FILES+=("$REPO_ROOT/docs/db.md")
+INPUT_FILES+=("$REPO_ROOT/docs/usecases/usecases.md")
 
 # Sort UC-*.md by filename (natural order: UC-01, UC-02, ... UC-12)
 while IFS= read -r f; do

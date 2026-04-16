@@ -1,5 +1,5 @@
-import { ApiFailError, ApiTechnicalError } from './errors.js';
-import type { ErrorCode, Violation } from './generated/index.js';
+import { ApiFailError, ApiTechnicalError } from './errors.ts';
+import type { ErrorCode, Violation } from './generated/index.ts';
 
 type JsendSuccess<T = unknown> = {
     data?: T;

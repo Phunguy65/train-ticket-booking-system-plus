@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createApiFetch } from './fetch-runtime.js';
+import { createApiFetch } from './fetch-runtime.ts';
 
 describe('createApiFetch', () => {
     it('unwraps JSend success responses while preserving fetch semantics', async () => {

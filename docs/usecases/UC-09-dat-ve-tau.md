@@ -1,21 +1,21 @@
-# UC-09: Đặt vé tàu
+## UC-09: Đặt vé tàu
 
-## 1. Mô tả use case
+### 1. Mô tả use case
 
 | Mục                            | Nội dung                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Phụ thuộc                      | UC-02: Đăng nhập, UC-07: Tra cứu chuyến tàu, UC-08: Xem sơ đồ ghế chuyến tàu                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | Mục đích                       | Khách hàng đã đăng nhập muốn giữ chỗ các ghế đã chọn để thanh toán vé tàu. PM tạo booking ở trạng thái `HELD`, khóa các ghế tương ứng trong một khoảng thời gian thanh toán, và cung cấp các thành phần payment/webhook để hỗ trợ chuyển booking sang `CONFIRMED` khi thanh toán thành công.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
-| Mô tả                          | Khách hàng chọn chuyến tàu và ghế ngồi để đặt vé. Hệ thống tạo đặt vé ở trạng thái giữ chỗ (`HELD`) trong 15 phút. Sau khi booking được tạo, hệ thống phát sinh sự kiện `BookingCreated`. Codebase hiện có các use case và webhook Stripe để xử lý payment, nhưng chưa thấy listener wiring `BookingCreated -> CreateCheckoutSessionUseCase` trong mã nguồn hiện tại. Khi thanh toán thành công qua webhook cho một payment hợp lệ, booking chuyển sang trạng thái xác nhận (`CONFIRMED`).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| Mô tả                          | Khách hàng chọn chuyến tàu và ghế ngồi để đặt vé. Hệ thống tạo đặt vé ở trạng thái giữ chỗ (`HELD`) trong 15 phút. Sau khi booking được tạo, hệ thống phát sinh sự kiện `BookingCreated`. Khi thanh toán thành công qua webhook cho một payment hợp lệ, booking chuyển sang trạng thái xác nhận (`CONFIRMED`).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 | Actor chính                    | Khách hàng đã đăng nhập                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
 | Actor liên quan                | Stripe                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
 | Tiền điều kiện                 | Khách hàng đã đăng nhập và có access token hợp lệ. Khách hàng đã chọn chuyến tàu và danh sách ghế muốn đặt.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| Dãy lệnh thực hiện bình thường | 1. Khách hàng gửi yêu cầu đặt vé gồm `scheduledTripId`, danh sách `seatIds`, và `idempotencyKey`. <br> 2. Hệ thống kiểm tra dữ liệu đầu vào hợp lệ. <br> 3. Hệ thống kiểm tra `idempotencyKey`; nếu booking đã được tạo trước đó thì trả về booking cũ. <br> 4. Hệ thống kiểm tra người dùng tồn tại. <br> 5. Hệ thống kiểm tra khách hàng chưa có booking đang giữ chỗ cho cùng chuyến tàu. <br> 6. Hệ thống kiểm tra chuyến tàu tồn tại, lấy `routeTemplate`, tính tổng giá vé theo số ghế. <br> 7. Hệ thống tạo booking ở trạng thái `HELD` với hạn thanh toán 15 phút và lưu vào cơ sở dữ liệu. <br> 8. Hệ thống giữ chỗ các ghế được chọn qua `RouteSeatAvailabilityManager` (trạng thái ghế `AVAILABLE -> HELD`) và lưu kèm `bookingId`, `priceAtBooking`. <br> 9. Nếu giữ chỗ thành công, hệ thống phát sinh sự kiện miền `BookingCreated` và trả về thông tin booking vừa tạo (trạng thái `HELD`). <br> 10. Codebase hiện có các thành phần payment để tạo `Payment`, xử lý webhook Stripe, expiry, và refund; tuy nhiên trong code hiện tại chưa thấy listener nối `BookingCreated` với `CreateCheckoutSessionUseCase`, nên bước tạo Checkout Session chưa được wiring tự động. <br> 11. Nếu checkout session được tạo và khách hàng thanh toán thành công, webhook Stripe sẽ xác nhận booking (`HELD -> CONFIRMED`), xác nhận ghế (`HELD -> BOOKED`), và đánh dấu payment `PAID`. |
+| Dãy lệnh thực hiện bình thường | 1. Khách hàng gửi yêu cầu đặt vé gồm `scheduledTripId`, danh sách `seatIds`, và `idempotencyKey`. <br> 2. Hệ thống kiểm tra dữ liệu đầu vào hợp lệ. <br> 3. Hệ thống kiểm tra `idempotencyKey`; nếu booking đã được tạo trước đó thì trả về booking cũ. <br> 4. Hệ thống kiểm tra người dùng tồn tại. <br> 5. Hệ thống kiểm tra khách hàng chưa có booking đang giữ chỗ cho cùng chuyến tàu. <br> 6. Hệ thống kiểm tra chuyến tàu tồn tại, lấy `routeTemplate`, tính tổng giá vé theo số ghế. <br> 7. Hệ thống tạo booking ở trạng thái `HELD` với hạn thanh toán 15 phút và lưu vào cơ sở dữ liệu. <br> 8. Hệ thống giữ chỗ các ghế được chọn qua `RouteSeatAvailabilityManager` (trạng thái ghế `AVAILABLE -> HELD`) và lưu kèm `bookingId`, `priceAtBooking`. <br> 9. Nếu giữ chỗ thành công, hệ thống phát sinh sự kiện miền `BookingCreated` và trả về thông tin booking vừa tạo (trạng thái `HELD`). <br> 10. Codebase hiện có các thành phần payment để tạo `Payment`, xử lý webhook Stripe, expiry, và refund. <br> 11. Nếu checkout session được tạo và khách hàng thanh toán thành công, webhook Stripe sẽ xác nhận booking (`HELD -> CONFIRMED`), xác nhận ghế (`HELD -> BOOKED`), và đánh dấu payment `PAID`. |
 | Hậu điều kiện (thành công)     | Ở luồng đồng bộ: một booking mới được tạo ở trạng thái `HELD`, có `paymentDeadline`, và các ghế được chọn chuyển sang `HELD`. Ở luồng bất đồng bộ sau thanh toán thành công: booking chuyển sang `CONFIRMED`, ghế chuyển sang `BOOKED`, payment chuyển sang `PAID`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
 | Hậu điều kiện (thất bại)       | Nếu thất bại trước khi lưu booking, booking mới không được tạo. Nếu thất bại xảy ra sau khi booking đã được lưu nhưng giữ chỗ ghế thất bại, code hiện tại có thể để lại một booking ở trạng thái `HELD` đã được persist trước khi trả lỗi `SEAT_NOT_AVAILABLE`. Nếu payment thất bại hoặc session hết hạn, payment được cập nhật sang `FAILED` hoặc `CANCELLED`, booking vẫn ở `HELD` cho đến khi luồng expiry hủy booking. Nếu webhook thanh toán đến muộn sau khi booking đã `CANCELLED`, hệ thống tạo refund ngay lập tức và đánh dấu payment `REFUNDED`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | Xử lý ngoại lệ                 | Chưa xác thực -> Hệ thống trả về lỗi 401. <br> Dữ liệu đầu vào không hợp lệ (thiếu trường, danh sách ghế rỗng) -> Hệ thống trả về lỗi `VALIDATION_ERROR`. <br> Người dùng không tồn tại -> Hệ thống trả về lỗi `USER_NOT_FOUND`. <br> Chuyến tàu không tồn tại hoặc không tìm thấy route template để tính giá -> Hệ thống trả về lỗi `SCHEDULED_TRIP_NOT_FOUND`. <br> Một hoặc nhiều ghế không còn trống -> Hệ thống trả về lỗi `SEAT_NOT_AVAILABLE`. <br> Đã có active hold cho cùng chuyến tàu -> Hệ thống trả về lỗi `BOOKING_CANNOT_CONFIRM`. <br> Gửi lại cùng `idempotencyKey` -> Hệ thống trả về booking đã tạo trước đó. <br> Stripe webhook bị lặp lại -> Hệ thống bỏ qua event đã xử lý. <br> Thanh toán thất bại -> payment chuyển sang `FAILED`, booking vẫn `HELD` cho đến khi hết hạn. <br> Checkout session hết hạn -> payment chuyển sang `CANCELLED`; booking sẽ được hủy bởi luồng expiry. <br> Thanh toán đến muộn sau khi booking đã `CANCELLED` -> Hệ thống refund ngay và đánh dấu payment `REFUNDED`.                                                                                                                                                                                                                                                                                                                                                                |
 
-## 2. Lược đồ tuần tự
+### 2. Lược đồ tuần tự
 
 ```plantuml
 @startuml UC-09
@@ -51,10 +51,6 @@ end
 
 == Thanh toán bất đồng bộ ==
 
-note over API,Stripe
-  Codebase hiện có CreateCheckoutSessionUseCase và Stripe webhook flow,
-  nhưng chưa thấy listener wiring BookingCreated -> CreateCheckoutSessionUseCase.
-end note
 Actor -> Stripe: Complete payment (sau khi có checkout session)
 
 alt checkout.session.completed
@@ -76,7 +72,7 @@ end
 @enduml
 ```
 
-## 3. Lược đồ hoạt động
+### 3. Lược đồ hoạt động
 
 ```plantuml
 @startuml UC-09-activity
@@ -145,7 +141,7 @@ stop
 @enduml
 ```
 
-## 4. Lược đồ trạng thái
+### 4. Lược đồ trạng thái
 
 ```plantuml
 @startuml UC-09-state
@@ -179,15 +175,10 @@ state "Payment" as payment {
     CANCELLED --> [*]
 }
 
-note right of payment
-  Payment state machine này mô tả các component payment/webhook hiện có.
-  Chuyển tiếp từ BookingCreated sang Payment.PENDING chưa được wiring tự động
-  trong code hiện tại.
-end note
 @enduml
 ```
 
-## 5. Lược đồ lớp ý niệm
+### 5. Lược đồ lớp ý niệm
 
 ```plantuml
 @startuml UC-09-class
@@ -308,65 +299,61 @@ SeatAvailability *-- Money
 @enduml
 ```
 
-## 6. Phân rã thành phần PM
+### 6. Phân rã thành phần PM
 
-### 6.1 Controller: `BookingController`
+#### 6.1 Controller: `BookingController`
 
--  **Nhiệm vụ**: Nhận HTTP request tạo booking từ khách hàng, validate payload,
+- **Nhiệm vụ**: Nhận HTTP request tạo booking từ khách hàng, validate payload,
   lấy `userId` từ `Authentication`, và ủy thác cho `CreateBookingUseCase`.
--  **Endpoint**: `POST /api/v1/bookings`
--  **Input**: `CreateBookingRequest` -
+- **Endpoint**: `POST /api/v1/bookings`
+- **Input**: `CreateBookingRequest` -
   `{ scheduledTripId: UUID, seatIds: UUID[], idempotencyKey: String }`
--  **Output thành công**: `201` + `BookingResponse` -
+- **Output thành công**: `201` + `BookingResponse` -
   `{ id, userId, scheduledTripId, userInfo, totalPrice, currency, status, paymentDeadline, createdAt }`
--  **Output lỗi**: `400 | 404 | 409` + `JsendResponse` - `{ errorCode, message }`
+- **Output lỗi**: `400 | 404 | 409` + `JsendResponse` - `{ errorCode, message }`
 
-### 6.2 UseCase: `CreateBookingUseCase`
+#### 6.2 UseCase: `CreateBookingUseCase`
 
--  **Nhiệm vụ**: Orchestrate luồng tạo booking đồng bộ cho UC này.
--  **Input**: `CreateBookingCommand` -
+- **Nhiệm vụ**: Orchestrate luồng tạo booking đồng bộ cho UC này.
+- **Input**: `CreateBookingCommand` -
   `{ userId, scheduledTripId, seatIds, idempotencyKey }`
--  **Output**: `Result<BookingResponse, BookingError>`
--  **Gọi đến**:
-    -  `BookingRepository.findByIdempotencyKey()` - trả booking cũ nếu yêu cầu
+- **Output**: `Result<BookingResponse, BookingError>`
+- **Gọi đến**:
+    - `BookingRepository.findByIdempotencyKey()` - trả booking cũ nếu yêu cầu
       được gửi lại
-    -  `UserRepository.findSummaryById()` - lấy thông tin hành khách để gán vào
+    - `UserRepository.findSummaryById()` - lấy thông tin hành khách để gán vào
       booking
-    -  `BookingRepository.findActiveHoldByUserAndScheduledTrip()` - chặn tạo
+    - `BookingRepository.findActiveHoldByUserAndScheduledTrip()` - chặn tạo
       nhiều active hold cho cùng trip
-    -  `ScheduledTripRepository.findById()` - xác nhận scheduled trip tồn tại
-    -  `RouteTemplateRepository.findById()` - lấy giá cơ sở của tuyến
-    -  `BookingRepository.save()` - lưu booking mới ở trạng thái `HELD`
-    -  `RouteSeatAvailabilityManager.holdSeatsWithBookingId()` - giữ chỗ tất cả
+    - `ScheduledTripRepository.findById()` - xác nhận scheduled trip tồn tại
+    - `RouteTemplateRepository.findById()` - lấy giá cơ sở của tuyến
+    - `BookingRepository.save()` - lưu booking mới ở trạng thái `HELD`
+    - `RouteSeatAvailabilityManager.holdSeatsWithBookingId()` - giữ chỗ tất cả
       ghế và gán `bookingId`, `priceAtBooking`
--  **Phát sinh sự kiện**: `BookingCreated`
--  **Lưu ý**: Luồng thanh toán, webhook Stripe, expiry job và refund được xử lý
-  bất đồng bộ sau bước này; tuy nhiên trong code hiện tại chưa thấy listener nối
-  `BookingCreated` với `CreateCheckoutSessionUseCase`, nên mục 6 chỉ ghi nhận
-  các thành phần liên quan thay vì xem đó là luồng đã được wiring hoàn chỉnh.
+- **Phát sinh sự kiện**: `BookingCreated`
 
-### 6.3 Repository: `BookingRepository`
+#### 6.3 Repository: `BookingRepository`
 
--  **Nhiệm vụ**: Truy xuất/lưu trữ aggregate `Booking` và các projection liên
+- **Nhiệm vụ**: Truy xuất/lưu trữ aggregate `Booking` và các projection liên
   quan.
--  **Phương thức liên quan đến UC**:
-    -  `findByIdempotencyKey(key): Optional<Booking>` - hỗ trợ idempotency cho
+- **Phương thức liên quan đến UC**:
+    - `findByIdempotencyKey(key): Optional<Booking>` - hỗ trợ idempotency cho
       yêu cầu tạo booking
-    -  `findActiveHoldByUserAndScheduledTrip(userId, scheduledTripId): Optional<Booking>` -
+    - `findActiveHoldByUserAndScheduledTrip(userId, scheduledTripId): Optional<Booking>` -
       kiểm tra active hold trùng lặp
-    -  `save(booking): Booking` - lưu booking mới ở trạng thái `HELD`
+    - `save(booking): Booking` - lưu booking mới ở trạng thái `HELD`
 
-### 6.4 Port: `RouteSeatAvailabilityManager`
+#### 6.4 Port: `RouteSeatAvailabilityManager`
 
--  **Lớp**: Application layer cross-module port, implemented bởi
+- **Lớp**: Application layer cross-module port, implemented bởi
   `RouteSeatAvailabilityManagerAdapter` trong infrastructure của module `train`.
--  **Nhiệm vụ**: Giữ chỗ ghế cho booking theo cơ chế all-or-nothing, tránh
+- **Nhiệm vụ**: Giữ chỗ ghế cho booking theo cơ chế all-or-nothing, tránh
   deadlock bằng cách sort `seatIds`, và cập nhật `trip_seat_availability`.
--  **Phương thức liên quan đến UC**:
-    -  `holdSeatsWithBookingId(scheduledTripId, seatIds, bookingId, price): Result<Void, RouteSeatAvailabilityError>` -
+- **Phương thức liên quan đến UC**:
+    - `holdSeatsWithBookingId(scheduledTripId, seatIds, bookingId, price): Result<Void, RouteSeatAvailabilityError>` -
       chuyển tất cả ghế `AVAILABLE -> HELD` và lưu giá tại thời điểm đặt
 
-### 6.5 Lược đồ tuần tự nội bộ PM
+#### 6.5 Lược đồ tuần tự nội bộ PM
 
 ```plantuml
 @startuml UC-09-internal
@@ -440,17 +427,51 @@ else Chưa tồn tại
     end
 end
 
-note over UC
-  Async/payment components present in codebase:
-  - CreateCheckoutSessionUseCase tạo Payment PENDING
-  - StripeWebhookController xử lý success/failed/expired
-  - ExpireHeldBookingsUseCase hủy booking hết hạn
-  - Chưa thấy listener wiring BookingCreated -> CreateCheckoutSessionUseCase
-end note
 @enduml
 ```
 
-## 7. Bảng tham chiếu dò vết
+#### 6.6 Giao diện
+
+##### 6.6.1 Giao diện mẫu
+
+```plantuml
+@startsalt
+{+
+  <b>Xác nhận đặt vé
+  ..
+  {^"Thông tin chuyến tàu"
+    Chuyến      | SE1 - Sài Gòn → Đà Nẵng
+    Khởi hành   | 06:00, 15/04/2026
+    Đến         | 12:30, 15/04/2026
+  }
+  {^"Ghế đã chọn"
+    {#
+      Toa | Ghế  | Giá
+      1   | 01A  | 500,000đ
+      1   | 01B  | 500,000đ
+    }
+    --
+    Tổng cộng: 1,000,000đ
+  }
+  {^"Thông tin hành khách"
+    Họ tên    | Nguyễn Văn A
+    Email     | example@email.com
+    SĐT       | 0901234567
+    CMND/CCCD | 012345678901
+  }
+  ..
+  Thời gian giữ chỗ: 15:00
+  ==
+  [Quay lại] | [Thanh toán]
+}
+@endsalt
+```
+
+##### 6.6.2 Giao diện ứng dụng
+
+Chưa hiện thực. Sẽ bổ sung ảnh chụp màn hình khi hoàn thành.
+
+### 7. Bảng tham chiếu dò vết
 
 | Use Case | Controller              | Endpoint                       | UseCase                                                                                               | Repository / Port                                                                     | Table                                      |
 | -------- | ----------------------- | ------------------------------ | ----------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- | ------------------------------------------ |
@@ -463,23 +484,10 @@ end note
 |          | BookingController       | `POST /api/v1/bookings`        | CreateBookingUseCase                                                                                  | RouteSeatAvailabilityManager.holdSeatsWithBookingId()                                 | trip_seat_availability                     |
 |          | StripeWebhookController | `POST /api/v1/webhooks/stripe` | HandlePaymentSuccessUseCase / HandlePaymentFailedByPaymentIntentUseCase / CancelPendingPaymentUseCase | PaymentRepository, BookingRepository, RouteSeatAvailabilityManager, StripeGatewayPort | payments, bookings, trip_seat_availability |
 
-## 8. Tiêu chí kiểm thử
+### 8. Tiêu chí kiểm thử
 
 | Tiêu chí                    | Phép thử                                                                              | Kết quả mong đợi                                                            | Ghi chú                                                                           |
 | --------------------------- | ------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
 | Toàn diện (coverage)        | Đối chiếu Activity Diagram ↔ Sequence Diagram: mọi luồng đều được thể hiện            | Không bỏ sót luồng chính lẫn ngoại lệ                                       | Rà soát chéo giữa mục 2 và mục 3                                                  |
 | Nhất quán                   | Rà soát tên lớp, trạng thái, API giữa các lược đồ trong cùng UC                       | Không mâu thuẫn giữa các mục 2-6                                            | Đặc biệt kiểm tra BookingStatus, PaymentStatus, SeatStatus                        |
 | Truy vết                    | Đối chiếu bảng tham chiếu (mục 7) với lược đồ tuần tự nội bộ (mục 6.5)                | Mọi tương tác trong sequence đều có entry                                   | Kiểm tra không thiếu repository/port                                              |
-| Create booking - happy path | Gửi request hợp lệ với user tồn tại, trip tồn tại, ghế AVAILABLE, idempotency key mới | 201 + BookingResponse(status=HELD), ghế được hold, BookingCreated được phát | Kiểm tra paymentDeadline ~ now + 15 phút                                          |
-| Idempotency                 | Gửi lại cùng payload và cùng `idempotencyKey`                                         | 201 + trả lại booking cũ, không tạo thêm booking mới                        | Kiểm tra không duplicate booking                                                  |
-| Validation error            | Gửi request với `seatIds=[]` hoặc thiếu `scheduledTripId`                             | 400 + VALIDATION_ERROR                                                      |                                                                                   |
-| User not found              | Gửi request với userId trong token không tồn tại                                      | 404 + USER_NOT_FOUND                                                        |                                                                                   |
-| Active hold exists          | Gửi request khi đã có active hold cho cùng user và cùng scheduled trip                | 409 + BOOKING_CANNOT_CONFIRM                                                |                                                                                   |
-| Scheduled trip not found    | Gửi request với scheduledTripId không tồn tại hoặc route template không tìm thấy      | 404 + SCHEDULED_TRIP_NOT_FOUND                                              |                                                                                   |
-| Seat not available          | Gửi request với một ghế đang HELD/BOOKED hoặc seatIds không đầy đủ                    | 409 + SEAT_NOT_AVAILABLE                                                    | Không được hold một phần                                                          |
-| Payment success webhook     | Phát `checkout.session.completed` cho payment/booking đã được tạo sẵn                 | Booking -> CONFIRMED, ghế -> BOOKED, payment -> PAID                        | Kiểm tra event dedup theo stripeEventId; không suy diễn tự động từ create-booking |
-| Payment failed webhook      | Phát `payment_intent.payment_failed` cho payment PENDING đã tồn tại                   | Payment -> FAILED, booking vẫn HELD                                         | Booking sẽ chờ expiry job; codebase chưa wiring auto payment creation             |
-| Checkout expired webhook    | Phát `checkout.session.expired` cho payment PENDING đã tồn tại                        | Payment -> CANCELLED                                                        | Booking vẫn HELD cho đến expiry job                                               |
-| Held booking expiry         | Chạy expiry use case khi booking HELD quá `paymentDeadline`                           | Booking -> CANCELLED, ghế HELD -> AVAILABLE                                 | Luồng này được mô tả trong mục 1 và mục 2                                         |
-| Late payment refund         | Phát webhook success sau khi booking đã CANCELLED                                     | Stripe refund được tạo, payment -> REFUNDED                                 | Không được đổi booking trở lại CONFIRMED                                          |
-| Unauthenticated             | Gửi request tạo booking không có access token                                         | 401 Unauthorized                                                            | Xử lý bởi Spring Security filter chain                                            |

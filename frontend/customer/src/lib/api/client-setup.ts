@@ -1,5 +1,5 @@
-import { client } from './generated/client.gen.js';
-import { toApiClientError, unwrapJsendSuccessResponse } from './jsend.js';
+import { client } from './generated/client.gen.ts';
+import { toApiClientError, unwrapJsendSuccessResponse } from './jsend.ts';
 
 let isConfigured = false;
 

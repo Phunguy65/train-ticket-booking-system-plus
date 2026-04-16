@@ -1,6 +1,6 @@
-# UC-12: Xem thanh toán
+## UC-12: Xem thanh toán
 
-## 1. Mô tả use case
+### 1. Mô tả use case
 
 | Mục                            | Nội dung                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
 | ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -15,7 +15,7 @@
 | Hậu điều kiện (thất bại)       | Không có thay đổi trạng thái. Đây là thao tác chỉ đọc.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 | Xử lý ngoại lệ                 | Chưa xác thực → 401 Unauthorized. <br> Thanh toán không tồn tại → 404 + `PAYMENT_NOT_FOUND`. <br> Xem thanh toán của người khác → 403 + `ACCESS_DENIED`.                                                                                                                                                                                                                                                                                                                                                                                                                                        |
 
-## 2. Lược đồ tuần tự
+### 2. Lược đồ tuần tự
 
 ```plantuml
 @startuml UC-12
@@ -54,7 +54,7 @@ end
 @enduml
 ```
 
-## 3. Lược đồ hoạt động
+### 3. Lược đồ hoạt động
 
 ```plantuml
 @startuml UC-12-activity
@@ -116,13 +116,13 @@ stop
 @enduml
 ```
 
-## 4. Lược đồ trạng thái
+### 4. Lược đồ trạng thái
 
 <!-- UC-12 là thao tác chỉ đọc, không có thay đổi trạng thái. Mục này bỏ qua. -->
 
 _Không áp dụng — UC-12 là thao tác chỉ đọc._
 
-## 5. Lược đồ lớp ý niệm
+### 5. Lược đồ lớp ý niệm
 
 ```plantuml
 @startuml UC-12-class
@@ -182,88 +182,88 @@ Auth ..> ResDTO: map nếu authorized
 @enduml
 ```
 
-## 6. Phân rã thành phần PM
+### 6. Phân rã thành phần PM
 
-### 6.1 Controller: `PaymentController`
+#### 6.1 Controller: `PaymentController`
 
 **Endpoint 1 — Xem thanh toán theo payment ID:**
 
--  **Nhiệm vụ**: Nhận HTTP request xem thanh toán, lấy `requestingUserId` từ
+- **Nhiệm vụ**: Nhận HTTP request xem thanh toán, lấy `requestingUserId` từ
   `Authentication`, ủy thác cho `GetPaymentByIdUseCase`.
--  **Endpoint**: `GET /api/v1/payments/{paymentId}`
--  **Input**: Path `paymentId: UUID`
--  **Output thành công**: `200` + `PaymentResponse` —
+- **Endpoint**: `GET /api/v1/payments/{paymentId}`
+- **Input**: Path `paymentId: UUID`
+- **Output thành công**: `200` + `PaymentResponse` —
   `{ paymentId, bookingId, status, checkoutUrl, amount, currency }`
--  **Output lỗi**: `403` + `ACCESS_DENIED` | `404` + `PAYMENT_NOT_FOUND`
--  **Metadata**: `@SuccessPayload(PaymentResponse.class)`
+- **Output lỗi**: `403` + `ACCESS_DENIED` | `404` + `PAYMENT_NOT_FOUND`
+- **Metadata**: `@SuccessPayload(PaymentResponse.class)`
 
 **Endpoint 2 — Xem thanh toán theo booking ID:**
 
--  **Nhiệm vụ**: Nhận HTTP request xem thanh toán theo booking, lấy
+- **Nhiệm vụ**: Nhận HTTP request xem thanh toán theo booking, lấy
   `requestingUserId` từ `Authentication`, ủy thác cho
   `GetPaymentByBookingIdUseCase`.
--  **Endpoint**: `GET /api/v1/bookings/{bookingId}/payment`
--  **Input**: Path `bookingId: UUID`
--  **Output thành công**: `200` + `PaymentResponse` —
+- **Endpoint**: `GET /api/v1/bookings/{bookingId}/payment`
+- **Input**: Path `bookingId: UUID`
+- **Output thành công**: `200` + `PaymentResponse` —
   `{ paymentId, bookingId, status, checkoutUrl, amount, currency }`
--  **Output lỗi**: `403` + `ACCESS_DENIED` | `404` + `PAYMENT_NOT_FOUND`
--  **Metadata**: `@SuccessPayload(PaymentResponse.class)`
+- **Output lỗi**: `403` + `ACCESS_DENIED` | `404` + `PAYMENT_NOT_FOUND`
+- **Metadata**: `@SuccessPayload(PaymentResponse.class)`
 
-### 6.2 UseCase
+#### 6.2 UseCase
 
 **GetPaymentByIdUseCase:**
 
--  **Nhiệm vụ**: Trả thông tin thanh toán theo payment ID, ủy thác kiểm tra quyền
+- **Nhiệm vụ**: Trả thông tin thanh toán theo payment ID, ủy thác kiểm tra quyền
   và mapping cho `PaymentReadAuthorizer`.
--  **Input**: `GetPaymentByIdQuery` — `{ paymentId, requestingUserId }`
--  **Output**: `Result<PaymentResponse, PaymentError>`
--  **Annotation**: `@Transactional(readOnly = true)`
--  **Gọi đến**:
-    -  `PaymentRepository.findSummaryById(paymentId)` — truy vấn projection
-    -  `PaymentReadAuthorizer.authorizeAndMap(payment, requestingUserId)` — null
+- **Input**: `GetPaymentByIdQuery` — `{ paymentId, requestingUserId }`
+- **Output**: `Result<PaymentResponse, PaymentError>`
+- **Annotation**: `@Transactional(readOnly = true)`
+- **Gọi đến**:
+    - `PaymentRepository.findSummaryById(paymentId)` — truy vấn projection
+    - `PaymentReadAuthorizer.authorizeAndMap(payment, requestingUserId)` — null
       check
-        -  ownership check + mapping
+        - ownership check + mapping
 
 **GetPaymentByBookingIdUseCase:**
 
--  **Nhiệm vụ**: Trả thông tin thanh toán theo booking ID, ủy thác kiểm tra quyền
+- **Nhiệm vụ**: Trả thông tin thanh toán theo booking ID, ủy thác kiểm tra quyền
   và mapping cho `PaymentReadAuthorizer`.
--  **Input**: `GetPaymentByBookingIdQuery` — `{ bookingId, requestingUserId }`
--  **Output**: `Result<PaymentResponse, PaymentError>`
--  **Annotation**: `@Transactional(readOnly = true)`
--  **Gọi đến**:
-    -  `PaymentRepository.findSummaryByBookingId(bookingId)` — truy vấn
+- **Input**: `GetPaymentByBookingIdQuery` — `{ bookingId, requestingUserId }`
+- **Output**: `Result<PaymentResponse, PaymentError>`
+- **Annotation**: `@Transactional(readOnly = true)`
+- **Gọi đến**:
+    - `PaymentRepository.findSummaryByBookingId(bookingId)` — truy vấn
       projection
-    -  `PaymentReadAuthorizer.authorizeAndMap(payment, requestingUserId)` — null
+    - `PaymentReadAuthorizer.authorizeAndMap(payment, requestingUserId)` — null
       check
-        -  ownership check + mapping
+        - ownership check + mapping
 
-### 6.3 Helper: `PaymentReadAuthorizer`
+#### 6.3 Helper: `PaymentReadAuthorizer`
 
--  **Nhiệm vụ**: Tách logic kiểm tra quyền và mapping ra khỏi UseCase, tái sử
+- **Nhiệm vụ**: Tách logic kiểm tra quyền và mapping ra khỏi UseCase, tái sử
   dụng cho cả hai endpoint.
--  **Input**: `PaymentSummary` (nullable), `UUID requestingUserId`
--  **Output**: `Result<PaymentResponse, PaymentError>`
--  **Logic**:
+- **Input**: `PaymentSummary` (nullable), `UUID requestingUserId`
+- **Output**: `Result<PaymentResponse, PaymentError>`
+- **Logic**:
     1. `payment == null` → `PaymentError.PaymentNotFound`
     2. `payment.userId() != requestingUserId` → `PaymentError.Forbidden`
     3. Map `PaymentSummary` → `PaymentResponse`:
-        -  `amount`: `BigDecimal.valueOf(payment.amount())` — chuyển từ `long`
+        - `amount`: `BigDecimal.valueOf(payment.amount())` — chuyển từ `long`
           sang `BigDecimal` (cùng đơn vị minor units, chỉ đổi kiểu số)
-        -  `status`: `PaymentStatus.valueOf(payment.status())` — parse String →
+        - `status`: `PaymentStatus.valueOf(payment.status())` — parse String →
           enum
 
-### 6.4 Repository: `PaymentRepository`
+#### 6.4 Repository: `PaymentRepository`
 
--  **Nhiệm vụ**: Truy xuất projection `PaymentSummary` từ DB.
--  **Phương thức liên quan đến UC**:
-    -  `findSummaryById(PaymentId): Optional<PaymentSummary>` — tìm theo payment
+- **Nhiệm vụ**: Truy xuất projection `PaymentSummary` từ DB.
+- **Phương thức liên quan đến UC**:
+    - `findSummaryById(PaymentId): Optional<PaymentSummary>` — tìm theo payment
       ID
-    -  `findSummaryByBookingId(BookingId): Optional<PaymentSummary>` — tìm theo
+    - `findSummaryByBookingId(BookingId): Optional<PaymentSummary>` — tìm theo
       booking ID
--  **Table**: `payments`
+- **Table**: `payments`
 
-### 6.5 Lược đồ tuần tự nội bộ PM
+#### 6.5 Lược đồ tuần tự nội bộ PM
 
 ```plantuml
 @startuml UC-12-internal
@@ -329,7 +329,42 @@ end
 @enduml
 ```
 
-## 7. Bảng tham chiếu dò vết
+#### 6.6 Giao diện
+
+##### 6.6.1 Giao diện mẫu
+
+```plantuml
+@startsalt
+{+
+  <b>Thông tin thanh toán
+  ..
+  {^"Chi tiết thanh toán"
+    {#
+      Mã thanh toán     | PAY-001
+      Mã đặt vé         | BK001
+      Trạng thái        | <color:Orange>PENDING
+      Số tiền           | 1,000,000đ
+      Ngày tạo          | 15/04/2026 10:15
+    }
+  }
+  ..
+  {SI
+    Vui lòng hoàn tất thanh toán trước:
+    15/04/2026 10:30
+
+    Thời gian còn lại: 14:45
+  }
+  ==
+  [Quay lại] | [Thanh toán qua Stripe]
+}
+@endsalt
+```
+
+##### 6.6.2 Giao diện ứng dụng
+
+Chưa hiện thực. Sẽ bổ sung ảnh chụp màn hình khi hoàn thành.
+
+### 7. Bảng tham chiếu dò vết
 
 | Use Case | Controller        | Endpoint                                   | UseCase                      | Repository / Helper                        | Table    |
 | -------- | ----------------- | ------------------------------------------ | ---------------------------- | ------------------------------------------ | -------- |
@@ -338,21 +373,10 @@ end
 | UC-12    | PaymentController | `GET /api/v1/bookings/{bookingId}/payment` | GetPaymentByBookingIdUseCase | PaymentRepository.findSummaryByBookingId() | payments |
 |          |                   |                                            |                              | PaymentReadAuthorizer.authorizeAndMap()    |          |
 
-## 8. Tiêu chí kiểm thử
+### 8. Tiêu chí kiểm thử
 
 | Tiêu chí                           | Phép thử                                                                   | Kết quả mong đợi                                                 | Ghi chú                                                           |
 | ---------------------------------- | -------------------------------------------------------------------------- | ---------------------------------------------------------------- | ----------------------------------------------------------------- |
 | Toàn diện (coverage)               | Đối chiếu Activity Diagram ↔ Sequence Diagram: mọi luồng đều được thể hiện | Không bỏ sót luồng chính lẫn ngoại lệ                            | Rà soát chéo giữa mục 2 và mục 3                                  |
 | Nhất quán                          | Rà soát tên lớp, trạng thái, API giữa các lược đồ trong cùng UC            | Không mâu thuẫn giữa các mục 2–6                                 | Đặc biệt kiểm tra tên trong mục 5–6                               |
 | Truy vết                           | Đối chiếu bảng tham chiếu (mục 7) với lược đồ tuần tự nội bộ (mục 6.5)     | Mọi tương tác trong sequence đều có entry                        | Kiểm tra không thiếu endpoint/method                              |
-| Payment không tồn tại (by ID)      | Gọi `GET /api/v1/payments/{random-uuid}`                                   | 404 + PAYMENT_NOT_FOUND                                          | PaymentReadAuthorizer xử lý null → PaymentNotFound                |
-| Payment không tồn tại (by booking) | Gọi `GET /api/v1/bookings/{random-uuid}/payment`                           | 404 + PAYMENT_NOT_FOUND                                          | Booking có thể tồn tại nhưng chưa có payment                      |
-| Quyền sở hữu (by ID)               | Gọi `GET /api/v1/payments/{id}` với token khác chủ sở hữu                  | 403 + ACCESS_DENIED                                              | PaymentReadAuthorizer kiểm tra payment.userId == requestingUserId |
-| Quyền sở hữu (by booking)          | Gọi `GET /api/v1/bookings/{id}/payment` với token khác chủ sở hữu          | 403 + ACCESS_DENIED                                              | Cùng logic PaymentReadAuthorizer                                  |
-| Response PENDING                   | Xem payment có status PENDING                                              | 200 + PaymentResponse với status=PENDING, checkoutUrl có giá trị | checkoutUrl là Stripe hosted checkout URL                         |
-| Response PAID                      | Xem payment có status PAID                                                 | 200 + PaymentResponse với status=PAID                            |                                                                   |
-| Response CANCELLED                 | Xem payment có status CANCELLED (checkout session expired)                 | 200 + PaymentResponse với status=CANCELLED                       |                                                                   |
-| Response FAILED                    | Xem payment có status FAILED                                               | 200 + PaymentResponse với status=FAILED                          |                                                                   |
-| Response REFUNDED                  | Xem payment có status REFUNDED                                             | 200 + PaymentResponse với status=REFUNDED                        |                                                                   |
-| Amount format                      | Kiểm tra amount trong response                                             | amount là BigDecimal, giá trị giữ nguyên minor currency units    | `BigDecimal.valueOf(payment.amount())` chỉ đổi kiểu, không scale  |
-| Cùng response cho cả hai endpoint  | Gọi cả hai endpoint cho cùng một payment                                   | Hai response giống nhau (cùng PaymentResponse DTO)               | Cả hai dùng PaymentReadAuthorizer.authorizeAndMap()               |

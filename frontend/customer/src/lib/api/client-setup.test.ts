@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { setupGeneratedApiClient } from './client-setup.js';
-import { ApiFailError } from './errors.js';
-import { client } from './generated/client.gen.js';
+import { setupGeneratedApiClient } from './client-setup.ts';
+import { ApiFailError } from './errors.ts';
+import { client } from './generated/client.gen.ts';
 
 describe('setupGeneratedApiClient', () => {
     it('registers generated client interceptors only once', () => {

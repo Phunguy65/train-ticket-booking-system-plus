@@ -1,4 +1,4 @@
-import type { ErrorCode, Violation } from './generated/index.js';
+import type { ErrorCode, Violation } from './generated/index.ts';
 
 export class ApiFailError extends Error {
     readonly code?: ErrorCode;

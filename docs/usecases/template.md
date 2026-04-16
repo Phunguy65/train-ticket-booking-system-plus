@@ -143,38 +143,38 @@ Entity *-- VO
 
 ### 6.1 Controller: `<ControllerName>`
 
--  **Nhiệm vụ**: Nhận HTTP request từ actor, xác thực đầu vào, ủy thác cho
+- **Nhiệm vụ**: Nhận HTTP request từ actor, xác thực đầu vào, ủy thác cho
   UseCase.
--  **Endpoint**: `<METHOD> /v1/<path>`
--  **Input**: `<RequestDTO>` — `{ field1: Type, field2: Type, ... }`
--  **Output thành công**: `<HTTP status>` + `<ResponseDTO>` —
+- **Endpoint**: `<METHOD> /v1/<path>`
+- **Input**: `<RequestDTO>` — `{ field1: Type, field2: Type, ... }`
+- **Output thành công**: `<HTTP status>` + `<ResponseDTO>` —
   `{ field1: Type, ... }`
--  **Output lỗi**: `<HTTP status>` + `JsendResponse` — `{ errorCode, message }`
+- **Output lỗi**: `<HTTP status>` + `JsendResponse` — `{ errorCode, message }`
 
 ### 6.2 UseCase: `<UseCaseName>`
 
--  **Nhiệm vụ**: Orchestrate nghiệp vụ cho UC này.
--  **Input**: `<Command/Query>` — `{ field1: Type, ... }`
--  **Output**: `Result<ResponseDTO, Error>`
--  **Gọi đến**:
-    -  `<Repository>.method()` — <mục đích>
-    -  `<Port>.method()` — <mục đích> (nếu có actor hỗ trợ bên ngoài)
--  **Phát sinh sự kiện**: `<DomainEvent>` (nếu có)
+- **Nhiệm vụ**: Orchestrate nghiệp vụ cho UC này.
+- **Input**: `<Command/Query>` — `{ field1: Type, ... }`
+- **Output**: `Result<ResponseDTO, Error>`
+- **Gọi đến**:
+    - `<Repository>.method()` — <mục đích>
+    - `<Port>.method()` — <mục đích> (nếu có actor hỗ trợ bên ngoài)
+- **Phát sinh sự kiện**: `<DomainEvent>` (nếu có)
 
 ### 6.3 Repository: `<RepositoryName>`
 
--  **Nhiệm vụ**: Truy xuất/lưu trữ domain entity `<Entity>`.
--  **Phương thức liên quan đến UC**:
-    -  `findById(id): Optional<Entity>` — <mục đích>
-    -  `save(entity): Entity` — <mục đích>
--  **Table**: `<table_name>`
+- **Nhiệm vụ**: Truy xuất/lưu trữ domain entity `<Entity>`.
+- **Phương thức liên quan đến UC**:
+    - `findById(id): Optional<Entity>` — <mục đích>
+    - `save(entity): Entity` — <mục đích>
+- **Table**: `<table_name>`
 
 ### 6.4 Port: `<PortName>` _(nếu có)_
 
--  **Nhiệm vụ**: Giao tiếp với actor hỗ trợ bên ngoài (vd: Stripe, Email
+- **Nhiệm vụ**: Giao tiếp với actor hỗ trợ bên ngoài (vd: Stripe, Email
   Service,...).
--  **Phương thức liên quan đến UC**:
-    -  `methodName(params): ReturnType` — <mục đích>
+- **Phương thức liên quan đến UC**:
+    - `methodName(params): ReturnType` — <mục đích>
 
 ### 6.5 Lược đồ tuần tự nội bộ PM
 
@@ -211,6 +211,35 @@ UC --> CTL: Result<DTO, Error>
 CTL --> Actor: <HTTP status> + <ResponseDTO>
 @enduml
 ```
+
+### 6.6 Giao diện
+
+#### 6.6.1 Giao diện mẫu
+
+<!-- Wireframe mô tả giao diện mặc định của UC sử dụng PlantUML Salt.
+     Chỉ thể hiện trạng thái form mặc định (default state).
+     Tham khảo: https://plantuml.com/salt -->
+
+```plantuml
+@startsalt
+{+
+  <b><Tiêu đề form>
+  ..
+  <Label 1>  | "                              "
+  <Label 2>  | "                              "
+  <Label 3>  | "                              "
+  ==
+  [<Button label>]
+}
+@endsalt
+```
+
+#### 6.6.2 Giao diện ứng dụng
+
+<!-- Ảnh chụp màn hình giao diện thực tế sau khi hiện thực.
+     Bổ sung khi hoàn thành implementation. -->
+
+Chưa hiện thực. Sẽ bổ sung ảnh chụp màn hình khi hoàn thành.
 
 ## 7. Bảng tham chiếu dò vết
 

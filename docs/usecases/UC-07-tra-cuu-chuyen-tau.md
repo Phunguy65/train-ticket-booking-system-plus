@@ -1,6 +1,6 @@
-# UC-07: Tra cứu chuyến tàu
+## UC-07: Tra cứu chuyến tàu
 
-## 1. Mô tả use case
+### 1. Mô tả use case
 
 | Mục                            | Nội dung                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
 | ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -15,7 +15,7 @@
 | Hậu điều kiện (thất bại)       | Không có thay đổi trạng thái. Dữ liệu trong hệ thống không bị ảnh hưởng.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
 | Xử lý ngoại lệ                 | Chưa xác thực (thiếu hoặc sai access token) → Hệ thống trả về lỗi 401. <br> Tìm kiếm không có kết quả → Hệ thống trả về danh sách rỗng. <br> Chuyến tàu không tồn tại (xem chi tiết) → Hệ thống trả về lỗi `SCHEDULED_TRIP_NOT_FOUND`. <br> Cursor không hợp lệ (sai định dạng) → Hệ thống trả về lỗi `CURSOR_INVALID`. <br> Tham số không hợp lệ (phân trang, bộ lọc, giá trị sắp xếp) → Hệ thống trả về lỗi `VALIDATION_ERROR`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
 
-## 2. Lược đồ tuần tự
+### 2. Lược đồ tuần tự
 
 ```plantuml
 @startuml UC-07
@@ -66,7 +66,7 @@ end
 @enduml
 ```
 
-## 3. Lược đồ hoạt động
+### 3. Lược đồ hoạt động
 
 ```plantuml
 @startuml UC-07-activity
@@ -135,7 +135,7 @@ stop
 @enduml
 ```
 
-## 5. Lược đồ lớp ý niệm
+### 5. Lược đồ lớp ý niệm
 
 ```plantuml
 @startuml UC-07-class
@@ -269,96 +269,94 @@ DetailRoute *-- DetailStation
 @enduml
 ```
 
-## 6. Phân rã thành phần PM
+### 6. Phân rã thành phần PM
 
-### 6.1 Controller: `ScheduledTripController`
+#### 6.1 Controller: `ScheduledTripController`
 
--  **Nhiệm vụ**: Nhận HTTP request từ khách hàng, xác thực đầu vào, ủy thác cho
+- **Nhiệm vụ**: Nhận HTTP request từ khách hàng, xác thực đầu vào, ủy thác cho
   UseCase tương ứng.
 
 **Endpoint 1 — Tìm kiếm có bộ lọc:**
 
--  **Endpoint**: `GET /api/v1/scheduled-trips:filter`
--  **Input**: `SearchScheduledTripsRequest` —
+- **Endpoint**: `GET /api/v1/scheduled-trips:filter`
+- **Input**: `SearchScheduledTripsRequest` —
   `{ originStationId?, destinationStationId?, departureDate?, status?, availableOnly?, minPrice?, maxPrice?, sortBy?, sortDirection?, cursor?, size }`
--  **Output thành công**: `200` + `SliceResponse<SearchScheduledTripsResponse>`
--  **Output lỗi**: `400` + `JsendResponse` —
+- **Output thành công**: `200` + `SliceResponse<SearchScheduledTripsResponse>`
+- **Output lỗi**: `400` + `JsendResponse` —
   `{ errorCode: VALIDATION_ERROR | CURSOR_INVALID, message }`
 
 **Endpoint 2 — Duyệt danh sách:**
 
--  **Endpoint**: `GET /api/v1/scheduled-trips`
--  **Input**: `GetScheduledTripsRequest` — `{ page, size }`
--  **Output thành công**: `200` + `PageResponse<ScheduledTripResponse>`
--  **Output lỗi**: `400` + `JsendResponse` —
+- **Endpoint**: `GET /api/v1/scheduled-trips`
+- **Input**: `GetScheduledTripsRequest` — `{ page, size }`
+- **Output thành công**: `200` + `PageResponse<ScheduledTripResponse>`
+- **Output lỗi**: `400` + `JsendResponse` —
   `{ errorCode: VALIDATION_ERROR, message }`
 
 **Endpoint 3 — Xem chi tiết:**
 
--  **Endpoint**: `GET /api/v1/scheduled-trips/{id}`
--  **Input**: `id` (UUID path variable)
--  **Output thành công**: `200` + `ScheduledTripDetailResponse`
--  **Output lỗi**: `404` + `JsendResponse` —
+- **Endpoint**: `GET /api/v1/scheduled-trips/{id}`
+- **Input**: `id` (UUID path variable)
+- **Output thành công**: `200` + `ScheduledTripDetailResponse`
+- **Output lỗi**: `404` + `JsendResponse` —
   `{ errorCode: SCHEDULED_TRIP_NOT_FOUND, message }`
--  **Ghi chú metadata**: Runtime trả `ScheduledTripDetailResponse`, nhưng
-  `@SuccessPayload` trong controller hiện vẫn khai báo `ScheduledTripResponse`.
 
-### 6.2 UseCase
+#### 6.2 UseCase
 
 **SearchScheduledTripsUseCase:**
 
--  **Nhiệm vụ**: Tìm kiếm chuyến tàu với bộ lọc, phân trang cursor-based, cache
+- **Nhiệm vụ**: Tìm kiếm chuyến tàu với bộ lọc, phân trang cursor-based, cache
   kết quả.
--  **Input**: `SearchScheduledTripsQuery` —
+- **Input**: `SearchScheduledTripsQuery` —
   `{ originStationId?, destinationStationId?, departureDate?, status?, availableOnly, minPrice?, maxPrice?, sortBy, sortDirection, cursor?, size }`
--  **Output**: `SliceResponse<SearchScheduledTripsResponse>`
--  **Gọi đến**:
-    -  `ScheduledTripSearchPort.search(query, cursor)` — tìm kiếm JDBC với bộ lọc
-    -  `CursorCodec.decode/encode()` — giải mã/mã hóa cursor
--  **Cache**: `scheduledTripFilter`, key = `st-filter:{cacheKey}`
+- **Output**: `SliceResponse<SearchScheduledTripsResponse>`
+- **Gọi đến**:
+    - `ScheduledTripSearchPort.search(query, cursor)` — tìm kiếm JDBC với bộ lọc
+    - `CursorCodec.decode/encode()` — giải mã/mã hóa cursor
+- **Cache**: `scheduledTripFilter`, key = `st-filter:{cacheKey}`
 
 **GetScheduledTripsUseCase:**
 
--  **Nhiệm vụ**: Truy vấn danh sách chuyến tàu phân trang offset-based, cache kết
+- **Nhiệm vụ**: Truy vấn danh sách chuyến tàu phân trang offset-based, cache kết
   quả.
--  **Input**: `GetScheduledTripsQuery` — `{ page, size }`
--  **Output**: `PageResponse<ScheduledTripResponse>`
--  **Gọi đến**:
-    -  `ScheduledTripRepository.findAllSummaries(page, size, sort)` — truy vấn
+- **Input**: `GetScheduledTripsQuery` — `{ page, size }`
+- **Output**: `PageResponse<ScheduledTripResponse>`
+- **Gọi đến**:
+    - `ScheduledTripRepository.findAllSummaries(page, size, sort)` — truy vấn
       danh sách
--  **Cache**: `scheduledTripList`, key = `st-list:{page}:{size}`
+- **Cache**: `scheduledTripList`, key = `st-list:{page}:{size}`
 
 **GetScheduledTripByIdUseCase:**
 
--  **Nhiệm vụ**: Truy vấn chi tiết chuyến tàu theo ID, cache kết quả.
--  **Input**: `GetScheduledTripByIdQuery` — `{ scheduledTripId }`
--  **Output**: `Result<ScheduledTripDetailResponse, ScheduledTripError>`
--  **Gọi đến**:
-    -  `ScheduledTripRepository.findEnrichedById(id)` — truy vấn enriched summary
--  **Cache**: `scheduledTripById`, key = `st:{scheduledTripId}`, trừ khi failure
+- **Nhiệm vụ**: Truy vấn chi tiết chuyến tàu theo ID, cache kết quả.
+- **Input**: `GetScheduledTripByIdQuery` — `{ scheduledTripId }`
+- **Output**: `Result<ScheduledTripDetailResponse, ScheduledTripError>`
+- **Gọi đến**:
+    - `ScheduledTripRepository.findEnrichedById(id)` — truy vấn enriched summary
+- **Cache**: `scheduledTripById`, key = `st:{scheduledTripId}`, trừ khi failure
 
-### 6.3 Repository: `ScheduledTripRepository`
+#### 6.3 Repository: `ScheduledTripRepository`
 
--  **Nhiệm vụ**: Truy xuất domain entity `ScheduledTrip` và các projection
+- **Nhiệm vụ**: Truy xuất domain entity `ScheduledTrip` và các projection
   summary.
--  **Phương thức liên quan đến UC**:
-    -  `findAllSummaries(page, size, sort): PageResponse<ScheduledTripSummary>` —
+- **Phương thức liên quan đến UC**:
+    - `findAllSummaries(page, size, sort): PageResponse<ScheduledTripSummary>` —
       danh sách chuyến tàu phân trang
-    -  `findEnrichedById(id): Optional<ScheduledTripEnrichedSummary>` — chi tiết
+    - `findEnrichedById(id): Optional<ScheduledTripEnrichedSummary>` — chi tiết
       chuyến tàu kèm thông tin tàu, tuyến đường, ga
 
-### 6.4 Port: `ScheduledTripSearchPort`
+#### 6.4 Port: `ScheduledTripSearchPort`
 
--  **Lớp**: Application layer (port interface), implemented bởi
+- **Lớp**: Application layer (port interface), implemented bởi
   `ScheduledTripSearchReader` (infrastructure, JDBC).
--  **Nhiệm vụ**: Tìm kiếm chuyến tàu với bộ lọc phức tạp, hỗ trợ cursor-based
+- **Nhiệm vụ**: Tìm kiếm chuyến tàu với bộ lọc phức tạp, hỗ trợ cursor-based
   pagination và sắp xếp đa trường.
--  **Phương thức liên quan đến UC**:
-    -  `search(query, cursor): SliceResponse<ScheduledTripEnrichedSummary>` — tìm
+- **Phương thức liên quan đến UC**:
+    - `search(query, cursor): SliceResponse<ScheduledTripEnrichedSummary>` — tìm
       kiếm JDBC với các bộ lọc (ga đi/đến, ngày, trạng thái, giá, ghế trống) và
       cursor
 
-### 6.5 Lược đồ tuần tự nội bộ PM
+#### 6.5 Lược đồ tuần tự nội bộ PM
 
 ```plantuml
 @startuml UC-07-internal
@@ -427,7 +425,40 @@ end
 @enduml
 ```
 
-## 7. Bảng tham chiếu dò vết
+#### 6.6 Giao diện
+
+##### 6.6.1 Giao diện mẫu
+
+```plantuml
+@startsalt
+{+
+  <b>Tra cứu chuyến tàu
+  ..
+  {
+    Ga đi          | ^Chọn ga đi^
+    Ga đến         | ^Chọn ga đến^
+    Ngày khởi hành | "dd/mm/yyyy"
+    Chỉ còn ghế    | [X]
+  }
+  [Tìm chuyến]
+  ==
+  {#
+    Chuyến       | Khởi hành     | Đến           | Thời gian | Giá       | Ghế trống
+    SE1          | 06:00 SGN     | 12:30 DNA     | 6h30      | 500,000đ  | 45
+    SE3          | 19:00 SGN     | 07:00+1 HAN   | 12h       | 850,000đ  | 12
+    SE5          | 22:00 SGN     | 04:30+1 DNA   | 6h30      | 480,000đ  | 0
+  }
+  ..
+  [< Trước] | Trang 1/3 | [Tiếp >]
+}
+@endsalt
+```
+
+##### 6.6.2 Giao diện ứng dụng
+
+Chưa hiện thực. Sẽ bổ sung ảnh chụp màn hình khi hoàn thành.
+
+### 7. Bảng tham chiếu dò vết
 
 | Use Case | Controller              | Endpoint                             | UseCase                     | Repository / Port                          | Table                                              |
 | -------- | ----------------------- | ------------------------------------ | --------------------------- | ------------------------------------------ | -------------------------------------------------- |
@@ -435,7 +466,7 @@ end
 |          | ScheduledTripController | `GET /api/v1/scheduled-trips`        | GetScheduledTripsUseCase    | ScheduledTripRepository.findAllSummaries() | scheduled_trips                                    |
 |          | ScheduledTripController | `GET /api/v1/scheduled-trips/{id}`   | GetScheduledTripByIdUseCase | ScheduledTripRepository.findEnrichedById() | scheduled_trips, route_templates, trains, stations |
 
-## 8. Tiêu chí kiểm thử
+### 8. Tiêu chí kiểm thử
 
 | Tiêu chí              | Phép thử                                                                   | Kết quả mong đợi                                                  | Ghi chú                                              |
 | --------------------- | -------------------------------------------------------------------------- | ----------------------------------------------------------------- | ---------------------------------------------------- |

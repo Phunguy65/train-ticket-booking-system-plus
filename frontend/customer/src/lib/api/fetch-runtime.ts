@@ -1,4 +1,4 @@
-import { unwrapJsendSuccessResponse } from './jsend.js';
+import { unwrapJsendSuccessResponse } from './jsend.ts';
 
 export const createApiFetch =
     (fetchImpl: typeof fetch = globalThis.fetch): typeof fetch =>
