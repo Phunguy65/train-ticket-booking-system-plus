@@ -41,12 +41,12 @@ pre-commit:
         customer-lint:
             root: 'frontend/customer/'
             glob: '**/*.{ts,tsx,js,jsx,json}'
-            run: bun --bun run lint
+            run: bun run lint
 
         customer-format:
             root: 'frontend/customer/'
             glob: '**/*.{ts,tsx,js,jsx,json}'
-            run: bun --bun run lint:fix
+            run: bun run lint:fix
             stage_fixed: true
 
         # ── Database – SQL (Prettier) ─────────────────────────────────────

@@ -1,0 +1,61 @@
+{
+    "Auth": {
+        "login": {
+            "title": "Sign In",
+            "subtitle": "Welcome back",
+            "email": "Email",
+            "emailPlaceholder": "email@example.com",
+            "password": "Password",
+            "passwordPlaceholder": "Enter your password",
+            "submit": "Sign In",
+            "submitting": "Signing in...",
+            "noAccount": "Don't have an account?",
+            "registerLink": "Sign up",
+            "registerSuccess": "Registration successful! Please sign in."
+        },
+        "register": {
+            "title": "Sign Up",
+            "subtitle": "Create a new account",
+            "fullName": "Full Name",
+            "fullNamePlaceholder": "John Doe",
+            "email": "Email",
+            "emailPlaceholder": "email@example.com",
+            "password": "Password",
+            "passwordPlaceholder": "Enter your password",
+            "confirmPassword": "Confirm Password",
+            "confirmPasswordPlaceholder": "Re-enter your password",
+            "submit": "Sign Up",
+            "submitting": "Signing up...",
+            "hasAccount": "Already have an account?",
+            "loginLink": "Sign in"
+        },
+        "password": {
+            "show": "Show password",
+            "hide": "Hide password"
+        }
+    },
+    "Validation": {
+        "email": {
+            "required": "Email is required",
+            "invalid": "Invalid email address"
+        },
+        "password": {
+            "required": "Password is required",
+            "minLength": "Password must be at least 8 characters"
+        },
+        "confirmPassword": {
+            "required": "Please confirm your password",
+            "mismatch": "Passwords do not match"
+        },
+        "fullName": {
+            "required": "Full name is required",
+            "minLength": "Full name must be at least 2 characters"
+        }
+    },
+    "Errors": {
+        "invalidCredentials": "Invalid email or password",
+        "emailExists": "This email is already registered",
+        "networkError": "Unable to connect. Please try again.",
+        "unknownError": "Something went wrong. Please try again."
+    }
+}
