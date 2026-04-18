@@ -19,7 +19,7 @@ describe('resolveLoginError', () => {
 
     it('returns error message for other ApiFailError codes', () => {
         const error = new ApiFailError({
-            code: 'SOME_OTHER_ERROR',
+            code: 'ACCESS_DENIED',
             message: 'Custom error message',
         });
 
@@ -30,7 +30,7 @@ describe('resolveLoginError', () => {
 
     it('returns ApiFailError default message when error has no custom message', () => {
         // ApiFailError constructor sets default message "Request failed" when none provided
-        const error = new ApiFailError({ code: 'SOME_OTHER_ERROR' });
+        const error = new ApiFailError({ code: 'ACCESS_DENIED' });
 
         const result = resolveLoginError(error, translations);
 
@@ -75,7 +75,7 @@ describe('resolveRegisterError', () => {
 
     it('returns error message with showLoginLink=false for other ApiFailError codes', () => {
         const error = new ApiFailError({
-            code: 'SOME_OTHER_ERROR',
+            code: 'ACCESS_DENIED',
             message: 'Custom error message',
         });
 
@@ -89,7 +89,7 @@ describe('resolveRegisterError', () => {
 
     it('returns ApiFailError default message when error has no custom message', () => {
         // ApiFailError constructor sets default message "Request failed" when none provided
-        const error = new ApiFailError({ code: 'SOME_OTHER_ERROR' });
+        const error = new ApiFailError({ code: 'ACCESS_DENIED' });
 
         const result = resolveRegisterError(error, translations);
 

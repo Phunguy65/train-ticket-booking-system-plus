@@ -16,7 +16,9 @@ describe('createApiFetch', () => {
                     status: 200,
                 },
             );
-        const apiFetch = createApiFetch(delegatedFetch as typeof fetch);
+        const apiFetch = createApiFetch(
+            delegatedFetch as unknown as typeof fetch,
+        );
 
         const response = await apiFetch('https://example.com');
 
@@ -41,7 +43,9 @@ describe('createApiFetch', () => {
                     status: 403,
                 },
             );
-        const apiFetch = createApiFetch(delegatedFetch as typeof fetch);
+        const apiFetch = createApiFetch(
+            delegatedFetch as unknown as typeof fetch,
+        );
 
         const response = await apiFetch('https://example.com');
 

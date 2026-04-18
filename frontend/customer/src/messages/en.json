@@ -1,4 +1,197 @@
 {
+    "Navigation": {
+        "login": "Sign In",
+        "register": "Sign Up",
+        "myBookings": "My Bookings",
+        "profile": "Profile",
+        "logout": "Sign Out",
+        "loggingOut": "Signing out...",
+        "openMenu": "Open menu",
+        "footerCopyright": "TTBS {year}. Online train ticket booking."
+    },
+    "Search": {
+        "title": "Search Trains",
+        "origin": "Origin",
+        "originPlaceholder": "Select origin station",
+        "destination": "Destination",
+        "destinationPlaceholder": "Select destination station",
+        "departureDate": "Departure Date",
+        "datePlaceholder": "Select date",
+        "swap": "Swap stations",
+        "submit": "Search",
+        "searching": "Searching...",
+        "noStationsFound": "No stations found",
+        "loadingStations": "Loading...",
+        "stationSearchError": "Error loading stations. Please try again."
+    },
+    "Trips": {
+        "title": "Search Results",
+        "results": "{count, plural, =0 {No trains} one {{count} train} other {{count} trains}}",
+        "noResults": "No trains found",
+        "noResultsDescription": "Try searching with different criteria",
+        "train": "Train",
+        "departure": "Departure",
+        "arrival": "Arrival",
+        "duration": "Duration",
+        "price": "Price",
+        "available": "{count} seats available",
+        "noSeats": "Sold out",
+        "selectSeats": "Select Seats",
+        "sort": {
+            "label": "Sort by",
+            "departureTime": "Departure time",
+            "price": "Price",
+            "duration": "Duration"
+        },
+        "filter": {
+            "label": "Filters",
+            "priceRange": "Price range",
+            "minPrice": "Min price",
+            "maxPrice": "Max price",
+            "availableOnly": "Available seats only",
+            "apply": "Apply",
+            "clear": "Clear filters"
+        },
+        "loadMore": "Load more",
+        "loadingMore": "Loading...",
+        "error": "Error loading trips",
+        "retry": "Retry"
+    },
+    "Seats": {
+        "title": "Select Seats",
+        "coach": "Coach {number}",
+        "available": "Available",
+        "held": "Held",
+        "booked": "Booked",
+        "selected": "Selected",
+        "seatNumber": "Seat {number}",
+        "selectSeat": "Select seat {number}",
+        "deselectSeat": "Deselect seat {number}",
+        "unavailable": "Seat unavailable",
+        "maxSeats": "Maximum {count} seats per booking",
+        "maxSeatsReached": "Maximum {count} seats selected",
+        "selectedSeats": "Selected Seats",
+        "noSeatsSelected": "No seats selected",
+        "totalPrice": "Total",
+        "continue": "Continue to Booking",
+        "error": "Error loading seat map",
+        "retry": "Retry",
+        "tripNotFound": "Trip not found"
+    },
+    "Booking": {
+        "title": "Confirm Booking",
+        "tripSummary": "Trip Information",
+        "seatsSummary": "Selected Seats",
+        "passengerInfo": "Passenger Information",
+        "priceDetails": "Price Details",
+        "pricePerSeat": "Price per seat",
+        "totalSeats": "{count} seats",
+        "totalPrice": "Total",
+        "confirm": "Confirm Booking",
+        "confirming": "Confirming...",
+        "missingContext": "Missing booking information",
+        "missingContextDescription": "Please go back and select a trip",
+        "backToSearch": "Back to Search",
+        "backToSeats": "Back to Seat Selection",
+        "success": "Booking Confirmed!",
+        "successDescription": "Booking ID: {bookingId}",
+        "paymentDeadline": "Pay before: {deadline}",
+        "proceedToPayment": "Proceed to Payment",
+        "error": "Booking failed",
+        "seatsUnavailable": "Seats have been booked by someone else. Please select different seats.",
+        "detail": {
+            "title": "Booking Details",
+            "bookingId": "Booking ID",
+            "id": "ID",
+            "status": "Status",
+            "createdAt": "Created",
+            "paymentDeadline": "Payment Deadline",
+            "trip": "Trip Information",
+            "seats": "Seats",
+            "passenger": "Passenger",
+            "payment": "Payment",
+            "pay": "Pay Now",
+            "notFound": "Booking not found",
+            "total": "Total",
+            "retry": "Retry",
+            "backToBookings": "Back to My Bookings"
+        },
+        "redirectingToPayment": "Redirecting to payment...",
+        "loadingPayment": "Loading payment..."
+    },
+    "Account": {
+        "title": "My Bookings",
+        "empty": "You don't have any bookings yet",
+        "emptyDescription": "Search and book your first train trip",
+        "searchTrips": "Search Trains",
+        "bookingId": "Booking ID",
+        "viewDetails": "View Details",
+        "cancel": "Cancel",
+        "cancelConfirm": {
+            "title": "Confirm Cancellation",
+            "description": "Are you sure you want to cancel this booking? This action cannot be undone.",
+            "confirm": "Cancel Booking",
+            "cancelling": "Cancelling...",
+            "cancel": "Go Back"
+        },
+        "cancelSuccess": "Booking cancelled successfully",
+        "cancelError": "Failed to cancel booking. Please try again.",
+        "error": "Error loading bookings",
+        "retry": "Retry"
+    },
+    "Profile": {
+        "title": "Profile",
+        "fullName": "Full Name",
+        "email": "Email",
+        "phone": "Phone Number",
+        "phonePlaceholder": "Enter phone number",
+        "dateOfBirth": "Date of Birth",
+        "selectDate": "Select date",
+        "gender": "Gender",
+        "selectGender": "Select gender",
+        "genderOptions": {
+            "male": "Male",
+            "female": "Female",
+            "other": "Other"
+        },
+        "idDocument": "ID Document Number",
+        "idDocumentPlaceholder": "Enter ID number",
+        "address": "Address",
+        "addressPlaceholder": "Enter address",
+        "save": "Save Changes",
+        "saving": "Saving...",
+        "saveSuccess": "Profile updated successfully",
+        "saveError": "Failed to update profile. Please try again.",
+        "error": "Error loading profile",
+        "retry": "Retry"
+    },
+    "Status": {
+        "HELD": "Pending Payment",
+        "CONFIRMED": "Confirmed",
+        "CANCELLED": "Cancelled",
+        "PENDING": "Processing",
+        "PAID": "Paid",
+        "FAILED": "Failed",
+        "REFUNDED": "Refunded",
+        "SCHEDULED": "Scheduled",
+        "BOARDING": "Boarding",
+        "DEPARTED": "Departed",
+        "ARRIVED": "Arrived"
+    },
+    "Common": {
+        "loading": "Loading...",
+        "error": "An error occurred",
+        "retry": "Retry",
+        "back": "Back",
+        "cancel": "Cancel",
+        "confirm": "Confirm",
+        "save": "Save",
+        "close": "Close",
+        "currency": "{amount, number, ::currency/VND}",
+        "date": "{date, date, medium}",
+        "time": "{time, time, short}",
+        "datetime": "{datetime, date, medium} {datetime, time, short}"
+    },
     "Auth": {
         "login": {
             "title": "Sign In",
@@ -50,12 +243,34 @@
         "fullName": {
             "required": "Full name is required",
             "minLength": "Full name must be at least 2 characters"
+        },
+        "origin": {
+            "required": "Please select an origin station"
+        },
+        "destination": {
+            "required": "Please select a destination station",
+            "sameAsOrigin": "Destination must be different from origin"
+        },
+        "departureDate": {
+            "required": "Please select a departure date",
+            "past": "Departure date must be today or later"
+        },
+        "phone": {
+            "invalid": "Invalid phone number"
+        },
+        "seats": {
+            "required": "Please select at least one seat",
+            "maxExceeded": "Maximum {count} seats per booking"
         }
     },
     "Errors": {
         "invalidCredentials": "Invalid email or password",
         "emailExists": "This email is already registered",
         "networkError": "Unable to connect. Please try again.",
-        "unknownError": "Something went wrong. Please try again."
+        "unknownError": "Something went wrong. Please try again.",
+        "unauthorized": "Please sign in to continue",
+        "forbidden": "You don't have permission to perform this action",
+        "notFound": "Data not found",
+        "seatsUnavailable": "Seats are no longer available"
     }
 }

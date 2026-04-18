@@ -1,0 +1,283 @@
+'use client';
+
+import { useQuery } from '@tanstack/react-query';
+import { AlertCircleIcon } from 'lucide-react';
+import { useTranslations } from 'next-intl';
+import { useEffect, useMemo, useState } from 'react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert.tsx';
+import { Button } from '@/components/ui/button.tsx';
+import { Skeleton } from '@/components/ui/skeleton.tsx';
+import {
+    Tabs,
+    TabsContent,
+    TabsList,
+    TabsTrigger,
+} from '@/components/ui/tabs.tsx';
+import { useRouter } from '@/i18n/routing.ts';
+import type { CoachSeatMapResponse } from '@/lib/api/generated/types.gen.ts';
+import {
+    getCoachSeatMapOptions,
+    getRouteTemplateOptions,
+    getScheduledTripOptions,
+} from '@/lib/api/index.ts';
+import {
+    calculateTotalPrice,
+    canAddMoreSeats,
+    formatPrice,
+    MAX_SEATS_PER_BOOKING,
+} from '@/lib/customer-utils.ts';
+import { buildBookingUrl } from '@/lib/search-params.ts';
+import { getErrorMessage, showInfoToast } from '@/lib/toast.ts';
+import { SeatGrid } from './seat-grid.tsx';
+import { SeatLegend } from './seat-legend.tsx';
+
+type SeatSelectionProps = {
+    tripId: string;
+};
+
+export function SeatSelection({ tripId }: SeatSelectionProps) {
+    const t = useTranslations('Seats');
+    const router = useRouter();
+    const [selectedSeats, setSelectedSeats] = useState<Set<string>>(new Set());
+    const [activeCoach, setActiveCoach] = useState<string | undefined>();
+
+    // Fetch trip details
+    const {
+        data: trip,
+        isLoading: tripLoading,
+        isError: tripError,
+    } = useQuery({
+        ...getScheduledTripOptions({
+            path: { id: tripId },
+            query: { request: {} },
+        }),
+    });
+
+    // Fetch route template for pricing
+    const { data: routeTemplate, isLoading: routeLoading } = useQuery({
+        ...getRouteTemplateOptions({
+            path: { id: trip?.routeTemplateId ?? '' },
+            query: { request: {} },
+        }),
+        enabled: !!trip?.routeTemplateId,
+    });
+
+    // Fetch seat map
+    const {
+        data: seatMap,
+        isLoading: seatMapLoading,
+        isError: seatMapError,
+        error,
+        refetch,
+    } = useQuery({
+        ...getCoachSeatMapOptions({
+            path: { scheduledTripId: tripId },
+            query: { request: { size: 100 } },
+        }),
+        enabled: !!tripId,
+    });
+
+    // Set initial active coach
+    // The API returns a single CoachSeatMapResponse, wrap it in an array for consistency
+    const coaches: CoachSeatMapResponse[] = useMemo(
+        () => (seatMap ? [seatMap] : []),
+        [seatMap],
+    );
+
+    // Set default coach when data loads
+    useEffect(() => {
+        if (coaches.length > 0 && !activeCoach) {
+            setActiveCoach(coaches[0]?.id);
+        }
+    }, [coaches, activeCoach]);
+
+    // Calculate total price
+    const pricePerSeat = routeTemplate?.basePrice ?? 0;
+    const totalPrice = calculateTotalPrice(selectedSeats.size, pricePerSeat);
+
+    // Handle seat selection
+    const handleSeatToggle = (seatId: string, isAvailable: boolean) => {
+        if (!isAvailable) return;
+
+        setSelectedSeats((prev) => {
+            const next = new Set(prev);
+            if (next.has(seatId)) {
+                next.delete(seatId);
+            } else {
+                if (!canAddMoreSeats(next.size)) {
+                    showInfoToast(
+                        t('maxSeatsReached', { count: MAX_SEATS_PER_BOOKING }),
+                    );
+                    return prev;
+                }
+                next.add(seatId);
+            }
+            return next;
+        });
+    };
+
+    // Handle continue to booking
+    const handleContinue = () => {
+        if (selectedSeats.size === 0) return;
+
+        const url = buildBookingUrl({
+            tripId,
+            seatIds: Array.from(selectedSeats),
+        });
+        router.push(url);
+    };
+
+    // Loading state
+    if (tripLoading || routeLoading || seatMapLoading) {
+        return (
+            <div className='space-y-6'>
+                <Skeleton className='h-8 w-64' />
+                <div className='grid gap-6 lg:grid-cols-[1fr,300px]'>
+                    <div className='space-y-4'>
+                        <Skeleton className='h-10 w-full' />
+                        <Skeleton className='h-[400px] w-full' />
+                    </div>
+                    <div className='space-y-4'>
+                        <Skeleton className='h-32 w-full' />
+                        <Skeleton className='h-10 w-full' />
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // Error state
+    if (tripError || seatMapError) {
+        return (
+            <Alert variant='destructive'>
+                <AlertCircleIcon className='h-4 w-4' />
+                <AlertTitle>
+                    {tripError ? t('tripNotFound') : t('error')}
+                </AlertTitle>
+                <AlertDescription className='flex items-center gap-4'>
+                    <span>{getErrorMessage(error, t('error'))}</span>
+                    {!tripError && (
+                        <Button
+                            variant='outline'
+                            size='sm'
+                            onClick={() => refetch()}
+                        >
+                            {t('retry')}
+                        </Button>
+                    )}
+                </AlertDescription>
+            </Alert>
+        );
+    }
+
+    // No coaches
+    if (coaches.length === 0) {
+        return (
+            <Alert>
+                <AlertCircleIcon className='h-4 w-4' />
+                <AlertTitle>{t('error')}</AlertTitle>
+                <AlertDescription>{t('tripNotFound')}</AlertDescription>
+            </Alert>
+        );
+    }
+
+    return (
+        <div className='space-y-6'>
+            <h1 className='text-2xl font-bold'>{t('title')}</h1>
+
+            <div className='grid gap-6 lg:grid-cols-[1fr,320px]'>
+                {/* Seat Map */}
+                <div className='space-y-4'>
+                    <SeatLegend />
+
+                    <Tabs
+                        value={activeCoach}
+                        onValueChange={setActiveCoach}
+                        className='w-full'
+                    >
+                        <TabsList className='w-full'>
+                            {coaches.map((coach) => (
+                                <TabsTrigger
+                                    key={coach.id}
+                                    value={coach.id ?? ''}
+                                    className='flex-1'
+                                >
+                                    {t('coach', {
+                                        number: coach.carNumber ?? 1,
+                                    })}
+                                </TabsTrigger>
+                            ))}
+                        </TabsList>
+
+                        {coaches.map((coach) => (
+                            <TabsContent key={coach.id} value={coach.id ?? ''}>
+                                <SeatGrid
+                                    seats={coach.seats ?? []}
+                                    selectedSeats={selectedSeats}
+                                    onSeatToggle={handleSeatToggle}
+                                />
+                            </TabsContent>
+                        ))}
+                    </Tabs>
+                </div>
+
+                {/* Selection Summary */}
+                <div className='lg:sticky lg:top-20'>
+                    <div className='rounded-lg border bg-card p-4 shadow-sm'>
+                        <h2 className='mb-4 font-semibold'>
+                            {t('selectedSeats')}
+                        </h2>
+
+                        {selectedSeats.size === 0 ? (
+                            <p className='text-sm text-muted-foreground'>
+                                {t('noSeatsSelected')}
+                            </p>
+                        ) : (
+                            <div className='space-y-3'>
+                                <div className='flex flex-wrap gap-2'>
+                                    {Array.from(selectedSeats).map((seatId) => {
+                                        // Find seat info
+                                        const seat = coaches
+                                            .flatMap((c) => c.seats ?? [])
+                                            .find((s) => s.id === seatId);
+                                        return (
+                                            <span
+                                                key={seatId}
+                                                className='inline-flex items-center rounded-md bg-primary px-2 py-1 text-xs font-medium text-primary-foreground'
+                                            >
+                                                {seat?.seatNumber ?? seatId}
+                                            </span>
+                                        );
+                                    })}
+                                </div>
+
+                                <div className='border-t pt-3'>
+                                    <div className='flex justify-between text-sm'>
+                                        <span className='text-muted-foreground'>
+                                            {t('totalPrice')}
+                                        </span>
+                                        <span className='font-semibold'>
+                                            {formatPrice(totalPrice)}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        <Button
+                            className='mt-4 w-full'
+                            disabled={selectedSeats.size === 0}
+                            onClick={handleContinue}
+                        >
+                            {t('continue')}
+                        </Button>
+
+                        <p className='mt-2 text-center text-xs text-muted-foreground'>
+                            {t('maxSeats', { count: MAX_SEATS_PER_BOOKING })}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}

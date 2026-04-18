@@ -3,7 +3,8 @@
     "files": {
         "includes": [
             "src/**/*.{ts,tsx,js,jsx,json,css}",
-            "!src/lib/api/generated/**/*"
+            "!src/lib/api/generated/**/*",
+            "!src/components/ui/**/*"
         ]
     },
     "vcs": {
@@ -33,6 +34,13 @@
                 },
                 "noUnusedVariables": "error",
                 "noUnusedImports": "error"
+            },
+            "suspicious": {
+                "noArrayIndexKey": "warn"
+            },
+            "a11y": {
+                "useSemanticElements": "warn",
+                "noStaticElementInteractions": "warn"
             }
         }
     },

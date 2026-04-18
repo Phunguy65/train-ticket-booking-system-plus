@@ -51,7 +51,7 @@ describe('createClientConfig', () => {
                     },
                 ),
         );
-        globalThis.fetch = delegatedFetch as typeof fetch;
+        globalThis.fetch = delegatedFetch as unknown as typeof fetch;
 
         try {
             const { createClientConfig } = await import('./runtime.ts');

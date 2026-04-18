@@ -306,7 +306,7 @@ describe('createApiFetch', () => {
                 status: 200,
             },
         );
-        const apiFetch = createApiFetch(async () => response);
+        const apiFetch = createApiFetch(async () => response as Response);
 
         const result = await apiFetch('https://example.com');
 
