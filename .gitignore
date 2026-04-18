@@ -39,8 +39,16 @@ obj/
 # node modules
 node_modules/
 
+# Python virtual environments
+.venv/
+__pycache__/
+*.pyc
+
 # turbo
 .turbo/
+
+# Sql generate
+R__*.sql
 
 # generate files
 dist/
