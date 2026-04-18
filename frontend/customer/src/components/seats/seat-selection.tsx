@@ -1,9 +1,14 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { AlertCircleIcon } from 'lucide-react';
+import {
+    AlertCircleIcon,
+    Loader2Icon,
+    WifiIcon,
+    WifiOffIcon,
+} from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert.tsx';
 import { Button } from '@/components/ui/button.tsx';
 import { Skeleton } from '@/components/ui/skeleton.tsx';
@@ -14,7 +19,10 @@ import {
     TabsTrigger,
 } from '@/components/ui/tabs.tsx';
 import { useRouter } from '@/i18n/routing.ts';
-import type { CoachSeatMapResponse } from '@/lib/api/generated/types.gen.ts';
+import type {
+    CoachSeatMapResponse,
+    Seat,
+} from '@/lib/api/generated/types.gen.ts';
 import {
     getCoachSeatMapOptions,
     getRouteTemplateOptions,
@@ -26,6 +34,14 @@ import {
     formatPrice,
     MAX_SEATS_PER_BOOKING,
 } from '@/lib/customer-utils.ts';
+import {
+    mergeSeatsWithUpdates,
+    reconcileSelectedSeats,
+    type SeatSseEventName,
+    type SeatSseUpdate,
+    type SseConnectionStatus,
+    useSeatSSE,
+} from '@/lib/hooks/use-seat-sse.ts';
 import { buildBookingUrl } from '@/lib/search-params.ts';
 import { getErrorMessage, showInfoToast } from '@/lib/toast.ts';
 import { SeatGrid } from './seat-grid.tsx';
@@ -35,11 +51,61 @@ type SeatSelectionProps = {
     tripId: string;
 };
 
+/**
+ * Connection status indicator component for SSE state.
+ */
+function ConnectionStatusIndicator({
+    status,
+}: {
+    status: SseConnectionStatus;
+}) {
+    const t = useTranslations('Seats');
+
+    if (status === 'disconnected') {
+        return null;
+    }
+
+    const statusConfig = {
+        connecting: {
+            icon: <Loader2Icon className='h-3 w-3 animate-spin' />,
+            text: t('sse.connecting'),
+            className: 'text-muted-foreground',
+        },
+        connected: {
+            icon: <WifiIcon className='h-3 w-3' />,
+            text: t('sse.connected'),
+            className: 'text-green-600 dark:text-green-400',
+        },
+        reconnecting: {
+            icon: <WifiOffIcon className='h-3 w-3' />,
+            text: t('sse.reconnecting'),
+            className: 'text-yellow-600 dark:text-yellow-400',
+        },
+    }[status];
+
+    if (!statusConfig) {
+        return null;
+    }
+
+    return (
+        <div
+            className={`flex items-center gap-1.5 text-xs ${statusConfig.className}`}
+        >
+            {statusConfig.icon}
+            <span>{statusConfig.text}</span>
+        </div>
+    );
+}
+
 export function SeatSelection({ tripId }: SeatSelectionProps) {
     const t = useTranslations('Seats');
     const router = useRouter();
     const [selectedSeats, setSelectedSeats] = useState<Set<string>>(new Set());
     const [activeCoach, setActiveCoach] = useState<string | undefined>();
+    // Local seat state for SSE updates - starts empty, populated from seatMap
+    const [liveSeatMap, setLiveSeatMap] = useState<Map<string, Seat>>(
+        new Map(),
+    );
 
     // Fetch trip details
     const {
@@ -77,12 +143,67 @@ export function SeatSelection({ tripId }: SeatSelectionProps) {
         enabled: !!tripId,
     });
 
+    // Initialize live seat map from query data
+    useEffect(() => {
+        if (seatMap?.seats) {
+            const seatMapEntries = seatMap.seats
+                .filter((s): s is Seat & { id: string } => !!s.id)
+                .map((s) => [s.id, s] as const);
+            setLiveSeatMap(new Map(seatMapEntries));
+        }
+    }, [seatMap]);
+
+    // Handle SSE seat updates
+    const handleSeatUpdate = useCallback(
+        (updates: SeatSseUpdate[], _eventName: SeatSseEventName) => {
+            setLiveSeatMap((prev) => {
+                const seats = Array.from(prev.values());
+                const mergedSeats = mergeSeatsWithUpdates(seats, updates);
+                const newMap = new Map<string, Seat>();
+                for (const seat of mergedSeats) {
+                    if (seat.id) {
+                        newMap.set(seat.id, seat);
+                    }
+                }
+                return newMap;
+            });
+
+            // Reconcile selected seats - remove any that became unavailable
+            setSelectedSeats((prev) => {
+                const reconciled = reconcileSelectedSeats(prev, updates);
+                // If seats were removed, notify user
+                if (reconciled.size < prev.size) {
+                    const removedCount = prev.size - reconciled.size;
+                    showInfoToast(
+                        t('seatsUnavailable', { count: removedCount }),
+                    );
+                }
+                return reconciled;
+            });
+        },
+        [t],
+    );
+
+    // Subscribe to SSE seat updates
+    const { connectionStatus } = useSeatSSE({
+        scheduledTripId: tripId,
+        enabled: !!tripId && !seatMapLoading && !seatMapError,
+        onSeatUpdate: handleSeatUpdate,
+    });
+
     // Set initial active coach
     // The API returns a single CoachSeatMapResponse, wrap it in an array for consistency
-    const coaches: CoachSeatMapResponse[] = useMemo(
-        () => (seatMap ? [seatMap] : []),
-        [seatMap],
-    );
+    const coaches: CoachSeatMapResponse[] = useMemo(() => {
+        if (!seatMap) return [];
+        // Merge live seat updates into coach data
+        const liveSeats = Array.from(liveSeatMap.values());
+        return [
+            {
+                ...seatMap,
+                seats: liveSeats.length > 0 ? liveSeats : seatMap.seats,
+            },
+        ];
+    }, [seatMap, liveSeatMap]);
 
     // Set default coach when data loads
     useEffect(() => {
@@ -183,7 +304,10 @@ export function SeatSelection({ tripId }: SeatSelectionProps) {
 
     return (
         <div className='space-y-6'>
-            <h1 className='text-2xl font-bold'>{t('title')}</h1>
+            <div className='flex items-center justify-between'>
+                <h1 className='text-2xl font-bold'>{t('title')}</h1>
+                <ConnectionStatusIndicator status={connectionStatus} />
+            </div>
 
             <div className='grid gap-6 lg:grid-cols-[1fr,320px]'>
                 {/* Seat Map */}

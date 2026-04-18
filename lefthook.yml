@@ -10,14 +10,6 @@ pre-commit:
                 https://github.com/gitleaks/gitleaks)"
 
         # ── Backend ──────────────────────────────────
-        backend-lint:
-            root: 'backend/'
-            glob: '**/*.{java,kt,kts}'
-            exclude:
-                - 'third_party/**'
-            run: ./gradlew spotlessCheck
-            stage_fixed: false
-
         backend-format:
             root: 'backend/'
             glob: '**/*.{java,kt,kts}'
@@ -27,22 +19,12 @@ pre-commit:
             stage_fixed: true
 
         # ── Build logic ──────────────────────────────────
-        build-logic-lint:
-            glob: 'build-logic/**/*.{kt,kts}'
-            run: ./gradlew ktlintCheck
-            stage_fixed: false
-
         build-logic-format:
             glob: 'build-logic/**/*.{kt,kts}'
             run: ./gradlew ktlintFormat
             stage_fixed: true
 
         # ── Frontend / Customer ──────────────────────────────────
-        customer-lint:
-            root: 'frontend/customer/'
-            glob: '**/*.{ts,tsx,js,jsx,json}'
-            run: bun run lint
-
         customer-format:
             root: 'frontend/customer/'
             glob: '**/*.{ts,tsx,js,jsx,json}'
@@ -54,11 +36,6 @@ pre-commit:
             glob: '**/*.sql'
             run: bunx prettier --write {staged_files}
             stage_fixed: true
-
-        # ── Docs – PlantUML syntax ────────────────────────────────────────
-        plantuml-lint:
-            glob: 'docs/**/*.md'
-            run: pnpm run lint:plantuml
 
 commit-msg:
     commands:

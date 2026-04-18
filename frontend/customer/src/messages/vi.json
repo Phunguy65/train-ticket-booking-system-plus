@@ -76,7 +76,13 @@
         "continue": "Tiếp tục đặt vé",
         "error": "Lỗi tải sơ đồ ghế",
         "retry": "Thử lại",
-        "tripNotFound": "Không tìm thấy chuyến tàu"
+        "tripNotFound": "Không tìm thấy chuyến tàu",
+        "seatsUnavailable": "{count, plural, one {# ghế} other {# ghế}} không còn khả dụng",
+        "sse": {
+            "connecting": "Đang kết nối...",
+            "connected": "Cập nhật trực tiếp",
+            "reconnecting": "Đang kết nối lại..."
+        }
     },
     "Booking": {
         "title": "Xác nhận đặt vé",
@@ -141,10 +147,14 @@
     },
     "Profile": {
         "title": "Hồ sơ cá nhân",
+        "memberSince": "Thành viên từ {date}",
+        "personalInfo": "Thông tin cá nhân",
+        "travelDocuments": "Giấy tờ đi lại",
         "fullName": "Họ và tên",
         "email": "Email",
         "phone": "Số điện thoại",
         "phonePlaceholder": "Nhập số điện thoại",
+        "phoneDescription": "Dùng cho thông báo đặt vé",
         "dateOfBirth": "Ngày sinh",
         "selectDate": "Chọn ngày",
         "gender": "Giới tính",
@@ -156,8 +166,10 @@
         },
         "idDocument": "Số CMND/CCCD",
         "idDocumentPlaceholder": "Nhập số CMND/CCCD",
+        "idDocumentDescription": "Bắt buộc để xác minh vé tàu",
         "address": "Địa chỉ",
         "addressPlaceholder": "Nhập địa chỉ",
+        "addressDescription": "Dùng cho thanh toán và giao vé",
         "save": "Lưu thay đổi",
         "saving": "Đang lưu...",
         "saveSuccess": "Đã cập nhật hồ sơ",

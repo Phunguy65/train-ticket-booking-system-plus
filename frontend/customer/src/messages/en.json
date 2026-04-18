@@ -76,7 +76,13 @@
         "continue": "Continue to Booking",
         "error": "Error loading seat map",
         "retry": "Retry",
-        "tripNotFound": "Trip not found"
+        "tripNotFound": "Trip not found",
+        "seatsUnavailable": "{count, plural, one {# seat} other {# seats}} no longer available",
+        "sse": {
+            "connecting": "Connecting...",
+            "connected": "Live updates",
+            "reconnecting": "Reconnecting..."
+        }
     },
     "Booking": {
         "title": "Confirm Booking",
@@ -141,10 +147,14 @@
     },
     "Profile": {
         "title": "Profile",
+        "memberSince": "Member since {date}",
+        "personalInfo": "Personal Information",
+        "travelDocuments": "Travel Documents",
         "fullName": "Full Name",
         "email": "Email",
         "phone": "Phone Number",
         "phonePlaceholder": "Enter phone number",
+        "phoneDescription": "Used for booking notifications",
         "dateOfBirth": "Date of Birth",
         "selectDate": "Select date",
         "gender": "Gender",
@@ -156,8 +166,10 @@
         },
         "idDocument": "ID Document Number",
         "idDocumentPlaceholder": "Enter ID number",
+        "idDocumentDescription": "Required for train ticket verification",
         "address": "Address",
         "addressPlaceholder": "Enter address",
+        "addressDescription": "For billing and ticket delivery",
         "save": "Save Changes",
         "saving": "Saving...",
         "saveSuccess": "Profile updated successfully",
