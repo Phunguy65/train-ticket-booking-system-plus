@@ -9,9 +9,15 @@ import {
 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { BookingStepper } from '@/components/booking/booking-stepper.tsx';
+import { PriceSummary } from '@/components/booking/price-breakdown.tsx';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert.tsx';
 import { Button } from '@/components/ui/button.tsx';
 import { Skeleton } from '@/components/ui/skeleton.tsx';
+import {
+    StickyFooter,
+    StickyFooterSpacer,
+} from '@/components/ui/sticky-footer.tsx';
 import {
     Tabs,
     TabsContent,
@@ -304,6 +310,9 @@ export function SeatSelection({ tripId }: SeatSelectionProps) {
 
     return (
         <div className='space-y-6'>
+            {/* Booking Progress Stepper */}
+            <BookingStepper currentStep='seats' tripId={tripId} />
+
             <div className='flex items-center justify-between'>
                 <h1 className='text-2xl font-bold'>{t('title')}</h1>
                 <ConnectionStatusIndicator status={connectionStatus} />
@@ -345,8 +354,8 @@ export function SeatSelection({ tripId }: SeatSelectionProps) {
                     </Tabs>
                 </div>
 
-                {/* Selection Summary */}
-                <div className='lg:sticky lg:top-20'>
+                {/* Desktop Selection Summary */}
+                <div className='hidden lg:block lg:sticky lg:top-20'>
                     <div className='rounded-lg border bg-card p-4 shadow-sm'>
                         <h2 className='mb-4 font-semibold'>
                             {t('selectedSeats')}
@@ -402,6 +411,28 @@ export function SeatSelection({ tripId }: SeatSelectionProps) {
                     </div>
                 </div>
             </div>
+
+            {/* Mobile Sticky Footer */}
+            <StickyFooterSpacer />
+            <StickyFooter>
+                <div className='flex items-center justify-between gap-4'>
+                    <div className='flex-1'>
+                        {selectedSeats.size > 0 ? (
+                            <PriceSummary total={totalPrice} />
+                        ) : (
+                            <span className='text-sm text-muted-foreground'>
+                                {t('noSeatsSelected')}
+                            </span>
+                        )}
+                    </div>
+                    <Button
+                        disabled={selectedSeats.size === 0}
+                        onClick={handleContinue}
+                    >
+                        {t('continue')}
+                    </Button>
+                </div>
+            </StickyFooter>
         </div>
     );
 }

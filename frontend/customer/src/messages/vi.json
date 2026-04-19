@@ -105,6 +105,8 @@
         "proceedToPayment": "Tiến hành thanh toán",
         "error": "Lỗi đặt vé",
         "seatsUnavailable": "Ghế đã được đặt bởi người khác. Vui lòng chọn ghế khác.",
+        "train": "Tàu",
+        "date": "Ngày",
         "detail": {
             "title": "Chi tiết đặt vé",
             "bookingId": "Mã đặt vé",
@@ -284,5 +286,46 @@
         "forbidden": "Bạn không có quyền thực hiện hành động này",
         "notFound": "Không tìm thấy dữ liệu",
         "seatsUnavailable": "Ghế đã không còn khả dụng"
+    },
+    "Stepper": {
+        "search": "Tìm kiếm",
+        "seats": "Chọn ghế",
+        "review": "Xác nhận",
+        "payment": "Thanh toán",
+        "stepOf": "Bước {current} / {total}"
+    },
+    "Payment": {
+        "remaining": "còn lại",
+        "pending": {
+            "title": "Chờ thanh toán",
+            "description": "Hoàn tất thanh toán trong {time} để xác nhận đặt vé.",
+            "urgent": "Sắp hết thời gian! Thanh toán ngay để giữ ghế của bạn.",
+            "payNow": "Thanh toán ngay"
+        },
+        "redirecting": {
+            "title": "Đang chuyển hướng",
+            "description": "Vui lòng chờ trong khi chuyển đến trang thanh toán bảo mật..."
+        },
+        "success": {
+            "title": "Thanh toán thành công",
+            "description": "Đặt vé của bạn đã được xác nhận. Bạn sẽ nhận được email xác nhận trong giây lát."
+        },
+        "failed": {
+            "title": "Thanh toán thất bại",
+            "description": "Không thể xử lý thanh toán của bạn. Vui lòng thử lại.",
+            "retry": "Thử lại"
+        },
+        "expired": {
+            "title": "Hết hạn thanh toán",
+            "description": "Phiên thanh toán đã hết hạn. Ghế không còn được giữ chỗ.",
+            "startOver": "Bắt đầu lại"
+        }
+    },
+    "PriceBreakdown": {
+        "title": "Chi tiết giá",
+        "pricePerSeat": "Giá ghế",
+        "serviceFee": "Phí dịch vụ",
+        "discount": "Giảm giá",
+        "total": "Tổng cộng"
     }
 }

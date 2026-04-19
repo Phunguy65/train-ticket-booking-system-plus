@@ -13,7 +13,7 @@ import {
     CardTitle,
 } from '@/components/ui/card.tsx';
 import { Skeleton } from '@/components/ui/skeleton.tsx';
-import { Link } from '@/i18n/routing.ts';
+import { Link, useRouter } from '@/i18n/routing.ts';
 import { getBookingOptions } from '@/lib/api/index.ts';
 import type { BookingStatus } from '@/lib/customer-utils.ts';
 import {
@@ -22,14 +22,38 @@ import {
     formatTime,
 } from '@/lib/customer-utils.ts';
 import { getErrorMessage } from '@/lib/toast.ts';
+import { BookingStepper } from './booking-stepper.tsx';
+import { PaymentStatus, type PaymentUIState } from './payment-status.tsx';
 
 type BookingDetailProps = {
     bookingId: string;
 };
 
+/**
+ * Derive payment UI state from booking status and deadline.
+ */
+function derivePaymentUIState(
+    status: string | undefined,
+    paymentDeadline: string | undefined,
+): PaymentUIState {
+    if (status === 'CONFIRMED') return 'SUCCESS';
+    if (status === 'CANCELLED') return 'EXPIRED';
+    if (status === 'HELD') {
+        if (paymentDeadline) {
+            const deadline = new Date(paymentDeadline);
+            if (deadline <= new Date()) {
+                return 'EXPIRED';
+            }
+        }
+        return 'PENDING';
+    }
+    return 'PENDING';
+}
+
 export function BookingDetail({ bookingId }: BookingDetailProps) {
     const t = useTranslations('Booking.detail');
     const tStatus = useTranslations('Status');
+    const router = useRouter();
 
     const {
         data: booking,
@@ -43,6 +67,11 @@ export function BookingDetail({ bookingId }: BookingDetailProps) {
             query: { request: {} },
         }),
     });
+
+    // Handle start over from expired state
+    const handleStartOver = () => {
+        router.push('/');
+    };
 
     // Loading state
     if (isLoading) {
@@ -87,15 +116,33 @@ export function BookingDetail({ bookingId }: BookingDetailProps) {
     }
 
     const statusVariant = getStatusVariant(booking.status as BookingStatus);
+    const paymentUIState = derivePaymentUIState(
+        booking.status,
+        booking.paymentDeadline,
+    );
+    const showPaymentStatus = booking.status === 'HELD';
 
     return (
         <div className='space-y-6'>
+            {/* Booking Progress Stepper */}
+            <BookingStepper currentStep='payment' />
+
             <div className='flex flex-wrap items-center justify-between gap-4'>
                 <h1 className='text-2xl font-bold'>{t('title')}</h1>
                 <Badge variant={statusVariant}>
                     {tStatus(booking.status as BookingStatus)}
                 </Badge>
             </div>
+
+            {/* Payment Status for HELD bookings - prominent position */}
+            {showPaymentStatus && (
+                <PaymentStatus
+                    state={paymentUIState}
+                    paymentDeadline={booking.paymentDeadline}
+                    checkoutUrl={booking.payment?.checkoutUrl}
+                    onStartOver={handleStartOver}
+                />
+            )}
 
             <div className='grid gap-6 md:grid-cols-2'>
                 {/* Booking Info */}
@@ -240,21 +287,6 @@ export function BookingDetail({ bookingId }: BookingDetailProps) {
                     </CardContent>
                 </Card>
             </div>
-
-            {/* Payment Action */}
-            {booking.status === 'HELD' && booking.payment?.checkoutUrl && (
-                <div className='flex justify-end'>
-                    <Button asChild>
-                        <a
-                            href={booking.payment.checkoutUrl}
-                            target='_blank'
-                            rel='noopener noreferrer'
-                        >
-                            {t('pay')}
-                        </a>
-                    </Button>
-                </div>
-            )}
 
             <div className='flex justify-start'>
                 <Button variant='outline' asChild>

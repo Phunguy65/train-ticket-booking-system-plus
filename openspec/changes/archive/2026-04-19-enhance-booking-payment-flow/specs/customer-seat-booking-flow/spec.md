@@ -1,62 +1,4 @@
-# ADDED Requirements
-
-## Requirement: Seat selection page
-
-The system SHALL provide a seat selection page at
-`/[locale]/trips/[tripId]/seats` where users can inspect coach layouts and pick
-up to five seats for a trip.
-
-### Scenario: Load seat selection for a trip
-
-- **WHEN** the user opens the seat selection page for a valid trip identifier
-- **THEN** the system loads coach seat-map data for that trip and renders the
-  seat selection interface
-
-### Scenario: Invalid or unavailable trip seat data
-
-- **WHEN** the seat-map request cannot load a valid trip seat layout
-- **THEN** the system renders a localized recoverable error state instead of an
-  unusable seat grid
-
-## Requirement: Coach navigation and seat map status rendering
-
-The system SHALL use `getCoachSeatMap` to render coach tabs and a visual seat
-grid whose seats expose availability status.
-
-### Scenario: Switch between coaches
-
-- **WHEN** the seat-map response contains multiple coaches and the user selects
-  a different coach tab
-- **THEN** the system renders the seat grid for the selected coach
-
-### Scenario: Render seat statuses visually and accessibly
-
-- **WHEN** the seat grid is displayed
-- **THEN** each seat communicates whether it is available, held, or booked using
-  visible status styling and screen-reader-readable state
-
-### Scenario: Non-available seats cannot be selected
-
-- **WHEN** the user attempts to activate a held or booked seat
-- **THEN** the system prevents selection of that seat
-
-## Requirement: Multi-seat selection rules
-
-The system SHALL allow users to select multiple available seats, capped at five
-seats per booking attempt.
-
-### Scenario: Select and deselect available seats
-
-- **WHEN** the user activates an available seat in the current coach grid
-- **THEN** the system toggles that seat in the current selection set and updates
-  the selected-seat summary
-
-### Scenario: Enforce five-seat selection limit
-
-- **WHEN** the user has already selected five seats and attempts to select an
-  additional available seat
-- **THEN** the system blocks the extra selection and shows localized feedback
-  explaining the maximum-seat rule
+# MODIFIED Requirements
 
 ## Requirement: Selected seat summary
 
@@ -162,6 +104,8 @@ The system SHALL provide a booking detail page at
 - **WHEN** the booking detail page loads a booking whose status is `HELD`
 - **THEN** the system prominently displays the payment countdown/status UI and a
   pay action when checkout remains available
+
+# ADDED Requirements
 
 ## Requirement: Booking flow progress indicator
 

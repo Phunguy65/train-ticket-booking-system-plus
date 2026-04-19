@@ -105,6 +105,8 @@
         "proceedToPayment": "Proceed to Payment",
         "error": "Booking failed",
         "seatsUnavailable": "Seats have been booked by someone else. Please select different seats.",
+        "train": "Train",
+        "date": "Date",
         "detail": {
             "title": "Booking Details",
             "bookingId": "Booking ID",
@@ -284,5 +286,46 @@
         "forbidden": "You don't have permission to perform this action",
         "notFound": "Data not found",
         "seatsUnavailable": "Seats are no longer available"
+    },
+    "Stepper": {
+        "search": "Search",
+        "seats": "Seats",
+        "review": "Review",
+        "payment": "Payment",
+        "stepOf": "Step {current} of {total}"
+    },
+    "Payment": {
+        "remaining": "remaining",
+        "pending": {
+            "title": "Payment Pending",
+            "description": "Complete your payment within {time} to confirm your booking.",
+            "urgent": "Time is running out! Complete payment now to avoid losing your seats.",
+            "payNow": "Pay Now"
+        },
+        "redirecting": {
+            "title": "Redirecting to Payment",
+            "description": "Please wait while we redirect you to the secure payment page..."
+        },
+        "success": {
+            "title": "Payment Successful",
+            "description": "Your booking has been confirmed. You will receive a confirmation email shortly."
+        },
+        "failed": {
+            "title": "Payment Failed",
+            "description": "We were unable to process your payment. Please try again.",
+            "retry": "Try Again"
+        },
+        "expired": {
+            "title": "Payment Expired",
+            "description": "Your payment session has expired. The seats are no longer reserved.",
+            "startOver": "Start Over"
+        }
+    },
+    "PriceBreakdown": {
+        "title": "Price Details",
+        "pricePerSeat": "Seat price",
+        "serviceFee": "Service fee",
+        "discount": "Discount",
+        "total": "Total"
     }
 }

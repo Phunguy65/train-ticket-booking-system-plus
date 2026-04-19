@@ -1,12 +1,7 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import {
-    AlertCircleIcon,
-    CheckCircleIcon,
-    ExternalLinkIcon,
-    Loader2Icon,
-} from 'lucide-react';
+import { AlertCircleIcon, Loader2Icon } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useEffect, useMemo, useState } from 'react';
@@ -19,7 +14,11 @@ import {
     CardTitle,
 } from '@/components/ui/card.tsx';
 import { Skeleton } from '@/components/ui/skeleton.tsx';
-import { Link } from '@/i18n/routing.ts';
+import {
+    StickyFooter,
+    StickyFooterSpacer,
+} from '@/components/ui/sticky-footer.tsx';
+import { Link, useRouter } from '@/i18n/routing.ts';
 import {
     createBookingMutation,
     getAuthenticatedUserOptions,
@@ -32,19 +31,25 @@ import {
 } from '@/lib/api/index.ts';
 import {
     calculateTotalPrice,
-    formatDateTime,
-    formatPrice,
-    formatTime,
     generateIdempotencyKey,
 } from '@/lib/customer-utils.ts';
 import { parseBookingContext } from '@/lib/search-params.ts';
 import { isSeatUnavailableError, showApiErrorToast } from '@/lib/toast.ts';
+import { BookingStepper } from './booking-stepper.tsx';
+import {
+    BookingSummaryCard,
+    type SeatSummary,
+    type TripSummary,
+} from './booking-summary-card.tsx';
+import { PaymentStatus, type PaymentUIState } from './payment-status.tsx';
+import { PriceBreakdown, PriceSummary } from './price-breakdown.tsx';
 
 export function BookingConfirmation() {
     const t = useTranslations('Booking');
     const tErrors = useTranslations('Errors');
     const searchParams = useSearchParams();
     const queryClient = useQueryClient();
+    const router = useRouter();
 
     // Parse context from URL
     const context = useMemo(
@@ -57,8 +62,12 @@ export function BookingConfirmation() {
         paymentDeadline: string;
     } | null>(null);
 
+    // Derive payment UI state
+    const [paymentUIState, setPaymentUIState] =
+        useState<PaymentUIState>('PENDING');
+
     // Fetch payment info after booking is created
-    const { data: payment, isLoading: paymentLoading } = useQuery({
+    const { data: payment } = useQuery({
         ...getBookingPaymentOptions({
             path: { bookingId: bookingResult?.bookingId ?? '' },
             query: { request: {} },
@@ -69,7 +78,8 @@ export function BookingConfirmation() {
     // Auto-redirect to checkout URL when payment is loaded
     useEffect(() => {
         if (payment?.checkoutUrl) {
-            // Brief delay to show success message before redirect
+            setPaymentUIState('REDIRECTING');
+            // Brief delay to show redirecting message before redirect
             const timer = setTimeout(() => {
                 window.location.href = payment.checkoutUrl as string;
             }, 2000);
@@ -179,6 +189,11 @@ export function BookingConfirmation() {
         });
     };
 
+    // Handle start over from expired state
+    const handleStartOver = () => {
+        router.push('/');
+    };
+
     // Loading state
     const isLoading =
         userLoading
@@ -193,9 +208,13 @@ export function BookingConfirmation() {
         return (
             <div className='space-y-6'>
                 <Skeleton className='h-8 w-48' />
-                <div className='grid gap-6 md:grid-cols-2'>
-                    <Skeleton className='h-48' />
-                    <Skeleton className='h-48' />
+                <Skeleton className='h-12 w-full' />
+                <div className='grid gap-6 lg:grid-cols-[1fr,350px]'>
+                    <Skeleton className='h-64' />
+                    <div className='space-y-4'>
+                        <Skeleton className='h-48' />
+                        <Skeleton className='h-32' />
+                    </div>
                 </div>
             </div>
         );
@@ -217,85 +236,6 @@ export function BookingConfirmation() {
         );
     }
 
-    // Booking success
-    if (bookingResult) {
-        const isRedirecting = !!payment?.checkoutUrl;
-        const isLoadingPayment = paymentLoading;
-
-        return (
-            <div className='mx-auto max-w-lg space-y-6'>
-                <Alert variant='success'>
-                    <CheckCircleIcon className='h-4 w-4' />
-                    <AlertTitle>{t('success')}</AlertTitle>
-                    <AlertDescription>
-                        {t('successDescription', {
-                            bookingId: bookingResult.bookingId,
-                        })}
-                    </AlertDescription>
-                </Alert>
-
-                <Card>
-                    <CardContent className='space-y-4 p-6'>
-                        <p className='text-sm text-muted-foreground'>
-                            {t('paymentDeadline', {
-                                deadline: formatDateTime(
-                                    bookingResult.paymentDeadline,
-                                ),
-                            })}
-                        </p>
-
-                        {/* Payment redirect status */}
-                        {isLoadingPayment && (
-                            <div className='flex items-center gap-2 text-sm text-muted-foreground'>
-                                <Loader2Icon className='h-4 w-4 motion-safe:animate-spin' />
-                                <span>{t('loadingPayment')}</span>
-                            </div>
-                        )}
-
-                        {isRedirecting && (
-                            <div className='flex items-center gap-2 text-sm text-primary'>
-                                <ExternalLinkIcon className='h-4 w-4' />
-                                <span>{t('redirectingToPayment')}</span>
-                            </div>
-                        )}
-
-                        <div className='flex flex-col gap-2'>
-                            {payment?.checkoutUrl && (
-                                <Button asChild>
-                                    <a
-                                        href={payment.checkoutUrl}
-                                        target='_blank'
-                                        rel='noopener noreferrer'
-                                    >
-                                        <ExternalLinkIcon className='mr-2 h-4 w-4' />
-                                        {t('proceedToPayment')}
-                                    </a>
-                                </Button>
-                            )}
-                            <Button
-                                variant={
-                                    payment?.checkoutUrl ? 'outline' : 'default'
-                                }
-                                asChild
-                            >
-                                <Link
-                                    href={`/booking/${bookingResult.bookingId}`}
-                                >
-                                    {t('detail.title')}
-                                </Link>
-                            </Button>
-                            <Button variant='outline' asChild>
-                                <Link href='/account'>
-                                    {t('detail.backToBookings')}
-                                </Link>
-                            </Button>
-                        </div>
-                    </CardContent>
-                </Card>
-            </div>
-        );
-    }
-
     // Calculate prices
     const pricePerSeat = routeTemplate?.basePrice ?? 0;
     const totalPrice = calculateTotalPrice(
@@ -303,131 +243,170 @@ export function BookingConfirmation() {
         pricePerSeat,
     );
 
-    // Find selected seat details
-    const selectedSeatDetails = context.seatIds.map((seatId) => {
+    // Build trip summary
+    const tripSummary: TripSummary = {
+        trainName: train?.name,
+        trainNumber: train?.trainNumber,
+        originStation: originStation?.name,
+        destinationStation: destinationStation?.name,
+        departureTime: trip?.departureTime,
+        arrivalTime: trip?.arrivalTime,
+        departureDate: trip?.departureTime,
+    };
+
+    // Build seat summary
+    const seatSummary: SeatSummary[] = context.seatIds.map((seatId) => {
         const seat = availableSeats?.content?.find((s) => s.id === seatId);
         return { id: seatId, seatNumber: seat?.seatNumber ?? seatId };
     });
 
+    // Booking success - show payment status
+    if (bookingResult) {
+        return (
+            <div className='space-y-6'>
+                <BookingStepper currentStep='payment' tripId={context.tripId} />
+
+                <div className='mx-auto max-w-2xl space-y-6'>
+                    {/* Payment Status */}
+                    <PaymentStatus
+                        state={paymentUIState}
+                        paymentDeadline={bookingResult.paymentDeadline}
+                        checkoutUrl={payment?.checkoutUrl}
+                        onStartOver={handleStartOver}
+                    />
+
+                    {/* Booking Reference */}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>{t('detail.bookingId')}</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <p className='font-mono text-lg'>
+                                {bookingResult.bookingId}
+                            </p>
+                        </CardContent>
+                    </Card>
+
+                    {/* Trip Summary */}
+                    <BookingSummaryCard
+                        trip={tripSummary}
+                        seats={seatSummary}
+                    />
+
+                    {/* Actions */}
+                    <div className='flex flex-col gap-3 sm:flex-row sm:justify-center'>
+                        <Button variant='outline' asChild>
+                            <Link href={`/booking/${bookingResult.bookingId}`}>
+                                {t('detail.title')}
+                            </Link>
+                        </Button>
+                        <Button variant='outline' asChild>
+                            <Link href='/account'>
+                                {t('detail.backToBookings')}
+                            </Link>
+                        </Button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // Pre-booking review state
     return (
         <div className='space-y-6'>
+            <BookingStepper currentStep='review' tripId={context.tripId} />
+
             <h1 className='text-2xl font-bold'>{t('title')}</h1>
 
-            <div className='grid gap-6 md:grid-cols-2'>
-                {/* Trip Summary */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle>{t('tripSummary')}</CardTitle>
-                    </CardHeader>
-                    <CardContent className='space-y-3'>
-                        <div className='flex justify-between'>
-                            <span className='text-muted-foreground'>
-                                {train?.name}
-                            </span>
-                            <span>{train?.trainNumber}</span>
-                        </div>
-                        <div className='flex justify-between'>
-                            <span className='text-muted-foreground'>
-                                {originStation?.name}
-                            </span>
-                            <span>
-                                {trip?.departureTime
-                                    ? formatTime(trip.departureTime)
-                                    : '-'}
-                            </span>
-                        </div>
-                        <div className='flex justify-between'>
-                            <span className='text-muted-foreground'>
-                                {destinationStation?.name}
-                            </span>
-                            <span>
-                                {trip?.arrivalTime
-                                    ? formatTime(trip.arrivalTime)
-                                    : '-'}
-                            </span>
-                        </div>
-                    </CardContent>
-                </Card>
+            <div className='grid gap-6 lg:grid-cols-[1fr,350px]'>
+                {/* Left Column: Trip & Passenger Info */}
+                <div className='space-y-6'>
+                    {/* Trip Summary Card */}
+                    <BookingSummaryCard
+                        trip={tripSummary}
+                        seats={seatSummary}
+                    />
 
-                {/* Passenger Info */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle>{t('passengerInfo')}</CardTitle>
-                    </CardHeader>
-                    <CardContent className='space-y-3'>
-                        <div className='flex justify-between'>
-                            <span className='text-muted-foreground'>
-                                {user?.fullName}
-                            </span>
-                        </div>
-                        <div className='flex justify-between'>
-                            <span className='text-muted-foreground'>
+                    {/* Passenger Info */}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>{t('passengerInfo')}</CardTitle>
+                        </CardHeader>
+                        <CardContent className='space-y-2'>
+                            <p className='font-medium'>{user?.fullName}</p>
+                            <p className='text-sm text-muted-foreground'>
                                 {user?.email}
-                            </span>
-                        </div>
-                        {user?.phone && (
-                            <div className='flex justify-between'>
-                                <span className='text-muted-foreground'>
+                            </p>
+                            {user?.phone && (
+                                <p className='text-sm text-muted-foreground'>
                                     {user.phone}
-                                </span>
-                            </div>
-                        )}
-                    </CardContent>
-                </Card>
+                                </p>
+                            )}
+                        </CardContent>
+                    </Card>
+                </div>
 
-                {/* Selected Seats */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle>{t('seatsSummary')}</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className='flex flex-wrap gap-2'>
-                            {selectedSeatDetails.map((seat) => (
-                                <span
-                                    key={seat.id}
-                                    className='inline-flex items-center rounded-md bg-primary px-2 py-1 text-sm font-medium text-primary-foreground'
-                                >
-                                    {seat.seatNumber}
-                                </span>
-                            ))}
-                        </div>
-                    </CardContent>
-                </Card>
+                {/* Right Column: Price & Actions (Desktop) */}
+                <div className='hidden lg:block lg:space-y-6'>
+                    {/* Price Breakdown */}
+                    <PriceBreakdown
+                        pricePerSeat={pricePerSeat}
+                        seatCount={context.seatIds.length}
+                    />
 
-                {/* Price Details */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle>{t('priceDetails')}</CardTitle>
-                    </CardHeader>
-                    <CardContent className='space-y-3'>
-                        <div className='flex justify-between'>
-                            <span className='text-muted-foreground'>
-                                {t('pricePerSeat')}
-                            </span>
-                            <span>{formatPrice(pricePerSeat)}</span>
-                        </div>
-                        <div className='flex justify-between'>
-                            <span className='text-muted-foreground'>
-                                {t('totalSeats', {
-                                    count: context.seatIds.length,
-                                })}
-                            </span>
-                        </div>
-                        <div className='flex justify-between border-t pt-3'>
-                            <span className='font-semibold'>
-                                {t('totalPrice')}
-                            </span>
-                            <span className='text-lg font-bold text-primary'>
-                                {formatPrice(totalPrice)}
-                            </span>
-                        </div>
-                    </CardContent>
-                </Card>
+                    {/* Error Alert */}
+                    {createBooking.isError && (
+                        <Alert variant='destructive'>
+                            <AlertCircleIcon className='h-4 w-4' />
+                            <AlertTitle>{t('error')}</AlertTitle>
+                            <AlertDescription>
+                                {isSeatUnavailableError(createBooking.error)
+                                    ? t('seatsUnavailable')
+                                    : tErrors('unknownError')}
+                            </AlertDescription>
+                        </Alert>
+                    )}
+
+                    {/* Actions */}
+                    <div className='flex flex-col gap-3'>
+                        <Button
+                            onClick={handleConfirm}
+                            disabled={createBooking.isPending}
+                            className='w-full'
+                        >
+                            {createBooking.isPending ? (
+                                <>
+                                    <Loader2Icon className='mr-2 h-4 w-4 motion-safe:animate-spin' />
+                                    {t('confirming')}
+                                </>
+                            ) : (
+                                t('confirm')
+                            )}
+                        </Button>
+                        <Button
+                            variant='outline'
+                            asChild
+                            disabled={createBooking.isPending}
+                        >
+                            <Link href={`/trips/${context.tripId}/seats`}>
+                                {t('backToSeats')}
+                            </Link>
+                        </Button>
+                    </div>
+                </div>
             </div>
 
-            {/* Error Alert */}
+            {/* Mobile: Price Breakdown */}
+            <div className='lg:hidden'>
+                <PriceBreakdown
+                    pricePerSeat={pricePerSeat}
+                    seatCount={context.seatIds.length}
+                />
+            </div>
+
+            {/* Mobile Error Alert */}
             {createBooking.isError && (
-                <Alert variant='destructive'>
+                <Alert variant='destructive' className='lg:hidden'>
                     <AlertCircleIcon className='h-4 w-4' />
                     <AlertTitle>{t('error')}</AlertTitle>
                     <AlertDescription>
@@ -438,31 +417,26 @@ export function BookingConfirmation() {
                 </Alert>
             )}
 
-            {/* Actions */}
-            <div className='flex flex-col gap-3 sm:flex-row sm:justify-end'>
-                <Button
-                    variant='outline'
-                    asChild
-                    disabled={createBooking.isPending}
-                >
-                    <Link href={`/trips/${context.tripId}/seats`}>
-                        {t('backToSeats')}
-                    </Link>
-                </Button>
-                <Button
-                    onClick={handleConfirm}
-                    disabled={createBooking.isPending}
-                >
-                    {createBooking.isPending ? (
-                        <>
-                            <Loader2Icon className='mr-2 h-4 w-4 motion-safe:animate-spin' />
-                            {t('confirming')}
-                        </>
-                    ) : (
-                        t('confirm')
-                    )}
-                </Button>
-            </div>
+            {/* Mobile Sticky Footer */}
+            <StickyFooterSpacer />
+            <StickyFooter>
+                <div className='flex items-center justify-between gap-4'>
+                    <PriceSummary total={totalPrice} />
+                    <Button
+                        onClick={handleConfirm}
+                        disabled={createBooking.isPending}
+                    >
+                        {createBooking.isPending ? (
+                            <>
+                                <Loader2Icon className='mr-2 h-4 w-4 motion-safe:animate-spin' />
+                                {t('confirming')}
+                            </>
+                        ) : (
+                            t('confirm')
+                        )}
+                    </Button>
+                </div>
+            </StickyFooter>
         </div>
     );
 }

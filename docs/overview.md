@@ -15,9 +15,9 @@ công, và việc kiểm soát tình trạng ghế theo thời gian thực gặp
 System) nhằm hiện đại hóa quy trình bán vé cho một công ty vận tải đường sắt.
 Ứng dụng cung cấp nền tảng kỹ thuật số để:
 
--  **Hành khách** tra cứu chuyến tàu, xem sơ đồ ghế, đặt vé và thanh toán trực
+- **Hành khách** tra cứu chuyến tàu, xem sơ đồ ghế, đặt vé và thanh toán trực
   tuyến mọi lúc mọi nơi mà không cần đến quầy giao dịch.
--  **Công ty vận tải** kiểm soát tình trạng ghế theo thời gian thực, tự động hóa
+- **Công ty vận tải** kiểm soát tình trạng ghế theo thời gian thực, tự động hóa
   quy trình xử lý đặt vé và thanh toán, giảm thiểu sai sót thủ công, tăng khả
   năng phục vụ đồng thời nhiều khách hàng.
 
@@ -75,15 +75,15 @@ giữ chỗ, và quy trình xử lý vé chưa thanh toán hết hạn.
 
 Nghiên cứu và áp dụng các mô hình/phương pháp sau:
 
--  **Domain-Driven Design (DDD)**: phân chia hệ thống thành các Bounded Context
+- **Domain-Driven Design (DDD)**: phân chia hệ thống thành các Bounded Context
   (người dùng, đặt vé, thanh toán, tàu/ga/tuyến), định nghĩa Aggregate, Domain
   Event và Application Service cho từng ngữ cảnh.
--  **Clean Architecture**: tách biệt các tầng Domain, Application,
+- **Clean Architecture**: tách biệt các tầng Domain, Application,
   Infrastructure; sử dụng Port/Adapter pattern để các tầng trong không phụ thuộc
   vào framework hoặc cơ sở dữ liệu.
--  **RESTful API + OpenAPI 3.1**: đặc tả hợp đồng API trước (API-first), sinh
+- **RESTful API + OpenAPI 3.1**: đặc tả hợp đồng API trước (API-first), sinh
   client code tự động từ OpenAPI spec cho frontend.
--  Các công nghệ cụ thể được trình bày trong Mục II.
+- Các công nghệ cụ thể được trình bày trong Mục II.
 
 #### d) Phân tích, thiết kế, hiện thực, đánh giá
 
@@ -106,11 +106,11 @@ tiền mặt hoặc chuyển khoản → nhân viên xuất vé giấy → hành
 
 Các tình huống trong đó bao gồm:
 
--  **Tra cứu chỗ trống**: nhân viên tra hệ thống, thông báo tình trạng ghế cho
+- **Tra cứu chỗ trống**: nhân viên tra hệ thống, thông báo tình trạng ghế cho
   hành khách.
--  **Xử lý đặt chỗ**: nhân viên giữ ghế và lập phiếu đặt.
--  **Thu tiền và xuất vé**: thu ngân xử lý thanh toán, hệ thống in vé.
--  **Hoàn/đổi vé**: hành khách quay lại quầy, nhân viên xử lý thủ công.
+- **Xử lý đặt chỗ**: nhân viên giữ ghế và lập phiếu đặt.
+- **Thu tiền và xuất vé**: thu ngân xử lý thanh toán, hệ thống in vé.
+- **Hoàn/đổi vé**: hành khách quay lại quầy, nhân viên xử lý thủ công.
 
 Hạn chế của mô hình này: phạm vi phục vụ bị giới hạn bởi giờ mở cửa, hành khách
 phải đến trực tiếp, xử lý thủ công dễ sai sót (đặc biệt khi nhiều giao dịch viên
@@ -148,22 +148,22 @@ vết toàn bộ lịch sử giao dịch.
 Quy trình trực tuyến đặt ra các trạng thái cần quản lý chặt chẽ trong hệ thống.
 Mỗi lần đặt vé (booking) trải qua các trạng thái:
 
--  **HELD (Đang giữ chỗ)**: booking được tạo, ghế bị khóa, đang chờ hành khách
+- **HELD (Đang giữ chỗ)**: booking được tạo, ghế bị khóa, đang chờ hành khách
   thanh toán trong thời hạn (15 phút). Nếu hết hạn mà chưa thanh toán, hệ thống
   tự động hủy booking và giải phóng ghế.
--  **CONFIRMED (Đã xác nhận)**: thanh toán thành công, ghế chuyển sang trạng thái
+- **CONFIRMED (Đã xác nhận)**: thanh toán thành công, ghế chuyển sang trạng thái
   đã đặt (`BOOKED`), vé có hiệu lực.
--  **CANCELLED (Đã hủy)**: hành khách hủy thủ công (từ trạng thái `HELD` hoặc
+- **CANCELLED (Đã hủy)**: hành khách hủy thủ công (từ trạng thái `HELD` hoặc
   `CONFIRMED`) hoặc hệ thống tự động hủy khi hết thời hạn giữ chỗ. Ghế được giải
   phóng trở lại.
 
 Song song đó, mỗi ghế (seat) cũng có vòng đời riêng:
 
--  **AVAILABLE**: ghế trống, có thể đặt.
--  **HELD**: ghế đang bị giữ bởi một booking. Trạng thái này có thể hết hạn và
+- **AVAILABLE**: ghế trống, có thể đặt.
+- **HELD**: ghế đang bị giữ bởi một booking. Trạng thái này có thể hết hạn và
   trở về `AVAILABLE` nếu booking bị hủy.
--  **BOOKED**: ghế đã được đặt thành công sau khi thanh toán.
--  **CANCELLED**: ghế thuộc một booking đã bị hủy sau khi đã xác nhận.
+- **BOOKED**: ghế đã được đặt thành công sau khi thanh toán.
+- **CANCELLED**: ghế thuộc một booking đã bị hủy sau khi đã xác nhận.
 
 Việc quản lý đồng thời hai vòng đời này đòi hỏi tính nhất quán dữ liệu cao: mọi
 thay đổi trạng thái booking và ghế phải được thực hiện trong cùng một giao dịch
@@ -179,9 +179,9 @@ thu hồi chỗ giữ đã hết hạn.
 Spring Boot 4.0 (Java 25) được dùng để xây dựng backend REST API của hệ thống.
 Framework này cung cấp cơ chế tự động cấu hình (auto-configuration), quản lý
 dependency injection, và tích hợp sẵn với các thư viện cần thiết (Spring
-Security, Spring Data JPA, Spring AMQP). Lý do lựa chọn Spring Boot: hệ sinh
-thái phong phú, hỗ trợ tốt kiến trúc phân lớp theo DDD và Clean Architecture, có
-khả năng build GraalVM Native Image để giảm thời gian khởi động.
+Security, Spring Data JPA). Lý do lựa chọn Spring Boot: hệ sinh thái phong phú,
+hỗ trợ tốt kiến trúc phân lớp theo DDD và Clean Architecture, có khả năng build
+GraalVM Native Image để giảm thời gian khởi động.
 
 Backend sử dụng thêm **Spring Virtual Threads** (Java 25) để xử lý đồng thời số
 lượng lớn kết nối HTTP mà không tốn nhiều tài nguyên, và **Spring Integration**
@@ -257,9 +257,8 @@ từ annotation trong code backend.
 
 #### i) Docker Compose — Container hóa môi trường
 
-Toàn bộ hạ tầng phát triển (backend, frontend, PostgreSQL, Valkey, RabbitMQ)
-được container hóa bằng Docker và điều phối qua Docker Compose. Mỗi service có
-health check riêng; backend chỉ khởi động sau khi PostgreSQL, Valkey và RabbitMQ
-đã sẵn sàng. Lý do dùng Docker Compose: đảm bảo môi trường phát triển nhất quán
-giữa các thành viên nhóm và môi trường CI/CD, khởi động toàn bộ hạ tầng bằng một
-lệnh duy nhất.
+Toàn bộ hạ tầng phát triển (backend, frontend, PostgreSQL, Valkey) được
+container hóa bằng Docker và điều phối qua Docker Compose. Mỗi service có health
+check riêng; backend chỉ khởi động sau khi PostgreSQL và Valkey đã sẵn sàng. Lý
+do dùng Docker Compose: đảm bảo môi trường phát triển nhất quán giữa các thành
+viên nhóm và môi trường CI/CD, khởi động toàn bộ hạ tầng bằng một lệnh duy nhất.
