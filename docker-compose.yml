@@ -37,20 +37,6 @@ services:
             - '-c'
             - 'timezone=UTC'
 
-    rabbitmq:
-        image: rabbitmq:3.13-management
-        container_name: trainbooking-rabbitmq
-        ports:
-            - '5672:5672'
-            - '15672:15672'
-        networks:
-            - trainbooking-network
-        healthcheck:
-            test: ['CMD', 'rabbitmq-diagnostics', '-q', 'ping']
-            interval: 10s
-            timeout: 5s
-            retries: 5
-
     backend:
         build:
             # Context is the project root so the Gradle build can reach
@@ -65,8 +51,6 @@ services:
             SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/trainbooking
             SPRING_DATASOURCE_USERNAME: postgres
             SPRING_DATASOURCE_PASSWORD: postgres
-            SPRING_RABBITMQ_HOST: rabbitmq
-            SPRING_RABBITMQ_PORT: 5672
             VALKEY_HOST: valkey
             VALKEY_PORT: 6379
             TZ: UTC
@@ -86,8 +70,6 @@ services:
             valkey:
                 condition: service_healthy
             postgres:
-                condition: service_healthy
-            rabbitmq:
                 condition: service_healthy
         networks:
             - trainbooking-network
@@ -111,7 +93,7 @@ services:
                     'bun',
                     '-e',
                     "const res = await fetch('http://127.0.0.1:3000/'); if
-                    (!res.ok) throw new Error(`HTTP ${res.status}`);",
+                    (!res.ok) throw new Error(`HTTP $${res.status}`);",
                 ]
             interval: 15s
             timeout: 5s

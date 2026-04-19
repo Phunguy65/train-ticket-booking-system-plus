@@ -20,5 +20,4 @@ stripe:
 booking:
     cancel-url: http://localhost:3000/cancel
 
-# spring.datasource.* and spring.rabbitmq.* are auto-configured
-# by Testcontainers @ServiceConnection — no manual config needed here
+# spring.datasource.* is auto-configured by Testcontainers @ServiceConnection

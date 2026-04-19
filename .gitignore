@@ -62,3 +62,4 @@ dist/
 # Report build output
 docs/report/**/*.docx
 docs/report/**/media/
+.gitnexus

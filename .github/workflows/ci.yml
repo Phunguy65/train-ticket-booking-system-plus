@@ -77,8 +77,8 @@ jobs:
         needs: [detect-changes, lint-backend]
         if: needs.detect-changes.outputs.backend == 'true'
         runs-on: ubuntu-latest
-        # Tests use TestContainers (PostgreSQL + RabbitMQ) — Docker daemon is
-        # required and is available on ubuntu-latest runners.
+        # Tests use TestContainers (PostgreSQL) — Docker daemon is required
+        # and is available on ubuntu-latest runners.
         steps:
             - uses: actions/checkout@v4
 
