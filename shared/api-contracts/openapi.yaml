@@ -447,6 +447,55 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/JsendErrorResponse"
+  /api/{version}/users/{userId}/payments:
+    get:
+      tags:
+      - "Payments"
+      summary: "List payments for a customer"
+      operationId: "getUserPayments"
+      parameters:
+      - name: "userId"
+        in: "path"
+        description: "Customer identifier that owns the payments"
+        required: true
+        schema:
+          type: "string"
+          format: "uuid"
+      - name: "request"
+        in: "query"
+        required: true
+        schema:
+          $ref: "#/components/schemas/GetUserPaymentsRequest"
+      responses:
+        "200":
+          description: "Paged payment history"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendResponseObject"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PageResponseUserPaymentResponse"
+        "400":
+          description: "Invalid pagination parameters"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendFailResponse"
+        "403":
+          description: "Customer cannot access another customer's payments"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendFailResponse"
+        "500":
+          description: "Unexpected technical failure."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JsendErrorResponse"
+      security:
+      - bearerAuth: []
   /api/{version}/users/{userId}/bookings:
     get:
       tags:
@@ -1124,7 +1173,7 @@ paths:
                 $ref: "#/components/schemas/JsendResponseObject"
             application/json:
               schema:
-                $ref: "#/components/schemas/PaymentResponse"
+                $ref: "#/components/schemas/PaymentDetailResponse"
         "403":
           description: "Customer cannot access this payment"
           content:
@@ -1424,6 +1473,11 @@ components:
             format: "uuid"
             description: "Seat identifier."
           minItems: 1
+        passengers:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/PassengerInput"
+          minItems: 1
         idempotencyKey:
           type: "string"
           description: "Client-generated idempotency key used to safely retry booking\
@@ -1433,8 +1487,42 @@ components:
           writeOnly: true
       required:
       - "idempotencyKey"
+      - "passengers"
       - "scheduledTripId"
       - "seatIds"
+    PassengerInput:
+      type: "object"
+      description: "Passenger input for a booking seat."
+      properties:
+        seatId:
+          type: "string"
+          format: "uuid"
+          description: "Seat identifier for this passenger."
+        fullName:
+          type: "string"
+          description: "Passenger full name."
+          example: "Nguyen Van A"
+          minLength: 1
+        idDocumentNumber:
+          type: "string"
+          description: "Passenger identity document number."
+          example: "001234567890"
+          minLength: 1
+        dateOfBirth:
+          type: "string"
+          format: "date"
+          description: "Passenger date of birth."
+        gender:
+          type: "string"
+          description: "Passenger gender."
+          example: "male"
+          minLength: 1
+      required:
+      - "dateOfBirth"
+      - "fullName"
+      - "gender"
+      - "idDocumentNumber"
+      - "seatId"
     RegisterRequest:
       type: "object"
       description: "Customer registration payload."
@@ -1495,6 +1583,23 @@ components:
       required:
       - "email"
       - "password"
+    GetUserPaymentsRequest:
+      type: "object"
+      description: "Offset-based pagination query for a customer's payment history."
+      properties:
+        page:
+          type: "integer"
+          format: "int32"
+          description: "Zero-based page index."
+          example: 0
+          minimum: 0
+        size:
+          type: "integer"
+          format: "int32"
+          description: "Number of payments per page."
+          example: 20
+          maximum: 100
+          minimum: 1
     GetUserBookingsRequest:
       type: "object"
       description: "Offset-based pagination query for a customer's booking history."
@@ -1817,8 +1922,12 @@ components:
           type: "string"
           format: "uuid"
           description: "Scheduled trip identifier."
-        userInfo:
+        bookerInfo:
           $ref: "#/components/schemas/PassengerInfoResponse"
+        passengers:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/PassengerResponse"
         totalPrice:
           type: "integer"
           format: "int64"
@@ -1875,6 +1984,29 @@ components:
           type: "string"
           description: "Passenger address line."
           example: "redacted-address"
+    PassengerResponse:
+      description: "Passenger assigned to a seat in a booking."
+      properties:
+        seatId:
+          type: "string"
+          format: "uuid"
+          description: "Seat identifier."
+        fullName:
+          type: "string"
+          description: "Passenger full name."
+          example: "Nguyen Van A"
+        idDocumentNumber:
+          type: "string"
+          description: "Passenger identity document number."
+          example: "001234567890"
+        dateOfBirth:
+          type: "string"
+          format: "date"
+          description: "Passenger date of birth."
+        gender:
+          type: "string"
+          description: "Passenger gender."
+          example: "male"
     CheckoutSessionResponse:
       description: "Checkout session resource returned after creating or retrieving\
         \ a payment."
@@ -1912,6 +2044,92 @@ components:
           readOnly: true
         user:
           $ref: "#/components/schemas/UserResponse"
+    BookingSummary:
+      description: "Booking summary embedded in a payment history item."
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+          description: "Booking identifier."
+        origin:
+          type: "string"
+          description: "Origin station name."
+          example: "Hanoi"
+        destination:
+          type: "string"
+          description: "Destination station name."
+          example: "Ho Chi Minh City"
+        departureTime:
+          type: "string"
+          format: "date-time"
+          description: "Scheduled departure timestamp."
+    PageResponseUserPaymentResponse:
+      description: "Offset-based pagination wrapper."
+      properties:
+        content:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/UserPaymentResponse"
+        page:
+          type: "integer"
+          format: "int32"
+          description: "Zero-based page index."
+          example: 0
+          minimum: 0
+        size:
+          type: "integer"
+          format: "int32"
+          description: "Requested page size."
+          example: 20
+          minimum: 1
+        hasNext:
+          type: "boolean"
+          description: "Whether a subsequent page exists."
+        hasPrevious:
+          type: "boolean"
+          description: "Whether a previous page exists."
+        total:
+          type: "integer"
+          format: "int64"
+          description: "Total number of matching items across all pages."
+          example: 125
+          minimum: 0
+    UserPaymentResponse:
+      description: "Compact payment summary for payment-history listings."
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+          description: "Payment identifier."
+          readOnly: true
+        status:
+          type: "string"
+          description: "Payment lifecycle status."
+          enum:
+          - "PENDING"
+          - "PAID"
+          - "CANCELLED"
+          - "FAILED"
+          - "REFUNDED"
+        amount:
+          type: "number"
+          description: "Payment amount in major currency units."
+          example: 650000
+        currency:
+          type: "string"
+          description: "ISO-like currency code."
+          example: "VND"
+        createdAt:
+          type: "string"
+          format: "date-time"
+          description: "Payment creation timestamp."
+          readOnly: true
+        bookingId:
+          type: "string"
+          format: "uuid"
+          description: "Booking identifier linked to the payment."
+        booking:
+          $ref: "#/components/schemas/BookingSummary"
     PageResponseUserBookingResponse:
       description: "Offset-based pagination wrapper."
       properties:
@@ -2514,8 +2732,93 @@ components:
           type: "string"
           format: "date-time"
           description: "Route template creation timestamp."
-    PaymentResponse:
-      description: "Payment resource exposed to customers."
+    BookerInfo:
+      description: "Booker (authenticated user) identity information."
+      properties:
+        fullName:
+          type: "string"
+          description: "Booker full name."
+          example: "Nguyen Phuong"
+        email:
+          type: "string"
+          description: "Booker email address."
+          example: "customer@example.com"
+        phone:
+          type: "string"
+          description: "Booker phone number."
+          example: "+84901234567"
+        dateOfBirth:
+          type: "string"
+          format: "date"
+          description: "Booker date of birth."
+        gender:
+          type: "string"
+          description: "Booker self-declared gender label."
+          example: "female"
+        idDocumentNumber:
+          type: "string"
+          description: "Booker government-issued identity document number."
+          example: "redacted-id-document"
+    BookingForTicket:
+      description: "Booking summary with ticket-ready data for printing."
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+          description: "Booking identifier."
+        status:
+          type: "string"
+          description: "Booking lifecycle status."
+          enum:
+          - "HELD"
+          - "CONFIRMED"
+          - "CANCELLED"
+        bookerInfo:
+          $ref: "#/components/schemas/BookerInfo"
+        passengers:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/PassengerWithSeat"
+        seats:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/SeatInfo"
+        trip:
+          $ref: "#/components/schemas/TripInfo"
+    PassengerWithSeat:
+      description: "Passenger with seat assignment for ticket printing."
+      properties:
+        seatId:
+          type: "string"
+          format: "uuid"
+          description: "Seat identifier."
+        coachNumber:
+          type: "integer"
+          format: "int32"
+          description: "Coach car number."
+          example: 5
+        seatNumber:
+          type: "string"
+          description: "Seat label shown to customers."
+          example: "12A"
+        fullName:
+          type: "string"
+          description: "Passenger full name."
+          example: "Nguyen Van A"
+        idDocumentNumber:
+          type: "string"
+          description: "Passenger identity document number."
+          example: "001234567890"
+        dateOfBirth:
+          type: "string"
+          format: "date"
+          description: "Passenger date of birth."
+        gender:
+          type: "string"
+          description: "Passenger gender."
+          example: "male"
+    PaymentDetailResponse:
+      description: "Enriched payment detail with ticket-ready booking information."
       properties:
         paymentId:
           type: "string"
@@ -2546,6 +2849,56 @@ components:
           type: "string"
           description: "ISO-like currency code."
           example: "VND"
+        createdAt:
+          type: "string"
+          format: "date-time"
+          description: "Payment creation timestamp."
+          readOnly: true
+        booking:
+          $ref: "#/components/schemas/BookingForTicket"
+    SeatInfo:
+      description: "Seat information for ticket printing."
+      properties:
+        seatId:
+          type: "string"
+          format: "uuid"
+          description: "Seat identifier."
+        coachNumber:
+          type: "integer"
+          format: "int32"
+          description: "Coach car number."
+          example: 5
+        seatNumber:
+          type: "string"
+          description: "Seat label shown to customers."
+          example: "12A"
+    TripInfo:
+      description: "Trip data with train and route information for ticket printing."
+      properties:
+        trainName:
+          type: "string"
+          description: "Train name."
+          example: "SE1"
+        trainNumber:
+          type: "string"
+          description: "Train number."
+          example: "SE001"
+        origin:
+          type: "string"
+          description: "Origin station name."
+          example: "Hanoi"
+        destination:
+          type: "string"
+          description: "Destination station name."
+          example: "Ho Chi Minh City"
+        departureTime:
+          type: "string"
+          format: "date-time"
+          description: "Scheduled departure timestamp."
+        arrivalTime:
+          type: "string"
+          format: "date-time"
+          description: "Scheduled arrival timestamp."
     BookingDetailResponse:
       description: "Detailed booking resource with trip, seat, and payment information."
       properties:
@@ -2562,8 +2915,12 @@ components:
           type: "string"
           format: "uuid"
           description: "Scheduled trip identifier."
-        passengerInfo:
+        bookerInfo:
           $ref: "#/components/schemas/PassengerInfoResponse"
+        passengers:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/PassengerResponse"
         totalPrice:
           type: "integer"
           format: "int64"
@@ -2597,44 +2954,6 @@ components:
           type: "array"
           items:
             $ref: "#/components/schemas/Seat"
-    PaymentDetailResponse:
-      description: "Payment snapshot associated with a booking."
-      properties:
-        id:
-          type: "string"
-          format: "uuid"
-          description: "Payment identifier."
-          readOnly: true
-        status:
-          type: "string"
-          description: "Payment lifecycle status."
-          enum:
-          - "PENDING"
-          - "PAID"
-          - "CANCELLED"
-          - "FAILED"
-          - "REFUNDED"
-        checkoutUrl:
-          type: "string"
-          format: "uri"
-          description: "Hosted checkout URL when further payment action is required."
-        amount:
-          type: "integer"
-          format: "int64"
-          description: "Payment amount in minor currency units."
-          example: 650000
-        currency:
-          type: "string"
-          description: "ISO-like currency code."
-          example: "VND"
-        stripePaymentIntentId:
-          type: "string"
-          description: "Stripe payment intent identifier used for reconciliation."
-        createdAt:
-          type: "string"
-          format: "date-time"
-          description: "Payment creation timestamp."
-          readOnly: true
     Trip:
       description: "Trip summary embedded inside a booking detail."
       properties:
@@ -2669,6 +2988,38 @@ components:
           $ref: "#/components/schemas/Train"
         route:
           $ref: "#/components/schemas/Route"
+    PaymentResponse:
+      description: "Payment resource exposed to customers."
+      properties:
+        paymentId:
+          type: "string"
+          format: "uuid"
+          description: "Payment identifier."
+        bookingId:
+          type: "string"
+          format: "uuid"
+          description: "Booking identifier linked to the payment."
+        status:
+          type: "string"
+          description: "Payment lifecycle status."
+          enum:
+          - "PENDING"
+          - "PAID"
+          - "CANCELLED"
+          - "FAILED"
+          - "REFUNDED"
+        checkoutUrl:
+          type: "string"
+          format: "uri"
+          description: "Hosted checkout URL when customer action is still required."
+        amount:
+          type: "number"
+          description: "Payment amount in major currency units."
+          example: 650000
+        currency:
+          type: "string"
+          description: "ISO-like currency code."
+          example: "VND"
   securitySchemes:
     bearerAuth:
       type: "http"

@@ -162,6 +162,7 @@ class GetUserBookingsUseCaseTest {
                 UUID.fromString(scheduledTripId),
                 new BookingUserInfoSummary(
                         "Nguyen Van A", "a@example.com", "0900000000", null, null, null, null),
+                List.of(),
                 totalPrice,
                 "VND",
                 status.name(),

@@ -19,6 +19,7 @@ import type { BookingStatus } from '@/lib/customer-utils.ts';
 import {
     formatDateTime,
     formatPrice,
+    formatShortDate,
     formatTime,
 } from '@/lib/customer-utils.ts';
 import { getErrorMessage } from '@/lib/toast.ts';
@@ -121,6 +122,11 @@ export function BookingDetail({ bookingId }: BookingDetailProps) {
         booking.paymentDeadline,
     );
     const showPaymentStatus = booking.status === 'HELD';
+
+    // Build seat lookup for passenger mapping
+    const seatMap = new Map(
+        (booking.seats || []).map((seat) => [seat.seatId, seat]),
+    );
 
     return (
         <div className='space-y-6'>
@@ -255,7 +261,7 @@ export function BookingDetail({ bookingId }: BookingDetailProps) {
                         <div className='flex flex-wrap gap-2'>
                             {booking.seats?.map((seat) => (
                                 <span
-                                    key={seat.id}
+                                    key={seat.seatId}
                                     className='inline-flex items-center rounded-md bg-secondary px-2 py-1 text-sm font-medium'
                                 >
                                     {seat.seatNumber}
@@ -265,21 +271,21 @@ export function BookingDetail({ bookingId }: BookingDetailProps) {
                     </CardContent>
                 </Card>
 
-                {/* Passenger Info */}
+                {/* Booker Info */}
                 <Card>
                     <CardHeader>
-                        <CardTitle>{t('passenger')}</CardTitle>
+                        <CardTitle>{t('booker')}</CardTitle>
                     </CardHeader>
                     <CardContent className='space-y-3'>
-                        {booking.passengerInfo && (
+                        {booking.bookerInfo && (
                             <>
-                                <div>{booking.passengerInfo.fullName}</div>
+                                <div>{booking.bookerInfo.fullName}</div>
                                 <div className='text-sm text-muted-foreground'>
-                                    {booking.passengerInfo.email}
+                                    {booking.bookerInfo.email}
                                 </div>
-                                {booking.passengerInfo.phone && (
+                                {booking.bookerInfo.phone && (
                                     <div className='text-sm text-muted-foreground'>
-                                        {booking.passengerInfo.phone}
+                                        {booking.bookerInfo.phone}
                                     </div>
                                 )}
                             </>
@@ -287,6 +293,60 @@ export function BookingDetail({ bookingId }: BookingDetailProps) {
                     </CardContent>
                 </Card>
             </div>
+
+            {/* Passengers by Seat */}
+            <Card>
+                <CardHeader>
+                    <CardTitle>{t('passengers')}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    {booking.passengers && booking.passengers.length > 0 ? (
+                        <div className='space-y-4'>
+                            {booking.passengers.map((passenger) => {
+                                const seat = seatMap.get(passenger.seatId);
+                                return (
+                                    <div
+                                        key={passenger.seatId}
+                                        className='rounded-lg border p-4'
+                                    >
+                                        <div className='mb-2 flex items-center justify-between'>
+                                            <h3 className='font-medium'>
+                                                {passenger.fullName}
+                                            </h3>
+                                            <Badge variant='secondary'>
+                                                {seat?.seatNumber
+                                                    ?? passenger.seatId}
+                                            </Badge>
+                                        </div>
+                                        <div className='space-y-1 text-sm text-muted-foreground'>
+                                            <div>
+                                                {t('idDocument')}:{' '}
+                                                {passenger.idDocumentNumber}
+                                            </div>
+                                            <div>
+                                                {t('dateOfBirth')}:{' '}
+                                                {passenger.dateOfBirth
+                                                    ? formatShortDate(
+                                                          passenger.dateOfBirth,
+                                                      )
+                                                    : '-'}
+                                            </div>
+                                            <div>
+                                                {t('gender')}:{' '}
+                                                {passenger.gender}
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    ) : (
+                        <p className='text-sm text-muted-foreground'>
+                            {t('noPassengers')}
+                        </p>
+                    )}
+                </CardContent>
+            </Card>
 
             <div className='flex justify-start'>
                 <Button variant='outline' asChild>

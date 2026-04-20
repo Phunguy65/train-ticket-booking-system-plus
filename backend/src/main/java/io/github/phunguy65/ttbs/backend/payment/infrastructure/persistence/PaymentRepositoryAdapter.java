@@ -4,9 +4,16 @@ import io.github.phunguy65.ttbs.backend.booking.domain.model.BookingId;
 import io.github.phunguy65.ttbs.backend.payment.domain.model.Payment;
 import io.github.phunguy65.ttbs.backend.payment.domain.model.PaymentId;
 import io.github.phunguy65.ttbs.backend.payment.domain.projection.PaymentSummary;
+import io.github.phunguy65.ttbs.backend.payment.domain.projection.UserPaymentSummary;
 import io.github.phunguy65.ttbs.backend.payment.domain.repository.PaymentRepository;
+import io.github.phunguy65.ttbs.backend.shared.domain.PageResponse;
+import io.github.phunguy65.ttbs.backend.shared.domain.SortOrder;
+import io.github.phunguy65.ttbs.backend.user.domain.model.UserId;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -48,6 +55,17 @@ class PaymentRepositoryAdapter implements PaymentRepository {
                 .toList();
     }
 
+    @Override
+    public PageResponse<UserPaymentSummary> findByUserId(
+            UserId userId, int page, int size, List<SortOrder> sort) {
+        PageRequest pageable = PageRequest.of(page, size, toSpringSort(sort));
+        Page<UserPaymentSummaryView> result =
+                jpaRepository.findUserPaymentsByUserId(userId.value(), pageable);
+        List<UserPaymentSummary> items =
+                result.getContent().stream().map(this::toUserPaymentSummary).toList();
+        return PageResponse.of(items, page, size, result.hasNext(), result.getTotalElements());
+    }
+
     private PaymentSummary toSummary(PaymentSummaryView view) {
         return new PaymentSummary(
                 view.getId(),
@@ -59,6 +77,32 @@ class PaymentRepositoryAdapter implements PaymentRepository {
                 view.getCurrency(),
                 view.getStripePaymentIntentId(),
                 view.getCreatedAt());
+    }
+
+    private UserPaymentSummary toUserPaymentSummary(UserPaymentSummaryView view) {
+        return new UserPaymentSummary(
+                view.getId(),
+                view.getBookingId(),
+                view.getUserId(),
+                view.getStatus(),
+                view.getAmount(),
+                view.getCurrency(),
+                view.getCreatedAt(),
+                view.getOriginStationName(),
+                view.getDestinationStationName(),
+                view.getDepartureTime());
+    }
+
+    private Sort toSpringSort(List<SortOrder> orders) {
+        if (orders.isEmpty()) {
+            return Sort.unsorted();
+        }
+        List<Sort.Order> springOrders = orders.stream()
+                .map(o -> o.direction() == SortOrder.Direction.ASC
+                        ? Sort.Order.asc(o.field())
+                        : Sort.Order.desc(o.field()))
+                .toList();
+        return Sort.by(springOrders);
     }
 
     @Override

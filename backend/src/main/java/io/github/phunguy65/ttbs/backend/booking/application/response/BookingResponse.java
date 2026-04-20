@@ -1,8 +1,10 @@
 package io.github.phunguy65.ttbs.backend.booking.application.response;
 
 import io.github.phunguy65.ttbs.backend.booking.domain.model.BookingStatus;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 @Schema(description = "Booking resource returned after successful booking creation.")
@@ -19,8 +21,11 @@ public record BookingResponse(
         @Schema(description = "Scheduled trip identifier.", format = "uuid")
         UUID scheduledTripId,
 
-        @Schema(description = "Passenger information stored with the booking.")
-        PassengerInfoResponse userInfo,
+        @Schema(description = "Booker (authenticated user) information stored with the booking.")
+        PassengerInfoResponse bookerInfo,
+
+        @ArraySchema(schema = @Schema(implementation = PassengerResponse.class))
+        List<PassengerResponse> passengers,
 
         @Schema(description = "Booking total in minor currency units.", example = "650000")
         long totalPrice,
@@ -39,4 +44,9 @@ public record BookingResponse(
                 description = "Booking creation timestamp.",
                 format = "date-time",
                 accessMode = Schema.AccessMode.READ_ONLY)
-        Instant createdAt) {}
+        Instant createdAt) {
+
+    public BookingResponse {
+        passengers = passengers == null ? List.of() : List.copyOf(passengers);
+    }
+}

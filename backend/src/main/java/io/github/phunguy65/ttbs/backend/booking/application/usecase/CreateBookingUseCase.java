@@ -1,11 +1,14 @@
 package io.github.phunguy65.ttbs.backend.booking.application.usecase;
 
 import io.github.phunguy65.ttbs.backend.booking.application.command.CreateBookingCommand;
+import io.github.phunguy65.ttbs.backend.booking.application.port.BookingConfigProvider;
 import io.github.phunguy65.ttbs.backend.booking.application.response.BookingResponse;
 import io.github.phunguy65.ttbs.backend.booking.application.response.PassengerInfoResponse;
+import io.github.phunguy65.ttbs.backend.booking.application.response.PassengerResponse;
 import io.github.phunguy65.ttbs.backend.booking.domain.error.BookingError;
 import io.github.phunguy65.ttbs.backend.booking.domain.model.Booking;
 import io.github.phunguy65.ttbs.backend.booking.domain.model.BookingId;
+import io.github.phunguy65.ttbs.backend.booking.domain.model.BookingPassenger;
 import io.github.phunguy65.ttbs.backend.booking.domain.model.BookingUserInfo;
 import io.github.phunguy65.ttbs.backend.booking.domain.repository.BookingRepository;
 import io.github.phunguy65.ttbs.backend.shared.domain.DomainEvent;
@@ -17,13 +20,17 @@ import io.github.phunguy65.ttbs.backend.train.application.port.RouteSeatAvailabi
 import io.github.phunguy65.ttbs.backend.train.domain.error.RouteSeatAvailabilityError;
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteSeatAvailability;
 import io.github.phunguy65.ttbs.backend.train.domain.model.ScheduledTripId;
+import io.github.phunguy65.ttbs.backend.train.domain.model.SeatId;
 import io.github.phunguy65.ttbs.backend.train.domain.repository.RouteTemplateRepository;
 import io.github.phunguy65.ttbs.backend.train.domain.repository.ScheduledTripRepository;
 import io.github.phunguy65.ttbs.backend.user.domain.model.UserId;
 import io.github.phunguy65.ttbs.backend.user.domain.projection.UserSummary;
 import io.github.phunguy65.ttbs.backend.user.domain.repository.UserRepository;
 import java.time.Instant;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,6 +46,7 @@ public class CreateBookingUseCase {
     private final RouteTemplateRepository routeTemplateRepository;
     private final UserRepository userRepository;
     private final ApplicationEventPublisher eventPublisher;
+    private final BookingConfigProvider bookingConfigProvider;
 
     public CreateBookingUseCase(
             BookingRepository bookingRepository,
@@ -46,13 +54,15 @@ public class CreateBookingUseCase {
             ScheduledTripRepository scheduledTripRepository,
             RouteTemplateRepository routeTemplateRepository,
             UserRepository userRepository,
-            ApplicationEventPublisher eventPublisher) {
+            ApplicationEventPublisher eventPublisher,
+            BookingConfigProvider bookingConfigProvider) {
         this.bookingRepository = bookingRepository;
         this.seatAvailabilityPort = seatAvailabilityPort;
         this.scheduledTripRepository = scheduledTripRepository;
         this.routeTemplateRepository = routeTemplateRepository;
         this.userRepository = userRepository;
         this.eventPublisher = eventPublisher;
+        this.bookingConfigProvider = bookingConfigProvider;
     }
 
     @Transactional
@@ -60,16 +70,44 @@ public class CreateBookingUseCase {
         var existing = bookingRepository.findByIdempotencyKey(command.idempotencyKey());
         if (existing.isPresent()) {
             Booking b = existing.get();
-            return Result.success(new BookingResponse(
-                    b.getBookingId().value(),
-                    b.getUserId().value(),
-                    b.getScheduledTripId().value(),
-                    toPassengerInfo(b.getUserInfo()),
-                    b.getTotalPrice().toLong(),
-                    b.getCurrency(),
-                    b.getStatus(),
-                    b.getPaymentDeadline(),
-                    b.getCreatedAt()));
+            return Result.success(toBookingResponse(b));
+        }
+
+        int maxSeats = bookingConfigProvider.getMaxSeatsPerBooking();
+        if (command.seatIds().size() > maxSeats) {
+            return Result.failure(
+                    new BookingError.TooManySeats(command.seatIds().size(), maxSeats));
+        }
+
+        List<CreateBookingCommand.PassengerPayload> passengers = command.passengers();
+        if (passengers == null || passengers.size() != command.seatIds().size()) {
+            return Result.failure(new BookingError.PassengerSeatMismatch(
+                    passengers == null ? 0 : passengers.size(),
+                    command.seatIds().size()));
+        }
+
+        Set<String> seenIdDocs = new HashSet<>();
+        for (CreateBookingCommand.PassengerPayload passenger : passengers) {
+            if (passenger.idDocumentNumber() != null
+                    && !seenIdDocs.add(passenger.idDocumentNumber())) {
+                return Result.failure(new BookingError.DuplicatePassengerIdDocument(
+                        passenger.idDocumentNumber()));
+            }
+        }
+
+        Set<SeatId> passengerSeatIds = passengers.stream()
+                .map(CreateBookingCommand.PassengerPayload::seatId)
+                .collect(Collectors.toSet());
+        if (passengerSeatIds.size() != passengers.size()) {
+            return Result.failure(new BookingError.DuplicatePassengerSeatAssignment());
+        }
+
+        Set<SeatId> selectedSeatIds = command.seatIds().stream().collect(Collectors.toSet());
+        for (CreateBookingCommand.PassengerPayload passenger : passengers) {
+            if (!selectedSeatIds.contains(passenger.seatId())) {
+                return Result.failure(new BookingError.InvalidPassengerSeatAssignment(
+                        passenger.seatId().value().toString()));
+            }
         }
 
         UserId userId = UserId.of(command.userId());
@@ -97,14 +135,24 @@ public class CreateBookingUseCase {
         Money pricePerSeat = routeTemplateOpt.get().getBasePrice();
         Money totalPrice = Money.vnd(pricePerSeat.toLong() * command.seatIds().size());
 
-        BookingUserInfo userInfo = userInfoOpt.get();
+        BookingUserInfo bookerInfo = userInfoOpt.get();
+
+        List<BookingPassenger> bookingPassengers = passengers.stream()
+                .map(p -> BookingPassenger.of(
+                        p.seatId(),
+                        p.fullName(),
+                        p.idDocumentNumber(),
+                        p.dateOfBirth(),
+                        p.gender()))
+                .toList();
 
         Instant paymentDeadline = Instant.now().plusSeconds(HOLD_DURATION_SECONDS);
         Booking booking = Booking.create(
                 BookingId.of(UuidGenerator.generate()),
                 userId,
                 scheduledTripId,
-                userInfo,
+                bookerInfo,
+                bookingPassengers,
                 totalPrice,
                 command.idempotencyKey(),
                 paymentDeadline);
@@ -140,16 +188,7 @@ public class CreateBookingUseCase {
             eventPublisher.publishEvent(sseEvent);
         }
 
-        return Result.success(new BookingResponse(
-                saved.getBookingId().value(),
-                saved.getUserId().value(),
-                saved.getScheduledTripId().value(),
-                toPassengerInfo(saved.getUserInfo()),
-                saved.getTotalPrice().toLong(),
-                saved.getCurrency(),
-                saved.getStatus(),
-                saved.getPaymentDeadline(),
-                saved.getCreatedAt()));
+        return Result.success(toBookingResponse(saved));
     }
 
     private BookingUserInfo toBookingUserInfo(UserSummary summary) {
@@ -172,5 +211,28 @@ public class CreateBookingUseCase {
                 userInfo.gender(),
                 userInfo.idDocumentNumber(),
                 userInfo.addressLine());
+    }
+
+    private BookingResponse toBookingResponse(Booking booking) {
+        List<PassengerResponse> passengerResponses = booking.getPassengers().stream()
+                .map(p -> new PassengerResponse(
+                        p.seatId().value(),
+                        p.fullName(),
+                        p.idDocumentNumber(),
+                        p.dateOfBirth(),
+                        p.gender()))
+                .toList();
+
+        return new BookingResponse(
+                booking.getBookingId().value(),
+                booking.getUserId().value(),
+                booking.getScheduledTripId().value(),
+                toPassengerInfo(booking.getBookerInfo()),
+                passengerResponses,
+                booking.getTotalPrice().toLong(),
+                booking.getCurrency(),
+                booking.getStatus(),
+                booking.getPaymentDeadline(),
+                booking.getCreatedAt());
     }
 }

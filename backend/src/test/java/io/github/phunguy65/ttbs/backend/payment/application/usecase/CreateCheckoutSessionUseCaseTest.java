@@ -22,6 +22,7 @@ import io.github.phunguy65.ttbs.backend.shared.domain.Money;
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.user.domain.model.UserId;
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
@@ -71,6 +72,7 @@ class CreateCheckoutSessionUseCaseTest {
                         SCHEDULED_TRIP_ID),
                 new BookingUserInfo(
                         "Nguyen Van A", "a@b.com", "0900000000", null, null, null, null),
+                List.of(),
                 Money.vnd(450_000),
                 BookingStatus.HELD,
                 "idem-key-1",
@@ -86,6 +88,7 @@ class CreateCheckoutSessionUseCaseTest {
                         SCHEDULED_TRIP_ID),
                 new BookingUserInfo(
                         "Nguyen Van A", "a@b.com", "0900000000", null, null, null, null),
+                List.of(),
                 Money.vnd(450_000),
                 BookingStatus.CONFIRMED,
                 "idem-key-1",
@@ -101,6 +104,7 @@ class CreateCheckoutSessionUseCaseTest {
                         SCHEDULED_TRIP_ID),
                 new BookingUserInfo(
                         "Nguyen Van A", "a@b.com", "0900000000", null, null, null, null),
+                List.of(),
                 Money.vnd(450_000),
                 BookingStatus.CANCELLED,
                 "idem-key-1",
@@ -116,6 +120,7 @@ class CreateCheckoutSessionUseCaseTest {
                         SCHEDULED_TRIP_ID),
                 new BookingUserInfo(
                         "Nguyen Van A", "a@b.com", "0900000000", null, null, null, null),
+                List.of(),
                 Money.vnd(450_000),
                 BookingStatus.HELD,
                 "idem-key-1",
@@ -131,6 +136,7 @@ class CreateCheckoutSessionUseCaseTest {
                         SCHEDULED_TRIP_ID),
                 new BookingUserInfo(
                         "Nguyen Van B", "b@b.com", "0900000001", null, null, null, null),
+                List.of(),
                 Money.vnd(450_000),
                 BookingStatus.HELD,
                 "idem-key-2",
@@ -267,6 +273,7 @@ class CreateCheckoutSessionUseCaseTest {
                         SCHEDULED_TRIP_ID),
                 new BookingUserInfo(
                         "Nguyen Van A", "a@b.com", "0900000000", null, null, null, null),
+                List.of(),
                 Money.vnd(450_000),
                 BookingStatus.HELD,
                 "idem-key-null-dl",

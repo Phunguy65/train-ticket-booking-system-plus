@@ -56,6 +56,42 @@ public sealed interface BookingError {
         }
     }
 
+    record TooManySeats(int requested, int max) implements BookingError {
+        @Override
+        public String message() {
+            return "Too many seats requested: " + requested + " (max " + max + ")";
+        }
+    }
+
+    record PassengerSeatMismatch(int passengerCount, int seatCount) implements BookingError {
+        @Override
+        public String message() {
+            return "Passenger count (" + passengerCount + ") does not match seat count ("
+                    + seatCount + ")";
+        }
+    }
+
+    record DuplicatePassengerIdDocument(String idDocumentNumber) implements BookingError {
+        @Override
+        public String message() {
+            return "Duplicate passenger ID document number: " + idDocumentNumber;
+        }
+    }
+
+    record InvalidPassengerSeatAssignment(String seatId) implements BookingError {
+        @Override
+        public String message() {
+            return "Passenger references an unselected seat: " + seatId;
+        }
+    }
+
+    record DuplicatePassengerSeatAssignment() implements BookingError {
+        @Override
+        public String message() {
+            return "Multiple passengers assigned to the same seat";
+        }
+    }
+
     /** Human-readable description suitable for a JSend {@code fail} data payload. */
     String message();
 }

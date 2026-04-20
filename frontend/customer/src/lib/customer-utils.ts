@@ -2,6 +2,10 @@ import type {
     BookingResponse,
     UserBookingResponse,
 } from '@/lib/api/generated/types.gen.ts';
+import { MAX_SEATS_PER_BOOKING } from '@/lib/env.ts';
+
+// Re-export for convenience
+export { MAX_SEATS_PER_BOOKING } from '@/lib/env.ts';
 
 /**
  * Booking status type.
@@ -153,11 +157,6 @@ export function canPayBooking(
 
     return true;
 }
-
-/**
- * Maximum seats allowed per booking.
- */
-export const MAX_SEATS_PER_BOOKING = 5;
 
 /**
  * Check if more seats can be added to the selection.

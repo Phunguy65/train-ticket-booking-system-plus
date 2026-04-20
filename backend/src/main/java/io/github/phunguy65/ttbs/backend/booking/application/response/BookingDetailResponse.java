@@ -25,8 +25,11 @@ public record BookingDetailResponse(
         @Schema(description = "Scheduled trip identifier.", format = "uuid")
         UUID scheduledTripId,
 
-        @Schema(description = "Passenger information stored with the booking.")
-        PassengerInfoResponse passengerInfo,
+        @Schema(description = "Booker (authenticated user) information stored with the booking.")
+        PassengerInfoResponse bookerInfo,
+
+        @ArraySchema(schema = @Schema(implementation = PassengerResponse.class))
+        List<PassengerResponse> passengers,
 
         @Schema(description = "Booking total in minor currency units.", example = "650000")
         long totalPrice,
@@ -57,7 +60,8 @@ public record BookingDetailResponse(
         List<Seat> seats) {
 
     public BookingDetailResponse {
-        seats = List.copyOf(seats);
+        passengers = passengers == null ? List.of() : List.copyOf(passengers);
+        seats = seats == null ? List.of() : List.copyOf(seats);
     }
 
     @Schema(description = "Trip summary embedded inside a booking detail.")

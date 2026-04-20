@@ -5,6 +5,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
@@ -26,6 +27,10 @@ class BookingEntity {
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "user_info_snapshot", nullable = false, columnDefinition = "jsonb")
     private BookingUserInfoSnapshotJson userInfoSnapshot;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "passengers_snapshot", columnDefinition = "jsonb")
+    private List<BookingPassengerSnapshotJson> passengersSnapshot;
 
     @Column(name = "total_price", nullable = false)
     private long totalPrice;
@@ -77,6 +82,14 @@ class BookingEntity {
 
     void setUserInfoSnapshot(BookingUserInfoSnapshotJson userInfoSnapshot) {
         this.userInfoSnapshot = userInfoSnapshot;
+    }
+
+    List<BookingPassengerSnapshotJson> getPassengersSnapshot() {
+        return passengersSnapshot;
+    }
+
+    void setPassengersSnapshot(List<BookingPassengerSnapshotJson> passengersSnapshot) {
+        this.passengersSnapshot = passengersSnapshot;
     }
 
     long getTotalPrice() {

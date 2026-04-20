@@ -291,7 +291,7 @@ class ControllerContractAnnotationsTest {
         assertSuccessPayload(
                 "io.github.phunguy65.ttbs.backend.payment.infrastructure.web.PaymentController",
                 "getPaymentById",
-                "io.github.phunguy65.ttbs.backend.payment.application.response.PaymentResponse",
+                "io.github.phunguy65.ttbs.backend.payment.application.response.PaymentDetailResponse",
                 SuccessResponseKind.OBJECT,
                 "");
         assertSuccessPayload(

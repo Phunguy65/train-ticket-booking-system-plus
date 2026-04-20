@@ -212,6 +212,11 @@ class BookingController {
                     case BookingError.ActiveHoldExists e -> HttpStatus.CONFLICT;
                     case BookingError.InvalidStatusTransition e -> HttpStatus.CONFLICT;
                     case BookingError.Forbidden e -> HttpStatus.FORBIDDEN;
+                    case BookingError.TooManySeats e -> HttpStatus.BAD_REQUEST;
+                    case BookingError.PassengerSeatMismatch e -> HttpStatus.BAD_REQUEST;
+                    case BookingError.DuplicatePassengerIdDocument e -> HttpStatus.BAD_REQUEST;
+                    case BookingError.InvalidPassengerSeatAssignment e -> HttpStatus.BAD_REQUEST;
+                    case BookingError.DuplicatePassengerSeatAssignment e -> HttpStatus.BAD_REQUEST;
                 };
         ErrorCode code =
                 switch (error) {
@@ -223,6 +228,13 @@ class BookingController {
                     case BookingError.InvalidStatusTransition e ->
                         ErrorCode.BOOKING_ALREADY_CANCELLED;
                     case BookingError.Forbidden e -> ErrorCode.ACCESS_DENIED;
+                    case BookingError.TooManySeats e -> ErrorCode.VALIDATION_ERROR;
+                    case BookingError.PassengerSeatMismatch e -> ErrorCode.VALIDATION_ERROR;
+                    case BookingError.DuplicatePassengerIdDocument e -> ErrorCode.VALIDATION_ERROR;
+                    case BookingError.InvalidPassengerSeatAssignment e ->
+                        ErrorCode.VALIDATION_ERROR;
+                    case BookingError.DuplicatePassengerSeatAssignment e ->
+                        ErrorCode.VALIDATION_ERROR;
                 };
         return ResponseEntity.status(status)
                 .body(JsendResponse.fail(new FailData(error.message(), code, List.of())));

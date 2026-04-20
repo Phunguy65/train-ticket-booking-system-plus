@@ -9,6 +9,7 @@ import io.github.phunguy65.ttbs.backend.payment.application.response.CreateCheck
 import io.github.phunguy65.ttbs.backend.payment.application.usecase.CreateCheckoutSessionUseCase;
 import io.github.phunguy65.ttbs.backend.payment.application.usecase.GetPaymentByBookingIdUseCase;
 import io.github.phunguy65.ttbs.backend.payment.application.usecase.GetPaymentByIdUseCase;
+import io.github.phunguy65.ttbs.backend.payment.application.usecase.GetUserPaymentsUseCase;
 import io.github.phunguy65.ttbs.backend.payment.domain.error.PaymentError;
 import io.github.phunguy65.ttbs.backend.payment.domain.model.PaymentStatus;
 import io.github.phunguy65.ttbs.backend.payment.infrastructure.web.request.CreateCheckoutRequest;
@@ -33,11 +34,16 @@ class PaymentControllerTest {
     private final GetPaymentByIdUseCase getPaymentByIdUseCase = mock(GetPaymentByIdUseCase.class);
     private final GetPaymentByBookingIdUseCase getPaymentByBookingIdUseCase =
             mock(GetPaymentByBookingIdUseCase.class);
+    private final GetUserPaymentsUseCase getUserPaymentsUseCase =
+            mock(GetUserPaymentsUseCase.class);
     private final CreateCheckoutSessionUseCase createCheckoutSessionUseCase =
             mock(CreateCheckoutSessionUseCase.class);
 
     private final PaymentController controller = new PaymentController(
-            getPaymentByIdUseCase, getPaymentByBookingIdUseCase, createCheckoutSessionUseCase);
+            getPaymentByIdUseCase,
+            getPaymentByBookingIdUseCase,
+            getUserPaymentsUseCase,
+            createCheckoutSessionUseCase);
 
     private Authentication auth() {
         return new UsernamePasswordAuthenticationToken(USER_ID.toString(), null);

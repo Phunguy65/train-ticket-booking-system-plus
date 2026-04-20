@@ -27,7 +27,7 @@ pre-commit:
         # ── Frontend / Customer ──────────────────────────────────
         customer-format:
             root: 'frontend/customer/'
-            glob: '**/*.{ts,tsx,js,jsx,json}'
+            glob: '**/*.{ts,tsx,js,jsx,json,css}'
             run: bun run lint:fix
             stage_fixed: true
 

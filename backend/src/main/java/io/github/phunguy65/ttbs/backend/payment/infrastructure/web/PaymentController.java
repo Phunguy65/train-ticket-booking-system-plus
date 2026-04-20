@@ -1,18 +1,23 @@
 package io.github.phunguy65.ttbs.backend.payment.infrastructure.web;
 
 import io.github.phunguy65.ttbs.backend.payment.application.response.CheckoutSessionResponse;
+import io.github.phunguy65.ttbs.backend.payment.application.response.PaymentDetailResponse;
 import io.github.phunguy65.ttbs.backend.payment.application.response.PaymentResponse;
+import io.github.phunguy65.ttbs.backend.payment.application.response.UserPaymentResponse;
 import io.github.phunguy65.ttbs.backend.payment.application.usecase.CreateCheckoutSessionUseCase;
 import io.github.phunguy65.ttbs.backend.payment.application.usecase.GetPaymentByBookingIdUseCase;
 import io.github.phunguy65.ttbs.backend.payment.application.usecase.GetPaymentByIdUseCase;
+import io.github.phunguy65.ttbs.backend.payment.application.usecase.GetUserPaymentsUseCase;
 import io.github.phunguy65.ttbs.backend.payment.domain.error.PaymentError;
 import io.github.phunguy65.ttbs.backend.payment.infrastructure.web.request.CreateCheckoutRequest;
 import io.github.phunguy65.ttbs.backend.payment.infrastructure.web.request.GetPaymentByBookingIdRequest;
 import io.github.phunguy65.ttbs.backend.payment.infrastructure.web.request.GetPaymentByIdRequest;
+import io.github.phunguy65.ttbs.backend.payment.infrastructure.web.request.GetUserPaymentsRequest;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.ErrorCode;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.FailData;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.JsendResponse;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.SuccessPayload;
+import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.SuccessResponseKind;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -21,6 +26,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
@@ -39,15 +45,48 @@ class PaymentController {
 
     private final GetPaymentByIdUseCase getPaymentByIdUseCase;
     private final GetPaymentByBookingIdUseCase getPaymentByBookingIdUseCase;
+    private final GetUserPaymentsUseCase getUserPaymentsUseCase;
     private final CreateCheckoutSessionUseCase createCheckoutSessionUseCase;
 
     PaymentController(
             GetPaymentByIdUseCase getPaymentByIdUseCase,
             GetPaymentByBookingIdUseCase getPaymentByBookingIdUseCase,
+            GetUserPaymentsUseCase getUserPaymentsUseCase,
             CreateCheckoutSessionUseCase createCheckoutSessionUseCase) {
         this.getPaymentByIdUseCase = getPaymentByIdUseCase;
         this.getPaymentByBookingIdUseCase = getPaymentByBookingIdUseCase;
+        this.getUserPaymentsUseCase = getUserPaymentsUseCase;
         this.createCheckoutSessionUseCase = createCheckoutSessionUseCase;
+    }
+
+    @Operation(operationId = "getUserPayments", summary = "List payments for a customer")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Paged payment history"),
+        @ApiResponse(
+                responseCode = "400",
+                description = "Invalid pagination parameters",
+                content =
+                        @Content(schema = @Schema(ref = "#/components/schemas/JsendFailResponse"))),
+        @ApiResponse(
+                responseCode = "403",
+                description = "Customer cannot access another customer's payments",
+                content =
+                        @Content(schema = @Schema(ref = "#/components/schemas/JsendFailResponse")))
+    })
+    @SecurityRequirement(name = "bearerAuth")
+    @SuccessPayload(value = UserPaymentResponse.class, kind = SuccessResponseKind.PAGE)
+    @GetMapping(value = "/{version}/users/{userId}/payments", version = "1.0")
+    @PreAuthorize("isAuthenticated()")
+    ResponseEntity<JsendResponse<?>> listByUser(
+            @Parameter(description = "Customer identifier that owns the payments") @PathVariable
+                    UUID userId,
+            @Parameter(hidden = true) Authentication auth,
+            @ModelAttribute @Valid GetUserPaymentsRequest request) {
+        UUID requestingUserId = UUID.fromString(auth.getName());
+
+        return getUserPaymentsUseCase
+                .execute(request.toQuery(userId, requestingUserId))
+                .fold(page -> ResponseEntity.ok(JsendResponse.success(page)), this::errorResponse);
     }
 
     @Operation(operationId = "getPayment", summary = "Get a payment by id")
@@ -65,7 +104,7 @@ class PaymentController {
                         @Content(schema = @Schema(ref = "#/components/schemas/JsendFailResponse")))
     })
     @SecurityRequirement(name = "bearerAuth")
-    @SuccessPayload(PaymentResponse.class)
+    @SuccessPayload(PaymentDetailResponse.class)
     @GetMapping(value = "/{version}/payments/{paymentId}", version = "1.0")
     @PreAuthorize("isAuthenticated()")
     ResponseEntity<JsendResponse<?>> getPaymentById(

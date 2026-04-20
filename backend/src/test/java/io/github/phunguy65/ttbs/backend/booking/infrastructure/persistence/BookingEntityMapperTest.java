@@ -51,8 +51,8 @@ class BookingEntityMapperTest {
         var summary = mapper.toSummary(entity);
 
         assertThat(summary.id()).isEqualTo(entity.getId());
-        assertThat(summary.userInfo().fullName()).isEqualTo("Mapper User");
-        assertThat(summary.userInfo().email()).isEqualTo("mapper@example.com");
+        assertThat(summary.bookerInfo().fullName()).isEqualTo("Mapper User");
+        assertThat(summary.bookerInfo().email()).isEqualTo("mapper@example.com");
         assertThat(summary.status()).isEqualTo("CONFIRMED");
     }
 }

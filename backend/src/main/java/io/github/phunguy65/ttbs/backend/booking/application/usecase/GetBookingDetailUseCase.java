@@ -3,9 +3,11 @@ package io.github.phunguy65.ttbs.backend.booking.application.usecase;
 import io.github.phunguy65.ttbs.backend.booking.application.query.GetBookingDetailQuery;
 import io.github.phunguy65.ttbs.backend.booking.application.response.BookingDetailResponse;
 import io.github.phunguy65.ttbs.backend.booking.application.response.PassengerInfoResponse;
+import io.github.phunguy65.ttbs.backend.booking.application.response.PassengerResponse;
 import io.github.phunguy65.ttbs.backend.booking.application.response.PaymentDetailResponse;
 import io.github.phunguy65.ttbs.backend.booking.domain.error.BookingError;
 import io.github.phunguy65.ttbs.backend.booking.domain.model.BookingId;
+import io.github.phunguy65.ttbs.backend.booking.domain.model.BookingPassenger;
 import io.github.phunguy65.ttbs.backend.booking.domain.model.BookingUserInfo;
 import io.github.phunguy65.ttbs.backend.booking.domain.repository.BookingRepository;
 import io.github.phunguy65.ttbs.backend.payment.domain.model.PaymentStatus;
@@ -64,11 +66,15 @@ public class GetBookingDetailUseCase {
                 routeSeatAvailabilityRepository.findBookedSeatSummariesByBookingId(
                         booking.getBookingId());
 
+        List<PassengerResponse> passengerResponses =
+                booking.getPassengers().stream().map(this::toPassengerResponse).toList();
+
         return Result.success(new BookingDetailResponse(
                 booking.getBookingId().value(),
                 booking.getUserId().value(),
                 booking.getScheduledTripId().value(),
-                toPassengerInfo(booking.getUserInfo()),
+                toPassengerInfo(booking.getBookerInfo()),
+                passengerResponses,
                 booking.getTotalPrice().toLong(),
                 booking.getCurrency(),
                 booking.getStatus(),
@@ -90,6 +96,15 @@ public class GetBookingDetailUseCase {
                 userInfo.gender(),
                 userInfo.idDocumentNumber(),
                 userInfo.addressLine());
+    }
+
+    private PassengerResponse toPassengerResponse(BookingPassenger passenger) {
+        return new PassengerResponse(
+                passenger.seatId().value(),
+                passenger.fullName(),
+                passenger.idDocumentNumber(),
+                passenger.dateOfBirth(),
+                passenger.gender());
     }
 
     private PaymentDetailResponse toPaymentDetail(PaymentSummary payment) {

@@ -11,6 +11,9 @@ import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.train.domain.model.ScheduledTripId;
 import io.github.phunguy65.ttbs.backend.user.domain.model.UserId;
 import java.time.Instant;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Aggregate root representing a train ticket booking.
@@ -27,7 +30,8 @@ public class Booking extends AggregateRoot<BookingId> {
     private final BookingId bookingId;
     private final UserId userId;
     private final ScheduledTripId scheduledTripId;
-    private final BookingUserInfo userInfo;
+    private final BookingUserInfo bookerInfo;
+    private final List<BookingPassenger> passengers;
     private final Money totalPrice;
     private BookingStatus status;
     private final IdempotencyKey idempotencyKey;
@@ -38,7 +42,8 @@ public class Booking extends AggregateRoot<BookingId> {
             BookingId bookingId,
             UserId userId,
             ScheduledTripId scheduledTripId,
-            BookingUserInfo userInfo,
+            BookingUserInfo bookerInfo,
+            List<BookingPassenger> passengers,
             Money totalPrice,
             BookingStatus status,
             String idempotencyKey,
@@ -47,12 +52,32 @@ public class Booking extends AggregateRoot<BookingId> {
         this.bookingId = bookingId;
         this.userId = userId;
         this.scheduledTripId = scheduledTripId;
-        this.userInfo = userInfo;
+        this.bookerInfo = bookerInfo;
+        this.passengers = passengers == null ? List.of() : List.copyOf(passengers);
         this.totalPrice = totalPrice;
         this.status = status;
         this.idempotencyKey = IdempotencyKey.of(idempotencyKey);
         this.paymentDeadline = paymentDeadline;
         this.createdAt = createdAt;
+
+        validateUniquePassengerIdDocuments(this.passengers);
+    }
+
+    /**
+     * Validates that all passengers have unique ID document numbers.
+     */
+    private static void validateUniquePassengerIdDocuments(List<BookingPassenger> passengers) {
+        if (passengers == null || passengers.isEmpty()) {
+            return;
+        }
+        Set<String> seenIds = new HashSet<>();
+        for (BookingPassenger passenger : passengers) {
+            String idDoc = passenger.idDocumentNumber();
+            if (idDoc != null && !seenIds.add(idDoc)) {
+                throw new IllegalArgumentException(
+                        "Duplicate passenger ID document number: " + idDoc);
+            }
+        }
     }
 
     /**
@@ -62,7 +87,8 @@ public class Booking extends AggregateRoot<BookingId> {
             BookingId bookingId,
             UserId userId,
             ScheduledTripId scheduledTripId,
-            BookingUserInfo userInfo,
+            BookingUserInfo bookerInfo,
+            List<BookingPassenger> passengers,
             Money totalPrice,
             String idempotencyKey,
             Instant paymentDeadline) {
@@ -70,7 +96,8 @@ public class Booking extends AggregateRoot<BookingId> {
                 bookingId,
                 userId,
                 scheduledTripId,
-                userInfo,
+                bookerInfo,
+                passengers,
                 totalPrice,
                 BookingStatus.HELD,
                 idempotencyKey,
@@ -92,7 +119,8 @@ public class Booking extends AggregateRoot<BookingId> {
             BookingId bookingId,
             UserId userId,
             ScheduledTripId scheduledTripId,
-            BookingUserInfo userInfo,
+            BookingUserInfo bookerInfo,
+            List<BookingPassenger> passengers,
             Money totalPrice,
             BookingStatus status,
             String idempotencyKey,
@@ -102,7 +130,8 @@ public class Booking extends AggregateRoot<BookingId> {
                 bookingId,
                 userId,
                 scheduledTripId,
-                userInfo,
+                bookerInfo,
+                passengers,
                 totalPrice,
                 status,
                 idempotencyKey,
@@ -161,8 +190,19 @@ public class Booking extends AggregateRoot<BookingId> {
         return scheduledTripId;
     }
 
-    public BookingUserInfo getUserInfo() {
-        return userInfo;
+    /**
+     * Returns the booker (authenticated user) information snapshot.
+     */
+    public BookingUserInfo getBookerInfo() {
+        return bookerInfo;
+    }
+
+    /**
+     * Returns the list of passengers assigned to seats.
+     * May be empty for legacy bookings.
+     */
+    public List<BookingPassenger> getPassengers() {
+        return passengers;
     }
 
     public Money getTotalPrice() {

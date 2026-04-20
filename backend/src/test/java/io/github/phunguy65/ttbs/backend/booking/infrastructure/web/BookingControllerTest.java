@@ -6,6 +6,7 @@ import static org.mockito.Mockito.when;
 
 import io.github.phunguy65.ttbs.backend.booking.application.response.BookingDetailResponse;
 import io.github.phunguy65.ttbs.backend.booking.application.response.PassengerInfoResponse;
+import io.github.phunguy65.ttbs.backend.booking.application.response.PassengerResponse;
 import io.github.phunguy65.ttbs.backend.booking.application.response.PaymentDetailResponse;
 import io.github.phunguy65.ttbs.backend.booking.application.response.UserBookingResponse;
 import io.github.phunguy65.ttbs.backend.booking.application.usecase.CancelBookingUseCase;
@@ -121,6 +122,12 @@ class BookingControllerTest {
                         "MALE",
                         "0123456789",
                         "123 Test Street"),
+                List.of(new PassengerResponse(
+                        UUID.fromString("99999999-9999-9999-9999-999999999999"),
+                        "Nguyen Van A",
+                        "0123456789",
+                        null,
+                        "MALE")),
                 450000,
                 "VND",
                 BookingStatus.CONFIRMED,

@@ -117,7 +117,7 @@ class GetBookingDetailUseCaseTest {
         BookingDetailResponse response =
                 ((Result.Success<BookingDetailResponse, BookingError>) result).value();
         assertThat(response.id()).isEqualTo(BOOKING_ID);
-        assertThat(response.passengerInfo().fullName()).isEqualTo("Nguyen Van A");
+        assertThat(response.bookerInfo().fullName()).isEqualTo("Nguyen Van A");
         assertThat(response.trip()).isNotNull();
         assertThat(response.trip().status()).isEqualTo("SCHEDULED");
         assertThat(response.trip().route().basePrice()).isEqualTo(450_000);
@@ -220,6 +220,7 @@ class GetBookingDetailUseCaseTest {
                         "MALE",
                         "0123456789",
                         "123 Main St"),
+                List.of(),
                 Money.vnd(450_000),
                 BookingStatus.HELD,
                 "idem-1",

@@ -66,10 +66,10 @@ class BookingRepositoryAdapterTest {
         assertThat(summary.orElseThrow().userId()).isEqualTo(USER_ID);
         assertThat(summary.orElseThrow().scheduledTripId()).isEqualTo(entity.getScheduledTripId());
         assertThat(summary.orElseThrow().status()).isEqualTo("CONFIRMED");
-        assertThat(summary.orElseThrow().userInfo().fullName()).isEqualTo("Nguyen Van A");
-        assertThat(summary.orElseThrow().userInfo().email()).isEqualTo("a@example.com");
-        assertThat(summary.orElseThrow().userInfo().phone()).isEqualTo("0900000000");
-        assertThat(summary.orElseThrow().userInfo().dateOfBirth()).isNull();
+        assertThat(summary.orElseThrow().bookerInfo().fullName()).isEqualTo("Nguyen Van A");
+        assertThat(summary.orElseThrow().bookerInfo().email()).isEqualTo("a@example.com");
+        assertThat(summary.orElseThrow().bookerInfo().phone()).isEqualTo("0900000000");
+        assertThat(summary.orElseThrow().bookerInfo().dateOfBirth()).isNull();
     }
 
     @Test

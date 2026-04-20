@@ -128,3 +128,54 @@
         @apply font-sans;
     }
 }
+
+/* Print-specific styles for ticket printing */
+@media print {
+    /* Hide non-ticket elements */
+    header,
+    footer,
+    nav {
+        display: none;
+    }
+
+    /* Reset body styles for printing */
+    body {
+        background: white;
+        color: black;
+        font-size: 12pt;
+    }
+
+    /* Ensure ticket content fills the page properly */
+    .ticket-content {
+        width: 100%;
+        max-width: none;
+        margin: 0;
+        padding: 20mm;
+        border: none;
+        box-shadow: none;
+    }
+
+    /* Remove colored backgrounds in print */
+    .bg-muted {
+        background-color: #f5f5f5;
+    }
+
+    /* Ensure text is black for printing */
+    .text-muted-foreground {
+        color: #666;
+    }
+
+    .text-primary {
+        color: black;
+    }
+
+    /* QR code should be clearly visible */
+    svg {
+        fill: black;
+    }
+
+    /* Page break settings */
+    .ticket-content {
+        page-break-inside: avoid;
+    }
+}

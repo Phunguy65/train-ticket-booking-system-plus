@@ -41,6 +41,13 @@ import {
     type SeatSummary,
     type TripSummary,
 } from './booking-summary-card.tsx';
+import {
+    initializePassengers,
+    isPassengerListValid,
+    type PassengerFormData,
+    PassengerList,
+    type SeatInfo,
+} from './passenger-list.tsx';
 import { PaymentStatus, type PaymentUIState } from './payment-status.tsx';
 import { PriceBreakdown, PriceSummary } from './price-breakdown.tsx';
 
@@ -61,6 +68,9 @@ export function BookingConfirmation() {
         bookingId: string;
         paymentDeadline: string;
     } | null>(null);
+
+    // Passenger form state
+    const [passengers, setPassengers] = useState<PassengerFormData[]>([]);
 
     // Derive payment UI state
     const [paymentUIState, setPaymentUIState] =
@@ -146,6 +156,31 @@ export function BookingConfirmation() {
         enabled: !!context?.tripId,
     });
 
+    // Build seat info for passenger forms
+    const seatInfoList: SeatInfo[] = useMemo(() => {
+        if (!context || !availableSeats?.content) return [];
+        return context.seatIds.map((seatId) => {
+            const seat = availableSeats.content?.find((s) => s.id === seatId);
+            return { id: seatId, seatNumber: seat?.seatNumber ?? seatId };
+        });
+    }, [context, availableSeats]);
+
+    // Initialize passenger forms when seat list changes
+    useEffect(() => {
+        if (
+            seatInfoList.length > 0
+            && passengers.length !== seatInfoList.length
+        ) {
+            setPassengers(initializePassengers(seatInfoList));
+        }
+    }, [seatInfoList, passengers.length]);
+
+    // Check if all passenger forms are valid
+    const passengersValid = useMemo(
+        () => isPassengerListValid(passengers),
+        [passengers],
+    );
+
     // Create booking mutation
     const createBooking = useMutation({
         ...createBookingMutation(),
@@ -178,12 +213,24 @@ export function BookingConfirmation() {
 
     // Handle booking confirmation
     const handleConfirm = () => {
-        if (!context) return;
+        if (!context || !passengersValid) return;
+
+        // Map passenger form data to API format
+        const passengerPayloads = passengers.map((p) => ({
+            seatId: p.seatId,
+            fullName: p.fullName.trim(),
+            idDocumentNumber: p.idDocumentNumber.trim(),
+            dateOfBirth: p.dateOfBirth
+                ? p.dateOfBirth.toISOString().split('T')[0]
+                : '',
+            gender: p.gender,
+        }));
 
         createBooking.mutate({
             body: {
                 scheduledTripId: context.tripId,
                 seatIds: context.seatIds,
+                passengers: passengerPayloads,
                 idempotencyKey: generateIdempotencyKey(),
             },
         });
@@ -327,10 +374,10 @@ export function BookingConfirmation() {
                         seats={seatSummary}
                     />
 
-                    {/* Passenger Info */}
+                    {/* Booker Info */}
                     <Card>
                         <CardHeader>
-                            <CardTitle>{t('passengerInfo')}</CardTitle>
+                            <CardTitle>{t('bookerInfo')}</CardTitle>
                         </CardHeader>
                         <CardContent className='space-y-2'>
                             <p className='font-medium'>{user?.fullName}</p>
@@ -344,6 +391,14 @@ export function BookingConfirmation() {
                             )}
                         </CardContent>
                     </Card>
+
+                    {/* Passenger Forms */}
+                    <PassengerList
+                        seats={seatInfoList}
+                        passengers={passengers}
+                        disabled={createBooking.isPending}
+                        onChange={setPassengers}
+                    />
                 </div>
 
                 {/* Right Column: Price & Actions (Desktop) */}
@@ -371,7 +426,9 @@ export function BookingConfirmation() {
                     <div className='flex flex-col gap-3'>
                         <Button
                             onClick={handleConfirm}
-                            disabled={createBooking.isPending}
+                            disabled={
+                                createBooking.isPending || !passengersValid
+                            }
                             className='w-full'
                         >
                             {createBooking.isPending ? (
@@ -424,7 +481,7 @@ export function BookingConfirmation() {
                     <PriceSummary total={totalPrice} />
                     <Button
                         onClick={handleConfirm}
-                        disabled={createBooking.isPending}
+                        disabled={createBooking.isPending || !passengersValid}
                     >
                         {createBooking.isPending ? (
                             <>

@@ -7,7 +7,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.github.phunguy65.ttbs.backend.booking.application.command.CreateBookingCommand;
+import io.github.phunguy65.ttbs.backend.booking.application.port.BookingConfigProvider;
 import io.github.phunguy65.ttbs.backend.booking.application.response.BookingResponse;
+import io.github.phunguy65.ttbs.backend.booking.domain.error.BookingError;
 import io.github.phunguy65.ttbs.backend.booking.domain.model.Booking;
 import io.github.phunguy65.ttbs.backend.booking.domain.model.BookingStatus;
 import io.github.phunguy65.ttbs.backend.booking.domain.repository.BookingRepository;
@@ -41,7 +43,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
 
 @ExtendWith(MockitoExtension.class)
-@DisplayName("CreateBookingUseCase — price snapshot capture")
+@DisplayName("CreateBookingUseCase — price snapshot capture and passenger validation")
 class CreateBookingUseCaseTest {
 
     private static final UUID USER_ID = UUID.fromString("11111111-1111-1111-1111-111111111111");
@@ -79,6 +81,9 @@ class CreateBookingUseCaseTest {
     @Mock
     private ApplicationEventPublisher eventPublisher;
 
+    @Mock
+    private BookingConfigProvider bookingConfigProvider;
+
     private CreateBookingUseCase useCase;
 
     @BeforeEach
@@ -89,7 +94,8 @@ class CreateBookingUseCaseTest {
                 scheduledTripRepository,
                 routeTemplateRepository,
                 userRepository,
-                eventPublisher);
+                eventPublisher,
+                bookingConfigProvider);
     }
 
     private UserSummary userSummary() {
@@ -107,14 +113,29 @@ class CreateBookingUseCaseTest {
     }
 
     private CreateBookingCommand command() {
+        List<CreateBookingCommand.PassengerPayload> passengers = List.of(
+                new CreateBookingCommand.PassengerPayload(
+                        SeatId.of(SEAT_1_ID),
+                        "Nguyen Van B",
+                        "ID001",
+                        LocalDate.of(1985, 5, 15),
+                        "Male"),
+                new CreateBookingCommand.PassengerPayload(
+                        SeatId.of(SEAT_2_ID),
+                        "Nguyen Thi C",
+                        "ID002",
+                        LocalDate.of(1990, 10, 20),
+                        "Female"));
         return new CreateBookingCommand(
                 USER_ID,
                 SCHEDULED_TRIP_ID,
                 List.of(SeatId.of(SEAT_1_ID), SeatId.of(SEAT_2_ID)),
+                passengers,
                 "idem-key-" + UUID.randomUUID());
     }
 
     private void stubHappyPath() {
+        when(bookingConfigProvider.getMaxSeatsPerBooking()).thenReturn(5);
         when(bookingRepository.findByIdempotencyKey(any())).thenReturn(Optional.empty());
         when(userRepository.findSummaryById(UserId.of(USER_ID)))
                 .thenReturn(Optional.of(userSummary()));
@@ -186,5 +207,171 @@ class CreateBookingUseCaseTest {
         assertThat(result.isSuccess()).isTrue();
         BookingResponse response = ((Result.Success<BookingResponse, ?>) result).value();
         assertThat(response.status()).isEqualTo(BookingStatus.HELD);
+    }
+
+    @Test
+    @DisplayName("response includes passengers matching command input")
+    void response_includesPassengersMatchingCommandInput() {
+        stubHappyPath();
+
+        Result<BookingResponse, ?> result = useCase.execute(command());
+
+        assertThat(result.isSuccess()).isTrue();
+        BookingResponse response = ((Result.Success<BookingResponse, ?>) result).value();
+        assertThat(response.passengers()).hasSize(2);
+        assertThat(response.passengers().get(0).fullName()).isEqualTo("Nguyen Van B");
+        assertThat(response.passengers().get(0).idDocumentNumber()).isEqualTo("ID001");
+        assertThat(response.passengers().get(1).fullName()).isEqualTo("Nguyen Thi C");
+        assertThat(response.passengers().get(1).idDocumentNumber()).isEqualTo("ID002");
+    }
+
+    @Test
+    @DisplayName("rejects booking when seat count exceeds configured maximum")
+    void rejectsTooManySeats() {
+        when(bookingConfigProvider.getMaxSeatsPerBooking()).thenReturn(1);
+
+        Result<BookingResponse, BookingError> result = useCase.execute(command());
+
+        assertThat(result.isFailure()).isTrue();
+        BookingError error = ((Result.Failure<?, BookingError>) result).error();
+        assertThat(error).isInstanceOf(BookingError.TooManySeats.class);
+        BookingError.TooManySeats tooMany = (BookingError.TooManySeats) error;
+        assertThat(tooMany.requested()).isEqualTo(2);
+        assertThat(tooMany.max()).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("rejects booking when passenger count does not match seat count")
+    void rejectsPassengerSeatMismatch() {
+        when(bookingConfigProvider.getMaxSeatsPerBooking()).thenReturn(5);
+
+        // Create command with only one passenger but two seats
+        List<CreateBookingCommand.PassengerPayload> singlePassenger =
+                List.of(new CreateBookingCommand.PassengerPayload(
+                        SeatId.of(SEAT_1_ID),
+                        "Nguyen Van B",
+                        "ID001",
+                        LocalDate.of(1985, 5, 15),
+                        "Male"));
+        CreateBookingCommand mismatchedCommand = new CreateBookingCommand(
+                USER_ID,
+                SCHEDULED_TRIP_ID,
+                List.of(SeatId.of(SEAT_1_ID), SeatId.of(SEAT_2_ID)),
+                singlePassenger,
+                "idem-key-mismatch");
+
+        Result<BookingResponse, BookingError> result = useCase.execute(mismatchedCommand);
+
+        assertThat(result.isFailure()).isTrue();
+        BookingError error = ((Result.Failure<?, BookingError>) result).error();
+        assertThat(error).isInstanceOf(BookingError.PassengerSeatMismatch.class);
+        BookingError.PassengerSeatMismatch mismatch = (BookingError.PassengerSeatMismatch) error;
+        assertThat(mismatch.passengerCount()).isEqualTo(1);
+        assertThat(mismatch.seatCount()).isEqualTo(2);
+    }
+
+    @Test
+    @DisplayName("rejects booking when passengers have duplicate ID document numbers")
+    void rejectsDuplicatePassengerIdDocument() {
+        when(bookingConfigProvider.getMaxSeatsPerBooking()).thenReturn(5);
+
+        // Create command with duplicate ID document numbers
+        List<CreateBookingCommand.PassengerPayload> duplicateIdPassengers = List.of(
+                new CreateBookingCommand.PassengerPayload(
+                        SeatId.of(SEAT_1_ID),
+                        "Nguyen Van B",
+                        "SAME_ID",
+                        LocalDate.of(1985, 5, 15),
+                        "Male"),
+                new CreateBookingCommand.PassengerPayload(
+                        SeatId.of(SEAT_2_ID),
+                        "Nguyen Thi C",
+                        "SAME_ID",
+                        LocalDate.of(1990, 10, 20),
+                        "Female"));
+        CreateBookingCommand duplicateCommand = new CreateBookingCommand(
+                USER_ID,
+                SCHEDULED_TRIP_ID,
+                List.of(SeatId.of(SEAT_1_ID), SeatId.of(SEAT_2_ID)),
+                duplicateIdPassengers,
+                "idem-key-duplicate");
+
+        Result<BookingResponse, BookingError> result = useCase.execute(duplicateCommand);
+
+        assertThat(result.isFailure()).isTrue();
+        BookingError error = ((Result.Failure<?, BookingError>) result).error();
+        assertThat(error).isInstanceOf(BookingError.DuplicatePassengerIdDocument.class);
+        BookingError.DuplicatePassengerIdDocument duplicate =
+                (BookingError.DuplicatePassengerIdDocument) error;
+        assertThat(duplicate.idDocumentNumber()).isEqualTo("SAME_ID");
+    }
+
+    @Test
+    @DisplayName("rejects booking when passenger references an unselected seat")
+    void rejectsInvalidPassengerSeatAssignment() {
+        when(bookingConfigProvider.getMaxSeatsPerBooking()).thenReturn(5);
+
+        UUID unselectedSeatId = UUID.fromString("99999999-9999-9999-9999-999999999999");
+        List<CreateBookingCommand.PassengerPayload> invalidSeatPassengers = List.of(
+                new CreateBookingCommand.PassengerPayload(
+                        SeatId.of(SEAT_1_ID),
+                        "Nguyen Van B",
+                        "ID001",
+                        LocalDate.of(1985, 5, 15),
+                        "Male"),
+                new CreateBookingCommand.PassengerPayload(
+                        SeatId.of(unselectedSeatId),
+                        "Nguyen Thi C",
+                        "ID002",
+                        LocalDate.of(1990, 10, 20),
+                        "Female"));
+        CreateBookingCommand invalidCommand = new CreateBookingCommand(
+                USER_ID,
+                SCHEDULED_TRIP_ID,
+                List.of(SeatId.of(SEAT_1_ID), SeatId.of(SEAT_2_ID)),
+                invalidSeatPassengers,
+                "idem-key-invalid-seat");
+
+        Result<BookingResponse, BookingError> result = useCase.execute(invalidCommand);
+
+        assertThat(result.isFailure()).isTrue();
+        BookingError error = ((Result.Failure<?, BookingError>) result).error();
+        assertThat(error).isInstanceOf(BookingError.InvalidPassengerSeatAssignment.class);
+        BookingError.InvalidPassengerSeatAssignment invalid =
+                (BookingError.InvalidPassengerSeatAssignment) error;
+        assertThat(invalid.seatId()).isEqualTo(unselectedSeatId.toString());
+    }
+
+    @Test
+    @DisplayName("rejects booking when passengers have duplicate seat assignments")
+    void rejectsDuplicatePassengerSeatAssignment() {
+        when(bookingConfigProvider.getMaxSeatsPerBooking()).thenReturn(5);
+
+        // Create command with two passengers assigned to the same seat (SEAT_1_ID assigned twice)
+        List<CreateBookingCommand.PassengerPayload> duplicateSeatPassengers = List.of(
+                new CreateBookingCommand.PassengerPayload(
+                        SeatId.of(SEAT_1_ID),
+                        "Nguyen Van B",
+                        "ID001",
+                        LocalDate.of(1985, 5, 15),
+                        "Male"),
+                new CreateBookingCommand.PassengerPayload(
+                        SeatId.of(SEAT_1_ID), // Same seat as first passenger
+                        "Nguyen Thi C",
+                        "ID002",
+                        LocalDate.of(1990, 10, 20),
+                        "Female"));
+        CreateBookingCommand duplicateSeatCommand = new CreateBookingCommand(
+                USER_ID,
+                SCHEDULED_TRIP_ID,
+                List.of(SeatId.of(SEAT_1_ID), SeatId.of(SEAT_2_ID)),
+                duplicateSeatPassengers,
+                "idem-key-duplicate-seat");
+
+        Result<BookingResponse, BookingError> result = useCase.execute(duplicateSeatCommand);
+
+        assertThat(result.isFailure()).isTrue();
+        BookingError error = ((Result.Failure<?, BookingError>) result).error();
+        assertThat(error).isInstanceOf(BookingError.DuplicatePassengerSeatAssignment.class);
     }
 }

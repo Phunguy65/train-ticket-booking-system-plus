@@ -46,6 +46,7 @@ stripe:
 
 booking:
     cancel-url: ${STRIPE_CANCEL_URL}
+    max-seats-per-booking: ${BOOKING_MAX_SEATS:5}
 
 springdoc:
     api-docs:
