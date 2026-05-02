@@ -8,7 +8,9 @@ plugins {
 }
 
 group = "io.github.phunguy65.ttbs"
-version = "0.0.1-SNAPSHOT"
+// x-release-please-start-version
+version = "0.1.0"
+// x-release-please-end
 description = "backend"
 
 java {
