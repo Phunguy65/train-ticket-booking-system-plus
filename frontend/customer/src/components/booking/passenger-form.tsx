@@ -54,7 +54,6 @@ type PassengerFormProps = {
 };
 
 export function PassengerForm({
-    _seatId,
     seatLabel,
     data,
     index,
@@ -64,7 +63,6 @@ export function PassengerForm({
 }: PassengerFormProps) {
     const t = useTranslations('Passenger');
     const tProfile = useTranslations('Profile');
-    const _tValidation = useTranslations('Validation');
 
     const handleFieldChange = (
         field: keyof PassengerFormData,

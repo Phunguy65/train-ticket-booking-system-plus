@@ -135,43 +135,43 @@
     header,
     footer,
     nav {
-        display: none;
+        display: none !important;
     }
 
     /* Reset body styles for printing */
     body {
-        background: white;
-        color: black;
-        font-size: 12pt;
+        background: white !important;
+        color: black !important;
+        font-size: 12pt !important;
     }
 
     /* Ensure ticket content fills the page properly */
     .ticket-content {
-        width: 100%;
-        max-width: none;
-        margin: 0;
-        padding: 20mm;
-        border: none;
-        box-shadow: none;
+        width: 100% !important;
+        max-width: none !important;
+        margin: 0 !important;
+        padding: 20mm !important;
+        border: none !important;
+        box-shadow: none !important;
     }
 
     /* Remove colored backgrounds in print */
     .bg-muted {
-        background-color: #f5f5f5;
+        background-color: #f5f5f5 !important;
     }
 
     /* Ensure text is black for printing */
     .text-muted-foreground {
-        color: #666;
+        color: #666 !important;
     }
 
     .text-primary {
-        color: black;
+        color: black !important;
     }
 
     /* QR code should be clearly visible */
     svg {
-        fill: black;
+        fill: black !important;
     }
 
     /* Page break settings */

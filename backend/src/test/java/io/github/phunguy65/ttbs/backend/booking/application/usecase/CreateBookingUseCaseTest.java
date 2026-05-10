@@ -245,7 +245,6 @@ class CreateBookingUseCaseTest {
     void rejectsPassengerSeatMismatch() {
         when(bookingConfigProvider.getMaxSeatsPerBooking()).thenReturn(5);
 
-        // Create command with only one passenger but two seats
         List<CreateBookingCommand.PassengerPayload> singlePassenger =
                 List.of(new CreateBookingCommand.PassengerPayload(
                         SeatId.of(SEAT_1_ID),

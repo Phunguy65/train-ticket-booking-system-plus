@@ -3,7 +3,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { AlertCircleIcon, PrinterIcon, ShareIcon } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { use, useCallback, useEffect, useMemo, useState } from 'react';
+import { use, useCallback, useEffect, useState } from 'react';
 import { TicketPrint } from '@/components/ticket/index.ts';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert.tsx';
 import { Button } from '@/components/ui/button.tsx';
@@ -58,24 +58,6 @@ export default function TicketPage({ params }: Props) {
             console.debug('Share cancelled or failed:', err);
         }
     }, [booking, t]);
-
-    // Build seat-to-passenger map for rendering
-    const _passengerBySeatId = useMemo(() => {
-        const map = new Map<
-            string,
-            { fullName?: string; idDocumentNumber?: string }
-        >();
-        const passengers = booking?.passengers;
-        if (passengers) {
-            for (const p of passengers) {
-                map.set(p.seatId, {
-                    fullName: p.fullName,
-                    idDocumentNumber: p.idDocumentNumber,
-                });
-            }
-        }
-        return map;
-    }, [booking?.passengers]);
 
     // Loading state
     if (isLoading) {
