@@ -5,7 +5,7 @@ info:
   description: "Customer-facing API contract for the train ticket booking system."
   version: "1.0"
 servers:
-- url: "/api"
+- url: "/"
   description: "Versioned customer API root"
 security:
 - bearerAuth: []
@@ -21,7 +21,7 @@ tags:
 - name: "Trains"
   description: "Train, coach, seat, and route lookup endpoints."
 paths:
-  /api/{version}/auth/me:
+  /api/v1/auth/me:
     get:
       tags:
       - "Authentication"
@@ -146,7 +146,7 @@ paths:
                 $ref: "#/components/schemas/JsendErrorResponse"
       security:
       - bearerAuth: []
-  /api/{version}/bookings:
+  /api/v1/bookings:
     post:
       tags:
       - "Bookings"
@@ -195,7 +195,7 @@ paths:
                 $ref: "#/components/schemas/JsendErrorResponse"
       security:
       - bearerAuth: []
-  /api/{version}/bookings/{id}/cancel:
+  /api/v1/bookings/{id}/cancel:
     post:
       tags:
       - "Bookings"
@@ -238,7 +238,7 @@ paths:
                 $ref: "#/components/schemas/JsendErrorResponse"
       security:
       - bearerAuth: []
-  /api/{version}/bookings/{bookingId}/checkout:
+  /api/v1/bookings/{bookingId}/checkout:
     post:
       tags:
       - "Payments"
@@ -294,7 +294,7 @@ paths:
                 $ref: "#/components/schemas/JsendErrorResponse"
       security:
       - bearerAuth: []
-  /api/{version}/auth/register:
+  /api/v1/auth/register:
     post:
       tags:
       - "Authentication"
@@ -334,7 +334,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/JsendErrorResponse"
-  /api/{version}/auth/refresh:
+  /api/v1/auth/refresh:
     post:
       tags:
       - "Authentication"
@@ -374,7 +374,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/JsendErrorResponse"
-  /api/{version}/auth/logout:
+  /api/v1/auth/logout:
     post:
       tags:
       - "Authentication"
@@ -407,7 +407,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/JsendErrorResponse"
-  /api/{version}/auth/login:
+  /api/v1/auth/login:
     post:
       tags:
       - "Authentication"
@@ -447,7 +447,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/JsendErrorResponse"
-  /api/{version}/users/{userId}/payments:
+  /api/v1/users/{userId}/payments:
     get:
       tags:
       - "Payments"
@@ -496,7 +496,7 @@ paths:
                 $ref: "#/components/schemas/JsendErrorResponse"
       security:
       - bearerAuth: []
-  /api/{version}/users/{userId}/bookings:
+  /api/v1/users/{userId}/bookings:
     get:
       tags:
       - "Bookings"
@@ -545,7 +545,7 @@ paths:
                 $ref: "#/components/schemas/JsendErrorResponse"
       security:
       - bearerAuth: []
-  /api/{version}/trains:
+  /api/v1/trains:
     get:
       tags:
       - "Trains"
@@ -579,7 +579,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/JsendErrorResponse"
-  /api/{version}/trains/{trainId}/seats:
+  /api/v1/trains/{trainId}/seats:
     get:
       tags:
       - "Trains"
@@ -620,7 +620,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/JsendErrorResponse"
-  /api/{version}/trains/{trainId}/coaches:
+  /api/v1/trains/{trainId}/coaches:
     get:
       tags:
       - "Trains"
@@ -667,7 +667,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/JsendErrorResponse"
-  /api/{version}/trains/{trainId}/coaches/{id}:
+  /api/v1/trains/{trainId}/coaches/{id}:
     get:
       tags:
       - "Trains"
@@ -715,7 +715,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/JsendErrorResponse"
-  /api/{version}/trains/{id}:
+  /api/v1/trains/{id}:
     get:
       tags:
       - "Trains"
@@ -756,7 +756,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/JsendErrorResponse"
-  /api/{version}/stations:
+  /api/v1/stations:
     get:
       tags:
       - "Stations"
@@ -790,7 +790,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/JsendErrorResponse"
-  /api/{version}/stations/{id}:
+  /api/v1/stations/{id}:
     get:
       tags:
       - "Stations"
@@ -831,7 +831,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/JsendErrorResponse"
-  /api/{version}/stations/search:
+  /api/v1/stations/search:
     get:
       tags:
       - "Stations"
@@ -867,7 +867,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/JsendErrorResponse"
-  /api/{version}/scheduled-trips:
+  /api/v1/scheduled-trips:
     get:
       tags:
       - "Trains"
@@ -901,7 +901,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/JsendErrorResponse"
-  /api/{version}/scheduled-trips:filter:
+  /api/v1/scheduled-trips:filter:
     get:
       tags:
       - "Trains"
@@ -935,7 +935,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/JsendErrorResponse"
-  /api/{version}/scheduled-trips/{scheduledTripId}/seats/available:
+  /api/v1/scheduled-trips/{scheduledTripId}/seats/available:
     get:
       tags:
       - "Trains"
@@ -982,7 +982,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/JsendErrorResponse"
-  /api/{version}/scheduled-trips/{scheduledTripId}/coach-seats:
+  /api/v1/scheduled-trips/{scheduledTripId}/coach-seats:
     get:
       tags:
       - "Trains"
@@ -1029,7 +1029,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/JsendErrorResponse"
-  /api/{version}/scheduled-trips/{id}:
+  /api/v1/scheduled-trips/{id}:
     get:
       tags:
       - "Trains"
@@ -1070,7 +1070,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/JsendErrorResponse"
-  /api/{version}/route-templates:
+  /api/v1/route-templates:
     get:
       tags:
       - "Trains"
@@ -1104,7 +1104,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/JsendErrorResponse"
-  /api/{version}/route-templates/{id}:
+  /api/v1/route-templates/{id}:
     get:
       tags:
       - "Trains"
@@ -1145,7 +1145,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/JsendErrorResponse"
-  /api/{version}/payments/{paymentId}:
+  /api/v1/payments/{paymentId}:
     get:
       tags:
       - "Payments"
@@ -1194,7 +1194,7 @@ paths:
                 $ref: "#/components/schemas/JsendErrorResponse"
       security:
       - bearerAuth: []
-  /api/{version}/bookings/{id}:
+  /api/v1/bookings/{id}:
     get:
       tags:
       - "Bookings"
@@ -1243,7 +1243,7 @@ paths:
                 $ref: "#/components/schemas/JsendErrorResponse"
       security:
       - bearerAuth: []
-  /api/{version}/bookings/{bookingId}/payment:
+  /api/v1/bookings/{bookingId}/payment:
     get:
       tags:
       - "Payments"

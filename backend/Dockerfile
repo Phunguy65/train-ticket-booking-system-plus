@@ -13,7 +13,6 @@ COPY backend/build.gradle.kts backend/settings.gradle.kts backend/
 COPY build-logic/ build-logic/
 COPY gradle/ gradle/
 COPY gradle.properties gradle.properties
-COPY backend/third-party/ backend/third-party/
 
 RUN chmod +x backend/gradlew
 
@@ -30,12 +29,17 @@ FROM eclipse-temurin:25-jre
 
 WORKDIR /app
 
+# Install wget for the Docker health check (eclipse-temurin JRE image omits it).
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends wget && \
+    rm -rf /var/lib/apt/lists/*
+
 # Use a non-root user for security.
 RUN addgroup --system --gid 1001 spring && \
     adduser --system --uid 1001 --ingroup spring spring
 
 COPY --from=build --chown=spring:spring \
-    /workspace/backend/build/libs/backend-0.0.1-SNAPSHOT.jar app.jar
+    /workspace/backend/build/libs/backend-*.jar app.jar
 
 USER spring
 

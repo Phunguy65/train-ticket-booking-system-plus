@@ -7,6 +7,7 @@ import io.swagger.v3.core.converter.ModelConverters;
 import io.swagger.v3.core.converter.ResolvedSchema;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.Paths;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.media.ObjectSchema;
 import io.swagger.v3.oas.models.media.Schema;
@@ -16,6 +17,7 @@ import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.servers.Server;
 import java.util.List;
 import java.util.Map;
+import org.springdoc.core.customizers.OpenApiCustomizer;
 import org.springdoc.core.models.GroupedOpenApi;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -40,8 +42,7 @@ public class OpenApiConfig {
                                 .version("1.0")
                                 .description(
                                         "Customer-facing API contract for the train ticket booking system."))
-                .servers(List.of(
-                        new Server().url("/api").description("Versioned customer API root")))
+                .servers(List.of(new Server().url("/").description("Versioned customer API root")))
                 .addTagsItem(new io.swagger.v3.oas.models.tags.Tag()
                         .name("Authentication")
                         .description("Customer identity, session, and profile endpoints."))
@@ -75,7 +76,22 @@ public class OpenApiConfig {
                 .pathsToExclude("/api/sse/**", "/api/**/webhooks/**")
                 .addOperationCustomizer(jsendSuccessResponseCustomizer)
                 .addOpenApiCustomizer(jsendSuccessResponseCustomizer)
+                .addOpenApiCustomizer(versionPathCustomizer())
                 .build();
+    }
+
+    private OpenApiCustomizer versionPathCustomizer() {
+        return openApi -> {
+            var paths = openApi.getPaths();
+            if (paths == null) {
+                return;
+            }
+
+            var rewritten = new Paths();
+            paths.forEach((path, pathItem) ->
+                    rewritten.addPathItem(path.replace("{version}", "v1"), pathItem));
+            openApi.setPaths(rewritten);
+        };
     }
 
     private Schema<?> jsendFailResponseSchema() {

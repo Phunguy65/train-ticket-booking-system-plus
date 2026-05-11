@@ -45,9 +45,36 @@ docker-compose up -d
 
 The application will be available at:
 
-- **Customer App**: http://localhost:3000
-- **Backend API**: http://localhost:8080
-- **API Docs**: http://localhost:8080/swagger-ui.html
+- **Customer App**: http://localhost:41250
+- **Backend API**: http://localhost:43565
+- **API Docs**: http://localhost:43565/swagger-ui.html
+
+### Optional Caddy Reverse Proxy
+
+Start the stack with the `proxy` profile to route frontend and API traffic
+through a single Caddy origin:
+
+```bash
+docker-compose --profile proxy up -d
+```
+
+With the development Caddy configuration, the application is available at:
+
+- **Caddy entrypoint**: http://localhost:2015
+- **Customer App through Caddy**: http://localhost:2015
+- **Backend API through Caddy**: http://localhost:2015/api
+- **Direct Customer App**: http://localhost:41250
+- **Direct Backend API**: http://localhost:43565
+
+The proxy uses `conf/Caddyfile.dev` by default. It listens on
+`http://localhost:2015`, forwards `/api/*` to the `backend:8080` service, and
+forwards all other paths to the `customer:3000` service. The explicit `http://`
+site address keeps local development on HTTP and disables automatic HTTPS.
+
+For production, use `conf/Caddyfile.prod` as the mounted Caddyfile and set
+`CADDY_DOMAIN` to the public domain. The production configuration enables
+Caddy's automatic HTTPS, gzip compression, and forwarded client headers while
+preserving the same `/api/*` backend routing and frontend fallback routing.
 
 ### Local Development
 
@@ -180,7 +207,7 @@ Formatting is enforced via Lefthook pre-commit hooks:
 | `STRIPE_WEBHOOK_SECRET` | Stripe webhook signing secret |
 | `STRIPE_SUCCESS_URL` | Redirect URL after successful payment |
 | `STRIPE_CANCEL_URL` | Redirect URL after cancelled payment |
-| `CORS_ALLOWED_ORIGINS` | Allowed CORS origins |
+| `CORS_ALLOWED_ORIGINS` | Comma-separated allowed CORS origins for direct frontend access |
 | `VALKEY_HOST` | Valkey/Redis host (default: localhost) |
 | `VALKEY_PORT` | Valkey/Redis port (default: 6379) |
 | `BOOKING_MAX_SEATS` | Maximum seats per booking (default: 5) |

@@ -23,6 +23,9 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY frontend/customer/ ./
 COPY shared/api-contracts/ /shared/api-contracts/
 
+ARG BACKEND_URL=http://backend:8080
+ENV BACKEND_URL=${BACKEND_URL}
+
 # Regenerate the SDK from the committed contract then produce the standalone
 # Next.js build (requires output: 'standalone' in next.config.ts).
 RUN bun run codegen && bun run build

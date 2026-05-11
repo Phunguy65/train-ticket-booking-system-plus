@@ -3,7 +3,7 @@ services:
         image: valkey/valkey:8.0-alpine
         container_name: trainbooking-valkey
         ports:
-            - '6379:6379'
+            - '35652:6379'
         networks:
             - trainbooking-network
         healthcheck:
@@ -24,7 +24,7 @@ services:
         ports:
             - '5432:5432'
         volumes:
-            - trainbooking-data:/var/lib/postgresql/data
+            - trainbooking-data:/var/lib/postgresql
         networks:
             - trainbooking-network
         healthcheck:
@@ -55,7 +55,7 @@ services:
             VALKEY_PORT: 6379
             TZ: UTC
         ports:
-            - '8080:8080'
+            - '43565:8080'
         healthcheck:
             test:
                 [
@@ -81,11 +81,13 @@ services:
             # frontend/customer/openapi-ts.config.ts via a relative path).
             context: .
             dockerfile: frontend/customer/Dockerfile
+            args:
+                BACKEND_URL: http://backend:8080
         container_name: trainbooking-customer
         environment:
-            NEXT_PUBLIC_API_URL: http://localhost:8080/api/v1
+            BACKEND_URL: http://backend:8080
         ports:
-            - '3000:3000'
+            - '41250:3000'
         healthcheck:
             test:
                 [
@@ -105,9 +107,30 @@ services:
         networks:
             - trainbooking-network
 
+    caddy:
+        image: caddy:2-alpine
+        container_name: trainbooking-caddy
+        profiles:
+            - proxy
+        ports:
+            - '2015:2015'
+        volumes:
+            - ./conf/Caddyfile.dev:/etc/caddy/Caddyfile:ro
+            - caddy_data:/data
+            - caddy_config:/config
+        depends_on:
+            backend:
+                condition: service_healthy
+            customer:
+                condition: service_healthy
+        networks:
+            - trainbooking-network
+
 networks:
     trainbooking-network:
         driver: bridge
 
 volumes:
     trainbooking-data:
+    caddy_data:
+    caddy_config:
