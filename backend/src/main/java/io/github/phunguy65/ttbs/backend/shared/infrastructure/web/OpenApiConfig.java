@@ -17,6 +17,7 @@ import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.servers.Server;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.springdoc.core.customizers.OpenApiCustomizer;
 import org.springdoc.core.models.GroupedOpenApi;
 import org.springframework.context.annotation.Bean;
@@ -76,8 +77,60 @@ public class OpenApiConfig {
                 .pathsToExclude("/api/sse/**", "/api/**/webhooks/**")
                 .addOperationCustomizer(jsendSuccessResponseCustomizer)
                 .addOpenApiCustomizer(jsendSuccessResponseCustomizer)
+                .addOpenApiCustomizer(nullableResponseFieldsCustomizer())
                 .addOpenApiCustomizer(versionPathCustomizer())
                 .build();
+    }
+
+    private OpenApiCustomizer nullableResponseFieldsCustomizer() {
+        return openApi -> {
+            Components components = openApi.getComponents();
+            if (components == null || components.getSchemas() == null) {
+                return;
+            }
+
+            Map<String, Schema> schemas = components.getSchemas();
+            markNullable(
+                    schemas,
+                    "UserResponse",
+                    "phone",
+                    "dateOfBirth",
+                    "gender",
+                    "idDocumentNumber",
+                    "addressLine");
+            markNullable(
+                    schemas,
+                    "PassengerInfoResponse",
+                    "phone",
+                    "dateOfBirth",
+                    "gender",
+                    "idDocumentNumber",
+                    "addressLine");
+            markNullable(schemas, "BookingDetailResponse", "trip", "payment");
+            markNullable(schemas, "Trip", "train");
+            markNullable(schemas, "PaymentDetailResponse", "checkoutUrl", "stripePaymentIntentId");
+            markNullable(schemas, "PaymentResponse", "checkoutUrl");
+            markNullable(schemas, "SliceResponseSearchScheduledTripsResponse", "nextCursor");
+        };
+    }
+
+    private void markNullable(
+            Map<String, Schema> schemas, String schemaName, String... propertyNames) {
+        Schema schema = schemas.get(schemaName);
+        if (schema == null || schema.getProperties() == null) {
+            return;
+        }
+
+        for (String propertyName : propertyNames) {
+            Schema property = (Schema) schema.getProperties().get(propertyName);
+            if (property != null) {
+                property.setNullable(true);
+                if (property.getType() != null) {
+                    property.setTypes(Set.of(property.getType(), "null"));
+                    property.setType(null);
+                }
+            }
+        }
     }
 
     private OpenApiCustomizer versionPathCustomizer() {

@@ -22,7 +22,9 @@ public record PaymentDetailResponse(
 
         @Schema(
                 description = "Hosted checkout URL when customer action is still required.",
-                format = "uri")
+                format = "uri",
+                nullable = true,
+                types = {"string", "null"})
         String checkoutUrl,
 
         @Schema(description = "Payment amount in major currency units.", example = "650000")
@@ -37,7 +39,7 @@ public record PaymentDetailResponse(
                 accessMode = Schema.AccessMode.READ_ONLY)
         Instant createdAt,
 
-        @Schema(description = "Ticket-ready booking summary for printing.")
+        @Schema(description = "Ticket-ready booking summary for printing.", nullable = true)
         BookingForTicket booking) {
 
     @Schema(description = "Booking summary with ticket-ready data for printing.")
@@ -59,7 +61,7 @@ public record PaymentDetailResponse(
             @ArraySchema(schema = @Schema(implementation = SeatInfo.class))
             List<SeatInfo> seats,
 
-            @Schema(description = "Trip data with train and route information.")
+            @Schema(description = "Trip data with train and route information.", nullable = true)
             TripInfo trip) {
 
         public BookingForTicket {

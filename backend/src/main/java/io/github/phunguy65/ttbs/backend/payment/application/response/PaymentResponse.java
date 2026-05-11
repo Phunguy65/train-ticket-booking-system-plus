@@ -17,7 +17,9 @@ public record PaymentResponse(
 
         @Schema(
                 description = "Hosted checkout URL when customer action is still required.",
-                format = "uri")
+                format = "uri",
+                nullable = true,
+                types = {"string", "null"})
         String checkoutUrl,
 
         @Schema(description = "Payment amount in major currency units.", example = "650000")

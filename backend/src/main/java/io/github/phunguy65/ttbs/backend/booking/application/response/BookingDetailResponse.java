@@ -50,10 +50,10 @@ public record BookingDetailResponse(
                 accessMode = Schema.AccessMode.READ_ONLY)
         Instant createdAt,
 
-        @Schema(description = "Scheduled trip summary linked to the booking.")
+        @Schema(description = "Scheduled trip summary linked to the booking.", nullable = true)
         Trip trip,
 
-        @Schema(description = "Payment details linked to the booking.")
+        @Schema(description = "Payment details linked to the booking.", nullable = true)
         PaymentDetailResponse payment,
 
         @ArraySchema(schema = @Schema(implementation = Seat.class))
@@ -86,7 +86,9 @@ public record BookingDetailResponse(
             @Schema(description = "Scheduled trip creation timestamp.", format = "date-time")
             Instant createdAt,
 
-            @Schema(description = "Train summary.") Train train,
+            @Schema(description = "Train summary.", nullable = true)
+            Train train,
+
             @Schema(description = "Route summary.") Route route) {
 
         public static Trip fromScheduledTripDetail(ScheduledTripDetailResponse response) {

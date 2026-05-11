@@ -11,19 +11,38 @@ public record PassengerInfoResponse(
         @Schema(description = "Passenger email address.", example = "customer@example.com")
         String email,
 
-        @Schema(description = "Passenger phone number.", example = "+84901234567")
+        @Schema(
+                description = "Passenger phone number.",
+                example = "+84901234567",
+                nullable = true,
+                types = {"string", "null"})
         String phone,
 
-        @Schema(description = "Passenger date of birth.", type = "string", format = "date")
+        @Schema(
+                description = "Passenger date of birth.",
+                type = "string",
+                format = "date",
+                nullable = true,
+                types = {"string", "null"})
         LocalDate dateOfBirth,
 
-        @Schema(description = "Passenger self-declared gender label.", example = "female")
+        @Schema(
+                description = "Passenger self-declared gender label.",
+                example = "female",
+                nullable = true,
+                types = {"string", "null"})
         String gender,
 
         @Schema(
                 description = "Passenger government-issued identity document number.",
-                example = "redacted-id-document")
+                example = "redacted-id-document",
+                nullable = true,
+                types = {"string", "null"})
         String idDocumentNumber,
 
-        @Schema(description = "Passenger address line.", example = "redacted-address")
+        @Schema(
+                description = "Passenger address line.",
+                example = "redacted-address",
+                nullable = true,
+                types = {"string", "null"})
         String addressLine) {}

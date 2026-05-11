@@ -19,21 +19,36 @@ public record UserResponse(
         @Schema(description = "Customer full name.", example = "Nguyen Phuong")
         String fullName,
 
-        @Schema(description = "Customer phone number.", example = "+84901234567")
+        @Schema(
+                description = "Customer phone number.",
+                example = "+84901234567",
+                nullable = true,
+                types = {"string", "null"})
         String phone,
 
-        @Schema(description = "Customer date of birth.", type = "string", format = "date")
+        @Schema(
+                description = "Customer date of birth.",
+                type = "string",
+                format = "date",
+                nullable = true)
         LocalDate dateOfBirth,
 
-        @Schema(description = "Customer self-declared gender label.", example = "female")
+        @Schema(
+                description = "Customer self-declared gender label.",
+                example = "female",
+                nullable = true)
         String gender,
 
         @Schema(
                 description = "Government-issued identity document number on file.",
-                example = "redacted-id-document")
+                example = "redacted-id-document",
+                nullable = true)
         String idDocumentNumber,
 
-        @Schema(description = "Primary address line on file.", example = "redacted-address")
+        @Schema(
+                description = "Primary address line on file.",
+                example = "redacted-address",
+                nullable = true)
         String addressLine,
 
         @Schema(description = "Customer role granted by the system.", example = "CUSTOMER")

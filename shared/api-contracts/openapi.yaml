@@ -1878,23 +1878,33 @@ components:
           description: "Customer full name."
           example: "Nguyen Phuong"
         phone:
-          type: "string"
+          type:
+          - "string"
+          - "null"
           description: "Customer phone number."
           example: "+84901234567"
         dateOfBirth:
-          type: "string"
+          type:
+          - "string"
+          - "null"
           format: "date"
           description: "Customer date of birth."
         gender:
-          type: "string"
+          type:
+          - "string"
+          - "null"
           description: "Customer self-declared gender label."
           example: "female"
         idDocumentNumber:
-          type: "string"
+          type:
+          - "string"
+          - "null"
           description: "Government-issued identity document number on file."
           example: "redacted-id-document"
         addressLine:
-          type: "string"
+          type:
+          - "string"
+          - "null"
           description: "Primary address line on file."
           example: "redacted-address"
         role:
@@ -1965,23 +1975,33 @@ components:
           description: "Passenger email address."
           example: "customer@example.com"
         phone:
-          type: "string"
+          type:
+          - "string"
+          - "null"
           description: "Passenger phone number."
           example: "+84901234567"
         dateOfBirth:
-          type: "string"
+          type:
+          - "string"
+          - "null"
           format: "date"
           description: "Passenger date of birth."
         gender:
-          type: "string"
+          type:
+          - "string"
+          - "null"
           description: "Passenger self-declared gender label."
           example: "female"
         idDocumentNumber:
-          type: "string"
+          type:
+          - "string"
+          - "null"
           description: "Passenger government-issued identity document number."
           example: "redacted-id-document"
         addressLine:
-          type: "string"
+          type:
+          - "string"
+          - "null"
           description: "Passenger address line."
           example: "redacted-address"
     PassengerResponse:
@@ -2589,7 +2609,9 @@ components:
           type: "boolean"
           description: "Whether another slice exists after this one."
         nextCursor:
-          type: "string"
+          type:
+          - "string"
+          - "null"
           description: "Opaque cursor for the next slice. Null when no more results\
             \ exist."
           example: "opaque-cursor-token"
@@ -2838,7 +2860,9 @@ components:
           - "FAILED"
           - "REFUNDED"
         checkoutUrl:
-          type: "string"
+          type:
+          - "string"
+          - "null"
           format: "uri"
           description: "Hosted checkout URL when customer action is still required."
         amount:
@@ -3009,7 +3033,9 @@ components:
           - "FAILED"
           - "REFUNDED"
         checkoutUrl:
-          type: "string"
+          type:
+          - "string"
+          - "null"
           format: "uri"
           description: "Hosted checkout URL when customer action is still required."
         amount:

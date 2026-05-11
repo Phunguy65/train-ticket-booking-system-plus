@@ -17,7 +17,9 @@ public record PaymentDetailResponse(
 
         @Schema(
                 description = "Hosted checkout URL when further payment action is required.",
-                format = "uri")
+                format = "uri",
+                nullable = true,
+                types = {"string", "null"})
         String checkoutUrl,
 
         @Schema(description = "Payment amount in minor currency units.", example = "650000")
@@ -26,7 +28,10 @@ public record PaymentDetailResponse(
         @Schema(description = "ISO-like currency code.", example = "VND")
         String currency,
 
-        @Schema(description = "Stripe payment intent identifier used for reconciliation.")
+        @Schema(
+                description = "Stripe payment intent identifier used for reconciliation.",
+                nullable = true,
+                types = {"string", "null"})
         String stripePaymentIntentId,
 
         @Schema(

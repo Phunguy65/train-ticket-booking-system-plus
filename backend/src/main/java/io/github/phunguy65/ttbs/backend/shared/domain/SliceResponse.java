@@ -17,7 +17,9 @@ public record SliceResponse<T>(
 
         @Schema(
                 description = "Opaque cursor for the next slice. Null when no more results exist.",
-                example = "opaque-cursor-token")
+                example = "opaque-cursor-token",
+                nullable = true,
+                types = {"string", "null"})
         String nextCursor) {
 
     public SliceResponse {
