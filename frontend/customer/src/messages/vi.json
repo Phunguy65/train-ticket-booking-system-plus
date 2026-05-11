@@ -140,6 +140,11 @@
             "bookings": "Đơn đặt vé",
             "payments": "Thanh toán"
         },
+        "stats": {
+            "totalBookings": "Tổng đơn đặt vé",
+            "upcomingTrips": "Chuyến sắp tới",
+            "totalSpent": "Tổng đã chi"
+        },
         "empty": "Bạn chưa có đơn đặt vé nào",
         "emptyDescription": "Hãy tìm và đặt chuyến tàu đầu tiên của bạn",
         "searchTrips": "Tìm chuyến tàu",

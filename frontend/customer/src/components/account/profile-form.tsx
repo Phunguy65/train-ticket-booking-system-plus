@@ -282,7 +282,7 @@ export function ProfileForm() {
 
     return (
         <div className='space-y-6'>
-            {/* Profile Header */}
+            <h1 className='text-2xl font-bold tracking-tight'>{t('title')}</h1>
             {user && <ProfileHeader user={user} t={t} />}
 
             <Form {...form}>

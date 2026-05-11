@@ -16,7 +16,8 @@ import {
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet.tsx';
 import { Skeleton } from '@/components/ui/skeleton.tsx';
 import { Link, useRouter } from '@/i18n/routing.ts';
-import { getAuthenticatedUserOptions } from '@/lib/api/index.ts';
+import { getAuthenticatedUserOptions, logout } from '@/lib/api/index.ts';
+import { clearTokens, getRefreshToken } from '@/lib/auth/token-store.ts';
 import { LocaleSwitcher } from './locale-switcher.tsx';
 
 export function Header() {
@@ -49,7 +50,13 @@ function useLogout() {
 
     return useMutation({
         mutationFn: async () => {
-            // Clear query cache - the server handles session invalidation via cookies
+            const refreshToken = getRefreshToken();
+
+            if (refreshToken) {
+                await logout({ body: { refreshToken } }).catch(() => {});
+            }
+
+            clearTokens();
             queryClient.clear();
         },
         onSuccess: () => {

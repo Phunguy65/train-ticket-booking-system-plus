@@ -20,6 +20,7 @@ import {
 import { Input } from '@/components/ui/input.tsx';
 import { useRouter } from '@/i18n/routing.ts';
 import { loginMutation } from '@/lib/api/index.ts';
+import { setTokens } from '@/lib/auth/token-store.ts';
 import { resolveLoginError } from '@/lib/auth-errors.ts';
 import { showNetworkErrorToast } from '@/lib/toast.ts';
 import { type LoginFormValues, loginSchema } from '@/lib/validations/auth.ts';
@@ -39,7 +40,11 @@ export function LoginForm() {
 
     const mutation = useMutation({
         ...loginMutation(),
-        onSuccess: () => {
+        onSuccess: (data) => {
+            if (data.accessToken && data.refreshToken) {
+                setTokens(data.accessToken, data.refreshToken);
+            }
+
             router.push('/');
         },
         onError: (error) => {

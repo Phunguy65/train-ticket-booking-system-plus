@@ -1,7 +1,8 @@
 import { useTranslations } from 'next-intl';
 import { setRequestLocale } from 'next-intl/server';
-import { AuthCard } from '@/components/auth/auth-card.tsx';
+import { AuthLayout } from '@/components/auth/auth-layout.tsx';
 import { RegisterForm } from '@/components/auth/register-form.tsx';
+import { StationPlatform } from '@/components/illustrations/index.ts';
 import { Link } from '@/i18n/routing.ts';
 
 type Props = {
@@ -19,9 +20,12 @@ function RegisterPageContent() {
     const t = useTranslations('Auth.register');
 
     return (
-        <AuthCard
+        <AuthLayout
             title={t('title')}
             subtitle={t('subtitle')}
+            illustration={
+                <StationPlatform className='w-full max-w-sm text-primary' />
+            }
             footer={
                 <span className='text-muted-foreground'>
                     {t('hasAccount')}{' '}
@@ -35,6 +39,6 @@ function RegisterPageContent() {
             }
         >
             <RegisterForm />
-        </AuthCard>
+        </AuthLayout>
     );
 }

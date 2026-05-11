@@ -140,6 +140,11 @@
             "bookings": "Bookings",
             "payments": "Payments"
         },
+        "stats": {
+            "totalBookings": "Total bookings",
+            "upcomingTrips": "Upcoming trips",
+            "totalSpent": "Total spent"
+        },
         "empty": "You don't have any bookings yet",
         "emptyDescription": "Search and book your first train trip",
         "searchTrips": "Search Trains",

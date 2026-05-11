@@ -1,6 +1,7 @@
 import { TrainFrontIcon } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { setRequestLocale } from 'next-intl/server';
+import { CloudsDecoration } from '@/components/illustrations/index.ts';
 import { TripSearchForm } from '@/components/search/index.ts';
 
 type Props = {
@@ -18,23 +19,24 @@ function HomeContent() {
     const t = useTranslations('Search');
 
     return (
-        <div className='flex min-h-[calc(100vh-8rem)] flex-col items-center justify-center bg-gradient-to-b from-background to-muted/30 px-4 py-12'>
-            <main className='flex w-full max-w-4xl flex-col items-center gap-8 text-center'>
-                {/* Hero Section */}
-                <div className='flex flex-col items-center gap-4'>
-                    <div className='flex items-center gap-3'>
+        <div className='relative flex min-h-[calc(100vh-8rem)] flex-col items-center justify-center overflow-hidden bg-gradient-to-br from-accent via-sky-50 to-background px-4 py-16 dark:via-sky-950/30'>
+            <CloudsDecoration className='absolute top-10 left-4 h-32 w-72 animate-float text-primary sm:left-12' />
+            <CloudsDecoration className='absolute right-0 bottom-20 h-28 w-64 animate-float delay-400 text-sky-500' />
+            <div className='absolute top-1/3 right-1/4 h-44 w-44 rounded-full bg-primary/10 blur-3xl' />
+            <main className='relative z-10 flex w-full max-w-4xl flex-col items-center gap-8 text-center'>
+                <div className='flex flex-col items-center gap-5'>
+                    <div className='animate-fade-in delay-100 flex items-center gap-3 rounded-full bg-background/80 px-5 py-3 shadow-lg shadow-primary/10 ring-1 ring-primary/10 backdrop-blur'>
                         <TrainFrontIcon className='h-10 w-10 text-primary sm:h-12 sm:w-12' />
                         <h1 className='text-3xl font-bold tracking-tight text-foreground sm:text-4xl lg:text-5xl'>
                             TTBS
                         </h1>
                     </div>
-                    <p className='max-w-lg text-base text-muted-foreground sm:text-lg'>
+                    <p className='delay-200 max-w-xl animate-fade-in text-base leading-8 text-muted-foreground sm:text-lg'>
                         {t('title')}
                     </p>
                 </div>
 
-                {/* Search Form Card */}
-                <div className='w-full rounded-xl border bg-card p-6 shadow-lg sm:p-8'>
+                <div className='delay-300 w-full animate-fade-in rounded-3xl border border-primary/15 bg-card/95 p-6 shadow-2xl shadow-primary/10 backdrop-blur sm:p-8'>
                     <TripSearchForm />
                 </div>
             </main>
