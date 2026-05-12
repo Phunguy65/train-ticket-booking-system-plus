@@ -24,6 +24,8 @@ class ScheduledTripSearchReader implements ScheduledTripSearchPort {
 
     private static final String AVAILABLE_SEAT_COUNT_SQL = "(SELECT COUNT(*) "
             + " FROM trip_seat_availability tsa "
+            + " JOIN seats s ON s.id = tsa.seat_id AND s.deleted_at IS NULL "
+            + " JOIN coaches c ON c.id = s.coach_id AND c.deleted_at IS NULL "
             + " LEFT JOIN bookings b ON b.id = tsa.booking_id "
             + " WHERE tsa.scheduled_trip_id = st.id "
             + "   AND (tsa.status = 'AVAILABLE' "
@@ -162,7 +164,7 @@ class ScheduledTripSearchReader implements ScheduledTripSearchPort {
             ScheduledTripSearchSortField sortField, SearchScheduledTripsCursor cursor) {
         try {
             return switch (sortField) {
-                case DEPARTURE_TIME -> Instant.parse(cursor.sortValue()).atOffset(ZoneOffset.UTC);
+                case DEPARTURE_TIME -> Instant.parse(cursor.sortValue());
                 case PRICE, DURATION, AVAILABLE_SEATS -> Long.parseLong(cursor.sortValue());
             };
         } catch (RuntimeException ex) {

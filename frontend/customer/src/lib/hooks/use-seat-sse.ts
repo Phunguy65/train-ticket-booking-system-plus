@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Seat } from '@/lib/api/generated/types.gen.ts';
+import { getAccessToken } from '@/lib/auth/token-store.ts';
 
 // ============================================================================
 // Types
@@ -311,15 +312,20 @@ export function useSeatSSE(options: UseSeatSseOptions): UseSeatSseResult {
         updateConnectionStatus(isReconnect ? 'reconnecting' : 'connecting');
 
         try {
+            const token = getAccessToken();
+            const headers: Record<string, string> = {
+                Accept: 'text/event-stream',
+                'Cache-Control': 'no-cache',
+            };
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`;
+            }
+
             const response = await fetch(
                 `/api/v1/sse/trips/${scheduledTripId}/seats`,
                 {
                     method: 'GET',
-                    credentials: 'include', // Send auth cookies
-                    headers: {
-                        Accept: 'text/event-stream',
-                        'Cache-Control': 'no-cache',
-                    },
+                    headers,
                     signal,
                 },
             );

@@ -48,6 +48,7 @@ class BookingRepositoryAdapterTest {
     @Test
     void findSummaryByIdReturnsProjectedUserDetails() {
         insertUser(USER_ID, "booking-summary@example.com");
+        insertScheduledTripGraph();
         BookingEntity entity = bookingEntity(
                 UUID.fromString("22222222-2222-2222-2222-222222222222"),
                 USER_ID,
@@ -83,6 +84,7 @@ class BookingRepositoryAdapterTest {
     void findByUserIdAppliesDynamicSortAndFiltersOtherUsers() {
         insertUser(USER_ID, "booking-sort@example.com");
         insertUser(OTHER_USER_ID, "other-user@example.com");
+        insertScheduledTripGraph();
         BookingEntity oldest = bookingEntity(
                 UUID.fromString("44444444-4444-4444-4444-444444444444"),
                 USER_ID,
@@ -129,6 +131,7 @@ class BookingRepositoryAdapterTest {
     @Test
     void findByUserIdReturnsPaginationMetadataForLaterPages() {
         insertUser(USER_ID, "booking-page@example.com");
+        insertScheduledTripGraph();
         BookingEntity first = bookingEntity(
                 UUID.fromString("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"),
                 USER_ID,
@@ -176,6 +179,7 @@ class BookingRepositoryAdapterTest {
     @Test
     void findByUserIdSupportsAscendingSortOrder() {
         insertUser(USER_ID, "booking-sort-asc@example.com");
+        insertScheduledTripGraph();
         BookingEntity older = bookingEntity(
                 UUID.fromString("13131313-1313-1313-1313-131313131313"),
                 USER_ID,
@@ -207,6 +211,7 @@ class BookingRepositoryAdapterTest {
     @Test
     void findByUserIdHandlesEmptySortListAndExactPageSizeBoundary() {
         insertUser(USER_ID, "booking-empty-sort@example.com");
+        insertScheduledTripGraph();
         BookingEntity first = bookingEntity(
                 UUID.fromString("15151515-1515-1515-1515-151515151515"),
                 USER_ID,
@@ -273,5 +278,81 @@ class BookingRepositoryAdapterTest {
                 "CUSTOMER",
                 Timestamp.from(Instant.parse("2026-04-01T00:00:00Z")),
                 Timestamp.from(Instant.parse("2026-04-01T00:00:00Z")));
+    }
+
+    private void insertScheduledTripGraph() {
+        UUID originId = UUID.fromString("40000000-0000-0000-0000-000000000101");
+        UUID destinationId = UUID.fromString("40000000-0000-0000-0000-000000000102");
+        UUID trainId = UUID.fromString("40000000-0000-0000-0000-000000000103");
+        UUID routeId = UUID.fromString("40000000-0000-0000-0000-000000000104");
+        Timestamp createdAt = Timestamp.from(Instant.parse("2026-04-01T00:00:00Z"));
+
+        jdbcTemplate.update(
+                "INSERT INTO stations (id, code, name, city, created_at) VALUES (?, ?, ?, ?, ?)",
+                originId,
+                "BKT1",
+                "Booking Test Origin",
+                "Ho Chi Minh",
+                createdAt);
+        jdbcTemplate.update(
+                "INSERT INTO stations (id, code, name, city, created_at) VALUES (?, ?, ?, ?, ?)",
+                destinationId,
+                "BKT2",
+                "Booking Test Destination",
+                "Da Nang",
+                createdAt);
+        jdbcTemplate.update(
+                "INSERT INTO trains (id, train_number, name, total_seats, created_at) VALUES (?, ?, ?, ?, ?)",
+                trainId,
+                "BKT-1",
+                "Booking Test Train",
+                200,
+                createdAt);
+        jdbcTemplate.update("""
+                INSERT INTO route_templates (id, origin_station_id, destination_station_id, base_price, created_at)
+                VALUES (?, ?, ?, ?, ?)
+                """, routeId, originId, destinationId, 450_000, createdAt);
+        insertScheduledTrip(
+                SCHEDULED_TRIP_ID_1,
+                routeId,
+                trainId,
+                Instant.parse("2026-05-01T08:00:00Z"),
+                Instant.parse("2026-05-01T12:00:00Z"),
+                createdAt);
+        insertScheduledTrip(
+                SCHEDULED_TRIP_ID_2,
+                routeId,
+                trainId,
+                Instant.parse("2026-05-02T08:00:00Z"),
+                Instant.parse("2026-05-02T12:00:00Z"),
+                createdAt);
+        insertScheduledTrip(
+                SCHEDULED_TRIP_ID_3,
+                routeId,
+                trainId,
+                Instant.parse("2026-05-03T08:00:00Z"),
+                Instant.parse("2026-05-03T12:00:00Z"),
+                createdAt);
+    }
+
+    private void insertScheduledTrip(
+            UUID tripId,
+            UUID routeId,
+            UUID trainId,
+            Instant departureTime,
+            Instant arrivalTime,
+            Timestamp createdAt) {
+        jdbcTemplate.update(
+                """
+                INSERT INTO scheduled_trips (id, route_template_id, train_id, departure_time, arrival_time, status, created_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+                """,
+                tripId,
+                routeId,
+                trainId,
+                Timestamp.from(departureTime),
+                Timestamp.from(arrivalTime),
+                "SCHEDULED",
+                createdAt);
     }
 }

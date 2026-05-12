@@ -19,7 +19,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 /**
  * SSE controller for real-time seat status updates.
  *
- * <p>Endpoint: {@code GET /sse/trips/{scheduledTripId}/seats}
+ * <p>Endpoint: {@code GET /v1/sse/trips/{scheduledTripId}/seats}
  * Requires a valid JWT — authenticated via Spring Security's filter chain
  * (see {@code SecurityConfig}). Unauthenticated requests are rejected at the
  * security filter level before reaching this controller.
@@ -29,7 +29,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
  */
 @RestController
 @Hidden
-@RequestMapping("/sse/trips")
+@RequestMapping
 public class SeatEventController {
 
     private final SeatEventBroadcaster broadcaster;
@@ -55,7 +55,10 @@ public class SeatEventController {
      * @param scheduledTripId the trip to subscribe to
      * @return an open SSE emitter
      */
-    @GetMapping(value = "/{scheduledTripId}/seats", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    @GetMapping(
+            value = "/{version}/sse/trips/{scheduledTripId}/seats",
+            produces = MediaType.TEXT_EVENT_STREAM_VALUE,
+            version = "1.0")
     public SseEmitter subscribe(@PathVariable UUID scheduledTripId) {
 
         SseEmitter emitter = broadcaster.subscribe(scheduledTripId);

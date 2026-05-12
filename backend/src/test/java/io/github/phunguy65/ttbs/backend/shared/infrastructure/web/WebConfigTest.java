@@ -40,15 +40,15 @@ class WebConfigTest {
                 new MockHttpServletRequest("GET", "/api/v1/bookings");
         MockHttpServletRequest docsRequest =
                 new MockHttpServletRequest("GET", "/v3/api-docs/customer");
-        MockHttpServletRequest internalRequest =
-                new MockHttpServletRequest("GET", "/api/sse/trips/123/seats");
+        MockHttpServletRequest sseRequest =
+                new MockHttpServletRequest("GET", "/api/v1/sse/trips/123/seats");
         ServletRequestPathUtils.parseAndCache(versionedRequest);
         ServletRequestPathUtils.parseAndCache(docsRequest);
-        ServletRequestPathUtils.parseAndCache(internalRequest);
+        ServletRequestPathUtils.parseAndCache(sseRequest);
 
         assertThat(strategy.resolveVersion(versionedRequest)).isEqualTo("v1");
         assertThat(strategy.resolveVersion(docsRequest)).isNull();
-        assertThat(strategy.resolveVersion(internalRequest)).isNull();
+        assertThat(strategy.resolveVersion(sseRequest)).isEqualTo("v1");
         assertThat(strategy.getDefaultVersion()).isEqualTo(strategy.parseVersion("1.0"));
     }
 

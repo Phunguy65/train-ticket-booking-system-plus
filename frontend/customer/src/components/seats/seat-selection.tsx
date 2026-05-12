@@ -142,15 +142,16 @@ export function SeatSelection({ tripId }: SeatSelectionProps) {
     } = useQuery({
         ...getCoachSeatMapOptions({
             path: { scheduledTripId: tripId },
-            query: { size: 100 },
+            query: { page: 0, size: 100 },
         }),
         enabled: !!tripId,
     });
 
     // Initialize live seat map from query data
     useEffect(() => {
-        if (seatMap?.seats) {
-            const seatMapEntries = seatMap.seats
+        if (seatMap?.content) {
+            const seatMapEntries = seatMap.content
+                .flatMap((coach) => coach.seats ?? [])
                 .filter((s): s is Seat & { id: string } => !!s.id)
                 .map((s) => [s.id, s] as const);
             setLiveSeatMap(new Map(seatMapEntries));
@@ -195,18 +196,18 @@ export function SeatSelection({ tripId }: SeatSelectionProps) {
         onSeatUpdate: handleSeatUpdate,
     });
 
-    // Set initial active coach
-    // The API returns a single CoachSeatMapResponse, wrap it in an array for consistency
+    // Build coaches array from paged response, merging live SSE updates
     const coaches: CoachSeatMapResponse[] = useMemo(() => {
-        if (!seatMap) return [];
-        // Merge live seat updates into coach data
+        if (!seatMap?.content) return [];
         const liveSeats = Array.from(liveSeatMap.values());
-        return [
-            {
-                ...seatMap,
-                seats: liveSeats.length > 0 ? liveSeats : seatMap.seats,
-            },
-        ];
+        if (liveSeats.length === 0) return seatMap.content;
+        return seatMap.content.map((coach) => ({
+            ...coach,
+            seats: (coach.seats ?? []).map((seat) => {
+                const live = seat.id ? liveSeatMap.get(seat.id) : undefined;
+                return live ?? seat;
+            }),
+        }));
     }, [seatMap, liveSeatMap]);
 
     // Set default coach when data loads

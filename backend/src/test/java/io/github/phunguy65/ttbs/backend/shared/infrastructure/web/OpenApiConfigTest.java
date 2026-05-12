@@ -48,10 +48,10 @@ class OpenApiConfigTest {
         assertThat(groupedOpenApi.getGroup()).isEqualTo("customer");
         assertThat(groupedOpenApi.getPathsToMatch()).containsExactly("/api/**");
         assertThat(groupedOpenApi.getPathsToExclude())
-                .containsExactly("/api/sse/**", "/api/**/webhooks/**");
+                .containsExactly("/api/*/sse/**", "/api/**/webhooks/**");
         assertThat(groupedOpenApi.getOperationCustomizers()).contains(customizer);
         assertThat(groupedOpenApi.getOpenApiCustomizers()).contains(customizer);
-        assertThat(groupedOpenApi.getOpenApiCustomizers()).hasSize(2);
+        assertThat(groupedOpenApi.getOpenApiCustomizers()).hasSize(3);
     }
 
     @Test

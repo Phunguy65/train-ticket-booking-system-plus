@@ -238,7 +238,7 @@ class ControllerContractAnnotationsTest {
                 "io.github.phunguy65.ttbs.backend.train.infrastructure.web.SeatController",
                 "getCoachSeatMap",
                 "io.github.phunguy65.ttbs.backend.train.application.response.CoachSeatMapResponse",
-                SuccessResponseKind.OBJECT,
+                SuccessResponseKind.PAGE,
                 "");
         assertSuccessPayload(
                 "io.github.phunguy65.ttbs.backend.train.infrastructure.web.RouteTemplateController",

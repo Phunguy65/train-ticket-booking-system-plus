@@ -238,7 +238,7 @@ class BookingDetailRepositoryQueriesTest {
     }
 
     private void insertBookings() {
-        insertBooking(BOOKING_ID, USER_ID, TRIP_ID, Instant.parse("2026-05-01T09:15:00Z"));
+        insertBooking(BOOKING_ID, USER_ID, TRIP_ID, Instant.now().plusSeconds(3_600));
         insertBooking(
                 EXPIRED_BOOKING_ID, OTHER_USER_ID, TRIP_ID, Instant.parse("2026-03-01T09:15:00Z"));
     }

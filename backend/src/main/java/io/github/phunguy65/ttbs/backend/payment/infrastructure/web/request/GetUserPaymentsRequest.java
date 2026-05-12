@@ -9,15 +9,24 @@ import java.util.UUID;
 
 @Schema(description = "Offset-based pagination query for a customer's payment history.")
 public record GetUserPaymentsRequest(
-        @Schema(description = "Zero-based page index.", minimum = "0", example = "0") @Min(0) int page,
+        @Schema(description = "Zero-based page index.", minimum = "0", example = "0") @Min(0) Integer page,
 
         @Schema(
                 description = "Number of payments per page.",
                 minimum = "1",
                 maximum = "100",
                 example = "20")
-        @Min(1) @Max(100) int size)
+        @Min(1) @Max(100) Integer size)
         implements PagedRequest {
+
+    public GetUserPaymentsRequest {
+        if (page == null) {
+            page = 0;
+        }
+        if (size == null) {
+            size = 20;
+        }
+    }
 
     public GetUserPaymentsRequest() {
         this(0, 20);

@@ -416,7 +416,10 @@ describe('useSeatSSE', () => {
             '/api/v1/sse/trips/trip-1/seats',
             expect.objectContaining({
                 method: 'GET',
-                credentials: 'include',
+                headers: expect.objectContaining({
+                    Accept: 'text/event-stream',
+                    'Cache-Control': 'no-cache',
+                }),
             }),
         );
     });

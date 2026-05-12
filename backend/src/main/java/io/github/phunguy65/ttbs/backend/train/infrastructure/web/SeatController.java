@@ -107,7 +107,7 @@ class SeatController {
                 content =
                         @Content(schema = @Schema(ref = "#/components/schemas/JsendFailResponse")))
     })
-    @SuccessPayload(CoachSeatMapResponse.class)
+    @SuccessPayload(value = CoachSeatMapResponse.class, kind = SuccessResponseKind.PAGE)
     @GetMapping(value = "/{version}/scheduled-trips/{scheduledTripId}/coach-seats", version = "1.0")
     ResponseEntity<JsendResponse<?>> getCoachSeatMap(
             @Parameter(description = "Scheduled trip identifier") @PathVariable
