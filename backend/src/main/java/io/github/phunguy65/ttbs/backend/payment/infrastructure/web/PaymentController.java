@@ -29,12 +29,12 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -81,7 +81,7 @@ class PaymentController {
             @Parameter(description = "Customer identifier that owns the payments") @PathVariable
                     UUID userId,
             @Parameter(hidden = true) Authentication auth,
-            @ModelAttribute @Valid GetUserPaymentsRequest request) {
+            @ParameterObject @Valid GetUserPaymentsRequest request) {
         UUID requestingUserId = UUID.fromString(auth.getName());
 
         return getUserPaymentsUseCase
@@ -110,7 +110,7 @@ class PaymentController {
     ResponseEntity<JsendResponse<?>> getPaymentById(
             @Parameter(description = "Payment identifier") @PathVariable UUID paymentId,
             @Parameter(hidden = true) Authentication auth,
-            @ModelAttribute GetPaymentByIdRequest request) {
+            @ParameterObject GetPaymentByIdRequest request) {
         UUID userId = UUID.fromString(auth.getName());
 
         return getPaymentByIdUseCase
@@ -141,7 +141,7 @@ class PaymentController {
     ResponseEntity<JsendResponse<?>> getPaymentByBookingId(
             @Parameter(description = "Booking identifier") @PathVariable UUID bookingId,
             @Parameter(hidden = true) Authentication auth,
-            @ModelAttribute GetPaymentByBookingIdRequest request) {
+            @ParameterObject GetPaymentByBookingIdRequest request) {
         UUID userId = UUID.fromString(auth.getName());
 
         return getPaymentByBookingIdUseCase

@@ -22,10 +22,10 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -54,7 +54,8 @@ class RouteTemplateController {
     })
     @SuccessPayload(value = RouteTemplateResponse.class, kind = SuccessResponseKind.PAGE)
     @GetMapping(value = "/{version}/route-templates", version = "1.0")
-    ResponseEntity<JsendResponse<?>> list(@ModelAttribute @Valid GetRouteTemplatesRequest request) {
+    ResponseEntity<JsendResponse<?>> list(
+            @ParameterObject @Valid GetRouteTemplatesRequest request) {
         PageResponse<RouteTemplateResponse> result =
                 getRouteTemplatesUseCase.execute(request.toQuery());
         return ResponseEntity.ok(JsendResponse.success(result));
@@ -73,7 +74,7 @@ class RouteTemplateController {
     @GetMapping(value = "/{version}/route-templates/{id}", version = "1.0")
     ResponseEntity<JsendResponse<?>> getById(
             @Parameter(description = "Route template identifier") @PathVariable UUID id,
-            @ModelAttribute GetRouteTemplateByIdRequest request) {
+            @ParameterObject GetRouteTemplateByIdRequest request) {
         return getRouteTemplateByIdUseCase
                 .execute(request.toQuery(id))
                 .fold(dto -> ResponseEntity.ok(JsendResponse.success(dto)), this::errorResponse);

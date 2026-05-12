@@ -121,7 +121,6 @@ export function SeatSelection({ tripId }: SeatSelectionProps) {
     } = useQuery({
         ...getScheduledTripOptions({
             path: { id: tripId },
-            query: { request: {} },
         }),
     });
 
@@ -129,7 +128,6 @@ export function SeatSelection({ tripId }: SeatSelectionProps) {
     const { data: routeTemplate, isLoading: routeLoading } = useQuery({
         ...getRouteTemplateOptions({
             path: { id: trip?.routeTemplateId ?? '' },
-            query: { request: {} },
         }),
         enabled: !!trip?.routeTemplateId,
     });
@@ -144,7 +142,7 @@ export function SeatSelection({ tripId }: SeatSelectionProps) {
     } = useQuery({
         ...getCoachSeatMapOptions({
             path: { scheduledTripId: tripId },
-            query: { request: { size: 100 } },
+            query: { size: 100 },
         }),
         enabled: !!tripId,
     });

@@ -17,6 +17,7 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet.tsx';
 import { Skeleton } from '@/components/ui/skeleton.tsx';
 import { Link, useRouter } from '@/i18n/routing.ts';
 import { getAuthenticatedUserOptions, logout } from '@/lib/api/index.ts';
+import { useAuth } from '@/lib/auth/auth-context.tsx';
 import { clearTokens, getRefreshToken } from '@/lib/auth/token-store.ts';
 import { LocaleSwitcher } from './locale-switcher.tsx';
 
@@ -68,6 +69,7 @@ function useLogout() {
 function UserNavigation() {
     const t = useTranslations('Navigation');
     const logout = useLogout();
+    const { isReady: isAuthReady } = useAuth();
 
     const {
         data: user,
@@ -75,15 +77,15 @@ function UserNavigation() {
         isError,
     } = useQuery({
         ...getAuthenticatedUserOptions(),
+        enabled: isAuthReady,
         retry: false,
         staleTime: 5 * 60 * 1000,
     });
 
-    if (isLoading) {
+    if (!isAuthReady || isLoading) {
         return <Skeleton className='h-8 w-20' />;
     }
 
-    // Unauthenticated state
     if (isError || !user) {
         return (
             <div className='hidden items-center gap-2 sm:flex'>
@@ -97,7 +99,6 @@ function UserNavigation() {
         );
     }
 
-    // Authenticated state
     const initials =
         user.fullName
             ?.split(' ')
@@ -152,9 +153,11 @@ function UserNavigation() {
 
 function MobileNavigation() {
     const t = useTranslations('Navigation');
+    const { isReady: isAuthReady } = useAuth();
 
     const { data: user, isLoading } = useQuery({
         ...getAuthenticatedUserOptions(),
+        enabled: isAuthReady,
         retry: false,
         staleTime: 5 * 60 * 1000,
     });
@@ -169,7 +172,7 @@ function MobileNavigation() {
             </SheetTrigger>
             <SheetContent side='right' className='w-72'>
                 <nav className='flex flex-col gap-4 pt-8'>
-                    {isLoading ? (
+                    {!isAuthReady || isLoading ? (
                         <div className='space-y-2'>
                             <Skeleton className='h-10 w-full' />
                             <Skeleton className='h-10 w-full' />

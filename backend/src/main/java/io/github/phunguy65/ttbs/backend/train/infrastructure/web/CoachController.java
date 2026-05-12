@@ -23,6 +23,7 @@ import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -60,7 +61,7 @@ class CoachController {
     @GetMapping(value = "/{version}/trains/{trainId}/coaches", version = "1.0")
     ResponseEntity<JsendResponse<?>> getCoachesByTrain(
             @Parameter(description = "Train identifier") @PathVariable UUID trainId,
-            @ModelAttribute @Valid GetCoachesRequest request) {
+            @ParameterObject @Valid GetCoachesRequest request) {
         PageResponse<CoachResponse> result =
                 getCoachesByTrainUseCase.execute(request.toQuery(trainId));
         return ResponseEntity.ok(JsendResponse.success(result));
@@ -80,7 +81,7 @@ class CoachController {
     ResponseEntity<JsendResponse<?>> getCoachById(
             @Parameter(description = "Train identifier") @PathVariable UUID trainId,
             @Parameter(description = "Coach identifier") @PathVariable UUID id,
-            @ModelAttribute GetCoachByIdRequest request) {
+            @ParameterObject GetCoachByIdRequest request) {
         return getCoachByIdUseCase
                 .execute(request.toQuery(id, trainId))
                 .fold(

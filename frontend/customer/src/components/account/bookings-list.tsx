@@ -59,7 +59,7 @@ export function BookingsList() {
     } = useQuery({
         ...getUserBookingsOptions({
             path: { userId: user?.id ?? '' },
-            query: { request: { page: 0, size: 20 } },
+            query: { page: 0, size: 20 },
         }),
         enabled: !!user?.id,
     });

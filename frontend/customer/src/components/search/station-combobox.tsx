@@ -50,10 +50,8 @@ export function StationCombobox({
     } = useQuery({
         ...searchStationsOptions({
             query: {
-                request: {
-                    q: search || undefined,
-                    limit: 10,
-                },
+                q: search || undefined,
+                limit: 10,
             },
         }),
         enabled: open,

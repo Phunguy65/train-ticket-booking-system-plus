@@ -65,7 +65,6 @@ export function BookingDetail({ bookingId }: BookingDetailProps) {
     } = useQuery({
         ...getBookingOptions({
             path: { id: bookingId },
-            query: { request: {} },
         }),
     });
 

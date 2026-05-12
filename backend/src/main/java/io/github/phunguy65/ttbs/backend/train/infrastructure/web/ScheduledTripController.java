@@ -26,10 +26,10 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -61,7 +61,8 @@ class ScheduledTripController {
     })
     @SuccessPayload(value = ScheduledTripResponse.class, kind = SuccessResponseKind.PAGE)
     @GetMapping(value = "/{version}/scheduled-trips", version = "1.0")
-    ResponseEntity<JsendResponse<?>> list(@ModelAttribute @Valid GetScheduledTripsRequest request) {
+    ResponseEntity<JsendResponse<?>> list(
+            @ParameterObject @Valid GetScheduledTripsRequest request) {
         PageResponse<ScheduledTripResponse> result =
                 getScheduledTripsUseCase.execute(request.toQuery());
         return ResponseEntity.ok(JsendResponse.success(result));
@@ -81,7 +82,7 @@ class ScheduledTripController {
     @SuccessPayload(value = SearchScheduledTripsResponse.class, kind = SuccessResponseKind.SLICE)
     @GetMapping(value = "/{version}/scheduled-trips:filter", version = "1.0")
     ResponseEntity<JsendResponse<?>> filter(
-            @ModelAttribute @Valid SearchScheduledTripsRequest request) {
+            @ParameterObject @Valid SearchScheduledTripsRequest request) {
         SliceResponse<SearchScheduledTripsResponse> result =
                 searchScheduledTripsUseCase.execute(request.toQuery());
         String message = result.content().isEmpty()
@@ -103,7 +104,7 @@ class ScheduledTripController {
     @GetMapping(value = "/{version}/scheduled-trips/{id}", version = "1.0")
     ResponseEntity<JsendResponse<?>> getById(
             @Parameter(description = "Scheduled trip identifier") @PathVariable UUID id,
-            @ModelAttribute GetScheduledTripByIdRequest request) {
+            @ParameterObject GetScheduledTripByIdRequest request) {
         return getScheduledTripByIdUseCase
                 .execute(request.toQuery(id))
                 .fold(dto -> ResponseEntity.ok(JsendResponse.success(dto)), this::errorResponse);

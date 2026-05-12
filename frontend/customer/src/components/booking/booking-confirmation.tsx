@@ -80,7 +80,6 @@ export function BookingConfirmation() {
     const { data: payment } = useQuery({
         ...getBookingPaymentOptions({
             path: { bookingId: bookingResult?.bookingId ?? '' },
-            query: { request: {} },
         }),
         enabled: !!bookingResult?.bookingId,
     });
@@ -106,7 +105,6 @@ export function BookingConfirmation() {
     const { data: trip, isLoading: tripLoading } = useQuery({
         ...getScheduledTripOptions({
             path: { id: context?.tripId ?? '' },
-            query: { request: {} },
         }),
         enabled: !!context?.tripId,
     });
@@ -115,7 +113,6 @@ export function BookingConfirmation() {
     const { data: routeTemplate, isLoading: routeLoading } = useQuery({
         ...getRouteTemplateOptions({
             path: { id: trip?.routeTemplateId ?? '' },
-            query: { request: {} },
         }),
         enabled: !!trip?.routeTemplateId,
     });
@@ -124,7 +121,6 @@ export function BookingConfirmation() {
     const { data: originStation, isLoading: originLoading } = useQuery({
         ...getStationOptions({
             path: { id: routeTemplate?.originStationId ?? '' },
-            query: { request: {} },
         }),
         enabled: !!routeTemplate?.originStationId,
     });
@@ -133,7 +129,6 @@ export function BookingConfirmation() {
         useQuery({
             ...getStationOptions({
                 path: { id: routeTemplate?.destinationStationId ?? '' },
-                query: { request: {} },
             }),
             enabled: !!routeTemplate?.destinationStationId,
         });
@@ -142,7 +137,6 @@ export function BookingConfirmation() {
     const { data: train, isLoading: trainLoading } = useQuery({
         ...getTrainOptions({
             path: { id: trip?.trainId ?? '' },
-            query: { request: {} },
         }),
         enabled: !!trip?.trainId,
     });
@@ -151,7 +145,7 @@ export function BookingConfirmation() {
     const { data: availableSeats, isLoading: seatsLoading } = useQuery({
         ...getAvailableSeatsOptions({
             path: { scheduledTripId: context?.tripId ?? '' },
-            query: { request: { size: 100 } },
+            query: { size: 100 },
         }),
         enabled: !!context?.tripId,
     });

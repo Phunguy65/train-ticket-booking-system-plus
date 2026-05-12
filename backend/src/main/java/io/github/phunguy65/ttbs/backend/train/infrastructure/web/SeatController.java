@@ -23,6 +23,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -57,7 +58,7 @@ class SeatController {
     @GetMapping(value = "/{version}/trains/{trainId}/seats", version = "1.0")
     ResponseEntity<JsendResponse<?>> getSeatsByTrain(
             @Parameter(description = "Train identifier") @PathVariable UUID trainId,
-            @ModelAttribute @Valid GetSeatsRequest request) {
+            @ParameterObject @Valid GetSeatsRequest request) {
         PageResponse<SeatResponse> result =
                 getSeatsByTrainUseCase.execute(request.toQuery(trainId));
         return ResponseEntity.ok(JsendResponse.success(result));
@@ -86,7 +87,7 @@ class SeatController {
     ResponseEntity<JsendResponse<?>> getAvailableSeats(
             @Parameter(description = "Scheduled trip identifier") @PathVariable
                     UUID scheduledTripId,
-            @ModelAttribute @Valid GetAvailableSeatsRequest request) {
+            @ParameterObject @Valid GetAvailableSeatsRequest request) {
         PageResponse<SeatResponse> result =
                 getAvailableSeatsForScheduledTripUseCase.execute(request.toQuery(scheduledTripId));
         return ResponseEntity.ok(JsendResponse.success(result));
@@ -111,7 +112,7 @@ class SeatController {
     ResponseEntity<JsendResponse<?>> getCoachSeatMap(
             @Parameter(description = "Scheduled trip identifier") @PathVariable
                     UUID scheduledTripId,
-            @ModelAttribute @Valid GetCoachSeatMapRequest request) {
+            @ParameterObject @Valid GetCoachSeatMapRequest request) {
         return getCoachSeatMapByScheduledTripUseCase
                 .execute(request.toQuery(scheduledTripId))
                 .fold(

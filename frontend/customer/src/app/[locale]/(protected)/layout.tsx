@@ -6,6 +6,7 @@ import { Footer, Header } from '@/components/navigation/index.ts';
 import { Skeleton } from '@/components/ui/skeleton.tsx';
 import { usePathname, useRouter } from '@/i18n/routing.ts';
 import { getAuthenticatedUserOptions } from '@/lib/api/index.ts';
+import { useAuth } from '@/lib/auth/auth-context.tsx';
 
 type Props = {
     children: React.ReactNode;
@@ -14,6 +15,7 @@ type Props = {
 export default function ProtectedLayout({ children }: Props) {
     const router = useRouter();
     const pathname = usePathname();
+    const { isReady: isAuthReady } = useAuth();
 
     const {
         data: user,
@@ -21,16 +23,17 @@ export default function ProtectedLayout({ children }: Props) {
         isError,
     } = useQuery({
         ...getAuthenticatedUserOptions(),
+        enabled: isAuthReady,
         retry: false,
     });
 
     useEffect(() => {
-        if (!isLoading && (isError || !user)) {
+        if (isAuthReady && !isLoading && (isError || !user)) {
             router.replace(`/login?redirect=${encodeURIComponent(pathname)}`);
         }
-    }, [isLoading, isError, user, router, pathname]);
+    }, [isAuthReady, isLoading, isError, user, router, pathname]);
 
-    if (isLoading) {
+    if (!isAuthReady || isLoading) {
         return (
             <div className='flex min-h-screen flex-col'>
                 <Header />

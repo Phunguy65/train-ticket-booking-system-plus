@@ -52,17 +52,15 @@ export function SearchResults() {
     } = useInfiniteQuery({
         ...filterScheduledTripsInfiniteOptions({
             query: {
-                request: {
-                    originStationId: filters.originStationId,
-                    destinationStationId: filters.destinationStationId,
-                    departureDate: filters.departureDate,
-                    sortBy: filters.sortBy,
-                    sortDirection: filters.sortDirection,
-                    minPrice: filters.minPrice,
-                    maxPrice: filters.maxPrice,
-                    availableOnly: filters.availableOnly,
-                    size: 10,
-                },
+                originStationId: filters.originStationId,
+                destinationStationId: filters.destinationStationId,
+                departureDate: filters.departureDate,
+                sortBy: filters.sortBy,
+                sortDirection: filters.sortDirection,
+                minPrice: filters.minPrice,
+                maxPrice: filters.maxPrice,
+                availableOnly: filters.availableOnly,
+                size: 10,
             },
         }),
         enabled: hasRequiredParams,

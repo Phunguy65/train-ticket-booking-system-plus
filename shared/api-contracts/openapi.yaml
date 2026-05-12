@@ -461,11 +461,29 @@ paths:
         schema:
           type: "string"
           format: "uuid"
-      - name: "request"
+      - name: "page"
         in: "query"
-        required: true
+        description: "Zero-based page index."
+        required: false
         schema:
-          $ref: "#/components/schemas/GetUserPaymentsRequest"
+          type: "integer"
+          format: "int32"
+          description: "Zero-based page index."
+          example: 0
+          minimum: 0
+        example: 0
+      - name: "size"
+        in: "query"
+        description: "Number of payments per page."
+        required: false
+        schema:
+          type: "integer"
+          format: "int32"
+          description: "Number of payments per page."
+          example: 20
+          maximum: 100
+          minimum: 1
+        example: 20
       responses:
         "200":
           description: "Paged payment history"
@@ -510,11 +528,29 @@ paths:
         schema:
           type: "string"
           format: "uuid"
-      - name: "request"
+      - name: "page"
         in: "query"
-        required: true
+        description: "Zero-based page index."
+        required: false
         schema:
-          $ref: "#/components/schemas/GetUserBookingsRequest"
+          type: "integer"
+          format: "int32"
+          description: "Zero-based page index."
+          example: 0
+          minimum: 0
+        example: 0
+      - name: "size"
+        in: "query"
+        description: "Number of bookings per page."
+        required: false
+        schema:
+          type: "integer"
+          format: "int32"
+          description: "Number of bookings per page."
+          example: 20
+          maximum: 100
+          minimum: 1
+        example: 20
       responses:
         "200":
           description: "Paged booking history"
@@ -552,11 +588,29 @@ paths:
       summary: "List trains"
       operationId: "getTrains"
       parameters:
-      - name: "request"
+      - name: "page"
         in: "query"
-        required: true
+        description: "Zero-based page index."
+        required: false
         schema:
-          $ref: "#/components/schemas/GetTrainsRequest"
+          type: "integer"
+          format: "int32"
+          description: "Zero-based page index."
+          example: 0
+          minimum: 0
+        example: 0
+      - name: "size"
+        in: "query"
+        description: "Number of trains per page."
+        required: false
+        schema:
+          type: "integer"
+          format: "int32"
+          description: "Number of trains per page."
+          example: 20
+          maximum: 100
+          minimum: 1
+        example: 20
       responses:
         "200":
           description: "Paged train catalog"
@@ -593,11 +647,29 @@ paths:
         schema:
           type: "string"
           format: "uuid"
-      - name: "request"
+      - name: "page"
         in: "query"
-        required: true
+        description: "Zero-based page index."
+        required: false
         schema:
-          $ref: "#/components/schemas/GetSeatsRequest"
+          type: "integer"
+          format: "int32"
+          description: "Zero-based page index."
+          example: 0
+          minimum: 0
+        example: 0
+      - name: "size"
+        in: "query"
+        description: "Number of seats per page."
+        required: false
+        schema:
+          type: "integer"
+          format: "int32"
+          description: "Number of seats per page."
+          example: 20
+          maximum: 100
+          minimum: 1
+        example: 20
       responses:
         "200":
           description: "Paged seats for the train"
@@ -634,11 +706,29 @@ paths:
         schema:
           type: "string"
           format: "uuid"
-      - name: "request"
+      - name: "page"
         in: "query"
-        required: true
+        description: "Zero-based page index."
+        required: false
         schema:
-          $ref: "#/components/schemas/GetCoachesRequest"
+          type: "integer"
+          format: "int32"
+          description: "Zero-based page index."
+          example: 0
+          minimum: 0
+        example: 0
+      - name: "size"
+        in: "query"
+        description: "Number of coaches per page."
+        required: false
+        schema:
+          type: "integer"
+          format: "int32"
+          description: "Number of coaches per page."
+          example: 20
+          maximum: 100
+          minimum: 1
+        example: 20
       responses:
         "200":
           description: "Paged coaches for the train"
@@ -688,11 +778,6 @@ paths:
         schema:
           type: "string"
           format: "uuid"
-      - name: "request"
-        in: "query"
-        required: true
-        schema:
-          $ref: "#/components/schemas/GetCoachByIdRequest"
       responses:
         "200":
           description: "Coach detail"
@@ -729,11 +814,6 @@ paths:
         schema:
           type: "string"
           format: "uuid"
-      - name: "request"
-        in: "query"
-        required: true
-        schema:
-          $ref: "#/components/schemas/GetTrainByIdRequest"
       responses:
         "200":
           description: "Train detail"
@@ -763,11 +843,29 @@ paths:
       summary: "List stations"
       operationId: "getStations"
       parameters:
-      - name: "request"
+      - name: "page"
         in: "query"
-        required: true
+        description: "Zero-based page index."
+        required: false
         schema:
-          $ref: "#/components/schemas/GetStationsRequest"
+          type: "integer"
+          format: "int32"
+          description: "Zero-based page index."
+          example: 0
+          minimum: 0
+        example: 0
+      - name: "size"
+        in: "query"
+        description: "Number of stations per page."
+        required: false
+        schema:
+          type: "integer"
+          format: "int32"
+          description: "Number of stations per page."
+          example: 20
+          maximum: 100
+          minimum: 1
+        example: 20
       responses:
         "200":
           description: "Paged station catalog"
@@ -804,11 +902,6 @@ paths:
         schema:
           type: "string"
           format: "uuid"
-      - name: "request"
-        in: "query"
-        required: true
-        schema:
-          $ref: "#/components/schemas/GetStationByIdRequest"
       responses:
         "200":
           description: "Station detail"
@@ -838,11 +931,27 @@ paths:
       summary: "Search stations by keyword"
       operationId: "searchStations"
       parameters:
-      - name: "request"
+      - name: "q"
         in: "query"
-        required: true
+        description: "Free-text station search term."
+        required: false
         schema:
-          $ref: "#/components/schemas/SearchStationsRequest"
+          type: "string"
+          description: "Free-text station search term."
+          example: "ha noi"
+        example: "ha noi"
+      - name: "limit"
+        in: "query"
+        description: "Maximum number of station suggestions to return."
+        required: false
+        schema:
+          type: "integer"
+          format: "int32"
+          description: "Maximum number of station suggestions to return."
+          example: 10
+          maximum: 20
+          minimum: 1
+        example: 10
       responses:
         "200":
           description: "Matching station suggestions"
@@ -874,11 +983,29 @@ paths:
       summary: "List scheduled trips"
       operationId: "getScheduledTrips"
       parameters:
-      - name: "request"
+      - name: "page"
         in: "query"
-        required: true
+        description: "Zero-based page index."
+        required: false
         schema:
-          $ref: "#/components/schemas/GetScheduledTripsRequest"
+          type: "integer"
+          format: "int32"
+          description: "Zero-based page index."
+          example: 0
+          minimum: 0
+        example: 0
+      - name: "size"
+        in: "query"
+        description: "Number of scheduled trips per page."
+        required: false
+        schema:
+          type: "integer"
+          format: "int32"
+          description: "Number of scheduled trips per page."
+          example: 20
+          maximum: 100
+          minimum: 1
+        example: 20
       responses:
         "200":
           description: "Paged scheduled trips"
@@ -908,11 +1035,122 @@ paths:
       summary: "Filter scheduled trips"
       operationId: "filterScheduledTrips"
       parameters:
-      - name: "request"
+      - name: "originStationId"
         in: "query"
-        required: true
+        description: "Origin station filter."
+        required: false
         schema:
-          $ref: "#/components/schemas/SearchScheduledTripsRequest"
+          type: "string"
+          format: "uuid"
+          description: "Origin station filter."
+      - name: "destinationStationId"
+        in: "query"
+        description: "Destination station filter."
+        required: false
+        schema:
+          type: "string"
+          format: "uuid"
+          description: "Destination station filter."
+      - name: "departureDate"
+        in: "query"
+        description: "Departure date filter."
+        required: false
+        schema:
+          type: "string"
+          format: "date"
+          description: "Departure date filter."
+      - name: "status"
+        in: "query"
+        description: "Scheduled trip status filter."
+        required: false
+        schema:
+          type: "string"
+          description: "Scheduled trip status filter."
+          enum:
+          - "SCHEDULED"
+          - "BOARDING"
+          - "DEPARTED"
+          - "ARRIVED"
+          - "CANCELLED"
+          pattern: "SCHEDULED|BOARDING|DEPARTED|ARRIVED|CANCELLED"
+      - name: "availableOnly"
+        in: "query"
+        description: "When true, only trips with currently available seats are returned."
+        required: false
+        schema:
+          type: "boolean"
+          description: "When true, only trips with currently available seats are returned."
+          example: true
+        example: true
+      - name: "minPrice"
+        in: "query"
+        description: "Minimum fare filter in minor currency units."
+        required: false
+        schema:
+          type: "integer"
+          format: "int64"
+          description: "Minimum fare filter in minor currency units."
+          example: 350000
+          minimum: 0
+        example: 350000
+      - name: "maxPrice"
+        in: "query"
+        description: "Maximum fare filter in minor currency units."
+        required: false
+        schema:
+          type: "integer"
+          format: "int64"
+          description: "Maximum fare filter in minor currency units."
+          example: 950000
+          minimum: 0
+        example: 950000
+      - name: "sortBy"
+        in: "query"
+        description: "Field used to sort results."
+        required: false
+        schema:
+          type: "string"
+          description: "Field used to sort results."
+          enum:
+          - "DEPARTURE_TIME"
+          - "PRICE"
+          - "DURATION"
+          - "AVAILABLE_SEATS"
+          pattern: "DEPARTURE_TIME|PRICE|DURATION|AVAILABLE_SEATS"
+      - name: "sortDirection"
+        in: "query"
+        description: "Sort direction."
+        required: false
+        schema:
+          type: "string"
+          description: "Sort direction."
+          enum:
+          - "ASC"
+          - "DESC"
+          pattern: "ASC|DESC"
+      - name: "cursor"
+        in: "query"
+        description: "Opaque cursor from the previous search page. Omit to start from\
+          \ the beginning."
+        required: false
+        schema:
+          type: "string"
+          description: "Opaque cursor from the previous search page. Omit to start\
+            \ from the beginning."
+          example: "opaque-cursor-token"
+        example: "opaque-cursor-token"
+      - name: "size"
+        in: "query"
+        description: "Number of results per page."
+        required: false
+        schema:
+          type: "integer"
+          format: "int32"
+          description: "Number of results per page."
+          example: 20
+          maximum: 50
+          minimum: 1
+        example: 20
       responses:
         "200":
           description: "Cursor-paged scheduled trip search results"
@@ -949,11 +1187,29 @@ paths:
         schema:
           type: "string"
           format: "uuid"
-      - name: "request"
+      - name: "page"
         in: "query"
-        required: true
+        description: "Zero-based page index."
+        required: false
         schema:
-          $ref: "#/components/schemas/GetAvailableSeatsRequest"
+          type: "integer"
+          format: "int32"
+          description: "Zero-based page index."
+          example: 0
+          minimum: 0
+        example: 0
+      - name: "size"
+        in: "query"
+        description: "Number of seats per page."
+        required: false
+        schema:
+          type: "integer"
+          format: "int32"
+          description: "Number of seats per page."
+          example: 20
+          maximum: 100
+          minimum: 1
+        example: 20
       responses:
         "200":
           description: "Paged available seats"
@@ -996,11 +1252,29 @@ paths:
         schema:
           type: "string"
           format: "uuid"
-      - name: "request"
+      - name: "page"
         in: "query"
-        required: true
+        description: "Zero-based page index."
+        required: false
         schema:
-          $ref: "#/components/schemas/GetCoachSeatMapRequest"
+          type: "integer"
+          format: "int32"
+          description: "Zero-based page index."
+          example: 0
+          minimum: 0
+        example: 0
+      - name: "size"
+        in: "query"
+        description: "Number of seats per page."
+        required: false
+        schema:
+          type: "integer"
+          format: "int32"
+          description: "Number of seats per page."
+          example: 20
+          maximum: 100
+          minimum: 1
+        example: 20
       responses:
         "200":
           description: "Coach seat map for the scheduled trip"
@@ -1043,11 +1317,6 @@ paths:
         schema:
           type: "string"
           format: "uuid"
-      - name: "request"
-        in: "query"
-        required: true
-        schema:
-          $ref: "#/components/schemas/GetScheduledTripByIdRequest"
       responses:
         "200":
           description: "Scheduled trip detail"
@@ -1077,11 +1346,29 @@ paths:
       summary: "List route templates"
       operationId: "getRouteTemplates"
       parameters:
-      - name: "request"
+      - name: "page"
         in: "query"
-        required: true
+        description: "Zero-based page index."
+        required: false
         schema:
-          $ref: "#/components/schemas/GetRouteTemplatesRequest"
+          type: "integer"
+          format: "int32"
+          description: "Zero-based page index."
+          example: 0
+          minimum: 0
+        example: 0
+      - name: "size"
+        in: "query"
+        description: "Number of route templates per page."
+        required: false
+        schema:
+          type: "integer"
+          format: "int32"
+          description: "Number of route templates per page."
+          example: 20
+          maximum: 100
+          minimum: 1
+        example: 20
       responses:
         "200":
           description: "Paged route templates"
@@ -1118,11 +1405,6 @@ paths:
         schema:
           type: "string"
           format: "uuid"
-      - name: "request"
-        in: "query"
-        required: true
-        schema:
-          $ref: "#/components/schemas/GetRouteTemplateByIdRequest"
       responses:
         "200":
           description: "Route template detail"
@@ -1159,11 +1441,6 @@ paths:
         schema:
           type: "string"
           format: "uuid"
-      - name: "request"
-        in: "query"
-        required: true
-        schema:
-          $ref: "#/components/schemas/GetPaymentByIdRequest"
       responses:
         "200":
           description: "Payment detail"
@@ -1208,11 +1485,6 @@ paths:
         schema:
           type: "string"
           format: "uuid"
-      - name: "request"
-        in: "query"
-        required: true
-        schema:
-          $ref: "#/components/schemas/GetBookingDetailRequest"
       responses:
         "200":
           description: "Booking detail"
@@ -1257,11 +1529,6 @@ paths:
         schema:
           type: "string"
           format: "uuid"
-      - name: "request"
-        in: "query"
-        required: true
-        schema:
-          $ref: "#/components/schemas/GetPaymentByBookingIdRequest"
       responses:
         "200":
           description: "Payment linked to the booking"
@@ -1583,284 +1850,6 @@ components:
       required:
       - "email"
       - "password"
-    GetUserPaymentsRequest:
-      type: "object"
-      description: "Offset-based pagination query for a customer's payment history."
-      properties:
-        page:
-          type: "integer"
-          format: "int32"
-          description: "Zero-based page index."
-          example: 0
-          minimum: 0
-        size:
-          type: "integer"
-          format: "int32"
-          description: "Number of payments per page."
-          example: 20
-          maximum: 100
-          minimum: 1
-    GetUserBookingsRequest:
-      type: "object"
-      description: "Offset-based pagination query for a customer's booking history."
-      properties:
-        page:
-          type: "integer"
-          format: "int32"
-          description: "Zero-based page index."
-          example: 0
-          minimum: 0
-        size:
-          type: "integer"
-          format: "int32"
-          description: "Number of bookings per page."
-          example: 20
-          maximum: 100
-          minimum: 1
-    GetTrainsRequest:
-      type: "object"
-      description: "Offset-based pagination query for trains."
-      properties:
-        page:
-          type: "integer"
-          format: "int32"
-          description: "Zero-based page index."
-          example: 0
-          minimum: 0
-        size:
-          type: "integer"
-          format: "int32"
-          description: "Number of trains per page."
-          example: 20
-          maximum: 100
-          minimum: 1
-    GetSeatsRequest:
-      type: "object"
-      description: "Offset-based pagination query for seats belonging to a train."
-      properties:
-        page:
-          type: "integer"
-          format: "int32"
-          description: "Zero-based page index."
-          example: 0
-          minimum: 0
-        size:
-          type: "integer"
-          format: "int32"
-          description: "Number of seats per page."
-          example: 20
-          maximum: 100
-          minimum: 1
-    GetCoachesRequest:
-      type: "object"
-      description: "Offset-based pagination query for the coaches assigned to a train."
-      properties:
-        page:
-          type: "integer"
-          format: "int32"
-          description: "Zero-based page index."
-          example: 0
-          minimum: 0
-        size:
-          type: "integer"
-          format: "int32"
-          description: "Number of coaches per page."
-          example: 20
-          maximum: 100
-          minimum: 1
-    GetCoachByIdRequest:
-      description: "No additional query parameters are accepted when fetching a coach."
-    GetTrainByIdRequest:
-      description: "No additional query parameters are accepted when fetching a train."
-    GetStationsRequest:
-      type: "object"
-      description: "Offset-based pagination query for stations."
-      properties:
-        page:
-          type: "integer"
-          format: "int32"
-          description: "Zero-based page index."
-          example: 0
-          minimum: 0
-        size:
-          type: "integer"
-          format: "int32"
-          description: "Number of stations per page."
-          example: 20
-          maximum: 100
-          minimum: 1
-    GetStationByIdRequest:
-      description: "No additional query parameters are accepted when fetching a station."
-    SearchStationsRequest:
-      type: "object"
-      description: "Station auto-complete query."
-      properties:
-        q:
-          type: "string"
-          description: "Free-text station search term."
-          example: "ha noi"
-        limit:
-          type: "integer"
-          format: "int32"
-          description: "Maximum number of station suggestions to return."
-          example: 10
-          maximum: 20
-          minimum: 1
-    GetScheduledTripsRequest:
-      type: "object"
-      description: "Offset-based pagination query for scheduled trips."
-      properties:
-        page:
-          type: "integer"
-          format: "int32"
-          description: "Zero-based page index."
-          example: 0
-          minimum: 0
-        size:
-          type: "integer"
-          format: "int32"
-          description: "Number of scheduled trips per page."
-          example: 20
-          maximum: 100
-          minimum: 1
-    SearchScheduledTripsRequest:
-      type: "object"
-      description: "Cursor-based search query for scheduled trips."
-      properties:
-        originStationId:
-          type: "string"
-          format: "uuid"
-          description: "Origin station filter."
-        destinationStationId:
-          type: "string"
-          format: "uuid"
-          description: "Destination station filter."
-        departureDate:
-          type: "string"
-          format: "date"
-          description: "Departure date filter."
-        status:
-          type: "string"
-          description: "Scheduled trip status filter."
-          enum:
-          - "SCHEDULED"
-          - "BOARDING"
-          - "DEPARTED"
-          - "ARRIVED"
-          - "CANCELLED"
-          pattern: "SCHEDULED|BOARDING|DEPARTED|ARRIVED|CANCELLED"
-        availableOnly:
-          type: "boolean"
-          description: "When true, only trips with currently available seats are returned."
-          example: true
-        minPrice:
-          type: "integer"
-          format: "int64"
-          description: "Minimum fare filter in minor currency units."
-          example: 350000
-          minimum: 0
-        maxPrice:
-          type: "integer"
-          format: "int64"
-          description: "Maximum fare filter in minor currency units."
-          example: 950000
-          minimum: 0
-        sortBy:
-          type: "string"
-          description: "Field used to sort results."
-          enum:
-          - "DEPARTURE_TIME"
-          - "PRICE"
-          - "DURATION"
-          - "AVAILABLE_SEATS"
-          pattern: "DEPARTURE_TIME|PRICE|DURATION|AVAILABLE_SEATS"
-        sortDirection:
-          type: "string"
-          description: "Sort direction."
-          enum:
-          - "ASC"
-          - "DESC"
-          pattern: "ASC|DESC"
-        cursor:
-          type: "string"
-          description: "Opaque cursor from the previous search page. Omit to start\
-            \ from the beginning."
-          example: "opaque-cursor-token"
-        size:
-          type: "integer"
-          format: "int32"
-          description: "Number of results per page."
-          example: 20
-          maximum: 50
-          minimum: 1
-    GetAvailableSeatsRequest:
-      type: "object"
-      description: "Offset-based pagination query for currently available seats on\
-        \ a scheduled trip."
-      properties:
-        page:
-          type: "integer"
-          format: "int32"
-          description: "Zero-based page index."
-          example: 0
-          minimum: 0
-        size:
-          type: "integer"
-          format: "int32"
-          description: "Number of seats per page."
-          example: 20
-          maximum: 100
-          minimum: 1
-    GetCoachSeatMapRequest:
-      type: "object"
-      description: "Offset-based pagination query for a scheduled trip coach seat\
-        \ map."
-      properties:
-        page:
-          type: "integer"
-          format: "int32"
-          description: "Zero-based page index."
-          example: 0
-          minimum: 0
-        size:
-          type: "integer"
-          format: "int32"
-          description: "Number of seats per page."
-          example: 20
-          maximum: 100
-          minimum: 1
-    GetScheduledTripByIdRequest:
-      description: "No additional query parameters are accepted when fetching a scheduled\
-        \ trip."
-    GetRouteTemplatesRequest:
-      type: "object"
-      description: "Offset-based pagination query for route templates."
-      properties:
-        page:
-          type: "integer"
-          format: "int32"
-          description: "Zero-based page index."
-          example: 0
-          minimum: 0
-        size:
-          type: "integer"
-          format: "int32"
-          description: "Number of route templates per page."
-          example: 20
-          maximum: 100
-          minimum: 1
-    GetRouteTemplateByIdRequest:
-      description: "No additional query parameters are accepted when fetching a route\
-        \ template."
-    GetPaymentByIdRequest:
-      description: "No additional query parameters are accepted when fetching a payment\
-        \ by id."
-    GetBookingDetailRequest:
-      description: "No additional query parameters are accepted when fetching a booking\
-        \ detail."
-    GetPaymentByBookingIdRequest:
-      description: "No additional query parameters are accepted when fetching the\
-        \ payment for a booking."
     UserResponse:
       description: "Customer profile returned by authenticated user endpoints."
       properties:

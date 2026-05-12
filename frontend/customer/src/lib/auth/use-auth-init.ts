@@ -9,11 +9,12 @@ import {
     setTokens,
 } from './token-store.ts';
 
-export function useAuthInit() {
+export function useAuthInit(setIsReady: (isReady: boolean) => void) {
     useEffect(() => {
         const storedRefreshToken = getRefreshToken();
 
         if (!storedRefreshToken || getAccessToken()) {
+            setIsReady(true);
             return;
         }
 
@@ -32,13 +33,16 @@ export function useAuthInit() {
 
                 if (data?.accessToken && data.refreshToken) {
                     setTokens(data.accessToken, data.refreshToken);
-                    return;
+                } else {
+                    clearTokens();
                 }
-
-                clearTokens();
             } catch {
                 if (isActive) {
                     clearTokens();
+                }
+            } finally {
+                if (isActive) {
+                    setIsReady(true);
                 }
             }
         };
@@ -48,5 +52,5 @@ export function useAuthInit() {
         return () => {
             isActive = false;
         };
-    }, []);
+    }, [setIsReady]);
 }

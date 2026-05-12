@@ -25,10 +25,10 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -60,7 +60,7 @@ class StationController {
     })
     @SuccessPayload(value = StationResponse.class, kind = SuccessResponseKind.PAGE)
     @GetMapping(value = "/{version}/stations", version = "1.0")
-    ResponseEntity<JsendResponse<?>> list(@ModelAttribute @Valid GetStationsRequest request) {
+    ResponseEntity<JsendResponse<?>> list(@ParameterObject @Valid GetStationsRequest request) {
         PageResponse<StationResponse> result = getStationsUseCase.execute(request.toQuery());
 
         return ResponseEntity.ok(JsendResponse.success(result));
@@ -77,7 +77,7 @@ class StationController {
     })
     @SuccessPayload(value = StationSearchResponse.class, kind = SuccessResponseKind.ARRAY)
     @GetMapping(value = "/{version}/stations/search", version = "1.0")
-    ResponseEntity<JsendResponse<?>> search(@ModelAttribute @Valid SearchStationsRequest request) {
+    ResponseEntity<JsendResponse<?>> search(@ParameterObject @Valid SearchStationsRequest request) {
         List<StationSearchResponse> result = searchStationsUseCase.execute(request.toQuery());
         String message = result.isEmpty() ? "No stations matched your search." : null;
         return ResponseEntity.ok(new JsendResponse<>("success", result, message));
@@ -96,7 +96,7 @@ class StationController {
     @GetMapping(value = "/{version}/stations/{id}", version = "1.0")
     ResponseEntity<JsendResponse<?>> getById(
             @Parameter(description = "Station identifier") @PathVariable UUID id,
-            @ModelAttribute GetStationByIdRequest request) {
+            @ParameterObject GetStationByIdRequest request) {
         return getStationByIdUseCase
                 .execute(request.toQuery(id))
                 .fold(
