@@ -2,7 +2,6 @@ import { useTranslations } from 'next-intl';
 import { setRequestLocale } from 'next-intl/server';
 import { AuthLayout } from '@/components/auth/auth-layout.tsx';
 import { RegisterForm } from '@/components/auth/register-form.tsx';
-import { StationPlatform } from '@/components/illustrations/index.ts';
 import { Link } from '@/i18n/routing.ts';
 
 type Props = {
@@ -23,9 +22,7 @@ function RegisterPageContent() {
         <AuthLayout
             title={t('title')}
             subtitle={t('subtitle')}
-            illustration={
-                <StationPlatform className='w-full max-w-sm text-primary' />
-            }
+            backgroundImage='/images/auth-register.webp'
             footer={
                 <span className='text-muted-foreground'>
                     {t('hasAccount')}{' '}

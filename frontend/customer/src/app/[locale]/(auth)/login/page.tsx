@@ -2,7 +2,6 @@ import { useTranslations } from 'next-intl';
 import { setRequestLocale } from 'next-intl/server';
 import { AuthLayout } from '@/components/auth/auth-layout.tsx';
 import { LoginForm } from '@/components/auth/login-form.tsx';
-import { TrainJourney } from '@/components/illustrations/index.ts';
 import { Link } from '@/i18n/routing.ts';
 
 type Props = {
@@ -23,9 +22,7 @@ function LoginPageContent() {
         <AuthLayout
             title={t('title')}
             subtitle={t('subtitle')}
-            illustration={
-                <TrainJourney className='w-full max-w-sm text-primary' />
-            }
+            backgroundImage='/images/auth-login.webp'
             footer={
                 <span className='text-muted-foreground'>
                     {t('noAccount')}{' '}

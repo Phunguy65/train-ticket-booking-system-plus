@@ -1,23 +1,28 @@
 import type { Metadata } from 'next';
-import { Geist, Geist_Mono } from 'next/font/google';
+import { Be_Vietnam_Pro, JetBrains_Mono } from 'next/font/google';
 import { getLocale } from 'next-intl/server';
 import '@/app/globals.css';
 import { Providers } from '@/app/providers.tsx';
 import { Toaster } from '@/components/ui/sonner.tsx';
 
-const geistSans = Geist({
+const beVietnamPro = Be_Vietnam_Pro({
     variable: '--font-geist-sans',
-    subsets: ['latin'],
+    subsets: ['latin', 'vietnamese'],
+    weight: ['300', '400', '500', '600', '700'],
 });
 
-const geistMono = Geist_Mono({
+const jetbrainsMono = JetBrains_Mono({
     variable: '--font-geist-mono',
-    subsets: ['latin'],
+    subsets: ['latin', 'vietnamese'],
+    weight: ['400', '500'],
 });
 
 export const metadata: Metadata = {
-    title: 'TTBS Customer',
-    description: 'Customer app for train ticket booking.',
+    title: 'TTBS — Hành trình Việt Nam',
+    description: 'Đặt vé tàu trực tuyến — Hệ thống đặt vé tàu Việt Nam.',
+    icons: {
+        icon: '/favicon.png',
+    },
 };
 
 export default async function RootLayout({
@@ -30,7 +35,7 @@ export default async function RootLayout({
     return (
         <html
             lang={locale}
-            className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+            className={`${beVietnamPro.variable} ${jetbrainsMono.variable} h-full antialiased`}
         >
             <body className='min-h-full flex flex-col'>
                 <Providers>{children}</Providers>

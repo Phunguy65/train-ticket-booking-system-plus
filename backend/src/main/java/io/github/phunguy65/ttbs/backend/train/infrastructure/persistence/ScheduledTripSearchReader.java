@@ -114,8 +114,8 @@ class ScheduledTripSearchReader implements ScheduledTripSearchPort {
                     .toInstant();
             sql.append(" AND st.departure_time >= :departureStart");
             sql.append(" AND st.departure_time < :departureEnd");
-            params.addValue("departureStart", startOfDay);
-            params.addValue("departureEnd", endOfDay);
+            params.addValue("departureStart", startOfDay.atOffset(ZoneOffset.UTC));
+            params.addValue("departureEnd", endOfDay.atOffset(ZoneOffset.UTC));
         }
         if (query.status() != null) {
             sql.append(" AND st.status = :status");
@@ -162,7 +162,7 @@ class ScheduledTripSearchReader implements ScheduledTripSearchPort {
             ScheduledTripSearchSortField sortField, SearchScheduledTripsCursor cursor) {
         try {
             return switch (sortField) {
-                case DEPARTURE_TIME -> Instant.parse(cursor.sortValue());
+                case DEPARTURE_TIME -> Instant.parse(cursor.sortValue()).atOffset(ZoneOffset.UTC);
                 case PRICE, DURATION, AVAILABLE_SEATS -> Long.parseLong(cursor.sortValue());
             };
         } catch (RuntimeException ex) {
