@@ -368,6 +368,7 @@
     "Errors": {
         "invalidCredentials": "Invalid email or password",
         "emailExists": "This email is already registered",
+        "validationError": "Validation failed",
         "networkError": "Unable to connect. Please try again.",
         "unknownError": "Something went wrong. Please try again.",
         "unauthorized": "Please sign in to continue",

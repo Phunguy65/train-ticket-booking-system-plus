@@ -64,6 +64,7 @@ export function StationCombobox({
     useEffect(() => {
         if (isError && error) {
             showApiErrorToast(error, {
+                fail: tErrors('validationError'),
                 network: tErrors('networkError'),
                 unknown: tErrors('unknownError'),
             });

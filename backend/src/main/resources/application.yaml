@@ -16,12 +16,6 @@ spring:
         baseline-version: 0
     cache:
         type: redis
-        cache-names:
-            - scheduledTripList
-            - scheduledTripById
-            - coachSeatMap
-            - scheduledTripFilter
-            - stationSearch
     data:
         redis:
             host: ${VALKEY_HOST:localhost}

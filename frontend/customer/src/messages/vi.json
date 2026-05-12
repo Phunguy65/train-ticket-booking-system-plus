@@ -368,6 +368,7 @@
     "Errors": {
         "invalidCredentials": "Email hoặc mật khẩu không đúng",
         "emailExists": "Email này đã được đăng ký",
+        "validationError": "Dữ liệu không hợp lệ",
         "networkError": "Không thể kết nối. Vui lòng thử lại.",
         "unknownError": "Đã có lỗi xảy ra. Vui lòng thử lại.",
         "unauthorized": "Vui lòng đăng nhập để tiếp tục",

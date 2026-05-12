@@ -8,7 +8,6 @@ import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import java.time.Duration;
 import java.util.List;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.data.redis.cache.RedisCacheConfiguration;
 import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -16,34 +15,22 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 class ValkeyCacheConfigTest {
 
     private final ValkeyCacheConfig valkeyCacheConfig = new ValkeyCacheConfig();
-    private final ApplicationContextRunner contextRunner =
-            new ApplicationContextRunner().withUserConfiguration(ValkeyCacheConfig.class);
 
     @Test
-    void createsCacheManagerWithCoachSeatMapOverride() {
-        RedisCacheManager cacheManager =
-                valkeyCacheConfig.redisCacheManager(mock(RedisConnectionFactory.class));
+    void customizerConfiguresCacheManagerWithExpectedCaches() {
+        var customizer = valkeyCacheConfig.redisCacheManagerBuilderCustomizer();
+        var builder = RedisCacheManager.builder(mock(RedisConnectionFactory.class));
+        customizer.customize(builder);
+        RedisCacheManager cacheManager = builder.build();
+        cacheManager.initializeCaches();
 
-        assertThat(cacheManager.getCache(ValkeyCacheConfig.SCHEDULED_TRIP_LIST_CACHE))
-                .isNotNull();
-        assertThat(cacheManager.getCache(ValkeyCacheConfig.SCHEDULED_TRIP_BY_ID_CACHE))
-                .isNotNull();
-        assertThat(cacheManager.getCache(ValkeyCacheConfig.COACH_SEAT_MAP_CACHE))
-                .isNotNull();
-        assertThat(cacheManager.getCache(ValkeyCacheConfig.SCHEDULED_TRIP_FILTER_CACHE))
-                .isNotNull();
-        assertThat(cacheManager.getCache(ValkeyCacheConfig.STATION_SEARCH_CACHE))
-                .isNotNull();
-        RedisCacheConfiguration coachSeatMapConfiguration =
-                cacheManager.getCacheConfigurations().get(ValkeyCacheConfig.COACH_SEAT_MAP_CACHE);
-        assertThat(coachSeatMapConfiguration).isNotNull();
         assertThat(cacheManager.getCacheConfigurations())
                 .containsKeys(
+                        ValkeyCacheConfig.SCHEDULED_TRIP_LIST_CACHE,
+                        ValkeyCacheConfig.SCHEDULED_TRIP_BY_ID_CACHE,
                         ValkeyCacheConfig.COACH_SEAT_MAP_CACHE,
                         ValkeyCacheConfig.SCHEDULED_TRIP_FILTER_CACHE,
-                        ValkeyCacheConfig.STATION_SEARCH_CACHE,
-                        ValkeyCacheConfig.SCHEDULED_TRIP_LIST_CACHE,
-                        ValkeyCacheConfig.SCHEDULED_TRIP_BY_ID_CACHE);
+                        ValkeyCacheConfig.STATION_SEARCH_CACHE);
     }
 
     @Test
@@ -91,14 +78,5 @@ class ValkeyCacheConfigTest {
         Object restored = serializer.deserialize(serializer.serialize(payload));
 
         assertThat(restored).isEqualTo(payload);
-    }
-
-    @Test
-    void registersCacheManagerOnlyWhenRedisConnectionFactoryExists() {
-        contextRunner.run(context -> assertThat(context).doesNotHaveBean(RedisCacheManager.class));
-
-        contextRunner
-                .withBean(RedisConnectionFactory.class, () -> mock(RedisConnectionFactory.class))
-                .run(context -> assertThat(context).hasSingleBean(RedisCacheManager.class));
     }
 }

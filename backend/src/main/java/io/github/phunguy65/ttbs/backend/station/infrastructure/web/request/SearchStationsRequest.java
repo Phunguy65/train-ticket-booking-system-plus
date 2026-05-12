@@ -15,13 +15,13 @@ public record SearchStationsRequest(
                 minimum = "1",
                 maximum = "20",
                 example = "10")
-        @Min(1) @Max(20) int limit) {
+        @Min(1) @Max(20) Integer limit) {
 
     public SearchStationsRequest() {
-        this(null, 10);
+        this(null, null);
     }
 
     public SearchStationsQuery toQuery() {
-        return new SearchStationsQuery(q, limit);
+        return new SearchStationsQuery(q, limit != null ? limit : 10);
     }
 }

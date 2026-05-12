@@ -2,12 +2,10 @@ package io.github.phunguy65.ttbs.backend.shared.infrastructure.cache;
 
 import java.time.Duration;
 import java.util.Map;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.cache.autoconfigure.RedisCacheManagerBuilderCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.cache.RedisCacheConfiguration;
-import org.springframework.data.redis.cache.RedisCacheManager;
-import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.serializer.GenericJacksonJsonRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.RedisSerializer;
@@ -15,7 +13,6 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 import tools.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
 
 @Configuration
-@ConditionalOnBean(RedisConnectionFactory.class)
 public class ValkeyCacheConfig {
 
     public static final String SCHEDULED_TRIP_LIST_CACHE = "scheduledTripList";
@@ -25,27 +22,27 @@ public class ValkeyCacheConfig {
     public static final String STATION_SEARCH_CACHE = "stationSearch";
 
     @Bean
-    RedisCacheManager redisCacheManager(RedisConnectionFactory connectionFactory) {
-        RedisSerializer<Object> valueSerializer = redisValueSerializer();
-        RedisCacheConfiguration defaultCacheConfiguration =
-                cacheConfiguration(Duration.ofMinutes(5), valueSerializer);
+    RedisCacheManagerBuilderCustomizer redisCacheManagerBuilderCustomizer() {
+        return builder -> {
+            RedisSerializer<Object> valueSerializer = redisValueSerializer();
+            RedisCacheConfiguration defaultConfig =
+                    cacheConfiguration(Duration.ofMinutes(5), valueSerializer);
 
-        Map<String, RedisCacheConfiguration> cacheConfigurations = Map.of(
-                SCHEDULED_TRIP_LIST_CACHE,
-                cacheConfiguration(Duration.ofHours(12), valueSerializer),
-                SCHEDULED_TRIP_BY_ID_CACHE,
-                cacheConfiguration(Duration.ofHours(12), valueSerializer),
-                COACH_SEAT_MAP_CACHE,
-                cacheConfiguration(Duration.ofSeconds(60), valueSerializer),
-                SCHEDULED_TRIP_FILTER_CACHE,
-                cacheConfiguration(Duration.ofMinutes(5), valueSerializer),
-                STATION_SEARCH_CACHE,
-                cacheConfiguration(Duration.ofMinutes(5), valueSerializer));
+            Map<String, RedisCacheConfiguration> cacheConfigurations = Map.of(
+                    SCHEDULED_TRIP_LIST_CACHE,
+                    cacheConfiguration(Duration.ofHours(12), valueSerializer),
+                    SCHEDULED_TRIP_BY_ID_CACHE,
+                    cacheConfiguration(Duration.ofHours(12), valueSerializer),
+                    COACH_SEAT_MAP_CACHE,
+                    cacheConfiguration(Duration.ofSeconds(60), valueSerializer),
+                    SCHEDULED_TRIP_FILTER_CACHE,
+                    cacheConfiguration(Duration.ofMinutes(5), valueSerializer),
+                    STATION_SEARCH_CACHE,
+                    cacheConfiguration(Duration.ofMinutes(5), valueSerializer));
 
-        return RedisCacheManager.builder(connectionFactory)
-                .cacheDefaults(defaultCacheConfiguration)
-                .withInitialCacheConfigurations(cacheConfigurations)
-                .build();
+            builder.cacheDefaults(defaultConfig)
+                    .withInitialCacheConfigurations(cacheConfigurations);
+        };
     }
 
     RedisSerializer<Object> redisValueSerializer() {
