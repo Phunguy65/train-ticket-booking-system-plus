@@ -11,8 +11,7 @@ type TicketQRCodeProps = {
 export function TicketQRCode({ bookingId, className }: TicketQRCodeProps) {
     const t = useTranslations('Ticket');
 
-    // QR payload includes the booking ID for ticket validation
-    const qrValue = `TTBS-TICKET:${bookingId}`;
+    const qrValue = `VIETRAIL-TICKET:${bookingId}`;
 
     return (
         <div className={className}>

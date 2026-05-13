@@ -18,7 +18,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-    title: 'TTBS — Hành trình Việt Nam',
+    title: 'VietRail — Hành trình Việt Nam',
     description: 'Đặt vé tàu trực tuyến — Hệ thống đặt vé tàu Việt Nam.',
     icons: {
         icon: '/favicon.png',

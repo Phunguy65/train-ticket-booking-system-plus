@@ -36,7 +36,10 @@ describe('TicketQRCode', () => {
 
         const qrCode = screen.getByTestId('qr-code-svg');
         expect(qrCode).toBeInTheDocument();
-        expect(qrCode).toHaveAttribute('data-value', 'TTBS-TICKET:booking-123');
+        expect(qrCode).toHaveAttribute(
+            'data-value',
+            'VIETRAIL-TICKET:booking-123',
+        );
     });
 
     it('renders QR code with correct size', () => {

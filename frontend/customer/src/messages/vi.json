@@ -7,7 +7,7 @@
         "logout": "Đăng xuất",
         "loggingOut": "Đang đăng xuất...",
         "openMenu": "Mở menu",
-        "footerCopyright": "© {year} TTBS. Đặt vé tàu trực tuyến.",
+        "footerCopyright": "© {year} VietRail. Đặt vé tàu trực tuyến.",
         "footerDescription": "Hệ thống đặt vé tàu trực tuyến Việt Nam — nhanh chóng, an toàn, tiện lợi.",
         "footerServices": "Dịch vụ",
         "footerSearchTrips": "Tìm chuyến tàu",
@@ -430,7 +430,7 @@
     },
     "Landing": {
         "features": {
-            "title": "Tại sao chọn TTBS?",
+            "title": "Tại sao chọn VietRail?",
             "subtitle": "Trải nghiệm đặt vé tàu hiện đại, nhanh chóng và an toàn nhất Việt Nam",
             "quickBooking": {
                 "title": "Đặt vé nhanh chóng",

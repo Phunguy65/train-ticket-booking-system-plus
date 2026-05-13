@@ -17,7 +17,7 @@ export function Footer() {
                             className='flex items-center gap-2 font-semibold'
                         >
                             <TrainFrontIcon className='h-5 w-5 text-primary' />
-                            <span>TTBS</span>
+                            <span>VietRail</span>
                         </Link>
                         <p className='mt-3 text-sm text-muted-foreground'>
                             {t('footerDescription')}

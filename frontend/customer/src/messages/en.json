@@ -7,7 +7,7 @@
         "logout": "Sign Out",
         "loggingOut": "Signing out...",
         "openMenu": "Open menu",
-        "footerCopyright": "© {year} TTBS. Online train ticket booking.",
+        "footerCopyright": "© {year} VietRail. Online train ticket booking.",
         "footerDescription": "Vietnam's online train ticket booking system — fast, secure, and convenient.",
         "footerServices": "Services",
         "footerSearchTrips": "Search Trains",
@@ -430,7 +430,7 @@
     },
     "Landing": {
         "features": {
-            "title": "Why Choose TTBS?",
+            "title": "Why Choose VietRail?",
             "subtitle": "Experience modern, fast, and secure train ticket booking in Vietnam",
             "quickBooking": {
                 "title": "Quick Booking",

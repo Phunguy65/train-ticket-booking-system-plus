@@ -74,7 +74,7 @@ export function TicketPrint({
             {/* Header */}
             <div className='text-center mb-6'>
                 <h1 className='text-2xl font-bold text-primary print:text-black'>
-                    TTBS
+                    VietRail
                 </h1>
                 <p className='text-sm text-muted-foreground print:text-gray-600'>
                     {t('electronicTicket')}

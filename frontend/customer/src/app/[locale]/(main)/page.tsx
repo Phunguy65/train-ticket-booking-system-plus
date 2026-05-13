@@ -51,8 +51,8 @@ function HomeContent() {
                         <div className='animate-fade-in delay-100 flex items-center gap-3 rounded-full bg-background/80 px-5 py-3 shadow-lg shadow-primary/10 ring-1 ring-primary/10 backdrop-blur'>
                             <TrainFrontIcon className='h-10 w-10 text-primary sm:h-12 sm:w-12' />
                             <div className='flex flex-col items-start'>
-                                <h1 className='text-3xl font-bold tracking-tight text-foreground sm:text-4xl lg:text-5xl'>
-                                    TTBS
+                                <h1 className='text-3xl font-bold tracking-tighter text-foreground sm:text-4xl lg:text-4xl'>
+                                    VietRail
                                 </h1>
                                 <span className='text-xs font-medium text-muted-foreground sm:text-sm'>
                                     Hành trình Việt Nam

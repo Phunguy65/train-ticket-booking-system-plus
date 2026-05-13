@@ -33,14 +33,14 @@ const defaultProps = {
 };
 
 describe('TicketPrint', () => {
-    it('renders ticket header with TTBS branding', () => {
+    it('renders ticket header with VietRail branding', () => {
         render(
             <TestProviders>
                 <TicketPrint {...defaultProps} />
             </TestProviders>,
         );
 
-        expect(screen.getByText('TTBS')).toBeInTheDocument();
+        expect(screen.getByText('VietRail')).toBeInTheDocument();
         expect(screen.getByText('Vé điện tử')).toBeInTheDocument();
     });
 

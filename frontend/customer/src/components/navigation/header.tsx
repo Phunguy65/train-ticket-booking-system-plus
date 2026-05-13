@@ -30,7 +30,7 @@ export function Header() {
                     className='flex items-center gap-2 font-semibold'
                 >
                     <TrainFrontIcon className='h-5 w-5' />
-                    <span className='hidden sm:inline'>TTBS</span>
+                    <span className='hidden sm:inline'>VietRail</span>
                 </Link>
 
                 <div className='flex flex-1 items-center justify-end gap-2'>
