@@ -109,10 +109,12 @@ export function SearchResults() {
     // Missing required params
     if (!hasRequiredParams) {
         return (
-            <div className='flex flex-col items-center justify-center py-12 text-center'>
-                <SearchXIcon className='h-12 w-12 text-muted-foreground' />
-                <h2 className='mt-4 text-lg font-semibold'>{t('noResults')}</h2>
-                <p className='mt-2 text-muted-foreground'>
+            <div className='flex flex-col items-center justify-center py-16 text-center animate-fade-in'>
+                <div className='mb-4 rounded-full bg-muted p-5'>
+                    <SearchXIcon className='h-10 w-10 text-muted-foreground/60' />
+                </div>
+                <h2 className='text-lg font-semibold'>{t('noResults')}</h2>
+                <p className='mt-2 max-w-sm text-muted-foreground'>
                     {t('noResultsDescription')}
                 </p>
             </div>
@@ -166,12 +168,12 @@ export function SearchResults() {
                     filters={filters}
                     onFiltersChange={handleFiltersChange}
                 />
-                <div className='flex flex-col items-center justify-center py-12 text-center'>
-                    <SearchXIcon className='h-12 w-12 text-muted-foreground' />
-                    <h2 className='mt-4 text-lg font-semibold'>
-                        {t('noResults')}
-                    </h2>
-                    <p className='mt-2 text-muted-foreground'>
+                <div className='flex flex-col items-center justify-center py-16 text-center animate-fade-in'>
+                    <div className='mb-4 rounded-full bg-muted p-5'>
+                        <SearchXIcon className='h-10 w-10 text-muted-foreground/60' />
+                    </div>
+                    <h2 className='text-lg font-semibold'>{t('noResults')}</h2>
+                    <p className='mt-2 max-w-sm text-muted-foreground'>
                         {t('noResultsDescription')}
                     </p>
                 </div>

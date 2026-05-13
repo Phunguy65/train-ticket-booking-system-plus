@@ -85,23 +85,29 @@ function ProfileHeader({
     const memberSinceDate = user.createdAt ? new Date(user.createdAt) : null;
 
     return (
-        <div className='flex items-center gap-4 mb-6'>
-            <Avatar className='h-16 w-16'>
-                <AvatarImage alt={user.fullName ?? ''} />
-                <AvatarFallback className='text-lg'>
-                    {getInitials(user.fullName)}
-                </AvatarFallback>
-            </Avatar>
-            <div className='flex flex-col'>
-                <h1 className='text-xl font-semibold'>{user.fullName}</h1>
-                <p className='text-sm text-muted-foreground'>{user.email}</p>
-                {memberSinceDate && (
-                    <p className='text-xs text-muted-foreground'>
-                        {t('memberSince', {
-                            date: formatShortDate(memberSinceDate),
-                        })}
+        <div className='relative overflow-hidden rounded-2xl border bg-gradient-to-br from-primary/5 via-card to-accent/5 p-6'>
+            <div className='absolute -top-12 -right-12 h-32 w-32 rounded-full bg-primary/10 blur-2xl' />
+            <div className='absolute -bottom-8 -left-8 h-24 w-24 rounded-full bg-accent/10 blur-2xl' />
+            <div className='relative flex items-center gap-4'>
+                <Avatar className='h-16 w-16 ring-2 ring-primary/20'>
+                    <AvatarImage alt={user.fullName ?? ''} />
+                    <AvatarFallback className='text-lg bg-primary/10'>
+                        {getInitials(user.fullName)}
+                    </AvatarFallback>
+                </Avatar>
+                <div className='flex flex-col'>
+                    <h2 className='text-xl font-semibold'>{user.fullName}</h2>
+                    <p className='text-sm text-muted-foreground'>
+                        {user.email}
                     </p>
-                )}
+                    {memberSinceDate && (
+                        <p className='text-xs text-muted-foreground'>
+                            {t('memberSince', {
+                                date: formatShortDate(memberSinceDate),
+                            })}
+                        </p>
+                    )}
+                </div>
             </div>
         </div>
     );

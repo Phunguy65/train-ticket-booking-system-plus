@@ -10,7 +10,7 @@ export default async function SeatsPage({ params }: Props) {
     setRequestLocale(locale);
 
     return (
-        <div className='container px-4 py-8'>
+        <div className='container mx-auto px-4 py-8 md:py-12'>
             <SeatSelection tripId={tripId} />
         </div>
     );

@@ -37,7 +37,7 @@ export default function ProtectedLayout({ children }: Props) {
         return (
             <div className='flex min-h-screen flex-col'>
                 <Header />
-                <main className='container flex-1 px-4 py-8'>
+                <main className='container mx-auto flex-1 px-4 py-8'>
                     <div className='space-y-4'>
                         <Skeleton className='h-8 w-48' />
                         <Skeleton className='h-64 w-full' />

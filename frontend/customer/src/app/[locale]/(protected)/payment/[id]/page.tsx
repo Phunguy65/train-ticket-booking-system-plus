@@ -16,7 +16,7 @@ export default function PaymentDetailPage({ params }: Props) {
     const t = useTranslations('PaymentDetail');
 
     return (
-        <div className='container max-w-2xl px-4 py-8'>
+        <div className='container mx-auto max-w-2xl px-4 py-8 md:py-12'>
             <div className='mb-6 flex items-center gap-4'>
                 <Button variant='ghost' size='sm' asChild>
                     <Link href='/account'>

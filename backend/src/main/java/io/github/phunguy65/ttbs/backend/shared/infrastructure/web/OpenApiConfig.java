@@ -125,12 +125,24 @@ public class OpenApiConfig {
             Schema property = (Schema) schema.getProperties().get(propertyName);
             if (property != null) {
                 property.setNullable(true);
+                if (property.get$ref() != null) {
+                    schema.getProperties()
+                            .put(propertyName, nullableReferenceSchema(property.get$ref()));
+                    continue;
+                }
                 if (property.getType() != null) {
                     property.setTypes(Set.of(property.getType(), "null"));
                     property.setType(null);
                 }
             }
         }
+    }
+
+    private Schema<?> nullableReferenceSchema(String reference) {
+        Schema<?> referenceSchema = new Schema<>().$ref(reference);
+        Schema<?> nullSchema = new Schema<>();
+        nullSchema.setTypes(Set.of("null"));
+        return new Schema<>().oneOf(List.of(referenceSchema, nullSchema));
     }
 
     private OpenApiCustomizer versionPathCustomizer() {

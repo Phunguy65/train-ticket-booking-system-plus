@@ -2991,9 +2991,13 @@ components:
           description: "Booking creation timestamp."
           readOnly: true
         trip:
-          $ref: "#/components/schemas/Trip"
+          oneOf:
+          - $ref: "#/components/schemas/Trip"
+          - type: "null"
         payment:
-          $ref: "#/components/schemas/PaymentDetailResponse"
+          oneOf:
+          - $ref: "#/components/schemas/PaymentDetailResponse"
+          - type: "null"
         seats:
           type: "array"
           items:
@@ -3029,7 +3033,9 @@ components:
           format: "date-time"
           description: "Scheduled trip creation timestamp."
         train:
-          $ref: "#/components/schemas/Train"
+          oneOf:
+          - $ref: "#/components/schemas/Train"
+          - type: "null"
         route:
           $ref: "#/components/schemas/Route"
     PaymentResponse:

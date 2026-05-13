@@ -28,7 +28,7 @@ export function TripCard({ trip }: TripCardProps) {
     const hasAvailableSeats = (trip.availableSeatCount ?? 0) > 0;
 
     return (
-        <Card className='transition-shadow hover:shadow-md'>
+        <Card className='transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 hover:border-primary/20'>
             <CardContent className='p-4 sm:p-6'>
                 <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
                     {/* Train Info */}

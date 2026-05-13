@@ -62,7 +62,7 @@ export default function TicketPage({ params }: Props) {
     // Loading state
     if (isLoading) {
         return (
-            <div className='container max-w-md px-4 py-8'>
+            <div className='container mx-auto max-w-md px-4 py-8 md:py-12'>
                 <Skeleton className='h-[500px]' />
             </div>
         );
@@ -71,7 +71,7 @@ export default function TicketPage({ params }: Props) {
     // Error state
     if (isError) {
         return (
-            <div className='container max-w-md px-4 py-8'>
+            <div className='container mx-auto max-w-md px-4 py-8 md:py-12'>
                 <Alert variant='destructive'>
                     <AlertCircleIcon className='h-4 w-4' />
                     <AlertTitle>{t('error')}</AlertTitle>
@@ -93,7 +93,7 @@ export default function TicketPage({ params }: Props) {
     // Not found or no booking
     if (!booking) {
         return (
-            <div className='container max-w-md px-4 py-8'>
+            <div className='container mx-auto max-w-md px-4 py-8 md:py-12'>
                 <Alert variant='destructive'>
                     <AlertCircleIcon className='h-4 w-4' />
                     <AlertTitle>{t('notFound')}</AlertTitle>
@@ -106,7 +106,7 @@ export default function TicketPage({ params }: Props) {
     const isConfirmed = booking.status === 'CONFIRMED';
     if (!isConfirmed) {
         return (
-            <div className='container max-w-md px-4 py-8'>
+            <div className='container mx-auto max-w-md px-4 py-8 md:py-12'>
                 <Alert>
                     <AlertCircleIcon className='h-4 w-4' />
                     <AlertTitle>{t('notPaid')}</AlertTitle>
@@ -123,7 +123,7 @@ export default function TicketPage({ params }: Props) {
     const seats = booking.seats || [];
 
     return (
-        <div className='container max-w-md px-4 py-8'>
+        <div className='container mx-auto max-w-md px-4 py-8 md:py-12'>
             {/* Action buttons - hidden when printing */}
             <div className='mb-6 flex justify-center gap-4 print:hidden'>
                 <Button onClick={handlePrint} className='gap-2'>

@@ -11,7 +11,7 @@ export default async function SearchPage({ params }: Props) {
     setRequestLocale(locale);
 
     return (
-        <div className='container px-4 py-8'>
+        <div className='container mx-auto px-4 py-8 md:py-12'>
             <Suspense fallback={<TripListSkeleton count={5} />}>
                 <SearchResults />
             </Suspense>

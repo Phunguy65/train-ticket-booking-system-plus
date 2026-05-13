@@ -7,7 +7,18 @@
         "logout": "Đăng xuất",
         "loggingOut": "Đang đăng xuất...",
         "openMenu": "Mở menu",
-        "footerCopyright": "TTBS {year}. Đặt vé tàu trực tuyến."
+        "footerCopyright": "© {year} TTBS. Đặt vé tàu trực tuyến.",
+        "footerDescription": "Hệ thống đặt vé tàu trực tuyến Việt Nam — nhanh chóng, an toàn, tiện lợi.",
+        "footerServices": "Dịch vụ",
+        "footerSearchTrips": "Tìm chuyến tàu",
+        "footerManageBookings": "Quản lý đặt vé",
+        "footerProfile": "Hồ sơ cá nhân",
+        "footerSupport": "Hỗ trợ",
+        "footerFaq": "Câu hỏi thường gặp",
+        "footerTerms": "Điều khoản sử dụng",
+        "footerPrivacy": "Chính sách bảo mật",
+        "footerContact": "Liên hệ",
+        "footerAddress": "Số 1 Đường Lê Duẩn, Quận 1, TP. Hồ Chí Minh"
     },
     "Search": {
         "title": "Tìm chuyến tàu",
@@ -416,5 +427,74 @@
         "serviceFee": "Phí dịch vụ",
         "discount": "Giảm giá",
         "total": "Tổng cộng"
+    },
+    "Landing": {
+        "features": {
+            "title": "Tại sao chọn TTBS?",
+            "subtitle": "Trải nghiệm đặt vé tàu hiện đại, nhanh chóng và an toàn nhất Việt Nam",
+            "quickBooking": {
+                "title": "Đặt vé nhanh chóng",
+                "description": "Chỉ vài bước đơn giản để hoàn tất đặt vé tàu trực tuyến, tiết kiệm thời gian xếp hàng"
+            },
+            "securePayment": {
+                "title": "Thanh toán an toàn",
+                "description": "Hỗ trợ nhiều phương thức thanh toán với bảo mật cao qua cổng Stripe"
+            },
+            "eTicket": {
+                "title": "Vé điện tử",
+                "description": "Nhận vé ngay trên điện thoại với mã QR, không cần in giấy"
+            },
+            "realtime": {
+                "title": "Cập nhật thời gian thực",
+                "description": "Theo dõi trạng thái ghế và chuyến tàu được cập nhật liên tục"
+            }
+        },
+        "howItWorks": {
+            "title": "Đặt vé chỉ với 4 bước",
+            "subtitle": "Quy trình đơn giản, nhanh chóng từ tìm kiếm đến nhận vé",
+            "search": {
+                "title": "Tìm chuyến tàu",
+                "description": "Chọn ga đi, ga đến và ngày khởi hành"
+            },
+            "selectSeat": {
+                "title": "Chọn ghế ngồi",
+                "description": "Xem sơ đồ toa và chọn ghế yêu thích"
+            },
+            "payment": {
+                "title": "Thanh toán",
+                "description": "Thanh toán an toàn qua nhiều phương thức"
+            },
+            "getTicket": {
+                "title": "Nhận vé điện tử",
+                "description": "Vé QR gửi ngay sau khi thanh toán thành công"
+            }
+        },
+        "popularRoutes": {
+            "title": "Tuyến đường phổ biến",
+            "subtitle": "Những hành trình được yêu thích nhất trên hệ thống đường sắt Việt Nam",
+            "hnSg": {
+                "duration": "~33 giờ • Thống Nhất"
+            },
+            "hnDn": {
+                "duration": "~17 giờ • Thống Nhất"
+            },
+            "sgNt": {
+                "duration": "~7 giờ • Thống Nhất"
+            },
+            "hnHue": {
+                "duration": "~13 giờ • Thống Nhất"
+            },
+            "dnSg": {
+                "duration": "~17 giờ • Thống Nhất"
+            },
+            "sgDn": {
+                "duration": "~17 giờ • Thống Nhất"
+            }
+        },
+        "cta": {
+            "title": "Sẵn sàng cho hành trình tiếp theo?",
+            "subtitle": "Đặt vé tàu ngay hôm nay và khám phá vẻ đẹp Việt Nam qua từng cung đường sắt",
+            "button": "Đặt vé ngay"
+        }
     }
 }
