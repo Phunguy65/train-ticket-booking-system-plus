@@ -209,6 +209,13 @@
         "notFound": "Không tìm thấy thanh toán",
         "retry": "Thử lại"
     },
+    "PaymentSuccess": {
+        "title": "Thanh toán thành công",
+        "description": "Cảm ơn bạn! Thanh toán của bạn đã được xử lý.",
+        "viewBookings": "Xem đặt chỗ",
+        "backToHome": "Về trang chủ",
+        "note": "Vé của bạn sẽ sẵn sàng trong giây lát."
+    },
     "Ticket": {
         "electronicTicket": "Vé điện tử",
         "bookingId": "Mã đặt vé",

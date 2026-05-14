@@ -66,6 +66,10 @@ export function BookingDetail({ bookingId }: BookingDetailProps) {
         ...getBookingOptions({
             path: { id: bookingId },
         }),
+        refetchInterval: (query) => {
+            const status = query.state.data?.status;
+            return status === 'HELD' ? 3000 : false;
+        },
     });
 
     // Handle start over from expired state

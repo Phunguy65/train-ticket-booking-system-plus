@@ -1868,32 +1868,32 @@ components:
           example: "Nguyen Phuong"
         phone:
           type:
-          - "null"
           - "string"
+          - "null"
           description: "Customer phone number."
           example: "+84901234567"
         dateOfBirth:
           type:
-          - "null"
           - "string"
+          - "null"
           format: "date"
           description: "Customer date of birth."
         gender:
           type:
-          - "null"
           - "string"
+          - "null"
           description: "Customer self-declared gender label."
           example: "female"
         idDocumentNumber:
           type:
-          - "null"
           - "string"
+          - "null"
           description: "Government-issued identity document number on file."
           example: "redacted-id-document"
         addressLine:
           type:
-          - "null"
           - "string"
+          - "null"
           description: "Primary address line on file."
           example: "redacted-address"
         role:
@@ -1965,32 +1965,32 @@ components:
           example: "customer@example.com"
         phone:
           type:
-          - "null"
           - "string"
+          - "null"
           description: "Passenger phone number."
           example: "+84901234567"
         dateOfBirth:
           type:
-          - "null"
           - "string"
+          - "null"
           format: "date"
           description: "Passenger date of birth."
         gender:
           type:
-          - "null"
           - "string"
+          - "null"
           description: "Passenger self-declared gender label."
           example: "female"
         idDocumentNumber:
           type:
-          - "null"
           - "string"
+          - "null"
           description: "Passenger government-issued identity document number."
           example: "redacted-id-document"
         addressLine:
           type:
-          - "null"
           - "string"
+          - "null"
           description: "Passenger address line."
           example: "redacted-address"
     PassengerResponse:
@@ -2599,8 +2599,8 @@ components:
           description: "Whether another slice exists after this one."
         nextCursor:
           type:
-          - "null"
           - "string"
+          - "null"
           description: "Opaque cursor for the next slice. Null when no more results\
             \ exist."
           example: "opaque-cursor-token"
@@ -2786,19 +2786,27 @@ components:
           description: "Booker email address."
           example: "customer@example.com"
         phone:
-          type: "string"
+          type:
+          - "string"
+          - "null"
           description: "Booker phone number."
           example: "+84901234567"
         dateOfBirth:
-          type: "string"
+          type:
+          - "string"
+          - "null"
           format: "date"
           description: "Booker date of birth."
         gender:
-          type: "string"
+          type:
+          - "string"
+          - "null"
           description: "Booker self-declared gender label."
           example: "female"
         idDocumentNumber:
-          type: "string"
+          type:
+          - "string"
+          - "null"
           description: "Booker government-issued identity document number."
           example: "redacted-id-document"
     BookingForTicket:
@@ -2848,15 +2856,21 @@ components:
           description: "Passenger full name."
           example: "Nguyen Van A"
         idDocumentNumber:
-          type: "string"
+          type:
+          - "string"
+          - "null"
           description: "Passenger identity document number."
           example: "001234567890"
         dateOfBirth:
-          type: "string"
+          type:
+          - "string"
+          - "null"
           format: "date"
           description: "Passenger date of birth."
         gender:
-          type: "string"
+          type:
+          - "string"
+          - "null"
           description: "Passenger gender."
           example: "male"
     PaymentDetailResponse:
@@ -2881,8 +2895,8 @@ components:
           - "REFUNDED"
         checkoutUrl:
           type:
-          - "null"
           - "string"
+          - "null"
           format: "uri"
           description: "Hosted checkout URL when customer action is still required."
         amount:
@@ -3060,8 +3074,8 @@ components:
           - "REFUNDED"
         checkoutUrl:
           type:
-          - "null"
           - "string"
+          - "null"
           format: "uri"
           description: "Hosted checkout URL when customer action is still required."
         amount:

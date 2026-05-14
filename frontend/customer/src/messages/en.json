@@ -209,6 +209,13 @@
         "notFound": "Payment not found",
         "retry": "Retry"
     },
+    "PaymentSuccess": {
+        "title": "Payment Successful",
+        "description": "Thank you! Your payment has been processed.",
+        "viewBookings": "View Bookings",
+        "backToHome": "Back to Home",
+        "note": "Your ticket will be ready shortly."
+    },
     "Ticket": {
         "electronicTicket": "Electronic Ticket",
         "bookingId": "Booking ID",

@@ -78,18 +78,33 @@ public record PaymentDetailResponse(
             @Schema(description = "Booker email address.", example = "customer@example.com")
             String email,
 
-            @Schema(description = "Booker phone number.", example = "+84901234567")
+            @Schema(
+                    description = "Booker phone number.",
+                    example = "+84901234567",
+                    nullable = true,
+                    types = {"string", "null"})
             String phone,
 
-            @Schema(description = "Booker date of birth.", type = "string", format = "date")
+            @Schema(
+                    description = "Booker date of birth.",
+                    type = "string",
+                    format = "date",
+                    nullable = true,
+                    types = {"string", "null"})
             LocalDate dateOfBirth,
 
-            @Schema(description = "Booker self-declared gender label.", example = "female")
+            @Schema(
+                    description = "Booker self-declared gender label.",
+                    example = "female",
+                    nullable = true,
+                    types = {"string", "null"})
             String gender,
 
             @Schema(
                     description = "Booker government-issued identity document number.",
-                    example = "redacted-id-document")
+                    example = "redacted-id-document",
+                    nullable = true,
+                    types = {"string", "null"})
             String idDocumentNumber) {}
 
     @Schema(description = "Passenger with seat assignment for ticket printing.")
@@ -106,13 +121,26 @@ public record PaymentDetailResponse(
             @Schema(description = "Passenger full name.", example = "Nguyen Van A")
             String fullName,
 
-            @Schema(description = "Passenger identity document number.", example = "001234567890")
+            @Schema(
+                    description = "Passenger identity document number.",
+                    example = "001234567890",
+                    nullable = true,
+                    types = {"string", "null"})
             String idDocumentNumber,
 
-            @Schema(description = "Passenger date of birth.", type = "string", format = "date")
+            @Schema(
+                    description = "Passenger date of birth.",
+                    type = "string",
+                    format = "date",
+                    nullable = true,
+                    types = {"string", "null"})
             LocalDate dateOfBirth,
 
-            @Schema(description = "Passenger gender.", example = "male")
+            @Schema(
+                    description = "Passenger gender.",
+                    example = "male",
+                    nullable = true,
+                    types = {"string", "null"})
             String gender) {}
 
     @Schema(description = "Seat information for ticket printing.")

@@ -3,6 +3,7 @@ package io.github.phunguy65.ttbs.backend.payment.infrastructure.web;
 import com.stripe.exception.SignatureVerificationException;
 import com.stripe.model.Event;
 import com.stripe.model.PaymentIntent;
+import com.stripe.model.StripeObject;
 import com.stripe.model.checkout.Session;
 import com.stripe.net.Webhook;
 import io.github.phunguy65.ttbs.backend.payment.application.command.CancelPendingPaymentCommand;
@@ -67,24 +68,17 @@ class StripeWebhookController {
         try {
             switch (event.getType()) {
                 case "checkout.session.completed" -> {
-                    Session session = (Session) event.getDataObjectDeserializer()
-                            .getObject()
-                            .orElseThrow(() -> new IllegalStateException("Missing session data"));
+                    Session session = deserializeEventData(event, Session.class);
                     handlePaymentSuccessUseCase.execute(new HandlePaymentSuccessCommand(
                             session.getId(), session.getPaymentIntent(), event.getId()));
                 }
                 case "checkout.session.expired" -> {
-                    Session session = (Session) event.getDataObjectDeserializer()
-                            .getObject()
-                            .orElseThrow(() -> new IllegalStateException("Missing session data"));
+                    Session session = deserializeEventData(event, Session.class);
                     cancelPendingPaymentUseCase.execute(
                             new CancelPendingPaymentCommand(session.getId()));
                 }
                 case "payment_intent.payment_failed" -> {
-                    PaymentIntent pi = (PaymentIntent) event.getDataObjectDeserializer()
-                            .getObject()
-                            .orElseThrow(
-                                    () -> new IllegalStateException("Missing payment intent data"));
+                    PaymentIntent pi = deserializeEventData(event, PaymentIntent.class);
                     String errorMsg = pi.getLastPaymentError() != null
                             ? pi.getLastPaymentError().getMessage()
                             : "Payment failed";
@@ -105,5 +99,17 @@ class StripeWebhookController {
         }
 
         return ResponseEntity.ok(JsendResponse.success());
+    }
+
+    private <T extends StripeObject> T deserializeEventData(Event event, Class<T> clazz) {
+        var deserializer = event.getDataObjectDeserializer();
+        StripeObject obj = deserializer.getObject().orElseGet(() -> {
+            try {
+                return deserializer.deserializeUnsafe();
+            } catch (Exception e) {
+                throw new IllegalStateException("Unable to deserialize event data", e);
+            }
+        });
+        return clazz.cast(obj);
     }
 }

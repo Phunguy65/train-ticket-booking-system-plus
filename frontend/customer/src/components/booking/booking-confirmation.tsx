@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { AlertCircleIcon, Loader2Icon } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert.tsx';
 import { Button } from '@/components/ui/button.tsx';
 import {
@@ -19,6 +19,7 @@ import {
     StickyFooterSpacer,
 } from '@/components/ui/sticky-footer.tsx';
 import { Link, useRouter } from '@/i18n/routing.ts';
+import { createCheckoutSessionMutation } from '@/lib/api/generated/@tanstack/react-query.gen.ts';
 import {
     createBookingMutation,
     getAuthenticatedUserOptions,
@@ -76,25 +77,41 @@ export function BookingConfirmation() {
     const [paymentUIState, setPaymentUIState] =
         useState<PaymentUIState>('PENDING');
 
-    // Fetch payment info after booking is created
+    const redirectToCheckout = useCallback((checkoutUrl: string) => {
+        setPaymentUIState('REDIRECTING');
+        const timer = setTimeout(() => {
+            window.location.href = checkoutUrl;
+        }, 2000);
+        return () => clearTimeout(timer);
+    }, []);
+
+    const createCheckoutSession = useMutation({
+        ...createCheckoutSessionMutation(),
+        onSuccess: (data) => {
+            if ('checkoutUrl' in data && data.checkoutUrl) {
+                redirectToCheckout(data.checkoutUrl);
+            }
+        },
+        onError: (error) => {
+            showApiErrorToast(error, {
+                network: tErrors('networkError'),
+                unknown: tErrors('unknownError'),
+            });
+        },
+    });
+
     const { data: payment } = useQuery({
         ...getBookingPaymentOptions({
             path: { bookingId: bookingResult?.bookingId ?? '' },
         }),
-        enabled: !!bookingResult?.bookingId,
+        enabled: !!bookingResult?.bookingId && createCheckoutSession.isIdle,
     });
 
-    // Auto-redirect to checkout URL when payment is loaded
     useEffect(() => {
         if (payment?.checkoutUrl) {
-            setPaymentUIState('REDIRECTING');
-            // Brief delay to show redirecting message before redirect
-            const timer = setTimeout(() => {
-                window.location.href = payment.checkoutUrl as string;
-            }, 2000);
-            return () => clearTimeout(timer);
+            return redirectToCheckout(payment.checkoutUrl);
         }
-    }, [payment?.checkoutUrl]);
+    }, [payment?.checkoutUrl, redirectToCheckout]);
 
     // Fetch authenticated user
     const { data: user, isLoading: userLoading } = useQuery({
@@ -175,17 +192,18 @@ export function BookingConfirmation() {
         [passengers],
     );
 
-    // Create booking mutation
     const createBooking = useMutation({
         ...createBookingMutation(),
         onSuccess: (data) => {
-            // Invalidate bookings query
             queryClient.invalidateQueries({ queryKey: ['getUserBookings'] });
 
             if (data.id && data.paymentDeadline) {
                 setBookingResult({
                     bookingId: data.id,
                     paymentDeadline: data.paymentDeadline,
+                });
+                createCheckoutSession.mutate({
+                    path: { bookingId: data.id },
                 });
             }
         },
@@ -312,7 +330,11 @@ export function BookingConfirmation() {
                     <PaymentStatus
                         state={paymentUIState}
                         paymentDeadline={bookingResult.paymentDeadline}
-                        checkoutUrl={payment?.checkoutUrl}
+                        checkoutUrl={
+                            'checkoutUrl' in (createCheckoutSession.data ?? {})
+                                ? createCheckoutSession.data?.checkoutUrl
+                                : payment?.checkoutUrl
+                        }
                         onStartOver={handleStartOver}
                     />
 

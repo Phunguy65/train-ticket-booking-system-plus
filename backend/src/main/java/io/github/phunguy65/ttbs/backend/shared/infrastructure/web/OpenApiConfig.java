@@ -106,6 +106,9 @@ public class OpenApiConfig {
                     "gender",
                     "idDocumentNumber",
                     "addressLine");
+            markNullable(
+                    schemas, "BookerInfo", "phone", "dateOfBirth", "gender", "idDocumentNumber");
+            markNullable(schemas, "PassengerWithSeat", "dateOfBirth", "gender", "idDocumentNumber");
             markNullable(schemas, "BookingDetailResponse", "trip", "payment");
             markNullable(schemas, "Trip", "train");
             markNullable(schemas, "PaymentDetailResponse", "checkoutUrl", "stripePaymentIntentId");
