@@ -5,7 +5,6 @@ import { formatDateTime } from '@/lib/customer-utils.ts';
 import { TicketQRCode } from './ticket-qr-code.tsx';
 
 type PassengerInfo = {
-    seatId?: string;
     fullName?: string;
     idDocumentNumber?: string;
 };
@@ -18,13 +17,7 @@ type SeatInfo = {
 
 type TicketPrintProps = {
     bookingId: string;
-    /** @deprecated Use passengers array instead */
-    passenger?: {
-        fullName?: string;
-        idDocumentNumber?: string;
-    };
-    /** Multiple passengers with seat assignments */
-    passengers?: PassengerInfo[];
+    passenger: PassengerInfo;
     trip: {
         trainName?: string;
         trainNumber?: string;
@@ -33,70 +26,56 @@ type TicketPrintProps = {
         departureTime?: string;
         arrivalTime?: string;
     };
-    seats: SeatInfo[];
+    seat: SeatInfo;
 };
 
 export function TicketPrint({
     bookingId,
     passenger,
-    passengers,
     trip,
-    seats,
+    seat,
 }: TicketPrintProps) {
     const t = useTranslations('Ticket');
-
-    // Build seat lookup for passenger-to-seat mapping
-    const seatMap = new Map(seats.map((s) => [s.seatId, s]));
-
-    // Use passengers array if provided, otherwise fall back to legacy single passenger
-    const passengerList: Array<{
-        fullName?: string;
-        idDocumentNumber?: string;
-        seat?: SeatInfo;
-    }> =
-        passengers && passengers.length > 0
-            ? passengers.map((p) => ({
-                  fullName: p.fullName,
-                  idDocumentNumber: p.idDocumentNumber,
-                  seat: seatMap.get(p.seatId),
-              }))
-            : passenger
-              ? [
-                    {
-                        fullName: passenger.fullName,
-                        idDocumentNumber: passenger.idDocumentNumber,
-                    },
-                ]
-              : [];
+    const passengerName = passenger.fullName || t('passenger');
+    const seatLabel = t('coachSeat', {
+        coach: seat.coachNumber ?? '-',
+        seat: seat.seatNumber ?? '-',
+    });
 
     return (
-        <div className='ticket-content bg-white p-6 max-w-md mx-auto border border-gray-200 rounded-lg print:border-black print:rounded-none'>
-            {/* Header */}
-            <div className='text-center mb-6'>
-                <h1 className='text-2xl font-bold text-primary print:text-black'>
-                    VietRail
-                </h1>
-                <p className='text-sm text-muted-foreground print:text-gray-600'>
-                    {t('electronicTicket')}
-                </p>
+        <article
+            aria-label={t('ticketAriaLabel', {
+                passenger: passengerName,
+            })}
+            className='ticket-card ticket-content bg-white p-6 max-w-md mx-auto border border-gray-200 rounded-lg print:border-black print:rounded-none print:break-after-page'
+        >
+            <div className='mb-6 flex items-start justify-between gap-4'>
+                <div>
+                    <h1 className='text-2xl font-bold text-primary print:text-black'>
+                        VietRail
+                    </h1>
+                    <p className='text-sm text-muted-foreground print:text-gray-600'>
+                        {t('electronicTicket')}
+                    </p>
+                </div>
             </div>
 
-            {/* QR Code */}
-            <div className='flex justify-center mb-6'>
-                <TicketQRCode bookingId={bookingId} />
-            </div>
-
-            {/* Booking ID */}
-            <div className='text-center mb-4'>
+            <div className='mb-6 rounded-lg bg-muted/60 p-4 print:bg-gray-100'>
                 <p className='text-xs text-muted-foreground print:text-gray-600'>
-                    {t('bookingId')}
+                    {t('passenger')}
                 </p>
-                <p className='font-mono text-sm'>{bookingId}</p>
+                <div className='mt-1 flex flex-wrap items-center justify-between gap-3'>
+                    <p className='text-xl font-bold'>{passengerName}</p>
+                    <span className='rounded-md bg-background px-3 py-1 text-sm font-semibold print:bg-white'>
+                        {seatLabel}
+                    </span>
+                </div>
             </div>
 
-            <hr className='my-4 border-dashed' />
+            <div className='flex justify-center mb-6'>
+                <TicketQRCode bookingId={bookingId} seatId={seat.seatId} />
+            </div>
 
-            {/* Route */}
             <div className='mb-4'>
                 <div className='flex justify-between items-center'>
                     <div className='text-center'>
@@ -123,7 +102,6 @@ export function TicketPrint({
                 </div>
             </div>
 
-            {/* Train & Timing */}
             <div className='grid grid-cols-2 gap-4 mb-4 text-sm'>
                 <div>
                     <p className='text-xs text-muted-foreground print:text-gray-600'>
@@ -145,72 +123,30 @@ export function TicketPrint({
                 </div>
             </div>
 
-            {/* Seats */}
-            <div className='mb-4'>
-                <p className='text-xs text-muted-foreground print:text-gray-600 mb-2'>
-                    {t('seats')}
-                </p>
-                <div className='flex flex-wrap gap-2'>
-                    {seats.map((seat) => (
-                        <span
-                            key={seat.seatId}
-                            className='px-3 py-1 bg-muted print:bg-gray-100 rounded text-sm font-medium'
-                        >
-                            {t('coachSeat', {
-                                coach: seat.coachNumber,
-                                seat: seat.seatNumber,
-                            })}
-                        </span>
-                    ))}
+            <div className='grid grid-cols-2 gap-4 text-sm'>
+                <div>
+                    <p className='text-xs text-muted-foreground print:text-gray-600'>
+                        {t('bookingId')}
+                    </p>
+                    <p className='font-mono font-medium'>{bookingId}</p>
                 </div>
-            </div>
-
-            <hr className='my-4 border-dashed' />
-
-            {/* Passengers */}
-            <div className='text-sm'>
-                <p className='text-xs text-muted-foreground print:text-gray-600 mb-2'>
-                    {passengerList.length > 1
-                        ? t('passengers')
-                        : t('passenger')}
-                </p>
-                {passengerList.length > 0 ? (
-                    <div className='space-y-3'>
-                        {passengerList.map((p, idx) => (
-                            <div
-                                key={p.seat?.seatId || idx}
-                                className='border-l-2 border-gray-300 pl-3'
-                            >
-                                <div className='flex items-center justify-between'>
-                                    <p className='font-medium'>{p.fullName}</p>
-                                    {p.seat && (
-                                        <span className='text-xs bg-muted print:bg-gray-100 px-2 py-0.5 rounded'>
-                                            {t('coachSeat', {
-                                                coach: p.seat.coachNumber,
-                                                seat: p.seat.seatNumber,
-                                            })}
-                                        </span>
-                                    )}
-                                </div>
-                                {p.idDocumentNumber && (
-                                    <p className='text-xs text-muted-foreground print:text-gray-600'>
-                                        {t('idDocument')}: {p.idDocumentNumber}
-                                    </p>
-                                )}
-                            </div>
-                        ))}
+                {passenger.idDocumentNumber && (
+                    <div>
+                        <p className='text-xs text-muted-foreground print:text-gray-600'>
+                            {t('idDocument')}
+                        </p>
+                        <p className='font-medium'>
+                            {passenger.idDocumentNumber}
+                        </p>
                     </div>
-                ) : (
-                    <p className='text-muted-foreground'>-</p>
                 )}
             </div>
 
-            {/* Footer */}
             <div className='mt-6 pt-4 border-t border-dashed text-center'>
                 <p className='text-xs text-muted-foreground print:text-gray-600'>
                     {t('footer')}
                 </p>
             </div>
-        </div>
+        </article>
     );
 }

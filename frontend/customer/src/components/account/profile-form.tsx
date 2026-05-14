@@ -2,7 +2,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { AlertCircleIcon, CalendarIcon, Loader2Icon } from 'lucide-react';
+import { AlertCircleIcon, Loader2Icon } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useCallback, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
@@ -13,13 +13,13 @@ import {
     AvatarImage,
 } from '@/components/ui/avatar.tsx';
 import { Button } from '@/components/ui/button.tsx';
-import { Calendar } from '@/components/ui/calendar.tsx';
 import {
     Card,
     CardContent,
     CardHeader,
     CardTitle,
 } from '@/components/ui/card.tsx';
+import { DatePickerInput } from '@/components/ui/date-picker-input.tsx';
 import {
     Form,
     FormControl,
@@ -30,11 +30,6 @@ import {
     FormMessage,
 } from '@/components/ui/form.tsx';
 import { Input } from '@/components/ui/input.tsx';
-import {
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
-} from '@/components/ui/popover.tsx';
 import {
     Select,
     SelectContent,
@@ -55,7 +50,6 @@ import {
     showApiErrorToast,
     showSuccessToast,
 } from '@/lib/toast.ts';
-import { cn } from '@/lib/utils.ts';
 import { profileSchema } from '@/lib/validations/customer.ts';
 
 /**
@@ -387,54 +381,28 @@ export function ProfileForm() {
                                             <FormLabel>
                                                 {t('dateOfBirth')}
                                             </FormLabel>
-                                            <Popover>
-                                                <PopoverTrigger asChild>
-                                                    <FormControl>
-                                                        <Button
-                                                            variant='outline'
-                                                            className={cn(
-                                                                'w-full justify-start text-left font-normal',
-                                                                !field.value
-                                                                    && 'text-muted-foreground',
-                                                            )}
-                                                            disabled={
-                                                                updateProfile.isPending
-                                                            }
-                                                        >
-                                                            <CalendarIcon className='mr-2 h-4 w-4' />
-                                                            {field.value
-                                                            instanceof Date
-                                                                ? formatShortDate(
-                                                                      field.value,
-                                                                  )
-                                                                : t(
-                                                                      'selectDate',
-                                                                  )}
-                                                        </Button>
-                                                    </FormControl>
-                                                </PopoverTrigger>
-                                                <PopoverContent
-                                                    className='w-auto p-0'
-                                                    align='start'
-                                                >
-                                                    <Calendar
-                                                        mode='single'
-                                                        selected={
-                                                            field.value
-                                                            instanceof Date
-                                                                ? field.value
-                                                                : undefined
-                                                        }
-                                                        onSelect={
-                                                            field.onChange
-                                                        }
-                                                        disabled={(date) =>
-                                                            date > new Date()
-                                                        }
-                                                        initialFocus
-                                                    />
-                                                </PopoverContent>
-                                            </Popover>
+                                            <FormControl>
+                                                <DatePickerInput
+                                                    value={
+                                                        field.value
+                                                        instanceof Date
+                                                            ? field.value
+                                                            : undefined
+                                                    }
+                                                    onChange={field.onChange}
+                                                    disabled={(date) =>
+                                                        date > new Date()
+                                                    }
+                                                    inputDisabled={
+                                                        updateProfile.isPending
+                                                    }
+                                                    fromYear={1900}
+                                                    toYear={new Date().getFullYear()}
+                                                    placeholder={t(
+                                                        'selectDate',
+                                                    )}
+                                                />
+                                            </FormControl>
                                         </FormItem>
                                     )}
                                 />

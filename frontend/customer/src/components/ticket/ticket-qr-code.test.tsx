@@ -42,6 +42,20 @@ describe('TicketQRCode', () => {
         );
     });
 
+    it('renders QR code with booking and seat payload when seat ID is provided', () => {
+        render(
+            <TestProviders>
+                <TicketQRCode bookingId='booking-123' seatId='seat-1' />
+            </TestProviders>,
+        );
+
+        const qrCode = screen.getByTestId('qr-code-svg');
+        expect(qrCode).toHaveAttribute(
+            'data-value',
+            'VIETRAIL-TICKET:booking-123:seat-1',
+        );
+    });
+
     it('renders QR code with correct size', () => {
         render(
             <TestProviders>

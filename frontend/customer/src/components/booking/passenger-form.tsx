@@ -1,24 +1,16 @@
 'use client';
 
-import { format } from 'date-fns';
-import { CalendarIcon } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import type { ChangeEvent } from 'react';
-import { Button } from '@/components/ui/button.tsx';
-import { Calendar } from '@/components/ui/calendar.tsx';
 import {
     Card,
     CardContent,
     CardHeader,
     CardTitle,
 } from '@/components/ui/card.tsx';
+import { DatePickerInput } from '@/components/ui/date-picker-input.tsx';
 import { Input } from '@/components/ui/input.tsx';
 import { Label } from '@/components/ui/label.tsx';
-import {
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
-} from '@/components/ui/popover.tsx';
 import {
     Select,
     SelectContent,
@@ -26,7 +18,6 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select.tsx';
-import { cn } from '@/lib/utils.ts';
 
 export type PassengerFormData = {
     seatId: string;
@@ -129,51 +120,20 @@ export function PassengerForm({
                     {/* Date of Birth */}
                     <div className='space-y-2'>
                         <Label>{t('dateOfBirth')}</Label>
-                        <Popover>
-                            <PopoverTrigger asChild>
-                                <Button
-                                    variant='outline'
-                                    disabled={disabled}
-                                    className={cn(
-                                        'w-full justify-start text-left font-normal',
-                                        !data.dateOfBirth
-                                            && 'text-muted-foreground',
-                                    )}
-                                >
-                                    <CalendarIcon className='mr-2 h-4 w-4' />
-                                    {data.dateOfBirth ? (
-                                        format(data.dateOfBirth, 'PPP')
-                                    ) : (
-                                        <span>{tProfile('selectDate')}</span>
-                                    )}
-                                </Button>
-                            </PopoverTrigger>
-                            <PopoverContent
-                                className='w-auto p-0'
-                                align='start'
-                            >
-                                <Calendar
-                                    mode='single'
-                                    selected={data.dateOfBirth ?? undefined}
-                                    onSelect={(date) =>
-                                        handleFieldChange(
-                                            'dateOfBirth',
-                                            date ?? null,
-                                        )
-                                    }
-                                    disabled={(date) =>
-                                        date > new Date()
-                                        || date < new Date('1900-01-01')
-                                    }
-                                    defaultMonth={
-                                        data.dateOfBirth ?? new Date(1990, 0, 1)
-                                    }
-                                    fromYear={1900}
-                                    toYear={new Date().getFullYear()}
-                                    captionLayout='dropdown-months'
-                                />
-                            </PopoverContent>
-                        </Popover>
+                        <DatePickerInput
+                            value={data.dateOfBirth ?? undefined}
+                            onChange={(date) =>
+                                handleFieldChange('dateOfBirth', date)
+                            }
+                            disabled={(date) =>
+                                date > new Date()
+                                || date < new Date('1900-01-01')
+                            }
+                            inputDisabled={disabled}
+                            fromYear={1900}
+                            toYear={new Date().getFullYear()}
+                            placeholder={tProfile('selectDate')}
+                        />
                     </div>
 
                     {/* Gender */}

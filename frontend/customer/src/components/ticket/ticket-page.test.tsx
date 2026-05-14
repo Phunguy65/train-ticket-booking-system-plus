@@ -3,6 +3,12 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useCallback, useEffect, useState } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+    Tabs,
+    TabsContent,
+    TabsList,
+    TabsTrigger,
+} from '@/components/ui/tabs.tsx';
 import { TestProviders } from '@/test-utils/providers.tsx';
 
 // Mock ticket print component inline
@@ -10,12 +16,12 @@ function MockTicketPrint({
     bookingId,
     passenger,
     trip,
-    seats,
+    seat,
 }: {
     bookingId: string;
     passenger: { fullName?: string };
     trip: { origin?: string; destination?: string };
-    seats: Array<{ seatId?: string }>;
+    seat: { seatId?: string };
 }) {
     return (
         <div data-testid='ticket-print'>
@@ -24,7 +30,7 @@ function MockTicketPrint({
             <span data-testid='route'>
                 {trip.origin} → {trip.destination}
             </span>
-            <span data-testid='seats-count'>{seats.length}</span>
+            <span data-testid='seat-id'>{seat.seatId}</span>
         </div>
     );
 }
@@ -37,6 +43,18 @@ const mockConfirmedBooking = {
         fullName: 'Nguyen Van A',
         idDocumentNumber: '123456789',
     },
+    passengers: [
+        {
+            seatId: 'seat-1',
+            fullName: 'Nguyen Van A',
+            idDocumentNumber: '123456789',
+        },
+        {
+            seatId: 'seat-2',
+            fullName: 'Tran Thi B',
+            idDocumentNumber: '987654321',
+        },
+    ],
     trip: {
         train: { name: 'SE1', trainNumber: 'SE1' },
         route: {
@@ -55,6 +73,12 @@ const mockConfirmedBooking = {
 const mockHeldBooking = {
     ...mockConfirmedBooking,
     status: 'HELD',
+};
+
+const mockSinglePassengerBooking = {
+    ...mockConfirmedBooking,
+    passengers: [mockConfirmedBooking.passengers[0]],
+    seats: [mockConfirmedBooking.seats[0]],
 };
 
 let mockBookingResponse: typeof mockConfirmedBooking | null =
@@ -111,6 +135,47 @@ function TicketPageTestWrapper({ bookingId }: { bookingId: string }) {
         );
     }
 
+    const seats = booking.seats || [];
+    const seatMap = new Map(seats.map((seat) => [seat.seatId, seat]));
+    const tickets =
+        booking.passengers && booking.passengers.length > 0
+            ? booking.passengers.map((passenger) => ({
+                  passenger,
+                  seat: seatMap.get(passenger.seatId),
+              }))
+            : seats.map((seat) => ({
+                  passenger: {
+                      fullName: booking.passengerInfo?.fullName,
+                      idDocumentNumber: booking.passengerInfo?.idDocumentNumber,
+                  },
+                  seat,
+              }));
+    const renderTicket = (
+        { passenger, seat }: (typeof tickets)[number],
+        index: number,
+    ) => (
+        <MockTicketPrint
+            key={seat?.seatId || index}
+            bookingId={bookingId}
+            passenger={{ fullName: passenger.fullName }}
+            trip={{
+                origin: booking.trip?.route?.origin?.name,
+                destination: booking.trip?.route?.destination?.name,
+            }}
+            seat={{ seatId: seat?.seatId }}
+        />
+    );
+    const getTicketValue = (
+        { seat }: (typeof tickets)[number],
+        index: number,
+    ) => seat?.seatId || `${bookingId}-${index}`;
+    const getTicketTabLabel = ({
+        passenger,
+        seat,
+    }: (typeof tickets)[number]) => {
+        return `${passenger.fullName || 'Hành khách'} · Toa ${seat?.coachNumber ?? '-'} - Ghế ${seat?.seatNumber ?? '-'}`;
+    };
+
     return (
         <div>
             <div className='print:hidden'>
@@ -123,26 +188,40 @@ function TicketPageTestWrapper({ bookingId }: { bookingId: string }) {
                     </button>
                 )}
             </div>
-            <MockTicketPrint
-                bookingId={bookingId}
-                passenger={{
-                    fullName: booking.passengerInfo?.fullName,
-                    idDocumentNumber: booking.passengerInfo?.idDocumentNumber,
-                }}
-                trip={{
-                    trainName: booking.trip?.train?.name,
-                    trainNumber: booking.trip?.train?.trainNumber,
-                    origin: booking.trip?.route?.origin?.name,
-                    destination: booking.trip?.route?.destination?.name,
-                    departureTime: booking.trip?.departureTime,
-                    arrivalTime: booking.trip?.arrivalTime,
-                }}
-                seats={(booking.seats || []).map((s) => ({
-                    seatId: s.seatId,
-                    coachNumber: s.coachNumber,
-                    seatNumber: s.seatNumber,
-                }))}
-            />
+            <div data-testid='ticket-summary-header'>
+                <span>{bookingId}</span>
+                <span>
+                    {booking.trip?.route?.origin?.name} →{' '}
+                    {booking.trip?.route?.destination?.name}
+                </span>
+                <span>{tickets.length} vé</span>
+            </div>
+            {tickets.length >= 2 ? (
+                <Tabs defaultValue={getTicketValue(tickets[0], 0)}>
+                    <TabsList className='print:hidden'>
+                        {tickets.map((ticket, index) => (
+                            <TabsTrigger
+                                key={getTicketValue(ticket, index)}
+                                value={getTicketValue(ticket, index)}
+                            >
+                                {getTicketTabLabel(ticket)}
+                            </TabsTrigger>
+                        ))}
+                    </TabsList>
+                    {tickets.map((ticket, index) => (
+                        <TabsContent
+                            key={getTicketValue(ticket, index)}
+                            value={getTicketValue(ticket, index)}
+                            className='data-[state=inactive]:hidden print:data-[state=inactive]:block'
+                            forceMount
+                        >
+                            {renderTicket(ticket, index)}
+                        </TabsContent>
+                    ))}
+                </Tabs>
+            ) : (
+                tickets.map(renderTicket)
+            )}
         </div>
     );
 }
@@ -184,13 +263,13 @@ describe('TicketPage', () => {
         );
 
         await waitFor(() => {
-            expect(screen.getByTestId('ticket-print')).toBeInTheDocument();
+            expect(screen.getAllByTestId('ticket-print')).toHaveLength(2);
         });
 
-        expect(screen.getByTestId('booking-id')).toHaveTextContent(
+        expect(screen.getAllByTestId('booking-id')[0]).toHaveTextContent(
             'booking-123',
         );
-        expect(screen.getByTestId('passenger')).toHaveTextContent(
+        expect(screen.getAllByTestId('passenger')[0]).toHaveTextContent(
             'Nguyen Van A',
         );
     });
@@ -271,7 +350,7 @@ describe('TicketPage', () => {
         );
 
         await waitFor(() => {
-            expect(screen.getByTestId('ticket-print')).toBeInTheDocument();
+            expect(screen.getAllByTestId('ticket-print')).toHaveLength(2);
         });
 
         expect(
@@ -327,7 +406,9 @@ describe('TicketPage', () => {
         });
     });
 
-    it('displays correct seat count from booking', async () => {
+    it('renders tabs for multi-passenger bookings and switches tickets', async () => {
+        const user = userEvent.setup();
+
         render(
             <TestProviders>
                 <TicketPageTestWrapper bookingId='booking-123' />
@@ -335,7 +416,69 @@ describe('TicketPage', () => {
         );
 
         await waitFor(() => {
-            expect(screen.getByTestId('seats-count')).toHaveTextContent('2');
+            expect(
+                screen.getByRole('tab', {
+                    name: 'Nguyen Van A · Toa 1 - Ghế A1',
+                }),
+            ).toBeInTheDocument();
         });
+
+        expect(
+            screen.getByRole('tab', { name: 'Tran Thi B · Toa 1 - Ghế A2' }),
+        ).toBeInTheDocument();
+        expect(screen.getAllByTestId('passenger')[0]).toHaveTextContent(
+            'Nguyen Van A',
+        );
+        expect(screen.getAllByTestId('seat-id')[0]).toHaveTextContent('seat-1');
+
+        await user.click(
+            screen.getByRole('tab', { name: 'Tran Thi B · Toa 1 - Ghế A2' }),
+        );
+
+        expect(screen.getAllByTestId('passenger')[1]).toHaveTextContent(
+            'Tran Thi B',
+        );
+        expect(screen.getAllByTestId('seat-id')[1]).toHaveTextContent('seat-2');
+    });
+
+    it('renders a single-passenger booking directly without tabs', async () => {
+        mockBookingResponse = mockSinglePassengerBooking;
+
+        render(
+            <TestProviders>
+                <TicketPageTestWrapper bookingId='booking-123' />
+            </TestProviders>,
+        );
+
+        await waitFor(() => {
+            expect(screen.getByTestId('ticket-print')).toBeInTheDocument();
+        });
+
+        expect(screen.queryByRole('tablist')).not.toBeInTheDocument();
+        expect(screen.getByTestId('passenger')).toHaveTextContent(
+            'Nguyen Van A',
+        );
+        expect(screen.getByTestId('seat-id')).toHaveTextContent('seat-1');
+    });
+
+    it('shows booking summary header', async () => {
+        render(
+            <TestProviders>
+                <TicketPageTestWrapper bookingId='booking-123' />
+            </TestProviders>,
+        );
+
+        await waitFor(() => {
+            expect(
+                screen.getByTestId('ticket-summary-header'),
+            ).toBeInTheDocument();
+        });
+
+        expect(screen.getByTestId('ticket-summary-header')).toHaveTextContent(
+            'booking-123',
+        );
+        expect(screen.getByTestId('ticket-summary-header')).toHaveTextContent(
+            '2 vé',
+        );
     });
 });

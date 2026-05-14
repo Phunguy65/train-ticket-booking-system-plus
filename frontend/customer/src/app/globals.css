@@ -267,7 +267,8 @@
         font-size: 12pt;
     }
 
-    .ticket-content {
+    .ticket-content,
+    .ticket-card {
         width: 100%;
         max-width: none;
         margin: 0;
@@ -292,7 +293,29 @@
         fill: black;
     }
 
-    .ticket-content {
+    .ticket-content,
+    .ticket-card {
         page-break-inside: avoid;
+        break-inside: avoid;
+    }
+
+    [data-slot='tabs-content'] {
+        display: block !important;
+    }
+
+    .ticket-card {
+        break-after: page;
+        page-break-after: always;
+    }
+
+    .ticket-card:last-child,
+    .space-y-8 > div:last-child .ticket-card {
+        break-after: auto;
+        page-break-after: auto;
+    }
+
+    .ticket-separator,
+    .ticket-summary-header {
+        display: none;
     }
 }

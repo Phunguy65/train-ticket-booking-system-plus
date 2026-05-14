@@ -1,16 +1,11 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import {
-    ArrowRightLeftIcon,
-    CalendarIcon,
-    Loader2Icon,
-    SearchIcon,
-} from 'lucide-react';
+import { ArrowRightLeftIcon, Loader2Icon, SearchIcon } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button.tsx';
-import { Calendar } from '@/components/ui/calendar.tsx';
+import { DatePickerInput } from '@/components/ui/date-picker-input.tsx';
 import {
     Form,
     FormControl,
@@ -19,15 +14,8 @@ import {
     FormLabel,
     FormMessage,
 } from '@/components/ui/form.tsx';
-import {
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
-} from '@/components/ui/popover.tsx';
 import { useRouter } from '@/i18n/routing.ts';
-import { formatShortDate } from '@/lib/customer-utils.ts';
 import { buildTripSearchUrl } from '@/lib/search-params.ts';
-import { cn } from '@/lib/utils.ts';
 import { tripSearchSchema } from '@/lib/validations/customer.ts';
 import { StationCombobox } from './station-combobox.tsx';
 
@@ -154,46 +142,21 @@ export function TripSearchForm() {
                         render={({ field, fieldState }) => (
                             <FormItem className='flex flex-col'>
                                 <FormLabel>{t('departureDate')}</FormLabel>
-                                <Popover>
-                                    <PopoverTrigger asChild>
-                                        <FormControl>
-                                            <Button
-                                                variant='outline'
-                                                className={cn(
-                                                    'w-full justify-start text-left font-normal',
-                                                    !field.value
-                                                        && 'text-muted-foreground',
-                                                )}
-                                                disabled={
-                                                    form.formState.isSubmitting
-                                                }
-                                            >
-                                                <CalendarIcon className='mr-2 h-4 w-4' />
-                                                {field.value instanceof Date
-                                                    ? formatShortDate(
-                                                          field.value,
-                                                      )
-                                                    : t('datePlaceholder')}
-                                            </Button>
-                                        </FormControl>
-                                    </PopoverTrigger>
-                                    <PopoverContent
-                                        className='w-auto p-0'
-                                        align='start'
-                                    >
-                                        <Calendar
-                                            mode='single'
-                                            selected={
-                                                field.value instanceof Date
-                                                    ? field.value
-                                                    : undefined
-                                            }
-                                            onSelect={field.onChange}
-                                            disabled={(date) => date < today}
-                                            initialFocus
-                                        />
-                                    </PopoverContent>
-                                </Popover>
+                                <FormControl>
+                                    <DatePickerInput
+                                        value={
+                                            field.value instanceof Date
+                                                ? field.value
+                                                : undefined
+                                        }
+                                        onChange={field.onChange}
+                                        disabled={(date) => date < today}
+                                        inputDisabled={
+                                            form.formState.isSubmitting
+                                        }
+                                        placeholder={t('datePlaceholder')}
+                                    />
+                                </FormControl>
                                 <FormMessage>
                                     {translateFieldError(
                                         fieldState.error?.message,

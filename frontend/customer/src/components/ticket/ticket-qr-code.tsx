@@ -5,13 +5,20 @@ import { QRCodeSVG } from 'qrcode.react';
 
 type TicketQRCodeProps = {
     bookingId: string;
+    seatId?: string;
     className?: string;
 };
 
-export function TicketQRCode({ bookingId, className }: TicketQRCodeProps) {
+export function TicketQRCode({
+    bookingId,
+    seatId,
+    className,
+}: TicketQRCodeProps) {
     const t = useTranslations('Ticket');
 
-    const qrValue = `VIETRAIL-TICKET:${bookingId}`;
+    const qrValue = seatId
+        ? `VIETRAIL-TICKET:${bookingId}:${seatId}`
+        : `VIETRAIL-TICKET:${bookingId}`;
 
     return (
         <div className={className}>

@@ -5,8 +5,18 @@ import { TicketPrint } from './ticket-print.tsx';
 
 // Mock TicketQRCode component
 vi.mock('./ticket-qr-code.tsx', () => ({
-    TicketQRCode: ({ bookingId }: { bookingId: string }) => (
-        <div data-testid='ticket-qr-code' data-booking-id={bookingId}>
+    TicketQRCode: ({
+        bookingId,
+        seatId,
+    }: {
+        bookingId: string;
+        seatId?: string;
+    }) => (
+        <div
+            data-testid='ticket-qr-code'
+            data-booking-id={bookingId}
+            data-seat-id={seatId}
+        >
             QR Code
         </div>
     ),
@@ -26,10 +36,7 @@ const defaultProps = {
         departureTime: '2026-04-20T08:00:00Z',
         arrivalTime: '2026-04-20T18:00:00Z',
     },
-    seats: [
-        { seatId: 'seat-1', coachNumber: 1, seatNumber: 'A1' },
-        { seatId: 'seat-2', coachNumber: 1, seatNumber: 'A2' },
-    ],
+    seat: { seatId: 'seat-1', coachNumber: 1, seatNumber: 'A1' },
 };
 
 describe('TicketPrint', () => {
@@ -54,6 +61,7 @@ describe('TicketPrint', () => {
         const qrCode = screen.getByTestId('ticket-qr-code');
         expect(qrCode).toBeInTheDocument();
         expect(qrCode).toHaveAttribute('data-booking-id', 'booking-123');
+        expect(qrCode).toHaveAttribute('data-seat-id', 'seat-1');
     });
 
     it('displays booking ID', () => {
@@ -88,16 +96,15 @@ describe('TicketPrint', () => {
         expect(screen.getByText('SE1 (SE1)')).toBeInTheDocument();
     });
 
-    it('displays seat information for all seats', () => {
+    it('displays seat information for the passenger seat', () => {
         render(
             <TestProviders>
                 <TicketPrint {...defaultProps} />
             </TestProviders>,
         );
 
-        // Seats are shown with coach and seat numbers
         expect(screen.getByText('Toa 1 - Ghế A1')).toBeInTheDocument();
-        expect(screen.getByText('Toa 1 - Ghế A2')).toBeInTheDocument();
+        expect(screen.queryByText('Toa 1 - Ghế A2')).not.toBeInTheDocument();
     });
 
     it('displays passenger name', () => {
@@ -118,7 +125,8 @@ describe('TicketPrint', () => {
             </TestProviders>,
         );
 
-        expect(screen.getByText('CMND/CCCD: 123456789')).toBeInTheDocument();
+        expect(screen.getByText('CMND/CCCD')).toBeInTheDocument();
+        expect(screen.getByText('123456789')).toBeInTheDocument();
     });
 
     it('does not show ID document when not provided', () => {
@@ -161,5 +169,7 @@ describe('TicketPrint', () => {
 
         const ticketContent = container.querySelector('.ticket-content');
         expect(ticketContent).toBeInTheDocument();
+        expect(ticketContent).toHaveClass('ticket-card');
+        expect(ticketContent).toHaveClass('print:break-after-page');
     });
 });
