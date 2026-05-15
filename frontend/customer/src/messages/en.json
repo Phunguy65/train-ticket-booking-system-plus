@@ -37,6 +37,7 @@
     },
     "Trips": {
         "title": "Search Results",
+        "backToHome": "Back to Home",
         "results": "{count, plural, =0 {No trains} one {{count} train} other {{count} trains}}",
         "noResults": "No trains found",
         "noResultsDescription": "Try searching with different criteria",
@@ -225,6 +226,7 @@
         "arrival": "Arrival",
         "train": "Train",
         "departureTime": "Departure Time",
+        "arrivalTime": "Est. Arrival Time",
         "seats": "Seats",
         "coachSeat": "Coach {coach} - Seat {seat}",
         "ticketAriaLabel": "Ticket for {passenger}",

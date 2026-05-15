@@ -37,6 +37,7 @@
     },
     "Trips": {
         "title": "Kết quả tìm kiếm",
+        "backToHome": "Về trang chủ",
         "results": "{count, plural, =0 {Không có chuyến tàu} one {{count} chuyến tàu} other {{count} chuyến tàu}}",
         "noResults": "Không tìm thấy chuyến tàu phù hợp",
         "noResultsDescription": "Vui lòng thử tìm kiếm với điều kiện khác",
@@ -225,6 +226,7 @@
         "arrival": "Đến",
         "train": "Tàu",
         "departureTime": "Giờ khởi hành",
+        "arrivalTime": "Giờ đến dự kiến",
         "seats": "Ghế",
         "coachSeat": "Toa {coach} - Ghế {seat}",
         "ticketAriaLabel": "Vé của {passenger}",

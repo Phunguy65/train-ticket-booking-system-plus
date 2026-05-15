@@ -84,12 +84,8 @@ export function TicketPrint({
                             {t('departure')}
                         </p>
                     </div>
-                    <div className='flex-1 px-4'>
-                        <div className='border-t-2 border-dashed border-gray-300 relative'>
-                            <span className='absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-2 text-xs'>
-                                →
-                            </span>
-                        </div>
+                    <div className='flex-1 px-4 flex items-center justify-center'>
+                        <span className='text-gray-400 text-lg'>→</span>
                     </div>
                     <div className='text-center'>
                         <p className='text-lg font-semibold'>
@@ -102,7 +98,7 @@ export function TicketPrint({
                 </div>
             </div>
 
-            <div className='grid grid-cols-2 gap-4 mb-4 text-sm'>
+            <div className='grid grid-cols-3 gap-4 mb-4 text-sm'>
                 <div>
                     <p className='text-xs text-muted-foreground print:text-gray-600'>
                         {t('train')}
@@ -119,6 +115,14 @@ export function TicketPrint({
                     <p className='font-medium'>
                         {trip.departureTime
                             && formatDateTime(trip.departureTime)}
+                    </p>
+                </div>
+                <div>
+                    <p className='text-xs text-muted-foreground print:text-gray-600'>
+                        {t('arrivalTime')}
+                    </p>
+                    <p className='font-medium'>
+                        {trip.arrivalTime && formatDateTime(trip.arrivalTime)}
                     </p>
                 </div>
             </div>

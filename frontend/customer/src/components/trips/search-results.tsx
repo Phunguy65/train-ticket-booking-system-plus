@@ -1,7 +1,12 @@
 'use client';
 
 import { useInfiniteQuery } from '@tanstack/react-query';
-import { AlertCircleIcon, Loader2Icon, SearchXIcon } from 'lucide-react';
+import {
+    AlertCircleIcon,
+    HomeIcon,
+    Loader2Icon,
+    SearchXIcon,
+} from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useCallback, useEffect, useMemo } from 'react';
@@ -12,7 +17,7 @@ import {
 } from '@/components/trips/index.ts';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert.tsx';
 import { Button } from '@/components/ui/button.tsx';
-import { usePathname, useRouter } from '@/i18n/routing.ts';
+import { Link, usePathname, useRouter } from '@/i18n/routing.ts';
 import { filterScheduledTripsInfiniteOptions } from '@/lib/api/index.ts';
 import {
     parseTripSearchParams,
@@ -125,6 +130,9 @@ export function SearchResults() {
     if (isLoading) {
         return (
             <div className='space-y-6'>
+                <div className='flex flex-wrap items-center justify-between gap-4'>
+                    <BackToHomeButton />
+                </div>
                 <TripFilters
                     filters={filters}
                     onFiltersChange={handleFiltersChange}
@@ -138,6 +146,9 @@ export function SearchResults() {
     if (isError) {
         return (
             <div className='space-y-6'>
+                <div className='flex flex-wrap items-center justify-between gap-4'>
+                    <BackToHomeButton />
+                </div>
                 <TripFilters
                     filters={filters}
                     onFiltersChange={handleFiltersChange}
@@ -164,6 +175,9 @@ export function SearchResults() {
     if (trips.length === 0) {
         return (
             <div className='space-y-6'>
+                <div className='flex flex-wrap items-center justify-between gap-4'>
+                    <BackToHomeButton />
+                </div>
                 <TripFilters
                     filters={filters}
                     onFiltersChange={handleFiltersChange}
@@ -184,9 +198,12 @@ export function SearchResults() {
     return (
         <div className='space-y-6'>
             <div className='flex flex-wrap items-center justify-between gap-4'>
-                <p className='text-sm text-muted-foreground'>
-                    {t('results', { count: trips.length })}
-                </p>
+                <div className='flex flex-wrap items-center gap-4'>
+                    <BackToHomeButton />
+                    <p className='text-sm text-muted-foreground'>
+                        {t('results', { count: trips.length })}
+                    </p>
+                </div>
                 <TripFilters
                     filters={filters}
                     onFiltersChange={handleFiltersChange}
@@ -221,5 +238,18 @@ export function SearchResults() {
                 </div>
             )}
         </div>
+    );
+}
+
+function BackToHomeButton() {
+    const t = useTranslations('Trips');
+
+    return (
+        <Button variant='outline' size='sm' asChild>
+            <Link href='/'>
+                <HomeIcon className='h-4 w-4' />
+                {t('backToHome')}
+            </Link>
+        </Button>
     );
 }

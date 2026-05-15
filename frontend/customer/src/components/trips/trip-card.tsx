@@ -15,6 +15,7 @@ import type { SearchScheduledTripsResponse } from '@/lib/api/generated/types.gen
 import {
     formatDuration,
     formatPrice,
+    formatShortDate,
     formatTime,
 } from '@/lib/customer-utils.ts';
 
@@ -52,6 +53,11 @@ export function TripCard({ trip }: TripCardProps) {
                                     ? formatTime(trip.departureTime)
                                     : '-'}
                             </p>
+                            {trip.departureTime && (
+                                <p className='text-xs text-muted-foreground'>
+                                    {formatShortDate(trip.departureTime)}
+                                </p>
+                            )}
                             <p className='text-sm text-muted-foreground'>
                                 {trip.route?.origin?.name}
                             </p>
@@ -78,6 +84,11 @@ export function TripCard({ trip }: TripCardProps) {
                                     ? formatTime(trip.arrivalTime)
                                     : '-'}
                             </p>
+                            {trip.arrivalTime && (
+                                <p className='text-xs text-muted-foreground'>
+                                    {formatShortDate(trip.arrivalTime)}
+                                </p>
+                            )}
                             <p className='text-sm text-muted-foreground'>
                                 {trip.route?.destination?.name}
                             </p>
