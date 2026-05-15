@@ -41,6 +41,17 @@ class UserTest {
             assertThat(user.getDomainEvents()).hasSize(1);
             assertThat(user.getDomainEvents().get(0)).isInstanceOf(UserRegistered.class);
         }
+
+        @Test
+        @DisplayName("publishes UserRegistered with the created user id and email")
+        void create_registersUserRegisteredEventWithExpectedValues() {
+            User user = createUser();
+
+            UserRegistered event = (UserRegistered) user.getDomainEvents().getFirst();
+
+            assertThat(event.userId()).isEqualTo(USER_ID);
+            assertThat(event.email()).isEqualTo("user@example.com");
+        }
     }
 
     @Nested

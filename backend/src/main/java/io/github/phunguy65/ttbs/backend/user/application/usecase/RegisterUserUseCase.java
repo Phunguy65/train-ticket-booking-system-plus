@@ -18,8 +18,8 @@ import io.github.phunguy65.ttbs.backend.user.domain.model.User;
 import io.github.phunguy65.ttbs.backend.user.domain.model.UserId;
 import io.github.phunguy65.ttbs.backend.user.domain.repository.UserRepository;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class RegisterUserUseCase {
@@ -37,7 +37,6 @@ public class RegisterUserUseCase {
         this.eventPublisher = eventPublisher;
     }
 
-    @Transactional
     public Result<UserResponse, UserError> execute(RegisterUserCommand command) {
         EmailAddress email = EmailAddress.of(command.email());
         if (userRepository.findByEmail(email.value()).isPresent()) {
@@ -56,7 +55,12 @@ public class RegisterUserUseCase {
                 null,
                 null,
                 null);
-        User saved = userRepository.save(user);
+        User saved;
+        try {
+            saved = userRepository.save(user);
+        } catch (DataIntegrityViolationException ex) {
+            return Result.failure(new UserError.EmailAlreadyExists());
+        }
 
         for (DomainEvent event : user.getDomainEvents()) {
             eventPublisher.publishEvent(event);
