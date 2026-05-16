@@ -3,6 +3,8 @@ package io.github.phunguy65.ttbs.backend.booking.application.usecase;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -10,13 +12,20 @@ import io.github.phunguy65.ttbs.backend.booking.application.command.CreateBookin
 import io.github.phunguy65.ttbs.backend.booking.application.port.BookingConfigProvider;
 import io.github.phunguy65.ttbs.backend.booking.application.response.BookingResponse;
 import io.github.phunguy65.ttbs.backend.booking.domain.error.BookingError;
+import io.github.phunguy65.ttbs.backend.booking.domain.event.BookingCreated;
 import io.github.phunguy65.ttbs.backend.booking.domain.model.Booking;
+import io.github.phunguy65.ttbs.backend.booking.domain.model.BookingId;
 import io.github.phunguy65.ttbs.backend.booking.domain.model.BookingStatus;
+import io.github.phunguy65.ttbs.backend.booking.domain.model.BookingUserInfo;
 import io.github.phunguy65.ttbs.backend.booking.domain.repository.BookingRepository;
 import io.github.phunguy65.ttbs.backend.shared.domain.Money;
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
+import io.github.phunguy65.ttbs.backend.shared.domain.event.SeatStatusChangedEvent;
 import io.github.phunguy65.ttbs.backend.station.domain.model.StationId;
 import io.github.phunguy65.ttbs.backend.train.application.port.RouteSeatAvailabilityManager;
+import io.github.phunguy65.ttbs.backend.train.domain.error.RouteSeatAvailabilityError;
+import io.github.phunguy65.ttbs.backend.train.domain.model.RouteSeatAvailability;
+import io.github.phunguy65.ttbs.backend.train.domain.model.RouteSeatAvailabilityStatus;
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteTemplate;
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteTemplateId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.ScheduledTrip;
@@ -35,6 +44,7 @@ import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -162,7 +172,203 @@ class CreateBookingUseCaseTest {
                         null)));
         when(seatAvailabilityPort.holdSeatsWithBookingId(any(), any(), any(), any()))
                 .thenReturn(Result.success());
-        when(seatAvailabilityPort.findByBookingId(any())).thenReturn(List.of());
+        lenient().when(seatAvailabilityPort.findByBookingId(any())).thenReturn(List.of());
+    }
+
+    @Nested
+    @DisplayName("idempotency")
+    class Idempotency {
+
+        @Test
+        @DisplayName("returns existing booking when idempotencyKey already exists")
+        void execute_returnsExistingBookingWhenIdempotencyKeyAlreadyExists() {
+            Booking existingBooking = Booking.reconstitute(
+                    BookingId.of(UUID.fromString("99999999-9999-9999-9999-999999999999")),
+                    UserId.of(USER_ID),
+                    ScheduledTripId.of(SCHEDULED_TRIP_ID),
+                    BookingUserInfo.of(
+                            "Nguyen Van A",
+                            "a@b.com",
+                            "0900000000",
+                            LocalDate.of(1990, 1, 1),
+                            "Male",
+                            "012345678",
+                            "123 Main St"),
+                    List.of(),
+                    Money.vnd(1_000_000L),
+                    BookingStatus.HELD,
+                    "idem-key",
+                    Instant.now().plusSeconds(900),
+                    Instant.now());
+            when(bookingRepository.findByIdempotencyKey("idem-key"))
+                    .thenReturn(Optional.of(existingBooking));
+
+            Result<BookingResponse, BookingError> result = useCase.execute(new CreateBookingCommand(
+                    USER_ID,
+                    SCHEDULED_TRIP_ID,
+                    List.of(SeatId.of(SEAT_1_ID)),
+                    List.of(new CreateBookingCommand.PassengerPayload(
+                            SeatId.of(SEAT_1_ID),
+                            "Nguyen Van B",
+                            "ID001",
+                            LocalDate.of(1985, 5, 15),
+                            "Male")),
+                    "idem-key"));
+
+            assertThat(result.isSuccess()).isTrue();
+            BookingResponse response =
+                    ((Result.Success<BookingResponse, BookingError>) result).value();
+            assertThat(response.id()).isEqualTo(existingBooking.getBookingId().value());
+            assertThat(response.totalPrice()).isEqualTo(1_000_000L);
+            verify(bookingRepository, never()).save(any(Booking.class));
+        }
+    }
+
+    @Nested
+    @DisplayName("negative paths")
+    class NegativePaths {
+
+        @Test
+        @DisplayName("returns UserNotFound when user does not exist")
+        void execute_returnsUserNotFoundWhenUserDoesNotExist() {
+            when(bookingRepository.findByIdempotencyKey(any())).thenReturn(Optional.empty());
+            when(bookingConfigProvider.getMaxSeatsPerBooking()).thenReturn(5);
+            when(userRepository.findSummaryById(UserId.of(USER_ID))).thenReturn(Optional.empty());
+
+            Result<BookingResponse, BookingError> result = useCase.execute(command());
+
+            assertThat(result.isFailure()).isTrue();
+            assertThat(((Result.Failure<?, BookingError>) result).error())
+                    .isInstanceOf(BookingError.UserNotFound.class);
+        }
+
+        @Test
+        @DisplayName("returns ActiveHoldExists when user already has active hold for same trip")
+        void execute_returnsActiveHoldExistsWhenUserAlreadyHasActiveHoldForSameTrip() {
+            when(bookingRepository.findByIdempotencyKey(any())).thenReturn(Optional.empty());
+            when(bookingConfigProvider.getMaxSeatsPerBooking()).thenReturn(5);
+            when(userRepository.findSummaryById(UserId.of(USER_ID)))
+                    .thenReturn(Optional.of(userSummary()));
+            when(bookingRepository.findActiveHoldByUserAndScheduledTrip(
+                            UserId.of(USER_ID), ScheduledTripId.of(SCHEDULED_TRIP_ID)))
+                    .thenReturn(Optional.of(Booking.reconstitute(
+                            BookingId.of(UUID.fromString("99999999-9999-9999-9999-999999999998")),
+                            UserId.of(USER_ID),
+                            ScheduledTripId.of(SCHEDULED_TRIP_ID),
+                            BookingUserInfo.of(
+                                    "Name",
+                                    "email@test.com",
+                                    "0900000000",
+                                    null,
+                                    "Male",
+                                    "ID001",
+                                    "Address"),
+                            List.of(),
+                            Money.vnd(500_000L),
+                            BookingStatus.HELD,
+                            "existing-key",
+                            Instant.now().plusSeconds(900),
+                            Instant.now())));
+
+            Result<BookingResponse, BookingError> result = useCase.execute(command());
+
+            assertThat(result.isFailure()).isTrue();
+            assertThat(((Result.Failure<?, BookingError>) result).error())
+                    .isInstanceOf(BookingError.ActiveHoldExists.class);
+        }
+
+        @Test
+        @DisplayName("returns ScheduledTripNotFound when scheduled trip does not exist")
+        void execute_returnsScheduledTripNotFoundWhenScheduledTripDoesNotExist() {
+            when(bookingRepository.findByIdempotencyKey(any())).thenReturn(Optional.empty());
+            when(bookingConfigProvider.getMaxSeatsPerBooking()).thenReturn(5);
+            when(userRepository.findSummaryById(UserId.of(USER_ID)))
+                    .thenReturn(Optional.of(userSummary()));
+            when(bookingRepository.findActiveHoldByUserAndScheduledTrip(any(), any()))
+                    .thenReturn(Optional.empty());
+            when(scheduledTripRepository.findById(ScheduledTripId.of(SCHEDULED_TRIP_ID)))
+                    .thenReturn(Optional.empty());
+
+            Result<BookingResponse, BookingError> result = useCase.execute(command());
+
+            assertThat(result.isFailure()).isTrue();
+            assertThat(((Result.Failure<?, BookingError>) result).error())
+                    .isInstanceOf(BookingError.ScheduledTripNotFound.class);
+        }
+
+        @Test
+        @DisplayName("returns ScheduledTripNotFound when route template does not exist")
+        void execute_returnsScheduledTripNotFoundWhenRouteTemplateDoesNotExist() {
+            when(bookingRepository.findByIdempotencyKey(any())).thenReturn(Optional.empty());
+            when(bookingConfigProvider.getMaxSeatsPerBooking()).thenReturn(5);
+            when(userRepository.findSummaryById(UserId.of(USER_ID)))
+                    .thenReturn(Optional.of(userSummary()));
+            when(bookingRepository.findActiveHoldByUserAndScheduledTrip(any(), any()))
+                    .thenReturn(Optional.empty());
+            when(scheduledTripRepository.findById(ScheduledTripId.of(SCHEDULED_TRIP_ID)))
+                    .thenReturn(Optional.of(ScheduledTrip.reconstitute(
+                            ScheduledTripId.of(SCHEDULED_TRIP_ID),
+                            RouteTemplateId.of(ROUTE_TEMPLATE_ID),
+                            null,
+                            DEPARTURE,
+                            ARRIVAL,
+                            ScheduledTripStatus.SCHEDULED,
+                            DEPARTURE.minusSeconds(86400),
+                            null)));
+            when(routeTemplateRepository.findById(RouteTemplateId.of(ROUTE_TEMPLATE_ID)))
+                    .thenReturn(Optional.empty());
+
+            Result<BookingResponse, BookingError> result = useCase.execute(command());
+
+            assertThat(result.isFailure()).isTrue();
+            assertThat(((Result.Failure<?, BookingError>) result).error())
+                    .isInstanceOf(BookingError.ScheduledTripNotFound.class);
+        }
+
+        @Test
+        @DisplayName("returns SeatNotAvailable when seat hold fails")
+        void execute_returnsSeatNotAvailableWhenSeatHoldFails() {
+            stubHappyPath();
+            when(seatAvailabilityPort.holdSeatsWithBookingId(any(), any(), any(), any()))
+                    .thenReturn(Result.failure(new RouteSeatAvailabilityError.SeatNotAvailable()));
+
+            Result<BookingResponse, BookingError> result = useCase.execute(command());
+
+            assertThat(result.isFailure()).isTrue();
+            assertThat(((Result.Failure<?, BookingError>) result).error())
+                    .isInstanceOf(BookingError.SeatNotAvailable.class);
+        }
+    }
+
+    @Nested
+    @DisplayName("event publishing")
+    class EventPublishing {
+
+        @Test
+        @DisplayName("publishes BookingCreated event on success")
+        void execute_publishesBookingCreatedEventOnSuccess() {
+            stubHappyPath();
+
+            useCase.execute(command());
+
+            verify(eventPublisher).publishEvent(any(BookingCreated.class));
+        }
+
+        @Test
+        @DisplayName("publishes SeatStatusChangedEvent after successful hold")
+        void execute_publishesSeatStatusChangedEventAfterSuccessfulHold() {
+            stubHappyPath();
+            when(seatAvailabilityPort.findByBookingId(any()))
+                    .thenReturn(List.of(RouteSeatAvailability.reconstitute(
+                            ScheduledTripId.of(SCHEDULED_TRIP_ID),
+                            SeatId.of(SEAT_1_ID),
+                            RouteSeatAvailabilityStatus.HELD,
+                            UUID.fromString("99999999-9999-9999-9999-999999999997"))));
+
+            useCase.execute(command());
+
+            verify(eventPublisher).publishEvent(any(SeatStatusChangedEvent.class));
+        }
     }
 
     @Test

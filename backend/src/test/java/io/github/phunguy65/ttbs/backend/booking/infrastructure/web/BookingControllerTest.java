@@ -5,6 +5,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import io.github.phunguy65.ttbs.backend.booking.application.response.BookingDetailResponse;
+import io.github.phunguy65.ttbs.backend.booking.application.response.BookingResponse;
 import io.github.phunguy65.ttbs.backend.booking.application.response.PassengerInfoResponse;
 import io.github.phunguy65.ttbs.backend.booking.application.response.PassengerResponse;
 import io.github.phunguy65.ttbs.backend.booking.application.response.PaymentDetailResponse;
@@ -15,6 +16,7 @@ import io.github.phunguy65.ttbs.backend.booking.application.usecase.GetBookingDe
 import io.github.phunguy65.ttbs.backend.booking.application.usecase.GetUserBookingsUseCase;
 import io.github.phunguy65.ttbs.backend.booking.domain.error.BookingError;
 import io.github.phunguy65.ttbs.backend.booking.domain.model.BookingStatus;
+import io.github.phunguy65.ttbs.backend.booking.infrastructure.web.request.CreateBookingRequest;
 import io.github.phunguy65.ttbs.backend.booking.infrastructure.web.request.GetBookingDetailRequest;
 import io.github.phunguy65.ttbs.backend.booking.infrastructure.web.request.GetUserBookingsRequest;
 import io.github.phunguy65.ttbs.backend.payment.domain.model.PaymentStatus;
@@ -26,12 +28,17 @@ import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.JsendResponse;
 import io.github.phunguy65.ttbs.backend.train.application.response.ScheduledTripDetailResponse;
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteSeatAvailabilityStatus;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
+import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 class BookingControllerTest {
 
@@ -47,6 +54,72 @@ class BookingControllerTest {
             cancelBookingUseCase,
             getBookingDetailUseCase,
             getUserBookingsUseCase);
+
+    @AfterEach
+    void tearDown() {
+        RequestContextHolder.resetRequestAttributes();
+    }
+
+    @Test
+    void createReturnsCreatedWithBookingResponseOnSuccess() {
+        mockCreateRequestContext();
+        UUID userId = UUID.fromString("11111111-1111-1111-1111-111111111111");
+        UUID scheduledTripId = UUID.fromString("22222222-2222-2222-2222-222222222222");
+        UUID seatId = UUID.fromString("33333333-3333-3333-3333-333333333333");
+        CreateBookingRequest request = createRequest(scheduledTripId, seatId, "idem-key");
+        Authentication auth = new UsernamePasswordAuthenticationToken(userId.toString(), null);
+        BookingResponse bookingResponse = bookingResponse(userId, scheduledTripId, seatId);
+        when(createBookingUseCase.execute(request.toCommand(userId)))
+                .thenReturn(Result.success(bookingResponse));
+
+        var response = controller.create(request, auth);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        assertThat(response.getHeaders().getLocation()).isNotNull();
+        @SuppressWarnings("unchecked")
+        JsendResponse<BookingResponse> body = (JsendResponse<BookingResponse>) response.getBody();
+        assertThat(body).isNotNull();
+        assertThat(body.status()).isEqualTo("success");
+        assertThat(body.data()).isEqualTo(bookingResponse);
+    }
+
+    @Test
+    void createReturnsBadRequestWhenUseCaseReturnsTooManySeats() {
+        assertCreateFailure(
+                new BookingError.TooManySeats(6, 5),
+                HttpStatus.BAD_REQUEST,
+                ErrorCode.VALIDATION_ERROR);
+    }
+
+    @Test
+    void createReturnsNotFoundWhenUseCaseReturnsUserNotFound() {
+        assertCreateFailure(
+                new BookingError.UserNotFound(), HttpStatus.NOT_FOUND, ErrorCode.USER_NOT_FOUND);
+    }
+
+    @Test
+    void createReturnsNotFoundWhenUseCaseReturnsScheduledTripNotFound() {
+        assertCreateFailure(
+                new BookingError.ScheduledTripNotFound(),
+                HttpStatus.NOT_FOUND,
+                ErrorCode.SCHEDULED_TRIP_NOT_FOUND);
+    }
+
+    @Test
+    void createReturnsConflictWhenUseCaseReturnsSeatNotAvailable() {
+        assertCreateFailure(
+                new BookingError.SeatNotAvailable(),
+                HttpStatus.CONFLICT,
+                ErrorCode.SEAT_NOT_AVAILABLE);
+    }
+
+    @Test
+    void createReturnsConflictWhenUseCaseReturnsActiveHoldExists() {
+        assertCreateFailure(
+                new BookingError.ActiveHoldExists(),
+                HttpStatus.CONFLICT,
+                ErrorCode.BOOKING_CANNOT_CONFIRM);
+    }
 
     @Test
     void listByUserReturnsPagedBookingHistory() {
@@ -81,6 +154,54 @@ class BookingControllerTest {
         assertThat(response.data().hasNext()).isFalse();
         assertThat(response.data().hasPrevious()).isFalse();
         assertThat(response.data().content().getFirst()).isEqualTo(booking);
+    }
+
+    @Test
+    void listByUserPassesZeroPageAndMinimumSizeToUseCase() {
+        UUID userId = UUID.fromString("11111111-1111-1111-1111-111111111111");
+        GetUserBookingsRequest request = new GetUserBookingsRequest(0, 1);
+        Authentication auth = new UsernamePasswordAuthenticationToken(userId.toString(), null);
+        when(getUserBookingsUseCase.execute(request.toQuery(userId, userId)))
+                .thenReturn(Result.success(PageResponse.empty(1)));
+
+        var response = controller.listByUser(userId, auth, request);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        @SuppressWarnings("unchecked")
+        JsendResponse<PageResponse<UserBookingResponse>> body =
+                (JsendResponse<PageResponse<UserBookingResponse>>) response.getBody();
+        assertThat(body).isNotNull();
+        assertThat(body.status()).isEqualTo("success");
+        assertThat(body.data().content()).isEmpty();
+        assertThat(body.data().page()).isZero();
+        assertThat(body.data().size()).isEqualTo(1);
+        assertThat(body.data().total()).isZero();
+        assertThat(body.data().hasNext()).isFalse();
+        assertThat(body.data().hasPrevious()).isFalse();
+    }
+
+    @Test
+    void listByUserPassesMaximumSizeToUseCase() {
+        UUID userId = UUID.fromString("11111111-1111-1111-1111-111111111111");
+        GetUserBookingsRequest request = new GetUserBookingsRequest(0, 100);
+        Authentication auth = new UsernamePasswordAuthenticationToken(userId.toString(), null);
+        when(getUserBookingsUseCase.execute(request.toQuery(userId, userId)))
+                .thenReturn(Result.success(PageResponse.empty(100)));
+
+        var response = controller.listByUser(userId, auth, request);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        @SuppressWarnings("unchecked")
+        JsendResponse<PageResponse<UserBookingResponse>> body =
+                (JsendResponse<PageResponse<UserBookingResponse>>) response.getBody();
+        assertThat(body).isNotNull();
+        assertThat(body.status()).isEqualTo("success");
+        assertThat(body.data().content()).isEmpty();
+        assertThat(body.data().page()).isZero();
+        assertThat(body.data().size()).isEqualTo(100);
+        assertThat(body.data().total()).isZero();
+        assertThat(body.data().hasNext()).isFalse();
+        assertThat(body.data().hasPrevious()).isFalse();
     }
 
     @Test
@@ -225,5 +346,62 @@ class BookingControllerTest {
         JsendResponse<FailData> body = (JsendResponse<FailData>) response.getBody();
         assertThat(body).isNotNull();
         assertThat(body.data().code()).isEqualTo(ErrorCode.BOOKING_NOT_FOUND);
+    }
+
+    private void assertCreateFailure(
+            BookingError error, HttpStatus expectedStatus, ErrorCode expectedCode) {
+        UUID userId = UUID.fromString("11111111-1111-1111-1111-111111111111");
+        UUID scheduledTripId = UUID.fromString("22222222-2222-2222-2222-222222222222");
+        UUID seatId = UUID.fromString("33333333-3333-3333-3333-333333333333");
+        CreateBookingRequest request = createRequest(scheduledTripId, seatId, "idem-key");
+        Authentication auth = new UsernamePasswordAuthenticationToken(userId.toString(), null);
+        when(createBookingUseCase.execute(request.toCommand(userId)))
+                .thenReturn(Result.failure(error));
+
+        var response = controller.create(request, auth);
+
+        assertThat(response.getStatusCode()).isEqualTo(expectedStatus);
+        @SuppressWarnings("unchecked")
+        JsendResponse<FailData> body = (JsendResponse<FailData>) response.getBody();
+        assertThat(body).isNotNull();
+        assertThat(body.status()).isEqualTo("fail");
+        assertThat(body.data().code()).isEqualTo(expectedCode);
+    }
+
+    private CreateBookingRequest createRequest(
+            UUID scheduledTripId, UUID seatId, String idempotencyKey) {
+        return new CreateBookingRequest(
+                scheduledTripId,
+                List.of(seatId),
+                List.of(new CreateBookingRequest.PassengerInput(
+                        seatId, "Name", "ID001", LocalDate.of(1990, 1, 1), "Male")),
+                idempotencyKey);
+    }
+
+    private BookingResponse bookingResponse(UUID userId, UUID scheduledTripId, UUID seatId) {
+        return new BookingResponse(
+                UUID.fromString("44444444-4444-4444-4444-444444444444"),
+                userId,
+                scheduledTripId,
+                new PassengerInfoResponse(
+                        "Name",
+                        "email@test.com",
+                        "0900000000",
+                        null,
+                        "Male",
+                        "ID001",
+                        "123 Street"),
+                List.of(new PassengerResponse(
+                        seatId, "Name", "ID001", LocalDate.of(1990, 1, 1), "Male")),
+                500000L,
+                "VND",
+                BookingStatus.HELD,
+                Instant.now().plusSeconds(900),
+                Instant.now());
+    }
+
+    private void mockCreateRequestContext() {
+        MockHttpServletRequest mockRequest = new MockHttpServletRequest("POST", "/1.0/bookings");
+        RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(mockRequest));
     }
 }
