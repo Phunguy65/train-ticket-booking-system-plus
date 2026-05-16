@@ -6,6 +6,8 @@ import static org.mockito.Mockito.when;
 
 import io.github.phunguy65.ttbs.backend.payment.application.response.CheckoutSessionResponse;
 import io.github.phunguy65.ttbs.backend.payment.application.response.CreateCheckoutResult;
+import io.github.phunguy65.ttbs.backend.payment.application.response.PaymentDetailResponse;
+import io.github.phunguy65.ttbs.backend.payment.application.response.PaymentResponse;
 import io.github.phunguy65.ttbs.backend.payment.application.usecase.CreateCheckoutSessionUseCase;
 import io.github.phunguy65.ttbs.backend.payment.application.usecase.GetPaymentByBookingIdUseCase;
 import io.github.phunguy65.ttbs.backend.payment.application.usecase.GetPaymentByIdUseCase;
@@ -13,10 +15,14 @@ import io.github.phunguy65.ttbs.backend.payment.application.usecase.GetUserPayme
 import io.github.phunguy65.ttbs.backend.payment.domain.error.PaymentError;
 import io.github.phunguy65.ttbs.backend.payment.domain.model.PaymentStatus;
 import io.github.phunguy65.ttbs.backend.payment.infrastructure.web.request.CreateCheckoutRequest;
+import io.github.phunguy65.ttbs.backend.payment.infrastructure.web.request.GetPaymentByBookingIdRequest;
+import io.github.phunguy65.ttbs.backend.payment.infrastructure.web.request.GetPaymentByIdRequest;
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.ErrorCode;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.FailData;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.JsendResponse;
+import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -47,6 +53,115 @@ class PaymentControllerTest {
 
     private Authentication auth() {
         return new UsernamePasswordAuthenticationToken(USER_ID.toString(), null);
+    }
+
+    @Test
+    @DisplayName("getPaymentById returns 200 on success")
+    void getPaymentById_returns200_onSuccess() {
+        var query = new GetPaymentByIdRequest().toQuery(PAYMENT_ID, USER_ID);
+        var response = new PaymentDetailResponse(
+                PAYMENT_ID,
+                BOOKING_ID,
+                PaymentStatus.PENDING,
+                "https://checkout.stripe.com/test",
+                BigDecimal.valueOf(500_000L),
+                "VND",
+                Instant.parse("2026-04-01T10:00:00Z"),
+                null);
+        when(getPaymentByIdUseCase.execute(query)).thenReturn(Result.success(response));
+
+        var result = controller.getPaymentById(PAYMENT_ID, auth(), new GetPaymentByIdRequest());
+
+        assertThat(result.getStatusCode().value()).isEqualTo(HttpStatus.OK.value());
+    }
+
+    @Test
+    @DisplayName("getPaymentById returns 404 when payment not found")
+    void getPaymentById_returns404_whenPaymentNotFound() {
+        var query = new GetPaymentByIdRequest().toQuery(PAYMENT_ID, USER_ID);
+        when(getPaymentByIdUseCase.execute(query))
+                .thenReturn(Result.failure(new PaymentError.PaymentNotFound()));
+
+        var result = controller.getPaymentById(PAYMENT_ID, auth(), new GetPaymentByIdRequest());
+
+        assertThat(result.getStatusCode().value()).isEqualTo(HttpStatus.NOT_FOUND.value());
+        @SuppressWarnings("unchecked")
+        JsendResponse<FailData> body = (JsendResponse<FailData>) result.getBody();
+        assertThat(body).isNotNull();
+        assertThat(body.status()).isEqualTo("fail");
+        assertThat(body.data().code()).isEqualTo(ErrorCode.PAYMENT_NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("getPaymentById returns 403 when user forbidden")
+    void getPaymentById_returns403_whenForbidden() {
+        var query = new GetPaymentByIdRequest().toQuery(PAYMENT_ID, USER_ID);
+        when(getPaymentByIdUseCase.execute(query))
+                .thenReturn(Result.failure(new PaymentError.Forbidden()));
+
+        var result = controller.getPaymentById(PAYMENT_ID, auth(), new GetPaymentByIdRequest());
+
+        assertThat(result.getStatusCode().value()).isEqualTo(HttpStatus.FORBIDDEN.value());
+        @SuppressWarnings("unchecked")
+        JsendResponse<FailData> body = (JsendResponse<FailData>) result.getBody();
+        assertThat(body).isNotNull();
+        assertThat(body.status()).isEqualTo("fail");
+        assertThat(body.data().code()).isEqualTo(ErrorCode.ACCESS_DENIED);
+    }
+
+    @Test
+    @DisplayName("getPaymentByBookingId returns 200 on success")
+    void getPaymentByBookingId_returns200_onSuccess() {
+        var query = new GetPaymentByBookingIdRequest().toQuery(BOOKING_ID, USER_ID);
+        var response = new PaymentResponse(
+                PAYMENT_ID,
+                BOOKING_ID,
+                PaymentStatus.PENDING,
+                "https://checkout.stripe.com/test",
+                BigDecimal.valueOf(500_000L),
+                "VND");
+        when(getPaymentByBookingIdUseCase.execute(query)).thenReturn(Result.success(response));
+
+        var result = controller.getPaymentByBookingId(
+                BOOKING_ID, auth(), new GetPaymentByBookingIdRequest());
+
+        assertThat(result.getStatusCode().value()).isEqualTo(HttpStatus.OK.value());
+    }
+
+    @Test
+    @DisplayName("getPaymentByBookingId returns 404 when payment not found")
+    void getPaymentByBookingId_returns404_whenPaymentNotFound() {
+        var query = new GetPaymentByBookingIdRequest().toQuery(BOOKING_ID, USER_ID);
+        when(getPaymentByBookingIdUseCase.execute(query))
+                .thenReturn(Result.failure(new PaymentError.PaymentNotFound()));
+
+        var result = controller.getPaymentByBookingId(
+                BOOKING_ID, auth(), new GetPaymentByBookingIdRequest());
+
+        assertThat(result.getStatusCode().value()).isEqualTo(HttpStatus.NOT_FOUND.value());
+        @SuppressWarnings("unchecked")
+        JsendResponse<FailData> body = (JsendResponse<FailData>) result.getBody();
+        assertThat(body).isNotNull();
+        assertThat(body.status()).isEqualTo("fail");
+        assertThat(body.data().code()).isEqualTo(ErrorCode.PAYMENT_NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("getPaymentByBookingId returns 403 when user forbidden")
+    void getPaymentByBookingId_returns403_whenForbidden() {
+        var query = new GetPaymentByBookingIdRequest().toQuery(BOOKING_ID, USER_ID);
+        when(getPaymentByBookingIdUseCase.execute(query))
+                .thenReturn(Result.failure(new PaymentError.Forbidden()));
+
+        var result = controller.getPaymentByBookingId(
+                BOOKING_ID, auth(), new GetPaymentByBookingIdRequest());
+
+        assertThat(result.getStatusCode().value()).isEqualTo(HttpStatus.FORBIDDEN.value());
+        @SuppressWarnings("unchecked")
+        JsendResponse<FailData> body = (JsendResponse<FailData>) result.getBody();
+        assertThat(body).isNotNull();
+        assertThat(body.status()).isEqualTo("fail");
+        assertThat(body.data().code()).isEqualTo(ErrorCode.ACCESS_DENIED);
     }
 
     @Test

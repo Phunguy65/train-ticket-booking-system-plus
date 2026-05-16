@@ -8,6 +8,7 @@ import static org.mockito.Mockito.when;
 
 import io.github.phunguy65.ttbs.backend.booking.application.command.CancelBookingCommand;
 import io.github.phunguy65.ttbs.backend.booking.domain.error.BookingError;
+import io.github.phunguy65.ttbs.backend.booking.domain.event.BookingCancelled;
 import io.github.phunguy65.ttbs.backend.booking.domain.model.Booking;
 import io.github.phunguy65.ttbs.backend.booking.domain.model.BookingId;
 import io.github.phunguy65.ttbs.backend.booking.domain.model.BookingStatus;
@@ -15,7 +16,10 @@ import io.github.phunguy65.ttbs.backend.booking.domain.model.BookingUserInfo;
 import io.github.phunguy65.ttbs.backend.booking.domain.repository.BookingRepository;
 import io.github.phunguy65.ttbs.backend.shared.domain.Money;
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
+import io.github.phunguy65.ttbs.backend.shared.domain.event.SeatStatusChangedEvent;
 import io.github.phunguy65.ttbs.backend.train.application.port.RouteSeatAvailabilityManager;
+import io.github.phunguy65.ttbs.backend.train.domain.model.RouteSeatAvailability;
+import io.github.phunguy65.ttbs.backend.train.domain.model.RouteSeatAvailabilityStatus;
 import io.github.phunguy65.ttbs.backend.train.domain.model.ScheduledTripId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.SeatId;
 import java.time.Instant;
@@ -165,6 +169,69 @@ class CancelBookingUseCaseTest {
             assertThat(result.isFailure()).isTrue();
             assertThat(((Result.Failure<?, BookingError>) result).error())
                     .isInstanceOf(BookingError.InvalidStatusTransition.class);
+        }
+    }
+
+    @Nested
+    @DisplayName("event publishing")
+    class EventPublishing {
+
+        @Test
+        @DisplayName("publishes BookingCancelled event on successful cancellation")
+        void execute_publishesBookingCancelledEventOnSuccess() {
+            when(bookingRepository.findById(BOOKING_ID))
+                    .thenReturn(Optional.of(bookingWithStatus(BookingStatus.HELD)));
+            when(seatAvailabilityPort.findSeatIdsByBookingId(BOOKING_UUID))
+                    .thenReturn(List.of(SeatId.of(SEAT_UUID)));
+            when(seatAvailabilityPort.findByScheduledTripIdAndSeatIds(any(), any()))
+                    .thenReturn(List.of());
+            when(bookingRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+            useCase.execute(new CancelBookingCommand(BOOKING_UUID, USER_UUID));
+
+            verify(eventPublisher).publishEvent(any(BookingCancelled.class));
+        }
+
+        @Test
+        @DisplayName("publishes SeatStatusChangedEvent when seats exist")
+        void execute_publishesSeatStatusChangedEventWhenSeatsExist() {
+            when(bookingRepository.findById(BOOKING_ID))
+                    .thenReturn(Optional.of(bookingWithStatus(BookingStatus.HELD)));
+            when(seatAvailabilityPort.findSeatIdsByBookingId(BOOKING_UUID))
+                    .thenReturn(List.of(SeatId.of(SEAT_UUID)));
+            when(seatAvailabilityPort.findByScheduledTripIdAndSeatIds(any(), any()))
+                    .thenReturn(List.of(RouteSeatAvailability.reconstitute(
+                            ScheduledTripId.of(TRIP_UUID),
+                            SeatId.of(SEAT_UUID),
+                            RouteSeatAvailabilityStatus.AVAILABLE,
+                            null)));
+            when(bookingRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+            useCase.execute(new CancelBookingCommand(BOOKING_UUID, USER_UUID));
+
+            verify(eventPublisher).publishEvent(any(SeatStatusChangedEvent.class));
+        }
+    }
+
+    @Nested
+    @DisplayName("empty seats branch")
+    class EmptySeatsBranch {
+
+        @Test
+        @DisplayName("skips seat release when no seats found for booking")
+        void execute_skipsSeatReleaseWhenNoSeatsFound() {
+            when(bookingRepository.findById(BOOKING_ID))
+                    .thenReturn(Optional.of(bookingWithStatus(BookingStatus.HELD)));
+            when(seatAvailabilityPort.findSeatIdsByBookingId(BOOKING_UUID)).thenReturn(List.of());
+            when(bookingRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+            Result<Void, BookingError> result =
+                    useCase.execute(new CancelBookingCommand(BOOKING_UUID, USER_UUID));
+
+            assertThat(result.isSuccess()).isTrue();
+            verify(seatAvailabilityPort, never()).releaseHeldSeats(any(), any());
+            verify(seatAvailabilityPort, never()).cancelBookedSeats(any(), any());
+            verify(seatAvailabilityPort, never()).findByScheduledTripIdAndSeatIds(any(), any());
         }
     }
 }

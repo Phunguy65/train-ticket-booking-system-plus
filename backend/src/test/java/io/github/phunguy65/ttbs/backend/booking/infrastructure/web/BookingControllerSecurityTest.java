@@ -125,6 +125,15 @@ class BookingControllerSecurityTest {
         }
 
         @Test
+        @DisplayName("cancel null authentication throws NullPointerException")
+        void cancel_nullAuthenticationThrowsNullPointerException() {
+            UUID bookingId = UUID.fromString("22222222-2222-2222-2222-222222222222");
+
+            assertThatThrownBy(() -> controller.cancel(bookingId, null))
+                    .isInstanceOf(NullPointerException.class);
+        }
+
+        @Test
         @DisplayName("listByUser with malformed UUID in auth name throws IllegalArgumentException")
         void listByUser_malformedUuidInAuthNameThrowsIllegalArgumentException() {
             UUID userId = UUID.fromString("11111111-1111-1111-1111-111111111111");
@@ -132,6 +141,16 @@ class BookingControllerSecurityTest {
 
             assertThatThrownBy(
                             () -> controller.listByUser(userId, auth, new GetUserBookingsRequest()))
+                    .isInstanceOf(IllegalArgumentException.class);
+        }
+
+        @Test
+        @DisplayName("cancel with malformed UUID in auth name throws IllegalArgumentException")
+        void cancel_malformedUuidInAuthNameThrowsIllegalArgumentException() {
+            UUID bookingId = UUID.fromString("22222222-2222-2222-2222-222222222222");
+            Authentication auth = new UsernamePasswordAuthenticationToken("not-a-uuid", null);
+
+            assertThatThrownBy(() -> controller.cancel(bookingId, auth))
                     .isInstanceOf(IllegalArgumentException.class);
         }
     }

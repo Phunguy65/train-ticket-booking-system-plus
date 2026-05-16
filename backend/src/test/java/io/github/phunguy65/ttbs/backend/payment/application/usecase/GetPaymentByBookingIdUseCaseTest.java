@@ -1,5 +1,6 @@
 package io.github.phunguy65.ttbs.backend.payment.application.usecase;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -93,5 +94,32 @@ class GetPaymentByBookingIdUseCaseTest {
         useCase.execute(new GetPaymentByBookingIdQuery(BOOKING_UUID, USER_UUID));
 
         verify(paymentReadAuthorizer).authorizeAndMap(eq(null), eq(USER_UUID));
+    }
+
+    @Test
+    @DisplayName("returns success PaymentResponse when authorized")
+    void execute_returnsSuccessPaymentResponse_whenAuthorized() {
+        PaymentSummary summary = paymentSummary();
+        PaymentResponse expectedResponse = new PaymentResponse(
+                PAYMENT_UUID,
+                BOOKING_UUID,
+                PaymentStatus.PENDING,
+                "https://checkout.stripe.com/test",
+                BigDecimal.valueOf(500_000L),
+                "VND");
+        when(paymentRepository.findSummaryByBookingId(BookingId.of(BOOKING_UUID)))
+                .thenReturn(Optional.of(summary));
+        when(paymentReadAuthorizer.authorizeAndMap(eq(summary), eq(USER_UUID)))
+                .thenReturn(Result.success(expectedResponse));
+
+        Result<PaymentResponse, PaymentError> result =
+                useCase.execute(new GetPaymentByBookingIdQuery(BOOKING_UUID, USER_UUID));
+
+        assertThat(result.isSuccess()).isTrue();
+        PaymentResponse actual = ((Result.Success<PaymentResponse, PaymentError>) result).value();
+        assertThat(actual.paymentId()).isEqualTo(PAYMENT_UUID);
+        assertThat(actual.bookingId()).isEqualTo(BOOKING_UUID);
+        assertThat(actual.status()).isEqualTo(PaymentStatus.PENDING);
+        assertThat(actual.amount()).isEqualTo(BigDecimal.valueOf(500_000L));
     }
 }

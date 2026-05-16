@@ -120,6 +120,25 @@ class GetPaymentByIdUseCaseTest {
             assertThat(response.paymentId()).isEqualTo(PAYMENT_UUID);
             assertThat(response.bookingId()).isEqualTo(BOOKING_UUID);
         }
+
+        @Test
+        @DisplayName(
+                "returns response with null bookingForTicket when booking not found in repository")
+        void execute_returnsResponseWithNullBookingForTicket_whenBookingNotFound() {
+            when(paymentRepository.findSummaryById(PaymentId.of(PAYMENT_UUID)))
+                    .thenReturn(Optional.of(paymentSummary(USER_UUID)));
+            when(bookingRepository.findById(BookingId.of(BOOKING_UUID)))
+                    .thenReturn(Optional.empty());
+
+            Result<PaymentDetailResponse, PaymentError> result =
+                    useCase.execute(new GetPaymentByIdQuery(PAYMENT_UUID, USER_UUID));
+
+            assertThat(result.isSuccess()).isTrue();
+            PaymentDetailResponse response =
+                    ((Result.Success<PaymentDetailResponse, PaymentError>) result).value();
+            assertThat(response.paymentId()).isEqualTo(PAYMENT_UUID);
+            assertThat(response.booking()).isNull();
+        }
     }
 
     @Nested

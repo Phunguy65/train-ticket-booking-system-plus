@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import io.github.phunguy65.ttbs.backend.booking.application.command.CancelBookingCommand;
 import io.github.phunguy65.ttbs.backend.booking.application.response.BookingDetailResponse;
 import io.github.phunguy65.ttbs.backend.booking.application.response.BookingResponse;
 import io.github.phunguy65.ttbs.backend.booking.application.response.PassengerInfoResponse;
@@ -32,6 +33,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.mock.web.MockHttpServletRequest;
@@ -119,6 +121,81 @@ class BookingControllerTest {
                 new BookingError.ActiveHoldExists(),
                 HttpStatus.CONFLICT,
                 ErrorCode.BOOKING_CANNOT_CONFIRM);
+    }
+
+    @Test
+    @DisplayName("cancel returns OK on success")
+    void cancelReturnsOkOnSuccess() {
+        UUID bookingId = UUID.fromString("22222222-2222-2222-2222-222222222222");
+        UUID userId = UUID.fromString("11111111-1111-1111-1111-111111111111");
+        Authentication auth = new UsernamePasswordAuthenticationToken(userId.toString(), null);
+        when(cancelBookingUseCase.execute(new CancelBookingCommand(bookingId, userId)))
+                .thenReturn(Result.success());
+
+        var response = controller.cancel(bookingId, auth);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        JsendResponse<?> body = response.getBody();
+        assertThat(body).isNotNull();
+        assertThat(body.status()).isEqualTo("success");
+    }
+
+    @Test
+    @DisplayName("cancel returns not found when booking missing")
+    void cancelReturnsNotFoundWhenBookingMissing() {
+        UUID bookingId = UUID.fromString("22222222-2222-2222-2222-222222222222");
+        UUID userId = UUID.fromString("11111111-1111-1111-1111-111111111111");
+        Authentication auth = new UsernamePasswordAuthenticationToken(userId.toString(), null);
+        when(cancelBookingUseCase.execute(new CancelBookingCommand(bookingId, userId)))
+                .thenReturn(Result.failure(new BookingError.BookingNotFound()));
+
+        var response = controller.cancel(bookingId, auth);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        @SuppressWarnings("unchecked")
+        JsendResponse<FailData> body = (JsendResponse<FailData>) response.getBody();
+        assertThat(body).isNotNull();
+        assertThat(body.status()).isEqualTo("fail");
+        assertThat(body.data().code()).isEqualTo(ErrorCode.BOOKING_NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("cancel returns forbidden when user mismatch")
+    void cancelReturnsForbiddenWhenUserMismatch() {
+        UUID bookingId = UUID.fromString("22222222-2222-2222-2222-222222222222");
+        UUID userId = UUID.fromString("11111111-1111-1111-1111-111111111111");
+        Authentication auth = new UsernamePasswordAuthenticationToken(userId.toString(), null);
+        when(cancelBookingUseCase.execute(new CancelBookingCommand(bookingId, userId)))
+                .thenReturn(Result.failure(new BookingError.Forbidden()));
+
+        var response = controller.cancel(bookingId, auth);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+        @SuppressWarnings("unchecked")
+        JsendResponse<FailData> body = (JsendResponse<FailData>) response.getBody();
+        assertThat(body).isNotNull();
+        assertThat(body.status()).isEqualTo("fail");
+        assertThat(body.data().code()).isEqualTo(ErrorCode.ACCESS_DENIED);
+    }
+
+    @Test
+    @DisplayName("cancel returns conflict when already cancelled")
+    void cancelReturnsConflictWhenAlreadyCancelled() {
+        UUID bookingId = UUID.fromString("22222222-2222-2222-2222-222222222222");
+        UUID userId = UUID.fromString("11111111-1111-1111-1111-111111111111");
+        Authentication auth = new UsernamePasswordAuthenticationToken(userId.toString(), null);
+        when(cancelBookingUseCase.execute(new CancelBookingCommand(bookingId, userId)))
+                .thenReturn(Result.failure(
+                        new BookingError.InvalidStatusTransition("CANCELLED", "CANCELLED")));
+
+        var response = controller.cancel(bookingId, auth);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
+        @SuppressWarnings("unchecked")
+        JsendResponse<FailData> body = (JsendResponse<FailData>) response.getBody();
+        assertThat(body).isNotNull();
+        assertThat(body.status()).isEqualTo("fail");
+        assertThat(body.data().code()).isEqualTo(ErrorCode.BOOKING_ALREADY_CANCELLED);
     }
 
     @Test
