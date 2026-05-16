@@ -44,6 +44,11 @@ class UserRepositoryAdapter implements UserRepository {
     }
 
     @Override
+    public Optional<User> findByIdIncludingDeleted(UserId id) {
+        return jpaRepository.findByIdIncludingDeleted(id.value()).map(mapper::toDomain);
+    }
+
+    @Override
     public Optional<UserSummary> findSummaryById(UserId id) {
         return jpaRepository.findSummaryById(id.value());
     }

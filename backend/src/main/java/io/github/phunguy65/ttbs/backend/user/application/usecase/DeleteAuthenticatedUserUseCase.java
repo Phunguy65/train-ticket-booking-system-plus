@@ -34,7 +34,7 @@ public class DeleteAuthenticatedUserUseCase {
 
     @Transactional
     public Result<Void, UserError> execute(SoftDeleteUserCommand command) {
-        Optional<User> found = userRepository.findById(command.userId());
+        Optional<User> found = userRepository.findByIdIncludingDeleted(command.userId());
         if (found.isEmpty()) {
             return Result.failure(new UserError.UserNotFound());
         }

@@ -17,6 +17,8 @@ public interface UserRepository {
 
     Optional<User> findById(UserId id);
 
+    Optional<User> findByIdIncludingDeleted(UserId id);
+
     Optional<UserSummary> findSummaryById(UserId id);
 
     PageResponse<User> findAll(int page, int size, List<SortOrder> sort);

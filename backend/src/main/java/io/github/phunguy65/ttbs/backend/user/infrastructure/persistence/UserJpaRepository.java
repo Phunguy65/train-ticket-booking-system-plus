@@ -20,6 +20,9 @@ interface UserJpaRepository extends JpaRepository<UserEntity, UUID> {
     @Query("SELECT u FROM UserEntity u WHERE u.id = :id AND u.deletedAt IS NULL")
     Optional<UserEntity> findActiveById(@Param("id") UUID id);
 
+    @Query("SELECT u FROM UserEntity u WHERE u.id = :id")
+    Optional<UserEntity> findByIdIncludingDeleted(@Param("id") UUID id);
+
     @Query("SELECT u FROM UserEntity u WHERE u.deletedAt IS NULL")
     Page<UserEntity> findAllActive(Pageable pageable);
 
