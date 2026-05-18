@@ -1,10 +1,10 @@
-## UC-12: Xem thanh toán
+# UC-11: Xem thanh toán
 
-### 1. Mô tả use case
+## 1. Mô tả use case
 
 | Mục                            | Nội dung                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
 | ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Phụ thuộc                      | UC-02: Đăng nhập, UC-09: Đặt vé tàu                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| Phụ thuộc                      | UC-02: Đăng nhập, UC-08: Đặt vé tàu                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
 | Mục đích                       | Khách hàng cần kiểm tra trạng thái thanh toán (đang chờ, đã thanh toán, đã hủy, thất bại, đã hoàn tiền) và lấy URL checkout để tiếp tục thanh toán nếu cần.                                                                                                                                                                                                                                                                                                                                                                                                                                     |
 | Mô tả                          | Khách hàng xem thông tin thanh toán theo ID thanh toán hoặc theo ID đặt vé. Cả hai endpoint đều trả cùng DTO `PaymentResponse`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
 | Actor chính                    | Khách hàng (Customer)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
@@ -15,11 +15,11 @@
 | Hậu điều kiện (thất bại)       | Không có thay đổi trạng thái. Đây là thao tác chỉ đọc.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 | Xử lý ngoại lệ                 | Chưa xác thực → 401 Unauthorized. <br> Thanh toán không tồn tại → 404 + `PAYMENT_NOT_FOUND`. <br> Xem thanh toán của người khác → 403 + `ACCESS_DENIED`.                                                                                                                                                                                                                                                                                                                                                                                                                                        |
 
-### 2. Lược đồ tuần tự
+## 2. Lược đồ tuần tự
 
 ```plantuml
-@startuml UC-12
-title UC-12: Xem thanh toán
+@startuml UC-11
+title UC-11: Xem thanh toán
 
 actor "Khách hàng" as Actor
 participant "Hệ thống" as API
@@ -54,11 +54,11 @@ end
 @enduml
 ```
 
-### 3. Lược đồ hoạt động
+## 3. Lược đồ hoạt động
 
 ```plantuml
-@startuml UC-12-activity
-title UC-12: Xem thanh toán - Activity Diagram
+@startuml UC-11-activity
+title UC-11: Xem thanh toán - Activity Diagram
 
 start
 
@@ -116,17 +116,17 @@ stop
 @enduml
 ```
 
-### 4. Lược đồ trạng thái
+## 4. Lược đồ trạng thái
 
-<!-- UC-12 là thao tác chỉ đọc, không có thay đổi trạng thái. Mục này bỏ qua. -->
+<!-- UC-11 là thao tác chỉ đọc, không có thay đổi trạng thái. Mục này bỏ qua. -->
 
-_Không áp dụng — UC-12 là thao tác chỉ đọc._
+_Không áp dụng — UC-11 là thao tác chỉ đọc._
 
-### 5. Lược đồ lớp ý niệm
+## 5. Lược đồ lớp ý niệm
 
 ```plantuml
-@startuml UC-12-class
-title UC-12: Xem thanh toán - Conceptual Class Diagram
+@startuml UC-11-class
+title UC-11: Xem thanh toán - Conceptual Class Diagram
 
 class "Payment" as Payment {
   - paymentId: UUID
@@ -182,9 +182,9 @@ Auth ..> ResDTO: map nếu authorized
 @enduml
 ```
 
-### 6. Phân rã thành phần PM
+## 6. Phân rã thành phần PM
 
-#### 6.1 Controller: `PaymentController`
+### 6.1 Controller: `PaymentController`
 
 **Endpoint 1 — Xem thanh toán theo payment ID:**
 
@@ -209,7 +209,7 @@ Auth ..> ResDTO: map nếu authorized
 - **Output lỗi**: `403` + `ACCESS_DENIED` | `404` + `PAYMENT_NOT_FOUND`
 - **Metadata**: `@SuccessPayload(PaymentResponse.class)`
 
-#### 6.2 UseCase
+### 6.2 UseCase
 
 **GetPaymentByIdUseCase:**
 
@@ -238,7 +238,7 @@ Auth ..> ResDTO: map nếu authorized
       check
         - ownership check + mapping
 
-#### 6.3 Helper: `PaymentReadAuthorizer`
+### 6.3 Helper: `PaymentReadAuthorizer`
 
 - **Nhiệm vụ**: Tách logic kiểm tra quyền và mapping ra khỏi UseCase, tái sử
   dụng cho cả hai endpoint.
@@ -253,7 +253,7 @@ Auth ..> ResDTO: map nếu authorized
         - `status`: `PaymentStatus.valueOf(payment.status())` — parse String →
           enum
 
-#### 6.4 Repository: `PaymentRepository`
+### 6.4 Repository: `PaymentRepository`
 
 - **Nhiệm vụ**: Truy xuất projection `PaymentSummary` từ DB.
 - **Phương thức liên quan đến UC**:
@@ -263,11 +263,11 @@ Auth ..> ResDTO: map nếu authorized
       booking ID
 - **Table**: `payments`
 
-#### 6.5 Lược đồ tuần tự nội bộ PM
+### 6.5 Lược đồ tuần tự nội bộ PM
 
 ```plantuml
-@startuml UC-12-internal
-title UC-12: Xem thanh toán - Internal Sequence
+@startuml UC-11-internal
+title UC-11: Xem thanh toán - Internal Sequence
 
 actor "Khách hàng" as Actor
 participant "PaymentController" as CTL
@@ -329,9 +329,9 @@ end
 @enduml
 ```
 
-#### 6.6 Giao diện
+### 6.6 Giao diện
 
-##### 6.6.1 Giao diện mẫu
+#### 6.6.1 Giao diện mẫu
 
 ```plantuml
 @startsalt
@@ -360,20 +360,20 @@ end
 @endsalt
 ```
 
-##### 6.6.2 Giao diện ứng dụng
+#### 6.6.2 Giao diện ứng dụng
 
 Chưa hiện thực. Sẽ bổ sung ảnh chụp màn hình khi hoàn thành.
 
-### 7. Bảng tham chiếu dò vết
+## 7. Bảng tham chiếu dò vết
 
 | Use Case | Controller        | Endpoint                                   | UseCase                      | Repository / Helper                        | Table    |
 | -------- | ----------------- | ------------------------------------------ | ---------------------------- | ------------------------------------------ | -------- |
-| UC-12    | PaymentController | `GET /api/v1/payments/{paymentId}`         | GetPaymentByIdUseCase        | PaymentRepository.findSummaryById()        | payments |
+| UC-11    | PaymentController | `GET /api/v1/payments/{paymentId}`         | GetPaymentByIdUseCase        | PaymentRepository.findSummaryById()        | payments |
 |          |                   |                                            |                              | PaymentReadAuthorizer.authorizeAndMap()    |          |
-| UC-12    | PaymentController | `GET /api/v1/bookings/{bookingId}/payment` | GetPaymentByBookingIdUseCase | PaymentRepository.findSummaryByBookingId() | payments |
+| UC-11    | PaymentController | `GET /api/v1/bookings/{bookingId}/payment` | GetPaymentByBookingIdUseCase | PaymentRepository.findSummaryByBookingId() | payments |
 |          |                   |                                            |                              | PaymentReadAuthorizer.authorizeAndMap()    |          |
 
-### 8. Tiêu chí kiểm thử
+## 8. Tiêu chí kiểm thử
 
 | Tiêu chí                           | Phép thử                                                                   | Kết quả mong đợi                                                 | Ghi chú                                                           |
 | ---------------------------------- | -------------------------------------------------------------------------- | ---------------------------------------------------------------- | ----------------------------------------------------------------- |

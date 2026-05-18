@@ -27,9 +27,8 @@ với các bounded context tách biệt: User, Station, Train, Booking và Payme
   (nếu có, tự động cập nhật).
 -  **Naming**: Tên bảng số nhiều tiếng Anh (`users`, `trains`), tên cột
   `snake_case`.
--  **Source of truth**: Tài liệu này dựa trên **JPA entities** (code là truth).
-  Một số cột (`payments.user_id`, `payments.checkout_url`) có trong code nhưng
-  chưa có SQL migration tương ứng.
+-  **Source of truth**: Tài liệu này dựa trên **JPA entities** (code là truth)
+   và **Flyway baseline migration** (`B3_0_0__baseline.sql`).
 
 ---
 
@@ -148,6 +147,7 @@ package "Phân hệ đặt vé" {
         * user_id : UUID <<FK>>
         * scheduled_trip_id : UUID <<FK>>
         * user_info_snapshot : JSONB
+        passengers_snapshot : JSONB
         * total_price : BIGINT
         * currency : VARCHAR(10)
         * status : VARCHAR(20)
@@ -283,6 +283,7 @@ entity "scheduled_trips" as SCHEDULED_TRIPS {
 entity "bookings" as BOOKINGS {
     id <<key>>
     user_info_snapshot
+    passengers_snapshot
     total_price
     currency
     status
@@ -591,8 +592,8 @@ Mỗi bản ghi là một chuyến khởi hành cụ thể với thời gian và
 #### `bookings`
 
 Đơn đặt vé — lưu thông tin đặt chỗ, giá, trạng thái thanh toán. Cột
-`user_info_snapshot` lưu bản chụp thông tin hành khách tại thời điểm đặt vé dưới
-dạng JSONB.
+`user_info_snapshot` lưu bản chụp thông tin người đặt vé tại thời điểm đặt. Cột
+`passengers_snapshot` lưu danh sách hành khách kèm ghế ngồi dưới dạng JSONB.
 
 **Cấu trúc `user_info_snapshot` (JSONB):**
 
@@ -608,18 +609,33 @@ dạng JSONB.
 }
 ```
 
-| Cột                  | Kiểu dữ liệu   | Cho phép `NULL` | Mặc định            | Mô tả                                             |
-| -------------------- | -------------- | --------------- | ------------------- | ------------------------------------------------- |
-| `id`                 | `UUID`         | NOT NULL        | `uuidv7()`          | Khóa chính                                        |
-| `user_id`            | `UUID`         | NOT NULL        | —                   | Người đặt vé                                      |
-| `scheduled_trip_id`  | `UUID`         | NOT NULL        | —                   | Chuyến tàu được đặt                               |
-| `user_info_snapshot` | `JSONB`        | NOT NULL        | —                   | Bản chụp thông tin hành khách (xem cấu trúc trên) |
-| `total_price`        | `BIGINT`       | NOT NULL        | —                   | Tổng giá (đơn vị nhỏ nhất)                        |
-| `currency`           | `VARCHAR(10)`  | NOT NULL        | `'VND'`             | Mã tiền tệ                                        |
-| `status`             | `VARCHAR(20)`  | NOT NULL        | —                   | Trạng thái đặt vé                                 |
-| `idempotency_key`    | `VARCHAR(255)` | NULL            | —                   | Khóa idempotency (duy nhất, chống đặt trùng)      |
-| `payment_deadline`   | `TIMESTAMPTZ`  | NULL            | —                   | Hạn thanh toán (UTC)                              |
-| `created_at`         | `TIMESTAMPTZ`  | NOT NULL        | `CURRENT_TIMESTAMP` | Thời điểm tạo (UTC)                               |
+**Cấu trúc `passengers_snapshot` (JSONB — mảng):**
+
+```json
+[
+    {
+        "seatId": "UUID",
+        "fullName": "string",
+        "idDocumentNumber": "string",
+        "dateOfBirth": "yyyy-MM-dd | null",
+        "gender": "string | null"
+    }
+]
+```
+
+| Cột                    | Kiểu dữ liệu   | Cho phép `NULL` | Mặc định            | Mô tả                                             |
+| ---------------------- | -------------- | --------------- | ------------------- | ------------------------------------------------- |
+| `id`                   | `UUID`         | NOT NULL        | `uuidv7()`          | Khóa chính                                        |
+| `user_id`              | `UUID`         | NOT NULL        | —                   | Người đặt vé                                      |
+| `scheduled_trip_id`    | `UUID`         | NOT NULL        | —                   | Chuyến tàu được đặt                               |
+| `user_info_snapshot`   | `JSONB`        | NOT NULL        | —                   | Bản chụp thông tin người đặt (xem cấu trúc trên)  |
+| `passengers_snapshot`  | `JSONB`        | NULL            | —                   | Bản chụp danh sách hành khách; `NULL` cho booking cũ |
+| `total_price`          | `BIGINT`       | NOT NULL        | —                   | Tổng giá (đơn vị nhỏ nhất)                        |
+| `currency`             | `VARCHAR(10)`  | NOT NULL        | `'VND'`             | Mã tiền tệ                                        |
+| `status`               | `VARCHAR(20)`  | NOT NULL        | —                   | Trạng thái đặt vé                                 |
+| `idempotency_key`      | `VARCHAR(255)` | NULL            | —                   | Khóa idempotency (duy nhất, chống đặt trùng)      |
+| `payment_deadline`     | `TIMESTAMPTZ`  | NULL            | —                   | Hạn thanh toán (UTC)                              |
+| `created_at`           | `TIMESTAMPTZ`  | NOT NULL        | `CURRENT_TIMESTAMP` | Thời điểm tạo (UTC)                               |
 
 **Ràng buộc:**
 
@@ -668,33 +684,33 @@ Tình trạng ghế theo chuyến tàu — bảng liên kết giữa `scheduled_
 Bản ghi thanh toán qua Stripe Checkout Session. Mỗi thanh toán gắn với một đơn
 đặt vé.
 
-> **Lưu ý:** Cột `user_id` và `checkout_url` có trong JPA entity nhưng **chưa có
-> SQL migration tương ứng** (drift giữa code và database).
-
 | Cột                        | Kiểu dữ liệu    | Cho phép `NULL` | Mặc định            | Mô tả                                          |
 | -------------------------- | --------------- | --------------- | ------------------- | ---------------------------------------------- |
 | `id`                       | `UUID`          | NOT NULL        | `uuidv7()`          | Khóa chính                                     |
 | `booking_id`               | `UUID`          | NOT NULL        | —                   | Đơn đặt vé liên kết                            |
 | `user_id`                  | `UUID`          | NOT NULL        | —                   | Người dùng thực hiện thanh toán                |
-| `checkout_session_id`      | `VARCHAR(255)`  | NULL            | —                   | Stripe Checkout Session ID (`cs_...`)          |
+| `checkout_session_id`      | `VARCHAR(255)`  | NOT NULL        | —                   | Stripe Checkout Session ID (`cs_...`)          |
 | `checkout_url`             | `VARCHAR(2048)` | NULL            | —                   | URL trang thanh toán Stripe                    |
 | `stripe_event_id`          | `VARCHAR(255)`  | NULL            | —                   | Stripe webhook event ID (dùng cho idempotency) |
 | `stripe_payment_intent_id` | `VARCHAR(255)`  | NULL            | —                   | Stripe Payment Intent ID                       |
 | `amount`                   | `BIGINT`        | NOT NULL        | —                   | Số tiền (đơn vị nhỏ nhất)                      |
 | `currency`                 | `VARCHAR(10)`   | NOT NULL        | `'VND'`             | Mã tiền tệ                                     |
 | `status`                   | `VARCHAR(20)`   | NOT NULL        | —                   | Trạng thái thanh toán                          |
-| `error_message`            | `VARCHAR(1024)` | NULL            | —                   | Thông báo lỗi (nếu thất bại)                   |
+| `error_message`            | `TEXT`          | NULL            | —                   | Thông báo lỗi (nếu thất bại)                   |
 | `created_at`               | `TIMESTAMPTZ`   | NOT NULL        | `CURRENT_TIMESTAMP` | Thời điểm tạo (UTC)                            |
 | `updated_at`               | `TIMESTAMPTZ`   | NOT NULL        | `CURRENT_TIMESTAMP` | Thời điểm cập nhật cuối (UTC)                  |
 
 **Ràng buộc:**
 
-| Tên                           | Loại        | Mô tả                                                              |
-| ----------------------------- | ----------- | ------------------------------------------------------------------ |
-| `pk_payments`                 | PRIMARY KEY | `id`                                                               |
-| `fk_payments_booking`         | FOREIGN KEY | `booking_id` → `bookings(id)`                                      |
-| `uq_payments_stripe_event_id` | UNIQUE      | `stripe_event_id`                                                  |
-| `chk_payments_status`         | CHECK       | `status IN ('PENDING', 'PAID', 'CANCELLED', 'FAILED', 'REFUNDED')` |
+| Tên                                      | Loại        | Mô tả                                                              |
+| ---------------------------------------- | ----------- | ------------------------------------------------------------------ |
+| `pk_payments`                            | PRIMARY KEY | `id`                                                               |
+| `fk_payments_booking`                    | FOREIGN KEY | `booking_id` → `bookings(id)`                                      |
+| `fk_payments_user`                       | FOREIGN KEY | `user_id` → `users(id)`                                            |
+| `uq_payments_checkout_session_id`        | UNIQUE      | `checkout_session_id`                                              |
+| `uq_payments_stripe_event_id`            | UNIQUE      | `stripe_event_id`                                                  |
+| `uq_payments_stripe_payment_intent_id`   | UNIQUE      | `stripe_payment_intent_id`                                         |
+| `chk_payments_status`                    | CHECK       | `status IN ('PENDING', 'PAID', 'CANCELLED', 'FAILED', 'REFUNDED')` |
 
 ---
 

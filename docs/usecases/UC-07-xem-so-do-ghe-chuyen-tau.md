@@ -1,25 +1,25 @@
-## UC-08: Xem sơ đồ ghế chuyến tàu
+# UC-07: Xem sơ đồ ghế chuyến tàu
 
-### 1. Mô tả use case
+## 1. Mô tả use case
 
 | Mục                            | Nội dung                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Phụ thuộc                      | UC-02: Đăng nhập, UC-07: Tra cứu chuyến tàu                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| Mục đích                       | Khách hàng đã chọn chuyến tàu từ UC-07 và muốn xem tình trạng ghế trước khi đặt vé. PM cung cấp hai góc nhìn: danh sách ghế trống đơn giản (flat list) để chọn nhanh, và sơ đồ ghế theo toa chi tiết (coach seat map) để biết vị trí và trạng thái từng ghế trong toa.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| Phụ thuộc                      | UC-02: Đăng nhập, UC-06: Tra cứu chuyến tàu                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| Mục đích                       | Khách hàng đã chọn chuyến tàu từ UC-06 và muốn xem tình trạng ghế trước khi đặt vé. PM cung cấp hai góc nhìn: danh sách ghế trống đơn giản (flat list) để chọn nhanh, và sơ đồ ghế theo toa chi tiết (coach seat map) để biết vị trí và trạng thái từng ghế trong toa.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 | Mô tả                          | Khách hàng xem sơ đồ ghế của một chuyến tàu cụ thể để biết trạng thái từng ghế (trống, đang giữ, đã đặt) trước khi đặt vé. Hỗ trợ hai góc nhìn: danh sách ghế trống đơn giản và sơ đồ ghế theo toa chi tiết.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 | Actor chính                    | Khách hàng đã đăng nhập                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
 | Actor liên quan                | Không                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| Tiền điều kiện                 | Khách hàng đã đăng nhập và có access token hợp lệ. Khách hàng đã biết mã chuyến tàu (`scheduledTripId`) từ UC-07.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| Tiền điều kiện                 | Khách hàng đã đăng nhập và có access token hợp lệ. Khách hàng đã biết mã chuyến tàu (`scheduledTripId`) từ UC-06.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
 | Dãy lệnh thực hiện bình thường | **Xem danh sách ghế trống:** <br> 1. Khách hàng gửi yêu cầu xem ghế trống của chuyến tàu với `scheduledTripId` và tham số phân trang (`page`, `size`). <br> 2. Hệ thống trả về danh sách ghế có trạng thái `AVAILABLE` (bao gồm cả ghế `HELD` đã quá hạn thanh toán), sắp xếp theo số ghế.<br> **Xem sơ đồ ghế theo toa:** <br> 1. Khách hàng gửi yêu cầu xem sơ đồ ghế theo toa của chuyến tàu với `scheduledTripId` và tham số phân trang (`page`, `size`). <br> 2. Hệ thống trả về danh sách toa phân trang, mỗi toa kèm danh sách ghế với trạng thái hiện tại (`AVAILABLE`, `HELD`, `BOOKED`) (kết quả được cache). <br> **Lưu ý:** Endpoint này kiểm tra chuyến tàu tồn tại; nếu không tìm thấy, trả lỗi 404. |
 | Hậu điều kiện (thành công)     | Không có thay đổi trạng thái. Đây là thao tác chỉ đọc.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 | Hậu điều kiện (thất bại)       | Không có thay đổi trạng thái. Dữ liệu trong hệ thống không bị ảnh hưởng.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | Xử lý ngoại lệ                 | Chưa xác thực (thiếu hoặc sai access token) → Hệ thống trả về lỗi 401. <br> Chuyến tàu không tồn tại (sơ đồ ghế theo toa) → Hệ thống trả về lỗi `SCHEDULED_TRIP_NOT_FOUND`. <br> Chuyến tàu không tồn tại (danh sách ghế trống) → Hệ thống trả về trang rỗng (không kiểm tra tồn tại). <br> Chuyến tàu tồn tại nhưng chưa có toa → Hệ thống trả về trang rỗng. <br> Tham số phân trang không hợp lệ → Hệ thống trả về lỗi `VALIDATION_ERROR`.                                                                                                                                                                                                                                                                                                                                                                                                           |
 
-### 2. Lược đồ tuần tự
+## 2. Lược đồ tuần tự
 
 ```plantuml
-@startuml UC-08
-title UC-08: View Seat Map
+@startuml UC-07
+title UC-07: View Seat Map
 
 actor "Khách hàng" as Actor
 participant "Hệ thống" as API
@@ -54,11 +54,11 @@ end
 @enduml
 ```
 
-### 3. Lược đồ hoạt động
+## 3. Lược đồ hoạt động
 
 ```plantuml
-@startuml UC-08-activity
-title UC-08: View Seat Map - Activity Diagram
+@startuml UC-07-activity
+title UC-07: View Seat Map - Activity Diagram
 
 start
 
@@ -117,11 +117,11 @@ stop
 @enduml
 ```
 
-### 5. Lược đồ lớp ý niệm
+## 5. Lược đồ lớp ý niệm
 
 ```plantuml
-@startuml UC-08-class
-title UC-08: View Seat Map - Conceptual Class Diagram
+@startuml UC-07-class
+title UC-07: View Seat Map - Conceptual Class Diagram
 
 class "Seat" as Seat {
   - id: UUID
@@ -180,9 +180,9 @@ CoachRes *-- CoachSeat
 @enduml
 ```
 
-### 6. Phân rã thành phần PM
+## 6. Phân rã thành phần PM
 
-#### 6.1 Controller: `SeatController`
+### 6.1 Controller: `SeatController`
 
 - **Nhiệm vụ**: Nhận HTTP request từ khách hàng, xác thực đầu vào, ủy thác cho
   UseCase tương ứng.
@@ -210,7 +210,7 @@ CoachRes *-- CoachSeat
 - **Ghi chú metadata**: Runtime trả `PageResponse<CoachSeatMapResponse>`, nhưng
   `@SuccessPayload` hiện dùng mặc định object metadata thay vì page metadata.
 
-#### 6.2 UseCase
+### 6.2 UseCase
 
 **GetAvailableSeatsForScheduledTripUseCase:**
 
@@ -238,7 +238,7 @@ CoachRes *-- CoachSeat
 - **Cache**: `coachSeatMap`, key = `st-coach:{scheduledTripId}:{page}:{size}`,
   trừ khi failure hoặc content rỗng
 
-#### 6.3 Repository
+### 6.3 Repository
 
 **SeatRepository:**
 
@@ -256,11 +256,11 @@ CoachRes *-- CoachSeat
     - `findSeatSummariesByScheduledTripIdAndCoachIds(scheduledTripId, coachIds): List<CoachSeatMapSeatSummary>`
       — ghế cho các toa kèm trạng thái
 
-#### 6.4 Lược đồ tuần tự nội bộ PM
+### 6.4 Lược đồ tuần tự nội bộ PM
 
 ```plantuml
-@startuml UC-08-internal
-title UC-08: View Seat Map - Internal Sequence
+@startuml UC-07-internal
+title UC-07: View Seat Map - Internal Sequence
 
 actor "Khách hàng" as Actor
 participant "SeatController" as CTL
@@ -316,9 +316,9 @@ end
 @enduml
 ```
 
-#### 6.5 Giao diện
+### 6.5 Giao diện
 
-##### 6.5.1 Giao diện mẫu
+#### 6.5.1 Giao diện mẫu
 
 ```plantuml
 @startsalt
@@ -346,18 +346,18 @@ end
 @endsalt
 ```
 
-##### 6.5.2 Giao diện ứng dụng
+#### 6.5.2 Giao diện ứng dụng
 
 Chưa hiện thực. Sẽ bổ sung ảnh chụp màn hình khi hoàn thành.
 
-### 7. Bảng tham chiếu dò vết
+## 7. Bảng tham chiếu dò vết
 
 | Use Case | Controller     | Endpoint                                                        | UseCase                                  | Repository / Port                                                                                                                                           | Table                                                   |
 | -------- | -------------- | --------------------------------------------------------------- | ---------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------- |
-| UC-08    | SeatController | `GET /api/v1/scheduled-trips/{scheduledTripId}/seats/available` | GetAvailableSeatsForScheduledTripUseCase | SeatRepository.findAllAvailableSummaries()                                                                                                                  | seats, trip_seat_availability, bookings                 |
+| UC-07    | SeatController | `GET /api/v1/scheduled-trips/{scheduledTripId}/seats/available` | GetAvailableSeatsForScheduledTripUseCase | SeatRepository.findAllAvailableSummaries()                                                                                                                  | seats, trip_seat_availability, bookings                 |
 |          | SeatController | `GET /api/v1/scheduled-trips/{scheduledTripId}/coach-seats`     | GetCoachSeatMapByScheduledTripUseCase    | ScheduledTripSeatMapRepository.findCoachSummariesByScheduledTripId(), findSeatSummariesByScheduledTripIdAndCoachIds(); ScheduledTripRepository.existsById() | coaches, seats, trip_seat_availability, scheduled_trips |
 
-### 8. Tiêu chí kiểm thử
+## 8. Tiêu chí kiểm thử
 
 | Tiêu chí                              | Phép thử                                                                   | Kết quả mong đợi                                                                 | Ghi chú                                 |
 | ------------------------------------- | -------------------------------------------------------------------------- | -------------------------------------------------------------------------------- | --------------------------------------- |

@@ -1,10 +1,10 @@
-## UC-07: Tra cứu chuyến tàu
+# UC-06: Tra cứu chuyến tàu
 
-### 1. Mô tả use case
+## 1. Mô tả use case
 
 | Mục                            | Nội dung                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
 | ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Phụ thuộc                      | UC-02: Đăng nhập, UC-06: Tra cứu ga tàu                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| Phụ thuộc                      | UC-02: Đăng nhập, UC-05: Tra cứu ga tàu                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
 | Mục đích                       | Khách hàng đã đăng nhập muốn tìm chuyến tàu phù hợp để đặt vé. PM cung cấp ba cách tra cứu: tìm kiếm có bộ lọc (cursor-based), duyệt danh sách phân trang (offset-based) và xem chi tiết một chuyến tàu cụ thể, giúp khách hàng đánh giá chuyến tàu trước khi chuyển sang đặt vé.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
 | Mô tả                          | Khách hàng tra cứu chuyến tàu theo nhiều bộ lọc, duyệt danh sách phân trang, hoặc xem chi tiết một chuyến tàu cụ thể. Kết quả tìm kiếm bao gồm thông tin tàu, tuyến đường, giá vé và số ghế trống.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
 | Actor chính                    | Khách hàng đã đăng nhập                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
@@ -15,11 +15,11 @@
 | Hậu điều kiện (thất bại)       | Không có thay đổi trạng thái. Dữ liệu trong hệ thống không bị ảnh hưởng.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
 | Xử lý ngoại lệ                 | Chưa xác thực (thiếu hoặc sai access token) → Hệ thống trả về lỗi 401. <br> Tìm kiếm không có kết quả → Hệ thống trả về danh sách rỗng. <br> Chuyến tàu không tồn tại (xem chi tiết) → Hệ thống trả về lỗi `SCHEDULED_TRIP_NOT_FOUND`. <br> Cursor không hợp lệ (sai định dạng) → Hệ thống trả về lỗi `CURSOR_INVALID`. <br> Tham số không hợp lệ (phân trang, bộ lọc, giá trị sắp xếp) → Hệ thống trả về lỗi `VALIDATION_ERROR`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
 
-### 2. Lược đồ tuần tự
+## 2. Lược đồ tuần tự
 
 ```plantuml
-@startuml UC-07
-title UC-07: Search Scheduled Trips
+@startuml UC-06
+title UC-06: Search Scheduled Trips
 
 actor "Khách hàng" as Actor
 participant "Hệ thống" as API
@@ -66,11 +66,11 @@ end
 @enduml
 ```
 
-### 3. Lược đồ hoạt động
+## 3. Lược đồ hoạt động
 
 ```plantuml
-@startuml UC-07-activity
-title UC-07: Search Scheduled Trips - Activity Diagram
+@startuml UC-06-activity
+title UC-06: Search Scheduled Trips - Activity Diagram
 
 start
 
@@ -135,11 +135,11 @@ stop
 @enduml
 ```
 
-### 5. Lược đồ lớp ý niệm
+## 5. Lược đồ lớp ý niệm
 
 ```plantuml
-@startuml UC-07-class
-title UC-07: Search Scheduled Trips - Conceptual Class Diagram
+@startuml UC-06-class
+title UC-06: Search Scheduled Trips - Conceptual Class Diagram
 
 class "ScheduledTrip" as ST {
   - id: UUID
@@ -269,9 +269,9 @@ DetailRoute *-- DetailStation
 @enduml
 ```
 
-### 6. Phân rã thành phần PM
+## 6. Phân rã thành phần PM
 
-#### 6.1 Controller: `ScheduledTripController`
+### 6.1 Controller: `ScheduledTripController`
 
 - **Nhiệm vụ**: Nhận HTTP request từ khách hàng, xác thực đầu vào, ủy thác cho
   UseCase tương ứng.
@@ -301,7 +301,7 @@ DetailRoute *-- DetailStation
 - **Output lỗi**: `404` + `JsendResponse` —
   `{ errorCode: SCHEDULED_TRIP_NOT_FOUND, message }`
 
-#### 6.2 UseCase
+### 6.2 UseCase
 
 **SearchScheduledTripsUseCase:**
 
@@ -335,7 +335,7 @@ DetailRoute *-- DetailStation
     - `ScheduledTripRepository.findEnrichedById(id)` — truy vấn enriched summary
 - **Cache**: `scheduledTripById`, key = `st:{scheduledTripId}`, trừ khi failure
 
-#### 6.3 Repository: `ScheduledTripRepository`
+### 6.3 Repository: `ScheduledTripRepository`
 
 - **Nhiệm vụ**: Truy xuất domain entity `ScheduledTrip` và các projection
   summary.
@@ -345,7 +345,7 @@ DetailRoute *-- DetailStation
     - `findEnrichedById(id): Optional<ScheduledTripEnrichedSummary>` — chi tiết
       chuyến tàu kèm thông tin tàu, tuyến đường, ga
 
-#### 6.4 Port: `ScheduledTripSearchPort`
+### 6.4 Port: `ScheduledTripSearchPort`
 
 - **Lớp**: Application layer (port interface), implemented bởi
   `ScheduledTripSearchReader` (infrastructure, JDBC).
@@ -356,11 +356,11 @@ DetailRoute *-- DetailStation
       kiếm JDBC với các bộ lọc (ga đi/đến, ngày, trạng thái, giá, ghế trống) và
       cursor
 
-#### 6.5 Lược đồ tuần tự nội bộ PM
+### 6.5 Lược đồ tuần tự nội bộ PM
 
 ```plantuml
-@startuml UC-07-internal
-title UC-07: Search Scheduled Trips - Internal Sequence
+@startuml UC-06-internal
+title UC-06: Search Scheduled Trips - Internal Sequence
 
 actor "Khách hàng" as Actor
 participant "ScheduledTripController" as CTL
@@ -425,9 +425,9 @@ end
 @enduml
 ```
 
-#### 6.6 Giao diện
+### 6.6 Giao diện
 
-##### 6.6.1 Giao diện mẫu
+#### 6.6.1 Giao diện mẫu
 
 ```plantuml
 @startsalt
@@ -454,19 +454,19 @@ end
 @endsalt
 ```
 
-##### 6.6.2 Giao diện ứng dụng
+#### 6.6.2 Giao diện ứng dụng
 
 Chưa hiện thực. Sẽ bổ sung ảnh chụp màn hình khi hoàn thành.
 
-### 7. Bảng tham chiếu dò vết
+## 7. Bảng tham chiếu dò vết
 
 | Use Case | Controller              | Endpoint                             | UseCase                     | Repository / Port                          | Table                                              |
 | -------- | ----------------------- | ------------------------------------ | --------------------------- | ------------------------------------------ | -------------------------------------------------- |
-| UC-07    | ScheduledTripController | `GET /api/v1/scheduled-trips:filter` | SearchScheduledTripsUseCase | ScheduledTripSearchPort.search()           | scheduled_trips, route_templates, trains, stations |
+| UC-06    | ScheduledTripController | `GET /api/v1/scheduled-trips:filter` | SearchScheduledTripsUseCase | ScheduledTripSearchPort.search()           | scheduled_trips, route_templates, trains, stations |
 |          | ScheduledTripController | `GET /api/v1/scheduled-trips`        | GetScheduledTripsUseCase    | ScheduledTripRepository.findAllSummaries() | scheduled_trips                                    |
 |          | ScheduledTripController | `GET /api/v1/scheduled-trips/{id}`   | GetScheduledTripByIdUseCase | ScheduledTripRepository.findEnrichedById() | scheduled_trips, route_templates, trains, stations |
 
-### 8. Tiêu chí kiểm thử
+## 8. Tiêu chí kiểm thử
 
 | Tiêu chí              | Phép thử                                                                   | Kết quả mong đợi                                                  | Ghi chú                                              |
 | --------------------- | -------------------------------------------------------------------------- | ----------------------------------------------------------------- | ---------------------------------------------------- |

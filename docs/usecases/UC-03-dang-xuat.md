@@ -1,74 +1,104 @@
-## UC-03: Đăng xuất
+# UC-03: Đăng xuất
 
-### 1. Mô tả use case
+## 1. Mô tả use case
 
-| Mục                            | Nội dung                                                                                                                                                                                                                                                                                                                                                                                              |
-| ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Phụ thuộc                      | UC-02: Đăng nhập                                                                                                                                                                                                                                                                                                                                                                                      |
-| Mục đích                       | Khách hàng muốn kết thúc phiên làm việc hiện tại để ngăn refresh token tiếp tục được dùng tạo access token mới. PM tiếp nhận refresh token, tra cứu token đang hoạt động tương ứng và thu hồi nó theo cách idempotent.                                                                                                                                                                                |
-| Mô tả                          | Khách hàng kết thúc phiên làm việc hiện tại bằng cách thu hồi refresh token đang sử dụng.                                                                                                                                                                                                                                                                                                             |
-| Actor chính                    | Khách hàng                                                                                                                                                                                                                                                                                                                                                                                            |
-| Actor liên quan                | Không                                                                                                                                                                                                                                                                                                                                                                                                 |
-| Tiền điều kiện                 | Không yêu cầu xác thực. Khách hàng cần có giá trị refresh token để gửi lên (hợp lệ hoặc không).                                                                                                                                                                                                                                                                                                       |
-| Dãy lệnh thực hiện bình thường | 1. Khách hàng gửi yêu cầu đăng xuất kèm `refreshToken` hiện tại. <br> 2. Hệ thống kiểm tra dữ liệu đầu vào hợp lệ. <br> 3. Hệ thống băm refresh token và tìm bản ghi tương ứng. <br> 4. Nếu token đang hoạt động tồn tại, hệ thống thu hồi refresh token (đánh dấu `revoked_at`). <br> 5. Nếu token không tồn tại hoặc đã bị thu hồi, hệ thống không làm gì thêm. <br> 6. Hệ thống trả về thành công. |
-| Hậu điều kiện (thành công)     | Nếu refresh token tồn tại và đang hoạt động, nó sẽ bị thu hồi. Nếu token không tồn tại hoặc đã thu hồi, không có thay đổi nào xảy ra.                                                                                                                                                                                                                                                                 |
-| Hậu điều kiện (thất bại)       | Khi dữ liệu đầu vào không hợp lệ, hệ thống không thực hiện thu hồi token nào.                                                                                                                                                                                                                                                                                                                         |
-| Xử lý ngoại lệ                 | Refresh token không tồn tại hoặc đã bị thu hồi trước đó → Hệ thống vẫn trả về thành công (idempotent, không để lộ thông tin token). <br> Dữ liệu đầu vào không hợp lệ, thiếu trường `refreshToken` → Hệ thống trả về lỗi `VALIDATION_ERROR`. <br> Hợp đồng API tại controller hiện công bố thêm khả năng trả về `401` khi refresh token không hợp lệ hoặc hết hạn.                                    |
+| Mục                         | Nội dung                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Quan hệ UC                  | **`<<includes>>` (bắt buộc)**: Không <br> **`<<extends>>` (tùy chọn)**: Không <br> **Generalization**: Không |
+| Mục đích                    | Khách hàng muốn kết thúc phiên làm việc hiện tại để ngăn refresh token tiếp tục được dùng tạo access token mới. PM tiếp nhận refresh token, tra cứu token đang hoạt động tương ứng và thu hồi nó theo cách idempotent. |
+| Mô tả                       | Khách hàng kết thúc phiên làm việc hiện tại bằng cách thu hồi refresh token đang sử dụng. |
+| Actor chính                 | Khách hàng |
+| Actor liên quan             | Không |
+| Tiền điều kiện              | Không yêu cầu xác thực. Khách hàng cần có giá trị refresh token để gửi lên (hợp lệ hoặc không). |
+| Luồng chính                 | 1. Khách hàng gửi yêu cầu đăng xuất kèm `refreshToken` hiện tại. <br> 2. Hệ thống kiểm tra dữ liệu đầu vào hợp lệ. <br> 3. Hệ thống băm refresh token và tìm bản ghi tương ứng. <br> 4. Nếu token đang hoạt động tồn tại, hệ thống thu hồi refresh token (đánh dấu `revoked_at`). <br> 5. Nếu token không tồn tại hoặc đã bị thu hồi, hệ thống không làm gì thêm. <br> 6. Hệ thống trả về thành công. |
+| Hậu điều kiện (thành công)  | Nếu refresh token tồn tại và đang hoạt động, nó sẽ bị thu hồi. Nếu token không tồn tại hoặc đã thu hồi, không có thay đổi nào xảy ra. |
+| Hậu điều kiện (thất bại)    | Khi dữ liệu đầu vào không hợp lệ, hệ thống không thực hiện thu hồi token nào. |
+| Luồng ngoại lệ              | Refresh token không tồn tại hoặc đã bị thu hồi trước đó → Hệ thống vẫn trả về thành công (idempotent, không để lộ thông tin token). <br> Dữ liệu đầu vào không hợp lệ, thiếu trường `refreshToken` → Hệ thống trả về lỗi `VALIDATION_ERROR`. <br> Hợp đồng API tại controller hiện công bố thêm khả năng trả về `401` khi refresh token không hợp lệ hoặc hết hạn. |
 
-### 2. Lược đồ tuần tự
+## 2. Lược đồ Use Case
+
+```plantuml
+@startuml UC-03-usecase
+title UC-03: Đăng xuất - Use Case Diagram
+
+left to right direction
+
+actor "Khách hàng" as Customer
+
+rectangle "Hệ thống đặt vé tàu" {
+  usecase "UC-03\nĐăng xuất" as UC03
+}
+
+Customer --> UC03
+@enduml
+```
+
+## 3. Lược đồ tuần tự
 
 ```plantuml
 @startuml UC-03
-title UC-03: Logout
+title UC-03: Đăng xuất
 
-actor "Customer" as Actor
-participant "System" as API
+actor "Khách hàng" as Actor
+participant "Hệ thống" as API
 
 Actor -> API: Logout(refreshToken)
-alt Invalid input
+alt Dữ liệu đầu vào không hợp lệ
     API --> Actor: 400 + VALIDATION_ERROR
-else Logout accepted
-    API -> API: Revoke refresh token (idempotent)
+else Đăng xuất được chấp nhận
+    API -> API: Thu hồi refresh token (idempotent)
     API --> Actor: 200 OK
 end
 @enduml
 ```
 
-### 3. Lược đồ hoạt động
+## 4. Lược đồ hoạt động
 
 ```plantuml
 @startuml UC-03-activity
-title UC-03: Logout - Activity Diagram
+title UC-03: Đăng xuất - Activity Diagram
 
 start
 
-:Customer submits refresh token;
+:Khách hàng gửi refresh token;
 
-if (Valid input?) then (no)
-  :Return 400 VALIDATION_ERROR;
+if (Dữ liệu đầu vào hợp lệ?) then (không)
+  :Trả 400 VALIDATION_ERROR;
   stop
-else (yes)
+else (có)
 endif
 
-:Hash refresh token;
+:Băm refresh token;
 
-if (Active token found?) then (yes)
-  :Revoke token (set revoked_at);
-else (no)
-  :No-op (idempotent);
+if (Tìm thấy token đang hoạt động?) then (có)
+  :Thu hồi token (set revoked_at);
+else (không)
+  :Không làm gì (idempotent);
 endif
 
-:Return 200 OK;
+:Trả 200 OK;
 
 stop
 @enduml
 ```
 
-### 5. Lược đồ lớp ý niệm
+## 5. Lược đồ trạng thái
+
+```plantuml
+@startuml UC-03-state
+title UC-03: Đăng xuất - State Diagram
+
+[*] --> HoatDong : Token được tạo khi đăng nhập
+HoatDong --> DaThuHoi : Đăng xuất thành công\n(revoked_at được ghi)
+DaThuHoi --> [*]
+@enduml
+```
+
+## 6. Lược đồ lớp ý niệm
 
 ```plantuml
 @startuml UC-03-class
-title UC-03: Logout - Conceptual Class Diagram
+title UC-03: Đăng xuất - Conceptual Class Diagram
 
 class "RefreshTokenData" as RefreshTokenData {
   - id: UUID
@@ -85,13 +115,14 @@ class "LogoutUserCommand" as LogoutUserCommand {
   + refreshToken: String
 }
 
-RefreshTokenRequest ..> LogoutUserCommand
+RefreshTokenRequest ..> LogoutUserCommand : chuyển đổi
+LogoutUserCommand ..> RefreshTokenData : tra cứu và thu hồi
 @enduml
 ```
 
-### 6. Phân rã thành phần PM
+## 7. Phân rã thành phần PM
 
-#### 6.1 Controller: `AuthController`
+### 7.1 Controller: `AuthController`
 
 - **Nhiệm vụ**: Nhận payload đăng xuất, kiểm tra dữ liệu đầu vào và chuyển yêu
   cầu thu hồi token sang lớp nghiệp vụ.
@@ -100,7 +131,7 @@ RefreshTokenRequest ..> LogoutUserCommand
 - **Output thành công**: `200 OK` + `JsendResponse.success()`
 - **Output lỗi**: `400/401` + `JsendResponse` — `{ errorCode, message }`
 
-#### 6.2 UseCase: `LogoutUserUseCase`
+### 7.2 UseCase: `LogoutUserUseCase`
 
 - **Nhiệm vụ**: Băm refresh token nhận được, tìm token đang hoạt động tương ứng
   và thu hồi token nếu tồn tại theo cách idempotent.
@@ -114,7 +145,7 @@ RefreshTokenRequest ..> LogoutUserCommand
     - `RefreshTokenRepository.revokeById(tokenId)` — thu hồi token khi tìm thấy
 - **Phát sinh sự kiện**: Không
 
-#### 6.3 Repository: `RefreshTokenRepository`
+### 7.3 Repository: `RefreshTokenRepository`
 
 - **Nhiệm vụ**: Truy xuất và cập nhật bản ghi refresh token trong hạ tầng lưu
   trữ.
@@ -124,19 +155,34 @@ RefreshTokenRequest ..> LogoutUserCommand
     - `revokeById(tokenId): void` — cập nhật `revoked_at` để thu hồi token
 - **Table**: `refresh_tokens`
 
-#### 6.4 Port: `RefreshTokenManager`
+### 7.4 Thiết kế cơ sở dữ liệu
+
+#### 7.4.1 ERD
+
+- **Tham chiếu ERD**: Bảng `refresh_tokens` trong schema chung của hệ thống
+- **Bảng/View liên quan**: `refresh_tokens`
+
+#### 7.4.2 Stored Procedure
+
+Không sử dụng Stored Procedure cho UC này.
+
+#### 7.4.3 Trigger
+
+Không sử dụng Trigger cho UC này.
+
+### 7.5 Port: `RefreshTokenManager`
 
 - **Nhiệm vụ**: Băm refresh token thô để tra cứu an toàn trong cơ sở dữ liệu.
 - **Phương thức liên quan đến UC**:
     - `hashToken(token): String` — trả về chuỗi hash hex-encoded SHA-256
 
-#### 6.5 Lược đồ tuần tự nội bộ PM
+### 7.6 Lược đồ tuần tự nội bộ PM
 
 ```plantuml
 @startuml UC-03-internal
-title UC-03: Logout - Internal Sequence
+title UC-03: Đăng xuất - Internal Sequence
 
-actor "Customer" as Actor
+actor "Khách hàng" as Actor
 participant "AuthController" as CTL
 participant "LogoutUserUseCase" as UC
 participant "RefreshTokenRepository" as REPO
@@ -152,7 +198,7 @@ REPO -> DB: SELECT active refresh token by hash
 DB --> REPO: Optional<RefreshTokenData>
 REPO --> UC: Optional<RefreshTokenData>
 
-opt Token found
+opt Token tìm thấy
     UC -> REPO: revokeById(tokenId)
     REPO -> DB: UPDATE refresh_tokens SET revoked_at = NOW()
     DB --> REPO: ok
@@ -163,9 +209,9 @@ CTL --> Actor: 200 + JsendResponse.success()
 @enduml
 ```
 
-#### 6.6 Giao diện
+### 7.7 Giao diện
 
-##### 6.6.1 Giao diện mẫu
+#### 7.7.1 Giao diện mẫu
 
 ```plantuml
 @startsalt
@@ -182,20 +228,59 @@ CTL --> Actor: 200 + JsendResponse.success()
 @endsalt
 ```
 
-##### 6.6.2 Giao diện ứng dụng
+| Control                  | Nhiệm vụ                                                    | Inputs                          | Outputs                        | Gọi API                       |
+| ------------------------ | ----------------------------------------------------------- | ------------------------------- | ------------------------------ | ----------------------------- |
+| `useLogout()` hook       | Lấy refreshToken từ store, gọi API logout, xóa token local, redirect | `refreshToken` (từ token store) | Redirect `/login`              | `POST /api/v1/auth/logout`    |
+| `[Đăng xuất]` MenuItem  | Kích hoạt luồng đăng xuất khi người dùng nhấn               | Không (trigger từ click)        | Gọi `useLogout().mutate()`     | Gián tiếp qua `useLogout()`  |
+
+#### 7.7.2 Giao diện ứng dụng
 
 Chưa hiện thực. Sẽ bổ sung ảnh chụp màn hình khi hoàn thành.
 
-### 7. Bảng tham chiếu dò vết
+## 8. Bảng tham chiếu dò vết
 
-| Use Case | Controller     | Endpoint                   | UseCase           | Repository                                                       | Table            |
-| -------- | -------------- | -------------------------- | ----------------- | ---------------------------------------------------------------- | ---------------- |
-| UC-03    | AuthController | `POST /api/v1/auth/logout` | LogoutUserUseCase | `RefreshTokenRepository.findActiveByTokenHash()`, `revokeById()` | `refresh_tokens` |
+| Use Case | Controller     | Endpoint                   | UseCase           | Repository                                                       | SP    | Table            |
+| -------- | -------------- | -------------------------- | ----------------- | ---------------------------------------------------------------- | ----- | ---------------- |
+| UC-03    | AuthController | `POST /api/v1/auth/logout` | LogoutUserUseCase | `RefreshTokenRepository.findActiveByTokenHash()`, `revokeById()` | Không | `refresh_tokens` |
 
-### 8. Tiêu chí kiểm thử
+## 9. Tiêu chí kiểm thử
+
+### 9.1 Mức phân tích
 
 | Tiêu chí             | Phép thử                                                                   | Kết quả mong đợi                          | Ghi chú                              |
 | -------------------- | -------------------------------------------------------------------------- | ----------------------------------------- | ------------------------------------ |
-| Toàn diện (coverage) | Đối chiếu Activity Diagram ↔ Sequence Diagram: mọi luồng đều được thể hiện | Không bỏ sót luồng chính lẫn ngoại lệ     | Rà soát chéo giữa mục 2 và mục 3     |
-| Nhất quán            | Rà soát tên lớp, trạng thái, API giữa các lược đồ trong cùng UC            | Không mâu thuẫn giữa các mục 2–6          | Đặc biệt kiểm tra tên trong mục 5–6  |
-| Truy vết             | Đối chiếu bảng tham chiếu (mục 7) với lược đồ tuần tự nội bộ (mục 6.5)     | Mọi tương tác trong sequence đều có entry | Kiểm tra không thiếu endpoint/method |
+| Toàn diện (coverage) | Đối chiếu Activity Diagram ↔ Sequence Diagram: mọi luồng đều được thể hiện | Không bỏ sót luồng chính lẫn ngoại lệ     | Rà soát chéo giữa mục 3 và mục 4     |
+| Nhất quán            | Rà soát tên lớp, trạng thái, API giữa các lược đồ trong cùng UC            | Không mâu thuẫn giữa các mục 2–7          | Đặc biệt kiểm tra tên trong mục 6–7  |
+| Truy vết             | Đối chiếu bảng tham chiếu (mục 8) với lược đồ tuần tự nội bộ (mục 7.6)     | Mọi tương tác trong sequence đều có entry | Kiểm tra không thiếu endpoint/method |
+
+### 9.2 Mức thiết kế
+
+| Tiêu chí      | Phép thử                                                                                         | Kết quả mong đợi                                       | Ghi chú                                |
+| ------------- | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------ | -------------------------------------- |
+| Chuẩn hóa     | Rà soát thiết kế AuthController, LogoutUserUseCase, RefreshTokenRepository, RefreshTokenManager   | Tuân thủ Clean Architecture, quy ước đặt tên và hợp đồng | Walkthrough/inspection                 |
+| Testability   | Rà soát khả năng mock RefreshTokenManager, RefreshTokenRepository trong unit test                 | Có thể kiểm thử UseCase độc lập không cần DB thật       | Tất cả dependency là port/interface    |
+| Modularity    | Rà soát ranh giới trách nhiệm: Controller chỉ validate + route, UseCase chỉ orchestrate, Repository chỉ persistence | Không trùng lặp trách nhiệm, coupling thấp             | Kiểm tra không có logic nghiệp vụ trong Controller |
+
+### 9.3 Mức hiện thực
+
+| Tiêu chí          | Phép thử                                                                                  | Kết quả mong đợi                                                    | Ghi chú                                    |
+| ----------------- | ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------- | ------------------------------------------ |
+| Xử lý chính xác   | Test luồng chính (token active → revoked), luồng idempotent (token không tồn tại/đã revoked), luồng lỗi (validation fail) | 200 OK cho cả success lẫn idempotent; 400 + VALIDATION_ERROR cho input thiếu | Unit test UseCase + integration test endpoint |
+| Hiệu năng         | Benchmark endpoint POST /api/v1/auth/logout với 100 concurrent requests                    | Response time p95 < 200ms (logic đơn giản, 1 SELECT + 1 UPDATE)      | Ghi rõ môi trường test                     |
+| Bảo mật           | Kiểm tra không để lộ token tồn tại hay không qua response; kiểm tra token hash lookup thay vì raw comparison | Response body identical cho token hợp lệ, không tồn tại, và đã revoked | Chống token enumeration |
+
+### 9.4 Bảng tiêu chí chất lượng theo chức năng
+
+| Chức năng trong UC          | Tiêu chí mức Ý niệm                                                        | Tiêu chí mức Thiết kế                                                          | Tiêu chí mức Hiện thực                                                              |
+| --------------------------- | -------------------------------------------------------------------------- | ------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------- |
+| Thu hồi refresh token       | Đúng nhu cầu: khách hàng kết thúc phiên, token không còn dùng được          | Luồng xử lý chuẩn hóa qua Controller→UseCase→Repository→Port, dễ test với mock | Unit test UseCase (3 cases: active token, missing token, already revoked), integration test endpoint |
+| Idempotent behavior         | Gọi nhiều lần với cùng token không gây lỗi, không để lộ trạng thái token    | UseCase luôn trả Result.success() bất kể token có tồn tại hay không             | Test gọi logout 2 lần liên tiếp cùng token → cả 2 đều 200 OK                        |
+| Chống token enumeration     | Không cho phép phân biệt token hợp lệ vs không hợp lệ từ response           | Response body và status code giống nhau cho mọi trường hợp (trừ validation)     | Test response body identical cho active token, unknown token, revoked token           |
+
+## 10. Yêu cầu phi chức năng
+
+| Loại yêu cầu  | Nội dung                                                                                          | Nguồn gốc                                          |
+| -------------- | ------------------------------------------------------------------------------------------------- | -------------------------------------------------- |
+| Business       | Đăng xuất phải idempotent — gọi nhiều lần không gây lỗi, không để lộ thông tin token tồn tại       | Quy tắc bảo mật phiên làm việc                      |
+| Operation      | Token lookup bằng SHA-256 hash (không lưu raw token); endpoint không yêu cầu authentication header | Chính sách bảo mật hệ thống                         |
+| Development    | RefreshToken revoke bằng soft-delete (set `revoked_at`); response tuân thủ JSend format            | Quy ước kỹ thuật nhóm phát triển                    |

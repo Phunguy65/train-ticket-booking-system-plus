@@ -1,10 +1,10 @@
-## UC-10: Xem đặt vé
+# UC-09: Xem đặt vé
 
-### 1. Mô tả use case
+## 1. Mô tả use case
 
 | Mục                            | Nội dung                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
 | ------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Phụ thuộc                      | UC-02: Đăng nhập, UC-09: Đặt vé tàu                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| Phụ thuộc                      | UC-02: Đăng nhập, UC-08: Đặt vé tàu                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | Mục đích                       | Khách hàng cần theo dõi trạng thái đặt vé của mình (đang giữ, đã thanh toán, đã hủy) để biết cần thanh toán hay không, và xem lại thông tin chi tiết chuyến tàu, ghế, thanh toán liên quan đến mỗi đặt vé.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
 | Mô tả                          | Khách hàng xem danh sách đặt vé của mình (phân trang) hoặc xem chi tiết một đặt vé cụ thể bao gồm thông tin hành khách, chuyến tàu, ghế và thanh toán.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
 | Actor chính                    | Khách hàng (Customer)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
@@ -15,11 +15,11 @@
 | Hậu điều kiện (thất bại)       | Không có thay đổi trạng thái. Đây là thao tác chỉ đọc.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
 | Xử lý ngoại lệ                 | Chưa xác thực → 401 Unauthorized. <br> Xem đặt vé của người khác (list) → 403 + `ACCESS_DENIED`. <br> Đặt vé không tồn tại (detail) → 404 + `BOOKING_NOT_FOUND`. <br> Xem đặt vé của người khác (detail) → 403 + `ACCESS_DENIED`. <br> Tham số phân trang không hợp lệ → 400 + `VALIDATION_ERROR`.                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
 
-### 2. Lược đồ tuần tự
+## 2. Lược đồ tuần tự
 
 ```plantuml
-@startuml UC-10
-title UC-10: Xem đặt vé
+@startuml UC-09
+title UC-09: Xem đặt vé
 
 actor "Khách hàng" as Actor
 participant "Hệ thống" as API
@@ -54,11 +54,11 @@ end
 @enduml
 ```
 
-### 3. Lược đồ hoạt động
+## 3. Lược đồ hoạt động
 
 ```plantuml
-@startuml UC-10-activity
-title UC-10: Xem đặt vé - Activity Diagram
+@startuml UC-09-activity
+title UC-09: Xem đặt vé - Activity Diagram
 
 start
 
@@ -117,17 +117,17 @@ stop
 @enduml
 ```
 
-### 4. Lược đồ trạng thái
+## 4. Lược đồ trạng thái
 
-<!-- UC-10 là thao tác chỉ đọc, không có thay đổi trạng thái. Mục này bỏ qua. -->
+<!-- UC-09 là thao tác chỉ đọc, không có thay đổi trạng thái. Mục này bỏ qua. -->
 
-_Không áp dụng — UC-10 là thao tác chỉ đọc._
+_Không áp dụng — UC-09 là thao tác chỉ đọc._
 
-### 5. Lược đồ lớp ý niệm
+## 5. Lược đồ lớp ý niệm
 
 ```plantuml
-@startuml UC-10-class
-title UC-10: Xem đặt vé - Conceptual Class Diagram
+@startuml UC-09-class
+title UC-09: Xem đặt vé - Conceptual Class Diagram
 
 class "Booking" as Booking {
   - bookingId: UUID
@@ -238,9 +238,9 @@ DetailDTO *-- PassengerDTO
 @enduml
 ```
 
-### 6. Phân rã thành phần PM
+## 6. Phân rã thành phần PM
 
-#### 6.1 Controller: `BookingController`
+### 6.1 Controller: `BookingController`
 
 **Endpoint 1 — Danh sách đặt vé:**
 
@@ -266,7 +266,7 @@ DetailDTO *-- PassengerDTO
 - **Output lỗi**: `403` + `ACCESS_DENIED` | `404` + `BOOKING_NOT_FOUND`
 - **Metadata**: `@SuccessPayload(BookingDetailResponse.class)`
 
-#### 6.2 UseCase
+### 6.2 UseCase
 
 **GetUserBookingsUseCase:**
 
@@ -299,7 +299,7 @@ DetailDTO *-- PassengerDTO
 <!-- - **Lưu ý**: `trip` và `payment` có thể `null` trong response — trip null nếu
   scheduled trip bị xóa hoàn toàn, payment null nếu chưa tạo checkout session. -->
 
-#### 6.3 Repository
+### 6.3 Repository
 
 **BookingRepository:**
 
@@ -336,15 +336,15 @@ DetailDTO *-- PassengerDTO
       lấy danh sách ghế kèm coach info, loại trừ seats/coaches đã soft-delete
 - **Table**: `trip_seat_availability` JOIN `seats`, `coaches`
 
-#### 6.4 Port
+### 6.4 Port
 
 Không có actor hỗ trợ bên ngoài.
 
-#### 6.5 Lược đồ tuần tự nội bộ PM
+### 6.5 Lược đồ tuần tự nội bộ PM
 
 ```plantuml
-@startuml UC-10-internal
-title UC-10: Xem đặt vé - Internal Sequence
+@startuml UC-09-internal
+title UC-09: Xem đặt vé - Internal Sequence
 
 actor "Khách hàng" as Actor
 participant "BookingController" as CTL
@@ -412,9 +412,9 @@ end
 @enduml
 ```
 
-#### 6.6 Giao diện
+### 6.6 Giao diện
 
-##### 6.6.1 Giao diện mẫu
+#### 6.6.1 Giao diện mẫu
 
 ```plantuml
 @startsalt
@@ -464,21 +464,21 @@ end
 @endsalt
 ```
 
-##### 6.6.2 Giao diện ứng dụng
+#### 6.6.2 Giao diện ứng dụng
 
 Chưa hiện thực. Sẽ bổ sung ảnh chụp màn hình khi hoàn thành.
 
-### 7. Bảng tham chiếu dò vết
+## 7. Bảng tham chiếu dò vết
 
 | Use Case | Controller        | Endpoint                              | UseCase                 | Repository                                                           | Table                                              |
 | -------- | ----------------- | ------------------------------------- | ----------------------- | -------------------------------------------------------------------- | -------------------------------------------------- |
-| UC-10    | BookingController | `GET /api/v1/users/{userId}/bookings` | GetUserBookingsUseCase  | BookingRepository.findByUserId()                                     | bookings                                           |
-| UC-10    | BookingController | `GET /api/v1/bookings/{id}`           | GetBookingDetailUseCase | BookingRepository.findById()                                         | bookings                                           |
+| UC-09    | BookingController | `GET /api/v1/users/{userId}/bookings` | GetUserBookingsUseCase  | BookingRepository.findByUserId()                                     | bookings                                           |
+| UC-09    | BookingController | `GET /api/v1/bookings/{id}`           | GetBookingDetailUseCase | BookingRepository.findById()                                         | bookings                                           |
 |          |                   |                                       |                         | ScheduledTripRepository.findEnrichedByIdIncludingDeleted()           | scheduled_trips, route_templates, trains, stations |
 |          |                   |                                       |                         | PaymentRepository.findSummaryByBookingId()                           | payments                                           |
 |          |                   |                                       |                         | RouteSeatAvailabilityRepository.findBookedSeatSummariesByBookingId() | trip_seat_availability, seats, coaches             |
 
-### 8. Tiêu chí kiểm thử
+## 8. Tiêu chí kiểm thử
 
 | Tiêu chí              | Phép thử                                                                   | Kết quả mong đợi                                                 | Ghi chú                                                       |
 | --------------------- | -------------------------------------------------------------------------- | ---------------------------------------------------------------- | ------------------------------------------------------------- |

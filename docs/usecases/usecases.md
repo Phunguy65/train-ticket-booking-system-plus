@@ -20,29 +20,27 @@ rectangle "Hệ thống Đặt vé Tàu" {
   usecase "UC-02: Đăng nhập" as UC02
   usecase "UC-03: Đăng xuất" as UC03
   usecase "UC-04: Quản lý thông tin cá nhân" as UC04
-  usecase "UC-05: Xóa tài khoản" as UC05
 
   ' ── Tra cứu ──
-  usecase "UC-06: Tra cứu ga tàu" as UC06
-  usecase "UC-07: Tra cứu chuyến tàu" as UC07
-  usecase "UC-08: Xem sơ đồ ghế chuyến tàu" as UC08
+  usecase "UC-05: Tra cứu ga tàu" as UC05
+  usecase "UC-06: Tra cứu chuyến tàu" as UC06
+  usecase "UC-07: Xem sơ đồ ghế chuyến tàu" as UC07
 
   ' ── Đặt vé & Thanh toán ──
-  usecase "UC-09: Đặt vé tàu" as UC09
-  usecase "UC-10: Xem đặt vé" as UC10
-  usecase "UC-11: Hủy đặt vé" as UC11
-  usecase "UC-12: Xem thanh toán" as UC12
+  usecase "UC-08: Đặt vé tàu" as UC08
+  usecase "UC-09: Xem đặt vé" as UC09
+  usecase "UC-10: Hủy đặt vé" as UC10
+  usecase "UC-11: Xem thanh toán" as UC11
 
   ' ── Relationships ──
-  UC09 ..> UC02 : <<include>>
-  UC09 ..> UC07 : <<include>>
-  UC09 ..> UC08 : <<include>>
+  UC08 ..> UC02 : <<include>>
+  UC08 ..> UC06 : <<include>>
+  UC08 ..> UC07 : <<include>>
 
   UC04 ..> UC02 : <<include>>
-  UC05 ..> UC02 : <<include>>
+  UC09 ..> UC02 : <<include>>
   UC10 ..> UC02 : <<include>>
   UC11 ..> UC02 : <<include>>
-  UC12 ..> UC02 : <<include>>
 }
 
 ' ── Actor associations ──
@@ -57,7 +55,6 @@ Customer -- UC08
 Customer -- UC09
 Customer -- UC10
 Customer -- UC11
-Customer -- UC12
 
 @enduml
 ```

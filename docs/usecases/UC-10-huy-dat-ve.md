@@ -1,10 +1,10 @@
-## UC-11: Hủy đặt vé
+# UC-10: Hủy đặt vé
 
-### 1. Mô tả use case
+## 1. Mô tả use case
 
 | Mục                            | Nội dung                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
 | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Phụ thuộc                      | UC-02: Đăng nhập, UC-09: Đặt vé tàu, UC-10: Xem đặt vé                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| Phụ thuộc                      | UC-02: Đăng nhập, UC-08: Đặt vé tàu, UC-09: Xem đặt vé                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | Mục đích                       | Khách hàng cần hủy đặt vé khi thay đổi kế hoạch. Hệ thống giải phóng ghế đã giữ/đặt để người khác có thể sử dụng, và phát sinh sự kiện `BookingCancelled` mang cờ `requiresRefund` để hỗ trợ luồng hoàn tiền (nếu đã thanh toán).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
 | Mô tả                          | Khách hàng hủy một đặt vé đang ở trạng thái `HELD` (chưa thanh toán) hoặc `CONFIRMED` (đã thanh toán). Hệ thống giải phóng ghế và phát sinh sự kiện `BookingCancelled`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
 | Actor chính                    | Khách hàng (Customer)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
@@ -15,11 +15,11 @@
 | Hậu điều kiện (thất bại)       | Không có thay đổi trạng thái. Transaction rollback nếu có lỗi.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
 | Xử lý ngoại lệ                 | Chưa xác thực → 401 Unauthorized. <br> Đặt vé không tồn tại → 404 + `BOOKING_NOT_FOUND`. <br> Hủy đặt vé của người khác → 403 + `ACCESS_DENIED`. <br> Đặt vé đã ở trạng thái `CANCELLED` → 409 + `BOOKING_ALREADY_CANCELLED` (do `InvalidStatusTransition`).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 
-### 2. Lược đồ tuần tự
+## 2. Lược đồ tuần tự
 
 ```plantuml
-@startuml UC-11
-title UC-11: Hủy đặt vé
+@startuml UC-10
+title UC-10: Hủy đặt vé
 
 actor "Khách hàng" as Actor
 participant "Hệ thống" as API
@@ -47,11 +47,11 @@ end
 @enduml
 ```
 
-### 3. Lược đồ hoạt động
+## 3. Lược đồ hoạt động
 
 ```plantuml
-@startuml UC-11-activity
-title UC-11: Hủy đặt vé - Activity Diagram
+@startuml UC-10-activity
+title UC-10: Hủy đặt vé - Activity Diagram
 
 start
 
@@ -109,11 +109,11 @@ stop
 @enduml
 ```
 
-### 4. Lược đồ trạng thái
+## 4. Lược đồ trạng thái
 
 ```plantuml
-@startuml UC-11-state
-title UC-11: Hủy đặt vé - State Diagram
+@startuml UC-10-state
+title UC-10: Hủy đặt vé - State Diagram
 
 state "Booking" as booking {
   [*] --> HELD
@@ -125,7 +125,7 @@ state "Booking" as booking {
 }
 
 state "Ghế (RouteSeatAvailability)" as seat {
-  [*] --> sHELD: (từ UC-09)
+  [*] --> sHELD: (từ UC-08)
   [*] --> sBOOKED: (từ payment success)
 
   sHELD --> sAVAILABLE: releaseHeldSeats()
@@ -147,11 +147,11 @@ end note
 @enduml
 ```
 
-### 5. Lược đồ lớp ý niệm
+## 5. Lược đồ lớp ý niệm
 
 ```plantuml
-@startuml UC-11-class
-title UC-11: Hủy đặt vé - Conceptual Class Diagram
+@startuml UC-10-class
+title UC-10: Hủy đặt vé - Conceptual Class Diagram
 
 class "Booking" as Booking {
   - bookingId: UUID
@@ -215,9 +215,9 @@ SSEEvent *-- SeatChange
 @enduml
 ```
 
-### 6. Phân rã thành phần PM
+## 6. Phân rã thành phần PM
 
-#### 6.1 Controller: `BookingController`
+### 6.1 Controller: `BookingController`
 
 - **Nhiệm vụ**: Nhận HTTP request hủy đặt vé, lấy `requestingUserId` từ
   `Authentication`, ủy thác cho `CancelBookingUseCase`.
@@ -234,7 +234,7 @@ SSEEvent *-- SeatChange
     - `BookingError.InvalidStatusTransition` → `409` +
       `BOOKING_ALREADY_CANCELLED`
 
-#### 6.2 UseCase: `CancelBookingUseCase`
+### 6.2 UseCase: `CancelBookingUseCase`
 
 - **Nhiệm vụ**: Orchestrate luồng hủy đặt vé đồng bộ, bao gồm giải phóng ghế và
   phát sinh sự kiện.
@@ -264,7 +264,7 @@ SSEEvent *-- SeatChange
     - `SeatStatusChangedEvent(scheduledTripId, changes, occurredAt)` — SSE push
       cho real-time seat map update
 
-#### 6.3 Repository
+### 6.3 Repository
 
 **BookingRepository:**
 
@@ -274,7 +274,7 @@ SSEEvent *-- SeatChange
     - `save(Booking): Booking` — lưu booking đã hủy
 - **Table**: `bookings`
 
-#### 6.4 Port: `RouteSeatAvailabilityManager`
+### 6.4 Port: `RouteSeatAvailabilityManager`
 
 - **Nhiệm vụ**: Cross-module port cho phép booking module thao tác trạng thái
   ghế trên scheduled trip.
@@ -289,11 +289,11 @@ SSEEvent *-- SeatChange
       — lấy trạng thái ghế sau cập nhật (cho SSE event)
 - **Implementation**: `RouteSeatAvailabilityManagerAdapter` (train BC)
 
-#### 6.5 Lược đồ tuần tự nội bộ PM
+### 6.5 Lược đồ tuần tự nội bộ PM
 
 ```plantuml
-@startuml UC-11-internal
-title UC-11: Hủy đặt vé - Internal Sequence
+@startuml UC-10-internal
+title UC-10: Hủy đặt vé - Internal Sequence
 
 actor "Khách hàng" as Actor
 participant "BookingController" as CTL
@@ -363,9 +363,9 @@ end
 @enduml
 ```
 
-#### 6.6 Giao diện
+### 6.6 Giao diện
 
-##### 6.6.1 Giao diện mẫu
+#### 6.6.1 Giao diện mẫu
 
 ```plantuml
 @startsalt
@@ -391,22 +391,22 @@ end
 @endsalt
 ```
 
-##### 6.6.2 Giao diện ứng dụng
+#### 6.6.2 Giao diện ứng dụng
 
 Chưa hiện thực. Sẽ bổ sung ảnh chụp màn hình khi hoàn thành.
 
-### 7. Bảng tham chiếu dò vết
+## 7. Bảng tham chiếu dò vết
 
 | Use Case | Controller        | Endpoint                            | UseCase              | Repository / Port                                              | Table                  |
 | -------- | ----------------- | ----------------------------------- | -------------------- | -------------------------------------------------------------- | ---------------------- |
-| UC-11    | BookingController | `POST /api/v1/bookings/{id}/cancel` | CancelBookingUseCase | BookingRepository.findById()                                   | bookings               |
+| UC-10    | BookingController | `POST /api/v1/bookings/{id}/cancel` | CancelBookingUseCase | BookingRepository.findById()                                   | bookings               |
 |          |                   |                                     |                      | BookingRepository.save()                                       | bookings               |
 |          |                   |                                     |                      | RouteSeatAvailabilityManager.findSeatIdsByBookingId()          | trip_seat_availability |
 |          |                   |                                     |                      | RouteSeatAvailabilityManager.releaseHeldSeats()                | trip_seat_availability |
 |          |                   |                                     |                      | RouteSeatAvailabilityManager.cancelBookedSeats()               | trip_seat_availability |
 |          |                   |                                     |                      | RouteSeatAvailabilityManager.findByScheduledTripIdAndSeatIds() | trip_seat_availability |
 
-### 8. Tiêu chí kiểm thử
+## 8. Tiêu chí kiểm thử
 
 | Tiêu chí                      | Phép thử                                                                   | Kết quả mong đợi                                                                                       | Ghi chú                                                   |
 | ----------------------------- | -------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ | --------------------------------------------------------- |
