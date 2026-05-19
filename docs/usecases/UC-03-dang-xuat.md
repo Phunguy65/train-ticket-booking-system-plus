@@ -1,6 +1,6 @@
 # UC-03: Đăng xuất
 
-## 1. Mô tả use case
+# Mô tả use case
 
 | Mục                         | Nội dung                                                                                                                                                                                                                                                                                                                                                                                                                                             |
 | --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -15,7 +15,7 @@
 | Hậu điều kiện (thất bại)    | Khi dữ liệu đầu vào không hợp lệ, hệ thống không thực hiện thu hồi token nào. |
 | Luồng ngoại lệ              | Refresh token không tồn tại hoặc đã bị thu hồi trước đó → Hệ thống vẫn trả về thành công (idempotent, không để lộ thông tin token). <br> Dữ liệu đầu vào không hợp lệ, thiếu trường `refreshToken` → Hệ thống trả về lỗi `VALIDATION_ERROR`. <br> Hợp đồng API tại controller hiện công bố thêm khả năng trả về `401` khi refresh token không hợp lệ hoặc hết hạn. |
 
-## 2. Lược đồ Use Case
+# Lược đồ Use Case
 
 ```plantuml
 @startuml UC-03-usecase
@@ -33,7 +33,7 @@ Customer --> UC03
 @enduml
 ```
 
-## 3. Lược đồ tuần tự
+# Lược đồ tuần tự
 
 ```plantuml
 @startuml UC-03
@@ -52,7 +52,7 @@ end
 @enduml
 ```
 
-## 4. Lược đồ hoạt động
+# Lược đồ hoạt động
 
 ```plantuml
 @startuml UC-03-activity
@@ -82,7 +82,7 @@ stop
 @enduml
 ```
 
-## 5. Lược đồ trạng thái
+# Lược đồ trạng thái
 
 ```plantuml
 @startuml UC-03-state
@@ -94,7 +94,7 @@ DaThuHoi --> [*]
 @enduml
 ```
 
-## 6. Lược đồ lớp ý niệm
+# Lược đồ lớp ý niệm
 
 ```plantuml
 @startuml UC-03-class
@@ -120,9 +120,9 @@ LogoutUserCommand ..> RefreshTokenData : tra cứu và thu hồi
 @enduml
 ```
 
-## 7. Phân rã thành phần PM
+# Phân rã thành phần PM
 
-### 7.1 Controller: `AuthController`
+## Controller: `AuthController`
 
 - **Nhiệm vụ**: Nhận payload đăng xuất, kiểm tra dữ liệu đầu vào và chuyển yêu
   cầu thu hồi token sang lớp nghiệp vụ.
@@ -131,7 +131,7 @@ LogoutUserCommand ..> RefreshTokenData : tra cứu và thu hồi
 - **Output thành công**: `200 OK` + `JsendResponse.success()`
 - **Output lỗi**: `400/401` + `JsendResponse` — `{ errorCode, message }`
 
-### 7.2 UseCase: `LogoutUserUseCase`
+## UseCase: `LogoutUserUseCase`
 
 - **Nhiệm vụ**: Băm refresh token nhận được, tìm token đang hoạt động tương ứng
   và thu hồi token nếu tồn tại theo cách idempotent.
@@ -145,7 +145,7 @@ LogoutUserCommand ..> RefreshTokenData : tra cứu và thu hồi
     - `RefreshTokenRepository.revokeById(tokenId)` — thu hồi token khi tìm thấy
 - **Phát sinh sự kiện**: Không
 
-### 7.3 Repository: `RefreshTokenRepository`
+## Repository: `RefreshTokenRepository`
 
 - **Nhiệm vụ**: Truy xuất và cập nhật bản ghi refresh token trong hạ tầng lưu
   trữ.
@@ -155,28 +155,28 @@ LogoutUserCommand ..> RefreshTokenData : tra cứu và thu hồi
     - `revokeById(tokenId): void` — cập nhật `revoked_at` để thu hồi token
 - **Table**: `refresh_tokens`
 
-### 7.4 Thiết kế cơ sở dữ liệu
+## Thiết kế cơ sở dữ liệu
 
-#### 7.4.1 ERD
+### ERD
 
 - **Tham chiếu ERD**: Bảng `refresh_tokens` trong schema chung của hệ thống
 - **Bảng/View liên quan**: `refresh_tokens`
 
-#### 7.4.2 Stored Procedure
+### Stored Procedure
 
 Không sử dụng Stored Procedure cho UC này.
 
-#### 7.4.3 Trigger
+### Trigger
 
 Không sử dụng Trigger cho UC này.
 
-### 7.5 Port: `RefreshTokenManager`
+## Port: `RefreshTokenManager`
 
 - **Nhiệm vụ**: Băm refresh token thô để tra cứu an toàn trong cơ sở dữ liệu.
 - **Phương thức liên quan đến UC**:
     - `hashToken(token): String` — trả về chuỗi hash hex-encoded SHA-256
 
-### 7.6 Lược đồ tuần tự nội bộ PM
+## Lược đồ tuần tự nội bộ PM
 
 ```plantuml
 @startuml UC-03-internal
@@ -209,9 +209,9 @@ CTL --> Actor: 200 + JsendResponse.success()
 @enduml
 ```
 
-### 7.7 Giao diện
+## Giao diện
 
-#### 7.7.1 Giao diện mẫu
+### Giao diện mẫu
 
 ```plantuml
 @startsalt
@@ -233,19 +233,19 @@ CTL --> Actor: 200 + JsendResponse.success()
 | `useLogout()` hook       | Lấy refreshToken từ store, gọi API logout, xóa token local, redirect | `refreshToken` (từ token store) | Redirect `/login`              | `POST /api/v1/auth/logout`    |
 | `[Đăng xuất]` MenuItem  | Kích hoạt luồng đăng xuất khi người dùng nhấn               | Không (trigger từ click)        | Gọi `useLogout().mutate()`     | Gián tiếp qua `useLogout()`  |
 
-#### 7.7.2 Giao diện ứng dụng
+### Giao diện ứng dụng
 
 Chưa hiện thực. Sẽ bổ sung ảnh chụp màn hình khi hoàn thành.
 
-## 8. Bảng tham chiếu dò vết
+# Bảng tham chiếu dò vết
 
 | Use Case | Controller     | Endpoint                   | UseCase           | Repository                                                       | SP    | Table            |
 | -------- | -------------- | -------------------------- | ----------------- | ---------------------------------------------------------------- | ----- | ---------------- |
 | UC-03    | AuthController | `POST /api/v1/auth/logout` | LogoutUserUseCase | `RefreshTokenRepository.findActiveByTokenHash()`, `revokeById()` | Không | `refresh_tokens` |
 
-## 9. Tiêu chí kiểm thử
+# Tiêu chí kiểm thử
 
-### 9.1 Mức phân tích
+## Mức phân tích
 
 | Tiêu chí             | Phép thử                                                                   | Kết quả mong đợi                          | Ghi chú                              |
 | -------------------- | -------------------------------------------------------------------------- | ----------------------------------------- | ------------------------------------ |
@@ -253,7 +253,7 @@ Chưa hiện thực. Sẽ bổ sung ảnh chụp màn hình khi hoàn thành.
 | Nhất quán            | Rà soát tên lớp, trạng thái, API giữa các lược đồ trong cùng UC            | Không mâu thuẫn giữa các mục 2–7          | Đặc biệt kiểm tra tên trong mục 6–7  |
 | Truy vết             | Đối chiếu bảng tham chiếu (mục 8) với lược đồ tuần tự nội bộ (mục 7.6)     | Mọi tương tác trong sequence đều có entry | Kiểm tra không thiếu endpoint/method |
 
-### 9.2 Mức thiết kế
+## Mức thiết kế
 
 | Tiêu chí      | Phép thử                                                                                         | Kết quả mong đợi                                       | Ghi chú                                |
 | ------------- | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------ | -------------------------------------- |
@@ -261,7 +261,7 @@ Chưa hiện thực. Sẽ bổ sung ảnh chụp màn hình khi hoàn thành.
 | Testability   | Rà soát khả năng mock RefreshTokenManager, RefreshTokenRepository trong unit test                 | Có thể kiểm thử UseCase độc lập không cần DB thật       | Tất cả dependency là port/interface    |
 | Modularity    | Rà soát ranh giới trách nhiệm: Controller chỉ validate + route, UseCase chỉ orchestrate, Repository chỉ persistence | Không trùng lặp trách nhiệm, coupling thấp             | Kiểm tra không có logic nghiệp vụ trong Controller |
 
-### 9.3 Mức hiện thực
+## Mức hiện thực
 
 | Tiêu chí          | Phép thử                                                                                  | Kết quả mong đợi                                                    | Ghi chú                                    |
 | ----------------- | ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------- | ------------------------------------------ |
@@ -269,7 +269,7 @@ Chưa hiện thực. Sẽ bổ sung ảnh chụp màn hình khi hoàn thành.
 | Hiệu năng         | Benchmark endpoint POST /api/v1/auth/logout với 100 concurrent requests                    | Response time p95 < 200ms (logic đơn giản, 1 SELECT + 1 UPDATE)      | Ghi rõ môi trường test                     |
 | Bảo mật           | Kiểm tra không để lộ token tồn tại hay không qua response; kiểm tra token hash lookup thay vì raw comparison | Response body identical cho token hợp lệ, không tồn tại, và đã revoked | Chống token enumeration |
 
-### 9.4 Bảng tiêu chí chất lượng theo chức năng
+## Bảng tiêu chí chất lượng theo chức năng
 
 | Chức năng trong UC          | Tiêu chí mức Ý niệm                                                        | Tiêu chí mức Thiết kế                                                          | Tiêu chí mức Hiện thực                                                              |
 | --------------------------- | -------------------------------------------------------------------------- | ------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------- |
@@ -277,7 +277,7 @@ Chưa hiện thực. Sẽ bổ sung ảnh chụp màn hình khi hoàn thành.
 | Idempotent behavior         | Gọi nhiều lần với cùng token không gây lỗi, không để lộ trạng thái token    | UseCase luôn trả Result.success() bất kể token có tồn tại hay không             | Test gọi logout 2 lần liên tiếp cùng token → cả 2 đều 200 OK                        |
 | Chống token enumeration     | Không cho phép phân biệt token hợp lệ vs không hợp lệ từ response           | Response body và status code giống nhau cho mọi trường hợp (trừ validation)     | Test response body identical cho active token, unknown token, revoked token           |
 
-## 10. Yêu cầu phi chức năng
+# Yêu cầu phi chức năng
 
 | Loại yêu cầu  | Nội dung                                                                                          | Nguồn gốc                                          |
 | -------------- | ------------------------------------------------------------------------------------------------- | -------------------------------------------------- |

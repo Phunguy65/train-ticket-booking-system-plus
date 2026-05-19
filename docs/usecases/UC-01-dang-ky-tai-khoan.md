@@ -1,6 +1,6 @@
 # UC-01: Đăng ký tài khoản
 
-## 1. Mô tả use case
+# Mô tả use case
 
 | Mục                         | Nội dung                                                                                                                                                                                                                                                                                                                                                                                                                                             |
 | --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -15,7 +15,7 @@
 | Hậu điều kiện (thất bại)    | Không có tài khoản nào được tạo. Dữ liệu trong hệ thống không thay đổi. |
 | Luồng ngoại lệ              | Email đã tồn tại → Hệ thống từ chối đăng ký và trả về lỗi `USER_EMAIL_ALREADY_EXISTS`. <br> Dữ liệu đầu vào không hợp lệ, thiếu trường bắt buộc, email sai định dạng hoặc mật khẩu ngắn hơn 8 ký tự → Hệ thống trả về lỗi `VALIDATION_ERROR`. |
 
-## 2. Lược đồ Use Case
+# Lược đồ Use Case
 
 ```plantuml
 @startuml UC-01-usecase
@@ -33,7 +33,7 @@ Customer --> UC01
 @enduml
 ```
 
-## 3. Lược đồ tuần tự
+# Lược đồ tuần tự
 
 ```plantuml
 @startuml UC-01
@@ -55,7 +55,7 @@ end
 @enduml
 ```
 
-## 4. Lược đồ hoạt động
+# Lược đồ hoạt động
 
 ```plantuml
 @startuml UC-01-activity
@@ -87,7 +87,7 @@ stop
 @enduml
 ```
 
-## 5. Lược đồ trạng thái
+# Lược đồ trạng thái
 
 ```plantuml
 @startuml UC-01-state
@@ -99,7 +99,7 @@ TaiKhoanHoatDong --> [*]
 @enduml
 ```
 
-## 6. Lược đồ lớp ý niệm
+# Lược đồ lớp ý niệm
 
 ```plantuml
 @startuml UC-01-class
@@ -154,9 +154,9 @@ User ..> UserResponse : trả kết quả
 @enduml
 ```
 
-## 7. Phân rã thành phần PM
+# Phân rã thành phần PM
 
-### 7.1 Controller: `AuthController`
+## Controller: `AuthController`
 
 - **Nhiệm vụ**: Nhận yêu cầu đăng ký từ khách hàng, kiểm tra tính hợp lệ của
   payload và ủy thác cho lớp xử lý nghiệp vụ.
@@ -167,7 +167,7 @@ User ..> UserResponse : trả kết quả
   `{ id, email, fullName, phone, dateOfBirth, gender, idDocumentNumber, addressLine, role, createdAt }`
 - **Output lỗi**: `400/409` + `JsendResponse` — `{ errorCode, message }`
 
-### 7.2 UseCase: `RegisterUserUseCase`
+## UseCase: `RegisterUserUseCase`
 
 - **Nhiệm vụ**: Kiểm tra email trùng lặp, băm mật khẩu, tạo `User` mới và phát
   sự kiện miền sau khi lưu thành công.
@@ -180,7 +180,7 @@ User ..> UserResponse : trả kết quả
     - `UserRepository.save(user)` — lưu tài khoản mới
 - **Phát sinh sự kiện**: `UserRegistered(userId, email, occurredAt)`
 
-### 7.3 Repository: `UserRepository`
+## Repository: `UserRepository`
 
 - **Nhiệm vụ**: Truy xuất và lưu trữ domain entity `User`.
 - **Phương thức liên quan đến UC**:
@@ -189,28 +189,28 @@ User ..> UserResponse : trả kết quả
     - `save(user): User` — lưu tài khoản khách hàng mới
 - **Table**: `users`
 
-### 7.4 Thiết kế cơ sở dữ liệu
+## Thiết kế cơ sở dữ liệu
 
-#### 7.4.1 ERD
+### ERD
 
 - **Tham chiếu ERD**: Bảng `users` trong schema chung của hệ thống
 - **Bảng/View liên quan**: `users`
 
-#### 7.4.2 Stored Procedure
+### Stored Procedure
 
 Không sử dụng Stored Procedure cho UC này.
 
-#### 7.4.3 Trigger
+### Trigger
 
 Không sử dụng Trigger cho UC này.
 
-### 7.5 Port: `PasswordEncoder`
+## Port: `PasswordEncoder`
 
 - **Nhiệm vụ**: Băm mật khẩu thô trước khi lưu vào cơ sở dữ liệu.
 - **Phương thức liên quan đến UC**:
     - `encode(password): String` — trả về chuỗi băm của mật khẩu
 
-### 7.6 Lược đồ tuần tự nội bộ PM
+## Lược đồ tuần tự nội bộ PM
 
 ```plantuml
 @startuml UC-01-internal
@@ -248,9 +248,9 @@ CTL --> Actor: 201 + JsendResponse(UserResponse)
 @enduml
 ```
 
-### 7.7 Giao diện
+## Giao diện
 
-#### 7.7.1 Giao diện mẫu
+### Giao diện mẫu
 
 ```plantuml
 @startsalt
@@ -272,19 +272,19 @@ CTL --> Actor: 201 + JsendResponse(UserResponse)
 | `RegisterForm`       | Thu thập thông tin đăng ký và validate phía client | `fullName`, `email`, `password`, `confirmPassword` | `UserResponse` hoặc `Error`   | `POST /api/v1/auth/register`     |
 | `[Đăng ký]` Button  | Gửi form đăng ký đến hệ thống                     | `RegisterRequest(email, password, fullName)`   | `201 + UserResponse` hoặc lỗi  | `POST /api/v1/auth/register`     |
 
-#### 7.7.2 Giao diện ứng dụng
+### Giao diện ứng dụng
 
 Chưa hiện thực. Sẽ bổ sung ảnh chụp màn hình khi hoàn thành.
 
-## 8. Bảng tham chiếu dò vết
+# Bảng tham chiếu dò vết
 
 | Use Case | Controller     | Endpoint                     | UseCase             | Repository                               | SP   | Table   |
 | -------- | -------------- | ---------------------------- | ------------------- | ---------------------------------------- | ---- | ------- |
 | UC-01    | AuthController | `POST /api/v1/auth/register` | RegisterUserUseCase | `UserRepository.findByEmail()`, `save()` | Không | `users` |
 
-## 9. Tiêu chí kiểm thử
+# Tiêu chí kiểm thử
 
-### 9.1 Mức phân tích
+## Mức phân tích
 
 | Tiêu chí             | Phép thử                                                                   | Kết quả mong đợi                          | Ghi chú                              |
 | -------------------- | -------------------------------------------------------------------------- | ----------------------------------------- | ------------------------------------ |
@@ -292,7 +292,7 @@ Chưa hiện thực. Sẽ bổ sung ảnh chụp màn hình khi hoàn thành.
 | Nhất quán            | Rà soát tên lớp, trạng thái, API giữa các lược đồ trong cùng UC            | Không mâu thuẫn giữa các mục 2–7          | Đặc biệt kiểm tra tên trong mục 6–7  |
 | Truy vết             | Đối chiếu bảng tham chiếu (mục 8) với lược đồ tuần tự nội bộ (mục 7.6)     | Mọi tương tác trong sequence đều có entry | Kiểm tra không thiếu endpoint/method |
 
-### 9.2 Mức thiết kế
+## Mức thiết kế
 
 | Tiêu chí      | Phép thử                                                                          | Kết quả mong đợi                                       | Ghi chú                                |
 | ------------- | --------------------------------------------------------------------------------- | ------------------------------------------------------ | -------------------------------------- |
@@ -300,7 +300,7 @@ Chưa hiện thực. Sẽ bổ sung ảnh chụp màn hình khi hoàn thành.
 | Testability   | Rà soát khả năng mock PasswordEncoder, UserRepository trong unit test              | Có thể kiểm thử UseCase độc lập không cần DB thật       | PasswordEncoder và Repository là port  |
 | Modularity    | Rà soát ranh giới trách nhiệm: Controller chỉ validate + route, UseCase chỉ orchestrate, Repository chỉ persistence | Không trùng lặp trách nhiệm, coupling thấp             | Kiểm tra không có logic nghiệp vụ trong Controller |
 
-### 9.3 Mức hiện thực
+## Mức hiện thực
 
 | Tiêu chí          | Phép thử                                                                                  | Kết quả mong đợi                                                    | Ghi chú                                    |
 | ----------------- | ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------- | ------------------------------------------ |
@@ -308,7 +308,7 @@ Chưa hiện thực. Sẽ bổ sung ảnh chụp màn hình khi hoàn thành.
 | Hiệu năng         | Benchmark endpoint POST /api/v1/auth/register với 100 concurrent requests                  | Response time p95 < 500ms trong điều kiện tải bình thường            | Ghi rõ môi trường test                     |
 | Bảo mật           | Kiểm tra password không trả về trong response, password được hash BCrypt, input validation | Không lộ password, hash không reversible, reject input không hợp lệ  | Kiểm tra cả race condition email duplicate |
 
-### 9.4 Bảng tiêu chí chất lượng theo chức năng
+## Bảng tiêu chí chất lượng theo chức năng
 
 | Chức năng trong UC       | Tiêu chí mức Ý niệm                                                  | Tiêu chí mức Thiết kế                                                          | Tiêu chí mức Hiện thực                                                              |
 | ------------------------ | -------------------------------------------------------------------- | ------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------- |
@@ -316,7 +316,7 @@ Chưa hiện thực. Sẽ bổ sung ảnh chụp màn hình khi hoàn thành.
 | Kiểm tra email trùng lặp | Không cho phép 2 tài khoản hoạt động cùng email                       | UseCase kiểm tra qua Repository + DB constraint đảm bảo race condition safe     | Test concurrent register cùng email, verify chỉ 1 thành công                         |
 | Băm mật khẩu             | Mật khẩu không lưu dạng plaintext                                     | PasswordEncoder port tách biệt, dễ thay đổi thuật toán                          | Verify hash output khác plaintext, verify không thể decode ngược                     |
 
-## 10. Yêu cầu phi chức năng
+# Yêu cầu phi chức năng
 
 | Loại yêu cầu  | Nội dung                                                                                          | Nguồn gốc                                          |
 | -------------- | ------------------------------------------------------------------------------------------------- | -------------------------------------------------- |

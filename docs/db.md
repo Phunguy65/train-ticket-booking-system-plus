@@ -1,6 +1,6 @@
 # Lược đồ cơ sở dữ liệu — Hệ thống đặt vé tàu
 
-## 1. Tổng quan
+## Tổng quan
 
 Hệ thống đặt vé tàu hỏa trực tuyến sử dụng **PostgreSQL** làm cơ sở dữ liệu quan
 hệ. Thiết kế cơ sở dữ liệu tuân theo kiến trúc **Domain-Driven Design (DDD)**
@@ -19,22 +19,22 @@ với các bounded context tách biệt: User, Station, Train, Booking và Payme
 
 ### Quy ước chung
 
--  **Soft delete**: Các bảng chính sử dụng cột `deleted_at TIMESTAMPTZ`. Bản ghi
+- **Soft delete**: Các bảng chính sử dụng cột `deleted_at TIMESTAMPTZ`. Bản ghi
   đang hoạt động có `deleted_at IS NULL`.
--  **Unique constraints**: Sử dụng partial unique index với điều kiện
+- **Unique constraints**: Sử dụng partial unique index với điều kiện
   `WHERE deleted_at IS NULL` để cho phép tái sử dụng giá trị đã xóa.
--  **Audit timestamps**: `created_at` (bắt buộc, không cập nhật), `updated_at`
+- **Audit timestamps**: `created_at` (bắt buộc, không cập nhật), `updated_at`
   (nếu có, tự động cập nhật).
--  **Naming**: Tên bảng số nhiều tiếng Anh (`users`, `trains`), tên cột
+- **Naming**: Tên bảng số nhiều tiếng Anh (`users`, `trains`), tên cột
   `snake_case`.
--  **Source of truth**: Tài liệu này dựa trên **JPA entities** (code là truth)
-   và **Flyway baseline migration** (`B3_0_0__baseline.sql`).
+- **Source of truth**: Tài liệu này dựa trên **JPA entities** (code là truth) và
+  **Flyway baseline migration** (`B3_0_0__baseline.sql`).
 
 ---
 
-## 2. ERD / Lược đồ thực thể
+## ERD / Lược đồ thực thể
 
-### 2.1 Sơ đồ thực thể — Class Entity Diagram
+### Sơ đồ thực thể — Class Entity Diagram
 
 ```plantuml
 @startuml
@@ -211,7 +211,7 @@ bookings ||--o{ payments : "thanh toán"
 
 ---
 
-### 2.2 Sơ đồ quan hệ — Chen Notation ER Diagram
+### Sơ đồ quan hệ — Chen Notation ER Diagram
 
 Sơ đồ Chen dưới đây là góc nhìn ý niệm: chỉ giữ các thuộc tính nghiệp vụ cốt
 lõi, lược bỏ kiểu dữ liệu và các cột khóa ngoại đã được thể hiện bằng quan hệ.
@@ -384,9 +384,9 @@ HAS_PAYMENT -N- PAYMENTS
 
 ---
 
-## 3. Bảng chi tiết (3NF)
+## Bảng chi tiết (3NF)
 
-### 3.1 User Module
+### User Module
 
 #### `users`
 
@@ -441,7 +441,7 @@ Token làm mới phiên đăng nhập. Hỗ trợ thu hồi (revoke) bằng cộ
 
 ---
 
-### 3.2 Station Module
+### Station Module
 
 #### `stations`
 
@@ -465,7 +465,7 @@ Ga tàu hỏa. Hỗ trợ soft delete.
 
 ---
 
-### 3.3 Train Module
+### Train Module
 
 #### `trains`
 
@@ -587,7 +587,7 @@ Mỗi bản ghi là một chuyến khởi hành cụ thể với thời gian và
 
 ---
 
-### 3.4 Booking Module
+### Booking Module
 
 #### `bookings`
 
@@ -623,19 +623,19 @@ Mỗi bản ghi là một chuyến khởi hành cụ thể với thời gian và
 ]
 ```
 
-| Cột                    | Kiểu dữ liệu   | Cho phép `NULL` | Mặc định            | Mô tả                                             |
-| ---------------------- | -------------- | --------------- | ------------------- | ------------------------------------------------- |
-| `id`                   | `UUID`         | NOT NULL        | `uuidv7()`          | Khóa chính                                        |
-| `user_id`              | `UUID`         | NOT NULL        | —                   | Người đặt vé                                      |
-| `scheduled_trip_id`    | `UUID`         | NOT NULL        | —                   | Chuyến tàu được đặt                               |
-| `user_info_snapshot`   | `JSONB`        | NOT NULL        | —                   | Bản chụp thông tin người đặt (xem cấu trúc trên)  |
-| `passengers_snapshot`  | `JSONB`        | NULL            | —                   | Bản chụp danh sách hành khách; `NULL` cho booking cũ |
-| `total_price`          | `BIGINT`       | NOT NULL        | —                   | Tổng giá (đơn vị nhỏ nhất)                        |
-| `currency`             | `VARCHAR(10)`  | NOT NULL        | `'VND'`             | Mã tiền tệ                                        |
-| `status`               | `VARCHAR(20)`  | NOT NULL        | —                   | Trạng thái đặt vé                                 |
-| `idempotency_key`      | `VARCHAR(255)` | NULL            | —                   | Khóa idempotency (duy nhất, chống đặt trùng)      |
-| `payment_deadline`     | `TIMESTAMPTZ`  | NULL            | —                   | Hạn thanh toán (UTC)                              |
-| `created_at`           | `TIMESTAMPTZ`  | NOT NULL        | `CURRENT_TIMESTAMP` | Thời điểm tạo (UTC)                               |
+| Cột                   | Kiểu dữ liệu   | Cho phép `NULL` | Mặc định            | Mô tả                                                |
+| --------------------- | -------------- | --------------- | ------------------- | ---------------------------------------------------- |
+| `id`                  | `UUID`         | NOT NULL        | `uuidv7()`          | Khóa chính                                           |
+| `user_id`             | `UUID`         | NOT NULL        | —                   | Người đặt vé                                         |
+| `scheduled_trip_id`   | `UUID`         | NOT NULL        | —                   | Chuyến tàu được đặt                                  |
+| `user_info_snapshot`  | `JSONB`        | NOT NULL        | —                   | Bản chụp thông tin người đặt (xem cấu trúc trên)     |
+| `passengers_snapshot` | `JSONB`        | NULL            | —                   | Bản chụp danh sách hành khách; `NULL` cho booking cũ |
+| `total_price`         | `BIGINT`       | NOT NULL        | —                   | Tổng giá (đơn vị nhỏ nhất)                           |
+| `currency`            | `VARCHAR(10)`  | NOT NULL        | `'VND'`             | Mã tiền tệ                                           |
+| `status`              | `VARCHAR(20)`  | NOT NULL        | —                   | Trạng thái đặt vé                                    |
+| `idempotency_key`     | `VARCHAR(255)` | NULL            | —                   | Khóa idempotency (duy nhất, chống đặt trùng)         |
+| `payment_deadline`    | `TIMESTAMPTZ`  | NULL            | —                   | Hạn thanh toán (UTC)                                 |
+| `created_at`          | `TIMESTAMPTZ`  | NOT NULL        | `CURRENT_TIMESTAMP` | Thời điểm tạo (UTC)                                  |
 
 **Ràng buộc:**
 
@@ -677,7 +677,7 @@ Tình trạng ghế theo chuyến tàu — bảng liên kết giữa `scheduled_
 
 ---
 
-### 3.5 Payment Module
+### Payment Module
 
 #### `payments`
 
@@ -702,31 +702,31 @@ Bản ghi thanh toán qua Stripe Checkout Session. Mỗi thanh toán gắn với
 
 **Ràng buộc:**
 
-| Tên                                      | Loại        | Mô tả                                                              |
-| ---------------------------------------- | ----------- | ------------------------------------------------------------------ |
-| `pk_payments`                            | PRIMARY KEY | `id`                                                               |
-| `fk_payments_booking`                    | FOREIGN KEY | `booking_id` → `bookings(id)`                                      |
-| `fk_payments_user`                       | FOREIGN KEY | `user_id` → `users(id)`                                            |
-| `uq_payments_checkout_session_id`        | UNIQUE      | `checkout_session_id`                                              |
-| `uq_payments_stripe_event_id`            | UNIQUE      | `stripe_event_id`                                                  |
-| `uq_payments_stripe_payment_intent_id`   | UNIQUE      | `stripe_payment_intent_id`                                         |
-| `chk_payments_status`                    | CHECK       | `status IN ('PENDING', 'PAID', 'CANCELLED', 'FAILED', 'REFUNDED')` |
+| Tên                                    | Loại        | Mô tả                                                              |
+| -------------------------------------- | ----------- | ------------------------------------------------------------------ |
+| `pk_payments`                          | PRIMARY KEY | `id`                                                               |
+| `fk_payments_booking`                  | FOREIGN KEY | `booking_id` → `bookings(id)`                                      |
+| `fk_payments_user`                     | FOREIGN KEY | `user_id` → `users(id)`                                            |
+| `uq_payments_checkout_session_id`      | UNIQUE      | `checkout_session_id`                                              |
+| `uq_payments_stripe_event_id`          | UNIQUE      | `stripe_event_id`                                                  |
+| `uq_payments_stripe_payment_intent_id` | UNIQUE      | `stripe_payment_intent_id`                                         |
+| `chk_payments_status`                  | CHECK       | `status IN ('PENDING', 'PAID', 'CANCELLED', 'FAILED', 'REFUNDED')` |
 
 ---
 
-## 4. Stored Procedure
+## Stored Procedure
 
 Bổ sung sau.
 
 ---
 
-## 5. Trigger
+## Trigger
 
 Bổ sung sau.
 
 ---
 
-## 6. Giá trị enum / CHECK constraint
+## Giá trị enum / CHECK constraint
 
 ### `UserRole`
 
@@ -791,7 +791,3 @@ PAID → REFUNDED        (hoàn tiền)
 | `CANCELLED` | Đã hủy                   |
 | `FAILED`    | Thanh toán thất bại      |
 | `REFUNDED`  | Đã hoàn tiền             |
-
----
-
-## 7. Bảng tham chiếu

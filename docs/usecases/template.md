@@ -1,6 +1,6 @@
 # UC-XX: <Tên use case>
 
-## 1. Mô tả use case
+# Mô tả use case
 
 | Mục                         | Nội dung                                                                                                        |
 | --------------------------- | --------------------------------------------------------------------------------------------------------------- |
@@ -15,7 +15,7 @@
 | Hậu điều kiện (thất bại)    | <Trạng thái hệ thống khi use case thất bại — dữ liệu có rollback không, trạng thái entity nào bị ảnh hưởng,...> |
 | Luồng ngoại lệ              | <Ngoại lệ 1> → <Hành vi hệ thống> <br> <Ngoại lệ 2> → <Hành vi hệ thống>                                        |
 
-## 2. Lược đồ Use Case
+# Lược đồ Use Case
 
 <!-- Lược đồ use case thể hiện vị trí của UC này trong hệ thống:
      actor nghiệp vụ, actor liên quan, quan hệ actor-usecase,
@@ -51,7 +51,7 @@ ChildUC --> UCXX
 @enduml
 ```
 
-## 3. Lược đồ tuần tự
+# Lược đồ tuần tự
 
 <!-- Lược đồ cấp 1: Actor ↔ PM (hệ thống là hộp đen).
      Mọi thông điệp đi đến PM PHẢI có tham số dữ liệu để định nghĩa chức năng cho PM.
@@ -77,7 +77,7 @@ end
 @enduml
 ```
 
-## 4. Lược đồ hoạt động
+# Lược đồ hoạt động
 
 <!-- Dùng để đối chiếu với lược đồ tuần tự (mục 3), kiểm tra độ phủ kịch bản
      và xác định thêm luồng ngoại lệ nếu thiếu. -->
@@ -118,7 +118,7 @@ stop
 
 <!-- Chỉ giữ mục này khi use case có thay đổi trạng thái -->
 
-## 5. Lược đồ trạng thái
+# Lược đồ trạng thái
 
 <!-- Ràng buộc chuyển trạng thái sẽ thành CHECK constraint trong DB
      và business rule trong lớp UseCase. -->
@@ -133,7 +133,7 @@ StateB --> [*]
 @enduml
 ```
 
-## 6. Lược đồ lớp ý niệm
+# Lược đồ lớp ý niệm
 
 <!-- Các domain entity, value object, DTO tham gia vào use case.
      Thuộc tính và phương thức ở mức ý niệm (conceptual), lấy từ thực tế.
@@ -182,14 +182,14 @@ Entity ..> ResDTO : <trả kết quả>
 @enduml
 ```
 
-## 7. Phân rã thành phần PM
+# Phân rã thành phần PM
 
 <!-- Xem PM là một hệ thống. Phân rã các thành phần xử lý UC này
      theo kiến trúc Clean Architecture + DDD:
      Controller (lớp biên) → UseCase (lớp xử lý) → Repository (lớp thực thể) → DB
      Mô tả nhiệm vụ, API, inputs/outputs cho từng thành phần. -->
 
-### 7.1 Controller: `<ControllerName>`
+## Controller: `<ControllerName>`
 
 - **Nhiệm vụ**: Nhận HTTP request từ actor, xác thực đầu vào, ủy thác cho
   UseCase.
@@ -199,7 +199,7 @@ Entity ..> ResDTO : <trả kết quả>
   `{ field1: Type, ... }`
 - **Output lỗi**: `<HTTP status>` + `JsendResponse` — `{ errorCode, message }`
 
-### 7.2 UseCase: `<UseCaseName>`
+## UseCase: `<UseCaseName>`
 
 - **Nhiệm vụ**: Orchestrate nghiệp vụ cho UC này.
 - **Input**: `<Command/Query>` — `{ field1: Type, ... }`
@@ -209,7 +209,7 @@ Entity ..> ResDTO : <trả kết quả>
     - `<Port>.method()` — <mục đích> (nếu có actor hỗ trợ bên ngoài)
 - **Phát sinh sự kiện**: `<DomainEvent>` (nếu có)
 
-### 7.3 Repository: `<RepositoryName>`
+## Repository: `<RepositoryName>`
 
 - **Nhiệm vụ**: Truy xuất/lưu trữ domain entity `<Entity>`.
 - **Phương thức liên quan đến UC**:
@@ -218,14 +218,14 @@ Entity ..> ResDTO : <trả kết quả>
 - **Table**: `<table_name>`
 - **Stored Procedure sử dụng**: `<stored_procedure_name>`
 
-### 7.4 Thiết kế cơ sở dữ liệu
+## Thiết kế cơ sở dữ liệu
 
-#### 7.4.1 ERD
+### ERD
 
 - **Tham chiếu ERD**: `<Đường dẫn hoặc tên lược đồ ERD liên quan đến UC>`
 - **Bảng/View liên quan**: `<table_or_view_1>`, `<table_or_view_2>`
 
-#### 7.4.2 Stored Procedure: `<StoredProcedureName>`
+### Stored Procedure: `<StoredProcedureName>`
 
 | Mục             | Nội dung                                                   |
 | --------------- | ---------------------------------------------------------- |
@@ -235,7 +235,7 @@ Entity ..> ResDTO : <trả kết quả>
 | Outputs         | `<Dataset/Status/GeneratedId>`                             |
 | Quyền sử dụng   | `<Role được phép gọi SP 1>`, `<Role được phép gọi SP 2>`   |
 
-#### 7.4.3 Trigger: `<TriggerName>`
+### Trigger: `<TriggerName>`
 
 | Mục       | Nội dung                                          |
 | --------- | ------------------------------------------------- |
@@ -244,14 +244,14 @@ Entity ..> ResDTO : <trả kết quả>
 | Event     | `<BEFORE/AFTER INSERT/UPDATE/DELETE ON table>`    |
 | Action    | <Hành động được thực hiện khi trigger kích hoạt>  |
 
-### 7.5 Port: `<PortName>` _(nếu có)_
+## Port: `<PortName>` _(nếu có)_
 
 - **Nhiệm vụ**: Giao tiếp với actor hỗ trợ bên ngoài (vd: Stripe, Email
   Service,...).
 - **Phương thức liên quan đến UC**:
     - `methodName(params): ReturnType` — <mục đích>
 
-### 7.6 Lược đồ tuần tự nội bộ PM
+## Lược đồ tuần tự nội bộ PM
 
 <!-- Lược đồ cấp 2: phân rã tương tác nội bộ hệ thống.
      Diễn tả cách các thành phần PM phối hợp xử lý UC. -->
@@ -287,9 +287,9 @@ CTL --> Actor: <HTTP status> + <ResponseDTO>
 @enduml
 ```
 
-### 7.7 Giao diện
+## Giao diện
 
-#### 7.7.1 Giao diện mẫu
+### Giao diện mẫu
 
 <!-- Wireframe mô tả giao diện mặc định của UC sử dụng PlantUML Salt.
      Chỉ thể hiện trạng thái form mặc định (default state).
@@ -314,14 +314,14 @@ CTL --> Actor: <HTTP status> + <ResponseDTO>
 | `<FormControl>`  | <Nhiệm vụ của control trong form>     | `<field1>`, `<field2>`         | `<data/form/status>`            | `<METHOD> /v1/<path>`      |
 | `<Button>`       | <Hành động khi actor kích hoạt>       | `<RequestDTO>`                 | `<ResponseDTO>` hoặc `<Error>`  | `<ApiName>`                |
 
-#### 7.7.2 Giao diện ứng dụng
+### Giao diện ứng dụng
 
 <!-- Ảnh chụp màn hình giao diện thực tế sau khi hiện thực.
      Bổ sung khi hoàn thành implementation. -->
 
 Chưa hiện thực. Sẽ bổ sung ảnh chụp màn hình khi hoàn thành.
 
-## 8. Bảng tham chiếu dò vết
+# Bảng tham chiếu dò vết
 
 <!-- Dùng để dò vết, đối chiếu, sửa và kiểm thử.
      Mỗi dòng map từ UC → Controller endpoint → UseCase → Repository method → Stored Procedure → DB table.
@@ -332,12 +332,12 @@ Chưa hiện thực. Sẽ bổ sung ảnh chụp màn hình khi hoàn thành.
 | UC-XX    | XxxCtl     | `METHOD /v1/path`     | XxxUseCase     | XxxRepository.method() | stored_procedure    | table_name |
 |          |            | `METHOD /v1/path/:id` | XxxByIdUseCase | XxxRepository.method() | stored_procedure    | table_name |
 
-## 9. Tiêu chí kiểm thử
+# Tiêu chí kiểm thử
 
 <!-- Tiêu chí kiểm thử được chia theo 3 mức: phân tích, thiết kế và hiện thực.
      Các tiêu chí phải truy vết được về UC, lược đồ, thành phần PM, API, SP và bảng dữ liệu. -->
 
-### 9.1 Mức phân tích
+## Mức phân tích
 
 | Tiêu chí             | Phép thử                                                                   | Kết quả mong đợi                          | Ghi chú                              |
 | -------------------- | -------------------------------------------------------------------------- | ----------------------------------------- | ------------------------------------ |
@@ -345,7 +345,7 @@ Chưa hiện thực. Sẽ bổ sung ảnh chụp màn hình khi hoàn thành.
 | Nhất quán            | Rà soát tên lớp, trạng thái, API giữa các lược đồ trong cùng UC            | Không mâu thuẫn giữa các mục 2–7          | Đặc biệt kiểm tra tên trong mục 6–7  |
 | Truy vết             | Đối chiếu bảng tham chiếu (mục 8) với lược đồ tuần tự nội bộ (mục 7.6)     | Mọi tương tác trong sequence đều có entry | Kiểm tra không thiếu endpoint/method |
 
-### 9.2 Mức thiết kế
+## Mức thiết kế
 
 | Tiêu chí      | Phép thử                                                       | Kết quả mong đợi                                  | Ghi chú                         |
 | ------------- | -------------------------------------------------------------- | ------------------------------------------------- | ------------------------------- |
@@ -353,7 +353,7 @@ Chưa hiện thực. Sẽ bổ sung ảnh chụp màn hình khi hoàn thành.
 | Testability   | Rà soát khả năng tách phụ thuộc, mock port/repository và dữ liệu test | Có thể kiểm thử từng thành phần độc lập      | Ưu tiên input/output rõ ràng    |
 | Modularity    | Rà soát ranh giới trách nhiệm giữa các thành phần PM           | Dễ hiểu, dễ thay đổi, không trùng lặp trách nhiệm | Kiểm tra coupling/cohesion      |
 
-### 9.3 Mức hiện thực
+## Mức hiện thực
 
 | Tiêu chí          | Phép thử                                                 | Kết quả mong đợi                                  | Ghi chú                           |
 | ----------------- | -------------------------------------------------------- | ------------------------------------------------- | --------------------------------- |
@@ -361,14 +361,14 @@ Chưa hiện thực. Sẽ bổ sung ảnh chụp màn hình khi hoàn thành.
 | Hiệu năng         | Stress test hoặc benchmark với `<test-inputs>`           | Đạt `<ngưỡng hiệu năng>` trong điều kiện tải giả định | Ghi rõ môi trường test        |
 | Bảo mật           | Code review, kiểm thử phân quyền, kiểm thử dữ liệu đầu vào | Không lộ dữ liệu, không vượt quyền, không injection | Bổ sung pen-test nếu cần       |
 
-### 9.4 Bảng tiêu chí chất lượng theo chức năng
+## Bảng tiêu chí chất lượng theo chức năng
 
 | Chức năng trong UC | Tiêu chí mức Ý niệm                              | Tiêu chí mức Thiết kế                                     | Tiêu chí mức Hiện thực                              |
 | ------------------ | ------------------------------------------------ | --------------------------------------------------------- | --------------------------------------------------- |
 | `<Chức năng 1>`    | <Đúng nhu cầu actor, thiết thực cho tình huống>  | <Luồng xử lý chuẩn hóa, dễ test, module rõ trách nhiệm>   | <Testcase xử lý đúng, hiệu năng đạt, bảo mật đạt>   |
 | `<Chức năng 2>`    | <Không bỏ sót luồng chính và luồng ngoại lệ>     | <API/Form/SP hỗ trợ đủ dữ liệu vào/ra>                    | <Test tích hợp, test dữ liệu, test lỗi đầy đủ>      |
 
-## 10. Yêu cầu phi chức năng
+# Yêu cầu phi chức năng
 
 <!-- Yêu cầu phi chức năng phải có nguồn gốc rõ ràng từ môi trường nghiệp vụ,
      môi trường vận hành hoặc môi trường phát triển. -->

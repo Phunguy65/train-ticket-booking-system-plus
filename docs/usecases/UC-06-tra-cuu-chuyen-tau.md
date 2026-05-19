@@ -1,6 +1,6 @@
 # UC-06: Tra cứu chuyến tàu
 
-## 1. Mô tả use case
+# Mô tả use case
 
 | Mục                            | Nội dung                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
 | ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -15,7 +15,7 @@
 | Hậu điều kiện (thất bại)       | Không có thay đổi trạng thái. Dữ liệu trong hệ thống không bị ảnh hưởng.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
 | Xử lý ngoại lệ                 | Chưa xác thực (thiếu hoặc sai access token) → Hệ thống trả về lỗi 401. <br> Tìm kiếm không có kết quả → Hệ thống trả về danh sách rỗng. <br> Chuyến tàu không tồn tại (xem chi tiết) → Hệ thống trả về lỗi `SCHEDULED_TRIP_NOT_FOUND`. <br> Cursor không hợp lệ (sai định dạng) → Hệ thống trả về lỗi `CURSOR_INVALID`. <br> Tham số không hợp lệ (phân trang, bộ lọc, giá trị sắp xếp) → Hệ thống trả về lỗi `VALIDATION_ERROR`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
 
-## 2. Lược đồ tuần tự
+# Lược đồ tuần tự
 
 ```plantuml
 @startuml UC-06
@@ -66,7 +66,7 @@ end
 @enduml
 ```
 
-## 3. Lược đồ hoạt động
+# Lược đồ hoạt động
 
 ```plantuml
 @startuml UC-06-activity
@@ -135,7 +135,7 @@ stop
 @enduml
 ```
 
-## 5. Lược đồ lớp ý niệm
+# Lược đồ lớp ý niệm
 
 ```plantuml
 @startuml UC-06-class
@@ -269,9 +269,9 @@ DetailRoute *-- DetailStation
 @enduml
 ```
 
-## 6. Phân rã thành phần PM
+# Phân rã thành phần PM
 
-### 6.1 Controller: `ScheduledTripController`
+## Controller: `ScheduledTripController`
 
 - **Nhiệm vụ**: Nhận HTTP request từ khách hàng, xác thực đầu vào, ủy thác cho
   UseCase tương ứng.
@@ -301,7 +301,7 @@ DetailRoute *-- DetailStation
 - **Output lỗi**: `404` + `JsendResponse` —
   `{ errorCode: SCHEDULED_TRIP_NOT_FOUND, message }`
 
-### 6.2 UseCase
+## UseCase
 
 **SearchScheduledTripsUseCase:**
 
@@ -335,7 +335,7 @@ DetailRoute *-- DetailStation
     - `ScheduledTripRepository.findEnrichedById(id)` — truy vấn enriched summary
 - **Cache**: `scheduledTripById`, key = `st:{scheduledTripId}`, trừ khi failure
 
-### 6.3 Repository: `ScheduledTripRepository`
+## Repository: `ScheduledTripRepository`
 
 - **Nhiệm vụ**: Truy xuất domain entity `ScheduledTrip` và các projection
   summary.
@@ -345,7 +345,7 @@ DetailRoute *-- DetailStation
     - `findEnrichedById(id): Optional<ScheduledTripEnrichedSummary>` — chi tiết
       chuyến tàu kèm thông tin tàu, tuyến đường, ga
 
-### 6.4 Port: `ScheduledTripSearchPort`
+## Port: `ScheduledTripSearchPort`
 
 - **Lớp**: Application layer (port interface), implemented bởi
   `ScheduledTripSearchReader` (infrastructure, JDBC).
@@ -356,7 +356,7 @@ DetailRoute *-- DetailStation
       kiếm JDBC với các bộ lọc (ga đi/đến, ngày, trạng thái, giá, ghế trống) và
       cursor
 
-### 6.5 Lược đồ tuần tự nội bộ PM
+## Lược đồ tuần tự nội bộ PM
 
 ```plantuml
 @startuml UC-06-internal
@@ -425,9 +425,9 @@ end
 @enduml
 ```
 
-### 6.6 Giao diện
+## Giao diện
 
-#### 6.6.1 Giao diện mẫu
+### Giao diện mẫu
 
 ```plantuml
 @startsalt
@@ -454,11 +454,11 @@ end
 @endsalt
 ```
 
-#### 6.6.2 Giao diện ứng dụng
+### Giao diện ứng dụng
 
 Chưa hiện thực. Sẽ bổ sung ảnh chụp màn hình khi hoàn thành.
 
-## 7. Bảng tham chiếu dò vết
+# Bảng tham chiếu dò vết
 
 | Use Case | Controller              | Endpoint                             | UseCase                     | Repository / Port                          | Table                                              |
 | -------- | ----------------------- | ------------------------------------ | --------------------------- | ------------------------------------------ | -------------------------------------------------- |
@@ -466,7 +466,7 @@ Chưa hiện thực. Sẽ bổ sung ảnh chụp màn hình khi hoàn thành.
 |          | ScheduledTripController | `GET /api/v1/scheduled-trips`        | GetScheduledTripsUseCase    | ScheduledTripRepository.findAllSummaries() | scheduled_trips                                    |
 |          | ScheduledTripController | `GET /api/v1/scheduled-trips/{id}`   | GetScheduledTripByIdUseCase | ScheduledTripRepository.findEnrichedById() | scheduled_trips, route_templates, trains, stations |
 
-## 8. Tiêu chí kiểm thử
+# Tiêu chí kiểm thử
 
 | Tiêu chí              | Phép thử                                                                   | Kết quả mong đợi                                                  | Ghi chú                                              |
 | --------------------- | -------------------------------------------------------------------------- | ----------------------------------------------------------------- | ---------------------------------------------------- |

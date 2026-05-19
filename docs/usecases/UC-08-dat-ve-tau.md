@@ -1,6 +1,6 @@
 # UC-08: Đặt vé tàu
 
-## 1. Mô tả use case
+# Mô tả use case
 
 | Mục                            | Nội dung                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -15,7 +15,7 @@
 | Hậu điều kiện (thất bại)       | Nếu thất bại trước khi lưu booking, booking mới không được tạo. Nếu thất bại xảy ra sau khi booking đã được lưu nhưng giữ chỗ ghế thất bại, code hiện tại có thể để lại một booking ở trạng thái `HELD` đã được persist trước khi trả lỗi `SEAT_NOT_AVAILABLE`. Nếu payment thất bại hoặc session hết hạn, payment được cập nhật sang `FAILED` hoặc `CANCELLED`, booking vẫn ở `HELD` cho đến khi luồng expiry hủy booking. Nếu webhook thanh toán đến muộn sau khi booking đã `CANCELLED`, hệ thống tạo refund ngay lập tức và đánh dấu payment `REFUNDED`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | Xử lý ngoại lệ                 | Chưa xác thực -> Hệ thống trả về lỗi 401. <br> Dữ liệu đầu vào không hợp lệ (thiếu trường, danh sách ghế rỗng) -> Hệ thống trả về lỗi `VALIDATION_ERROR`. <br> Người dùng không tồn tại -> Hệ thống trả về lỗi `USER_NOT_FOUND`. <br> Chuyến tàu không tồn tại hoặc không tìm thấy route template để tính giá -> Hệ thống trả về lỗi `SCHEDULED_TRIP_NOT_FOUND`. <br> Một hoặc nhiều ghế không còn trống -> Hệ thống trả về lỗi `SEAT_NOT_AVAILABLE`. <br> Đã có active hold cho cùng chuyến tàu -> Hệ thống trả về lỗi `BOOKING_CANNOT_CONFIRM`. <br> Gửi lại cùng `idempotencyKey` -> Hệ thống trả về booking đã tạo trước đó. <br> Stripe webhook bị lặp lại -> Hệ thống bỏ qua event đã xử lý. <br> Thanh toán thất bại -> payment chuyển sang `FAILED`, booking vẫn `HELD` cho đến khi hết hạn. <br> Checkout session hết hạn -> payment chuyển sang `CANCELLED`; booking sẽ được hủy bởi luồng expiry. <br> Thanh toán đến muộn sau khi booking đã `CANCELLED` -> Hệ thống refund ngay và đánh dấu payment `REFUNDED`.                                                                                                                                                                                                                                                                                                                                                                |
 
-## 2. Lược đồ tuần tự
+# Lược đồ tuần tự
 
 ```plantuml
 @startuml UC-08
@@ -72,7 +72,7 @@ end
 @enduml
 ```
 
-## 3. Lược đồ hoạt động
+# Lược đồ hoạt động
 
 ```plantuml
 @startuml UC-08-activity
@@ -141,7 +141,7 @@ stop
 @enduml
 ```
 
-## 4. Lược đồ trạng thái
+# Lược đồ trạng thái
 
 ```plantuml
 @startuml UC-08-state
@@ -178,7 +178,7 @@ state "Payment" as payment {
 @enduml
 ```
 
-## 5. Lược đồ lớp ý niệm
+# Lược đồ lớp ý niệm
 
 ```plantuml
 @startuml UC-08-class
@@ -299,9 +299,9 @@ SeatAvailability *-- Money
 @enduml
 ```
 
-## 6. Phân rã thành phần PM
+# Phân rã thành phần PM
 
-### 6.1 Controller: `BookingController`
+## Controller: `BookingController`
 
 - **Nhiệm vụ**: Nhận HTTP request tạo booking từ khách hàng, validate payload,
   lấy `userId` từ `Authentication`, và ủy thác cho `CreateBookingUseCase`.
@@ -312,7 +312,7 @@ SeatAvailability *-- Money
   `{ id, userId, scheduledTripId, userInfo, totalPrice, currency, status, paymentDeadline, createdAt }`
 - **Output lỗi**: `400 | 404 | 409` + `JsendResponse` - `{ errorCode, message }`
 
-### 6.2 UseCase: `CreateBookingUseCase`
+## UseCase: `CreateBookingUseCase`
 
 - **Nhiệm vụ**: Orchestrate luồng tạo booking đồng bộ cho UC này.
 - **Input**: `CreateBookingCommand` -
@@ -332,7 +332,7 @@ SeatAvailability *-- Money
       ghế và gán `bookingId`, `priceAtBooking`
 - **Phát sinh sự kiện**: `BookingCreated`
 
-### 6.3 Repository: `BookingRepository`
+## Repository: `BookingRepository`
 
 - **Nhiệm vụ**: Truy xuất/lưu trữ aggregate `Booking` và các projection liên
   quan.
@@ -343,7 +343,7 @@ SeatAvailability *-- Money
       kiểm tra active hold trùng lặp
     - `save(booking): Booking` - lưu booking mới ở trạng thái `HELD`
 
-### 6.4 Port: `RouteSeatAvailabilityManager`
+## Port: `RouteSeatAvailabilityManager`
 
 - **Lớp**: Application layer cross-module port, implemented bởi
   `RouteSeatAvailabilityManagerAdapter` trong infrastructure của module `train`.
@@ -353,7 +353,7 @@ SeatAvailability *-- Money
     - `holdSeatsWithBookingId(scheduledTripId, seatIds, bookingId, price): Result<Void, RouteSeatAvailabilityError>` -
       chuyển tất cả ghế `AVAILABLE -> HELD` và lưu giá tại thời điểm đặt
 
-### 6.5 Lược đồ tuần tự nội bộ PM
+## Lược đồ tuần tự nội bộ PM
 
 ```plantuml
 @startuml UC-08-internal
@@ -430,9 +430,9 @@ end
 @enduml
 ```
 
-### 6.6 Giao diện
+## Giao diện
 
-#### 6.6.1 Giao diện mẫu
+### Giao diện mẫu
 
 ```plantuml
 @startsalt
@@ -467,11 +467,11 @@ end
 @endsalt
 ```
 
-#### 6.6.2 Giao diện ứng dụng
+### Giao diện ứng dụng
 
 Chưa hiện thực. Sẽ bổ sung ảnh chụp màn hình khi hoàn thành.
 
-## 7. Bảng tham chiếu dò vết
+# Bảng tham chiếu dò vết
 
 | Use Case | Controller              | Endpoint                       | UseCase                                                                                               | Repository / Port                                                                     | Table                                      |
 | -------- | ----------------------- | ------------------------------ | ----------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- | ------------------------------------------ |
@@ -484,7 +484,7 @@ Chưa hiện thực. Sẽ bổ sung ảnh chụp màn hình khi hoàn thành.
 |          | BookingController       | `POST /api/v1/bookings`        | CreateBookingUseCase                                                                                  | RouteSeatAvailabilityManager.holdSeatsWithBookingId()                                 | trip_seat_availability                     |
 |          | StripeWebhookController | `POST /api/v1/webhooks/stripe` | HandlePaymentSuccessUseCase / HandlePaymentFailedByPaymentIntentUseCase / CancelPendingPaymentUseCase | PaymentRepository, BookingRepository, RouteSeatAvailabilityManager, StripeGatewayPort | payments, bookings, trip_seat_availability |
 
-## 8. Tiêu chí kiểm thử
+# Tiêu chí kiểm thử
 
 | Tiêu chí                    | Phép thử                                                                              | Kết quả mong đợi                                                            | Ghi chú                                                                           |
 | --------------------------- | ------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |

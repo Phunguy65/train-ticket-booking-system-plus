@@ -1,6 +1,6 @@
 # UC-09: Xem đặt vé
 
-## 1. Mô tả use case
+# Mô tả use case
 
 | Mục                            | Nội dung                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
 | ------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -15,7 +15,7 @@
 | Hậu điều kiện (thất bại)       | Không có thay đổi trạng thái. Đây là thao tác chỉ đọc.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
 | Xử lý ngoại lệ                 | Chưa xác thực → 401 Unauthorized. <br> Xem đặt vé của người khác (list) → 403 + `ACCESS_DENIED`. <br> Đặt vé không tồn tại (detail) → 404 + `BOOKING_NOT_FOUND`. <br> Xem đặt vé của người khác (detail) → 403 + `ACCESS_DENIED`. <br> Tham số phân trang không hợp lệ → 400 + `VALIDATION_ERROR`.                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
 
-## 2. Lược đồ tuần tự
+# Lược đồ tuần tự
 
 ```plantuml
 @startuml UC-09
@@ -54,7 +54,7 @@ end
 @enduml
 ```
 
-## 3. Lược đồ hoạt động
+# Lược đồ hoạt động
 
 ```plantuml
 @startuml UC-09-activity
@@ -117,13 +117,13 @@ stop
 @enduml
 ```
 
-## 4. Lược đồ trạng thái
+# Lược đồ trạng thái
 
 <!-- UC-09 là thao tác chỉ đọc, không có thay đổi trạng thái. Mục này bỏ qua. -->
 
 _Không áp dụng — UC-09 là thao tác chỉ đọc._
 
-## 5. Lược đồ lớp ý niệm
+# Lược đồ lớp ý niệm
 
 ```plantuml
 @startuml UC-09-class
@@ -238,9 +238,9 @@ DetailDTO *-- PassengerDTO
 @enduml
 ```
 
-## 6. Phân rã thành phần PM
+# Phân rã thành phần PM
 
-### 6.1 Controller: `BookingController`
+## Controller: `BookingController`
 
 **Endpoint 1 — Danh sách đặt vé:**
 
@@ -266,7 +266,7 @@ DetailDTO *-- PassengerDTO
 - **Output lỗi**: `403` + `ACCESS_DENIED` | `404` + `BOOKING_NOT_FOUND`
 - **Metadata**: `@SuccessPayload(BookingDetailResponse.class)`
 
-### 6.2 UseCase
+## UseCase
 
 **GetUserBookingsUseCase:**
 
@@ -299,7 +299,7 @@ DetailDTO *-- PassengerDTO
 <!-- - **Lưu ý**: `trip` và `payment` có thể `null` trong response — trip null nếu
   scheduled trip bị xóa hoàn toàn, payment null nếu chưa tạo checkout session. -->
 
-### 6.3 Repository
+## Repository
 
 **BookingRepository:**
 
@@ -336,11 +336,11 @@ DetailDTO *-- PassengerDTO
       lấy danh sách ghế kèm coach info, loại trừ seats/coaches đã soft-delete
 - **Table**: `trip_seat_availability` JOIN `seats`, `coaches`
 
-### 6.4 Port
+## Port
 
 Không có actor hỗ trợ bên ngoài.
 
-### 6.5 Lược đồ tuần tự nội bộ PM
+## Lược đồ tuần tự nội bộ PM
 
 ```plantuml
 @startuml UC-09-internal
@@ -412,9 +412,9 @@ end
 @enduml
 ```
 
-### 6.6 Giao diện
+## Giao diện
 
-#### 6.6.1 Giao diện mẫu
+### Giao diện mẫu
 
 ```plantuml
 @startsalt
@@ -464,11 +464,11 @@ end
 @endsalt
 ```
 
-#### 6.6.2 Giao diện ứng dụng
+### Giao diện ứng dụng
 
 Chưa hiện thực. Sẽ bổ sung ảnh chụp màn hình khi hoàn thành.
 
-## 7. Bảng tham chiếu dò vết
+# Bảng tham chiếu dò vết
 
 | Use Case | Controller        | Endpoint                              | UseCase                 | Repository                                                           | Table                                              |
 | -------- | ----------------- | ------------------------------------- | ----------------------- | -------------------------------------------------------------------- | -------------------------------------------------- |
@@ -478,7 +478,7 @@ Chưa hiện thực. Sẽ bổ sung ảnh chụp màn hình khi hoàn thành.
 |          |                   |                                       |                         | PaymentRepository.findSummaryByBookingId()                           | payments                                           |
 |          |                   |                                       |                         | RouteSeatAvailabilityRepository.findBookedSeatSummariesByBookingId() | trip_seat_availability, seats, coaches             |
 
-## 8. Tiêu chí kiểm thử
+# Tiêu chí kiểm thử
 
 | Tiêu chí              | Phép thử                                                                   | Kết quả mong đợi                                                 | Ghi chú                                                       |
 | --------------------- | -------------------------------------------------------------------------- | ---------------------------------------------------------------- | ------------------------------------------------------------- |

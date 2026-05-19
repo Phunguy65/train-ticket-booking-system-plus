@@ -1,6 +1,6 @@
 # UC-11: Xem thanh toán
 
-## 1. Mô tả use case
+# Mô tả use case
 
 | Mục                            | Nội dung                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
 | ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -15,7 +15,7 @@
 | Hậu điều kiện (thất bại)       | Không có thay đổi trạng thái. Đây là thao tác chỉ đọc.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 | Xử lý ngoại lệ                 | Chưa xác thực → 401 Unauthorized. <br> Thanh toán không tồn tại → 404 + `PAYMENT_NOT_FOUND`. <br> Xem thanh toán của người khác → 403 + `ACCESS_DENIED`.                                                                                                                                                                                                                                                                                                                                                                                                                                        |
 
-## 2. Lược đồ tuần tự
+# Lược đồ tuần tự
 
 ```plantuml
 @startuml UC-11
@@ -54,7 +54,7 @@ end
 @enduml
 ```
 
-## 3. Lược đồ hoạt động
+# Lược đồ hoạt động
 
 ```plantuml
 @startuml UC-11-activity
@@ -116,13 +116,13 @@ stop
 @enduml
 ```
 
-## 4. Lược đồ trạng thái
+# Lược đồ trạng thái
 
 <!-- UC-11 là thao tác chỉ đọc, không có thay đổi trạng thái. Mục này bỏ qua. -->
 
 _Không áp dụng — UC-11 là thao tác chỉ đọc._
 
-## 5. Lược đồ lớp ý niệm
+# Lược đồ lớp ý niệm
 
 ```plantuml
 @startuml UC-11-class
@@ -182,9 +182,9 @@ Auth ..> ResDTO: map nếu authorized
 @enduml
 ```
 
-## 6. Phân rã thành phần PM
+# Phân rã thành phần PM
 
-### 6.1 Controller: `PaymentController`
+## Controller: `PaymentController`
 
 **Endpoint 1 — Xem thanh toán theo payment ID:**
 
@@ -209,7 +209,7 @@ Auth ..> ResDTO: map nếu authorized
 - **Output lỗi**: `403` + `ACCESS_DENIED` | `404` + `PAYMENT_NOT_FOUND`
 - **Metadata**: `@SuccessPayload(PaymentResponse.class)`
 
-### 6.2 UseCase
+## UseCase
 
 **GetPaymentByIdUseCase:**
 
@@ -238,7 +238,7 @@ Auth ..> ResDTO: map nếu authorized
       check
         - ownership check + mapping
 
-### 6.3 Helper: `PaymentReadAuthorizer`
+## Helper: `PaymentReadAuthorizer`
 
 - **Nhiệm vụ**: Tách logic kiểm tra quyền và mapping ra khỏi UseCase, tái sử
   dụng cho cả hai endpoint.
@@ -253,7 +253,7 @@ Auth ..> ResDTO: map nếu authorized
         - `status`: `PaymentStatus.valueOf(payment.status())` — parse String →
           enum
 
-### 6.4 Repository: `PaymentRepository`
+## Repository: `PaymentRepository`
 
 - **Nhiệm vụ**: Truy xuất projection `PaymentSummary` từ DB.
 - **Phương thức liên quan đến UC**:
@@ -263,7 +263,7 @@ Auth ..> ResDTO: map nếu authorized
       booking ID
 - **Table**: `payments`
 
-### 6.5 Lược đồ tuần tự nội bộ PM
+## Lược đồ tuần tự nội bộ PM
 
 ```plantuml
 @startuml UC-11-internal
@@ -329,9 +329,9 @@ end
 @enduml
 ```
 
-### 6.6 Giao diện
+## Giao diện
 
-#### 6.6.1 Giao diện mẫu
+### Giao diện mẫu
 
 ```plantuml
 @startsalt
@@ -360,11 +360,11 @@ end
 @endsalt
 ```
 
-#### 6.6.2 Giao diện ứng dụng
+### Giao diện ứng dụng
 
 Chưa hiện thực. Sẽ bổ sung ảnh chụp màn hình khi hoàn thành.
 
-## 7. Bảng tham chiếu dò vết
+# Bảng tham chiếu dò vết
 
 | Use Case | Controller        | Endpoint                                   | UseCase                      | Repository / Helper                        | Table    |
 | -------- | ----------------- | ------------------------------------------ | ---------------------------- | ------------------------------------------ | -------- |
@@ -373,7 +373,7 @@ Chưa hiện thực. Sẽ bổ sung ảnh chụp màn hình khi hoàn thành.
 | UC-11    | PaymentController | `GET /api/v1/bookings/{bookingId}/payment` | GetPaymentByBookingIdUseCase | PaymentRepository.findSummaryByBookingId() | payments |
 |          |                   |                                            |                              | PaymentReadAuthorizer.authorizeAndMap()    |          |
 
-## 8. Tiêu chí kiểm thử
+# Tiêu chí kiểm thử
 
 | Tiêu chí                           | Phép thử                                                                   | Kết quả mong đợi                                                 | Ghi chú                                                           |
 | ---------------------------------- | -------------------------------------------------------------------------- | ---------------------------------------------------------------- | ----------------------------------------------------------------- |

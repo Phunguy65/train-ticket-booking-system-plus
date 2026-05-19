@@ -107,6 +107,7 @@ pandoc "${INPUT_FILES[@]}" \
     --lua-filter="$DIAGRAM_LUA" \
     --extract-media="$MEDIA_DIR" \
     --resource-path="$REPO_ROOT/docs" \
+    --reference-doc="$REPO_ROOT/docs/original.docx"\
     -s
 
 info "Done! Report generated at: ${OUTPUT_FILE#"$REPO_ROOT/"}"

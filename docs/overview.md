@@ -1,8 +1,8 @@
 # Giới thiệu và Cơ sở Khoa học
 
-## I. Giới thiệu đề tài
+## Giới thiệu đề tài
 
-### 1. Mục đích
+### Mục đích
 
 Vận chuyển hành khách bằng đường sắt là một trong những phương thức di chuyển
 phổ biến và có chi phí hợp lý tại Việt Nam, đặc biệt trên các hành trình dài.
@@ -21,7 +21,7 @@ System) nhằm hiện đại hóa quy trình bán vé cho một công ty vận t
   quy trình xử lý đặt vé và thanh toán, giảm thiểu sai sót thủ công, tăng khả
   năng phục vụ đồng thời nhiều khách hàng.
 
-### 2. Mục tiêu
+### Mục tiêu
 
 Ứng dụng phải giải quyết được các vấn đề chính sau:
 
@@ -55,23 +55,23 @@ thông tin cá nhân và xóa tài khoản. PM cung cấp xác thực dựa trê
 (access token + refresh token), hỗ trợ cập nhật hồ sơ từng phần và xóa mềm tài
 khoản có kiểm tra ràng buộc đặt vé đang hoạt động.
 
-### 3. Phương pháp tiến hành
+### Phương pháp tiến hành
 
-#### a) Tìm hiểu hiện trạng
+#### Tìm hiểu hiện trạng
 
 Khảo sát quy trình bán vé tàu truyền thống tại quầy giao dịch và quy trình mua
 vé trực tuyến hiện tại (ví dụ: cổng dsvn.vn), xác định các tình huống bất lợi
 như: phạm vi phục vụ bị giới hạn bởi giờ mở cửa quầy, nguy cơ bán trùng ghế khi
 xử lý thủ công, thiếu truy vết trạng thái đặt vé theo thời gian thực.
 
-#### b) Tìm hiểu nghiệp vụ và quy định
+#### Tìm hiểu nghiệp vụ và quy định
 
 Tìm hiểu quy trình nghiệp vụ đặt vé tàu: vòng đời vé (tìm kiếm → chọn ghế → giữ
 chỗ → thanh toán → xác nhận/hủy/hoàn tiền), các quy tắc quản lý ghế (trạng thái
 `AVAILABLE` → `HELD` → `BOOKED`/`AVAILABLE`/`CANCELLED`), chính sách thời gian
 giữ chỗ, và quy trình xử lý vé chưa thanh toán hết hạn.
 
-#### c) Tìm hiểu mô hình, phương pháp và công nghệ
+#### Tìm hiểu mô hình, phương pháp và công nghệ
 
 Nghiên cứu và áp dụng các mô hình/phương pháp sau:
 
@@ -85,7 +85,7 @@ Nghiên cứu và áp dụng các mô hình/phương pháp sau:
   client code tự động từ OpenAPI spec cho frontend.
 - Các công nghệ cụ thể được trình bày trong Mục II.
 
-#### d) Phân tích, thiết kế, hiện thực, đánh giá
+#### Phân tích, thiết kế, hiện thực, đánh giá
 
 Từ kết quả khảo sát và nghiên cứu, tiến hành: định nghĩa use case (12 UC) và đặc
 tả tương tác; thiết kế kiến trúc hệ thống và cơ sở dữ liệu; hiện thực theo từng
@@ -93,11 +93,11 @@ module; đánh giá kết quả theo tiêu chí kiểm thử đã đặt ra ở 
 
 ---
 
-## II. Cơ sở Khoa học của Đề tài
+## Cơ sở Khoa học của Đề tài
 
-### 1. Quy trình nghiệp vụ đặt vé tàu
+### Quy trình nghiệp vụ đặt vé tàu
 
-#### a) Quy trình mua vé truyền thống
+#### Quy trình mua vé truyền thống
 
 Trong mô hình bán vé truyền thống tại quầy giao dịch, quy trình diễn ra tuần tự
 theo các bước: hành khách đến quầy → trình bày nhu cầu (tuyến, ngày, loại ghế) →
@@ -117,7 +117,7 @@ phải đến trực tiếp, xử lý thủ công dễ sai sót (đặc biệt k
 cùng thao tác trên cùng chuyến tàu), thiếu khả năng truy vết trạng thái theo
 thời gian thực.
 
-#### b) Quy trình mua vé trực tuyến
+#### Quy trình mua vé trực tuyến
 
 Với mô hình trực tuyến (được triển khai tại cổng dsvn.vn và tương tự tại nhiều
 nền tảng đường sắt khu vực), hành khách thực hiện toàn bộ quy trình qua ứng dụng
@@ -143,7 +143,7 @@ web hoặc mobile:
 hành khách không cần đến quầy, kiểm soát ghế tự động ngăn bán trùng, có thể truy
 vết toàn bộ lịch sử giao dịch.
 
-#### c) Vòng đời vé tàu
+#### Vòng đời vé tàu
 
 Quy trình trực tuyến đặt ra các trạng thái cần quản lý chặt chẽ trong hệ thống.
 Mỗi lần đặt vé (booking) trải qua các trạng thái:
@@ -172,9 +172,9 @@ thu hồi chỗ giữ đã hết hạn.
 
 ---
 
-### 2. Công nghệ sử dụng
+### Công nghệ sử dụng
 
-#### a) Spring Boot 4.0 — Backend API
+#### Spring Boot 4.0 — Backend API
 
 Spring Boot 4.0 (Java 25) được dùng để xây dựng backend REST API của hệ thống.
 Framework này cung cấp cơ chế tự động cấu hình (auto-configuration), quản lý
@@ -187,7 +187,7 @@ Backend sử dụng thêm **Spring Virtual Threads** (Java 25) để xử lý đ
 lượng lớn kết nối HTTP mà không tốn nhiều tài nguyên, và **Spring Integration**
 để điều phối luồng xử lý sự kiện nội bộ.
 
-#### b) Next.js 16 + React 19 — Frontend khách hàng
+#### Next.js 16 + React 19 — Frontend khách hàng
 
 Next.js 16 với React 19 được dùng để xây dựng giao diện web cho khách hàng. Ứng
 dụng sử dụng **App Router** của Next.js để tổ chức routing và hỗ trợ Server
@@ -199,7 +199,7 @@ phía client, tích hợp tốt với hệ thống codegen từ OpenAPI spec.
 Client HTTP được sinh tự động từ OpenAPI spec qua **@hey-api/openapi-ts**, kết
 hợp **TanStack React Query** để quản lý trạng thái server-side và cache dữ liệu.
 
-#### c) PostgreSQL 18 — Cơ sở dữ liệu quan hệ
+#### PostgreSQL 18 — Cơ sở dữ liệu quan hệ
 
 PostgreSQL 18 được dùng làm cơ sở dữ liệu chính lưu trữ toàn bộ dữ liệu nghiệp
 vụ: tài khoản người dùng, thông tin tàu/ga/tuyến, lịch chạy tàu, booking, thanh
@@ -211,7 +211,7 @@ hợp tốt với Hibernate ORM và Flyway migration.
 Schema được quản lý bằng **Flyway** để đảm bảo tính nhất quán và khả năng
 rollback giữa các môi trường.
 
-#### d) Valkey 8.0 (Redis-compatible) — Cache phân tán
+#### Valkey 8.0 (Redis-compatible) — Cache phân tán
 
 Valkey (fork mã nguồn mở của Redis) được dùng làm lớp cache phân tán. Các kết
 quả truy vấn tốn kém hoặc đọc nhiều được cache vào Valkey: danh sách chuyến tàu
@@ -222,7 +222,7 @@ scaling), dữ liệu cache tồn tại khi backend restart, hỗ trợ TTL linh
 Spring Cache được cấu hình với Valkey thông qua Spring Data Redis và Lettuce
 connection pool.
 
-#### e) Stripe — Cổng thanh toán trực tuyến
+#### Stripe — Cổng thanh toán trực tuyến
 
 Stripe được tích hợp để xử lý thanh toán thẻ tín dụng/ghi nợ quốc tế. Hệ thống
 sử dụng **Stripe Checkout Sessions** để tạo phiên thanh toán có thời hạn, và
@@ -232,7 +232,7 @@ nhận xác nhận kết quả qua **Stripe Webhooks** (các sự kiện
 tiết, hỗ trợ tốt cho môi trường sandbox/test, xử lý bảo mật PCI DSS bởi Stripe,
 có SDK Java chính thức (`stripe-java 31.4.0`).
 
-#### f) JWT (JJWT 0.13) — Xác thực stateless
+#### JWT (JJWT 0.13) — Xác thực stateless
 
 JSON Web Token (JWT) được dùng cho cơ chế xác thực người dùng. Khi đăng nhập
 thành công, hệ thống cấp một **access token** (thời hạn 15 phút) và một
@@ -244,7 +244,7 @@ không cần đăng nhập lại. Refresh token được lưu (dạng hash) tron
 Lý do dùng JWT stateless: không cần lưu session trên server, phù hợp với kiến
 trúc REST và khả năng scale horizontal.
 
-#### g) OpenAPI 3.1 — Đặc tả API
+#### OpenAPI 3.1 — Đặc tả API
 
 Hợp đồng API được đặc tả theo chuẩn OpenAPI 3. Đặc tả này đóng vai trò nguồn sự
 thật duy nhất cho giao tiếp giữa backend và frontend: frontend sinh client code
@@ -255,7 +255,7 @@ tài liệu API luôn đồng bộ với code.
 **springdoc-openapi 2.8.14** được dùng để tự động generate và serve Swagger UI
 từ annotation trong code backend.
 
-#### i) Docker Compose — Container hóa môi trường
+#### Docker Compose — Container hóa môi trường
 
 Toàn bộ hạ tầng phát triển (backend, frontend, PostgreSQL, Valkey) được
 container hóa bằng Docker và điều phối qua Docker Compose. Mỗi service có health

@@ -1,6 +1,6 @@
 # UC-07: Xem sơ đồ ghế chuyến tàu
 
-## 1. Mô tả use case
+# Mô tả use case
 
 | Mục                            | Nội dung                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -15,7 +15,7 @@
 | Hậu điều kiện (thất bại)       | Không có thay đổi trạng thái. Dữ liệu trong hệ thống không bị ảnh hưởng.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | Xử lý ngoại lệ                 | Chưa xác thực (thiếu hoặc sai access token) → Hệ thống trả về lỗi 401. <br> Chuyến tàu không tồn tại (sơ đồ ghế theo toa) → Hệ thống trả về lỗi `SCHEDULED_TRIP_NOT_FOUND`. <br> Chuyến tàu không tồn tại (danh sách ghế trống) → Hệ thống trả về trang rỗng (không kiểm tra tồn tại). <br> Chuyến tàu tồn tại nhưng chưa có toa → Hệ thống trả về trang rỗng. <br> Tham số phân trang không hợp lệ → Hệ thống trả về lỗi `VALIDATION_ERROR`.                                                                                                                                                                                                                                                                                                                                                                                                           |
 
-## 2. Lược đồ tuần tự
+# Lược đồ tuần tự
 
 ```plantuml
 @startuml UC-07
@@ -54,7 +54,7 @@ end
 @enduml
 ```
 
-## 3. Lược đồ hoạt động
+# Lược đồ hoạt động
 
 ```plantuml
 @startuml UC-07-activity
@@ -117,7 +117,7 @@ stop
 @enduml
 ```
 
-## 5. Lược đồ lớp ý niệm
+# Lược đồ lớp ý niệm
 
 ```plantuml
 @startuml UC-07-class
@@ -180,9 +180,9 @@ CoachRes *-- CoachSeat
 @enduml
 ```
 
-## 6. Phân rã thành phần PM
+# Phân rã thành phần PM
 
-### 6.1 Controller: `SeatController`
+## Controller: `SeatController`
 
 - **Nhiệm vụ**: Nhận HTTP request từ khách hàng, xác thực đầu vào, ủy thác cho
   UseCase tương ứng.
@@ -210,7 +210,7 @@ CoachRes *-- CoachSeat
 - **Ghi chú metadata**: Runtime trả `PageResponse<CoachSeatMapResponse>`, nhưng
   `@SuccessPayload` hiện dùng mặc định object metadata thay vì page metadata.
 
-### 6.2 UseCase
+## UseCase
 
 **GetAvailableSeatsForScheduledTripUseCase:**
 
@@ -238,7 +238,7 @@ CoachRes *-- CoachSeat
 - **Cache**: `coachSeatMap`, key = `st-coach:{scheduledTripId}:{page}:{size}`,
   trừ khi failure hoặc content rỗng
 
-### 6.3 Repository
+## Repository
 
 **SeatRepository:**
 
@@ -256,7 +256,7 @@ CoachRes *-- CoachSeat
     - `findSeatSummariesByScheduledTripIdAndCoachIds(scheduledTripId, coachIds): List<CoachSeatMapSeatSummary>`
       — ghế cho các toa kèm trạng thái
 
-### 6.4 Lược đồ tuần tự nội bộ PM
+## Lược đồ tuần tự nội bộ PM
 
 ```plantuml
 @startuml UC-07-internal
@@ -316,9 +316,9 @@ end
 @enduml
 ```
 
-### 6.5 Giao diện
+## Giao diện
 
-#### 6.5.1 Giao diện mẫu
+### Giao diện mẫu
 
 ```plantuml
 @startsalt
@@ -346,18 +346,18 @@ end
 @endsalt
 ```
 
-#### 6.5.2 Giao diện ứng dụng
+### Giao diện ứng dụng
 
 Chưa hiện thực. Sẽ bổ sung ảnh chụp màn hình khi hoàn thành.
 
-## 7. Bảng tham chiếu dò vết
+# Bảng tham chiếu dò vết
 
 | Use Case | Controller     | Endpoint                                                        | UseCase                                  | Repository / Port                                                                                                                                           | Table                                                   |
 | -------- | -------------- | --------------------------------------------------------------- | ---------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------- |
 | UC-07    | SeatController | `GET /api/v1/scheduled-trips/{scheduledTripId}/seats/available` | GetAvailableSeatsForScheduledTripUseCase | SeatRepository.findAllAvailableSummaries()                                                                                                                  | seats, trip_seat_availability, bookings                 |
 |          | SeatController | `GET /api/v1/scheduled-trips/{scheduledTripId}/coach-seats`     | GetCoachSeatMapByScheduledTripUseCase    | ScheduledTripSeatMapRepository.findCoachSummariesByScheduledTripId(), findSeatSummariesByScheduledTripIdAndCoachIds(); ScheduledTripRepository.existsById() | coaches, seats, trip_seat_availability, scheduled_trips |
 
-## 8. Tiêu chí kiểm thử
+# Tiêu chí kiểm thử
 
 | Tiêu chí                              | Phép thử                                                                   | Kết quả mong đợi                                                                 | Ghi chú                                 |
 | ------------------------------------- | -------------------------------------------------------------------------- | -------------------------------------------------------------------------------- | --------------------------------------- |

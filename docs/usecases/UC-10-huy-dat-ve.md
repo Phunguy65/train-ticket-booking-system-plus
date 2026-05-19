@@ -1,6 +1,6 @@
 # UC-10: Hủy đặt vé
 
-## 1. Mô tả use case
+# Mô tả use case
 
 | Mục                            | Nội dung                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
 | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -15,7 +15,7 @@
 | Hậu điều kiện (thất bại)       | Không có thay đổi trạng thái. Transaction rollback nếu có lỗi.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
 | Xử lý ngoại lệ                 | Chưa xác thực → 401 Unauthorized. <br> Đặt vé không tồn tại → 404 + `BOOKING_NOT_FOUND`. <br> Hủy đặt vé của người khác → 403 + `ACCESS_DENIED`. <br> Đặt vé đã ở trạng thái `CANCELLED` → 409 + `BOOKING_ALREADY_CANCELLED` (do `InvalidStatusTransition`).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 
-## 2. Lược đồ tuần tự
+# Lược đồ tuần tự
 
 ```plantuml
 @startuml UC-10
@@ -47,7 +47,7 @@ end
 @enduml
 ```
 
-## 3. Lược đồ hoạt động
+# Lược đồ hoạt động
 
 ```plantuml
 @startuml UC-10-activity
@@ -109,7 +109,7 @@ stop
 @enduml
 ```
 
-## 4. Lược đồ trạng thái
+# Lược đồ trạng thái
 
 ```plantuml
 @startuml UC-10-state
@@ -147,7 +147,7 @@ end note
 @enduml
 ```
 
-## 5. Lược đồ lớp ý niệm
+# Lược đồ lớp ý niệm
 
 ```plantuml
 @startuml UC-10-class
@@ -215,9 +215,9 @@ SSEEvent *-- SeatChange
 @enduml
 ```
 
-## 6. Phân rã thành phần PM
+# Phân rã thành phần PM
 
-### 6.1 Controller: `BookingController`
+## Controller: `BookingController`
 
 - **Nhiệm vụ**: Nhận HTTP request hủy đặt vé, lấy `requestingUserId` từ
   `Authentication`, ủy thác cho `CancelBookingUseCase`.
@@ -234,7 +234,7 @@ SSEEvent *-- SeatChange
     - `BookingError.InvalidStatusTransition` → `409` +
       `BOOKING_ALREADY_CANCELLED`
 
-### 6.2 UseCase: `CancelBookingUseCase`
+## UseCase: `CancelBookingUseCase`
 
 - **Nhiệm vụ**: Orchestrate luồng hủy đặt vé đồng bộ, bao gồm giải phóng ghế và
   phát sinh sự kiện.
@@ -264,7 +264,7 @@ SSEEvent *-- SeatChange
     - `SeatStatusChangedEvent(scheduledTripId, changes, occurredAt)` — SSE push
       cho real-time seat map update
 
-### 6.3 Repository
+## Repository
 
 **BookingRepository:**
 
@@ -274,7 +274,7 @@ SSEEvent *-- SeatChange
     - `save(Booking): Booking` — lưu booking đã hủy
 - **Table**: `bookings`
 
-### 6.4 Port: `RouteSeatAvailabilityManager`
+## Port: `RouteSeatAvailabilityManager`
 
 - **Nhiệm vụ**: Cross-module port cho phép booking module thao tác trạng thái
   ghế trên scheduled trip.
@@ -289,7 +289,7 @@ SSEEvent *-- SeatChange
       — lấy trạng thái ghế sau cập nhật (cho SSE event)
 - **Implementation**: `RouteSeatAvailabilityManagerAdapter` (train BC)
 
-### 6.5 Lược đồ tuần tự nội bộ PM
+## Lược đồ tuần tự nội bộ PM
 
 ```plantuml
 @startuml UC-10-internal
@@ -363,9 +363,9 @@ end
 @enduml
 ```
 
-### 6.6 Giao diện
+## Giao diện
 
-#### 6.6.1 Giao diện mẫu
+### Giao diện mẫu
 
 ```plantuml
 @startsalt
@@ -391,11 +391,11 @@ end
 @endsalt
 ```
 
-#### 6.6.2 Giao diện ứng dụng
+### Giao diện ứng dụng
 
 Chưa hiện thực. Sẽ bổ sung ảnh chụp màn hình khi hoàn thành.
 
-## 7. Bảng tham chiếu dò vết
+# Bảng tham chiếu dò vết
 
 | Use Case | Controller        | Endpoint                            | UseCase              | Repository / Port                                              | Table                  |
 | -------- | ----------------- | ----------------------------------- | -------------------- | -------------------------------------------------------------- | ---------------------- |
@@ -406,7 +406,7 @@ Chưa hiện thực. Sẽ bổ sung ảnh chụp màn hình khi hoàn thành.
 |          |                   |                                     |                      | RouteSeatAvailabilityManager.cancelBookedSeats()               | trip_seat_availability |
 |          |                   |                                     |                      | RouteSeatAvailabilityManager.findByScheduledTripIdAndSeatIds() | trip_seat_availability |
 
-## 8. Tiêu chí kiểm thử
+# Tiêu chí kiểm thử
 
 | Tiêu chí                      | Phép thử                                                                   | Kết quả mong đợi                                                                                       | Ghi chú                                                   |
 | ----------------------------- | -------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ | --------------------------------------------------------- |
