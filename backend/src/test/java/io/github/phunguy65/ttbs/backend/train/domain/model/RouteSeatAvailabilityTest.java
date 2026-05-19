@@ -1,235 +1,338 @@
 package io.github.phunguy65.ttbs.backend.train.domain.model;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
-import io.github.phunguy65.ttbs.backend.shared.domain.Result;
+import io.github.phunguy65.ttbs.backend.shared.domain.Money;
 import io.github.phunguy65.ttbs.backend.train.domain.error.RouteSeatAvailabilityError;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+@DisplayName("RouteSeatAvailability")
 class RouteSeatAvailabilityTest {
 
-    private static final RouteId ROUTE_ID = RouteId.of(UUID.randomUUID());
-    private static final SeatId SEAT_ID = SeatId.of(UUID.randomUUID());
+    private static final ScheduledTripId TRIP_ID =
+            ScheduledTripId.of(UUID.fromString("00000000-0000-0000-0000-000000000001"));
+    private static final SeatId SEAT_ID =
+            SeatId.of(UUID.fromString("00000000-0000-0000-0000-000000000002"));
+    private static final UUID BOOKING_ID = UUID.fromString("00000000-0000-0000-0000-000000000003");
+    private static final Money PRICE_500K = Money.vnd(500_000L);
 
-    // ── hold() ───────────────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────
+    // hold(UUID, Money)
+    // ─────────────────────────────────────────────────────────────
 
-    @Test
-    void hold_whenAvailable_shouldTransitionToHeld() {
-        RouteSeatAvailability availability = RouteSeatAvailability.create(ROUTE_ID, SEAT_ID);
+    @Nested
+    @DisplayName("hold(UUID, Money)")
+    class HoldWithBookingIdAndPrice {
 
-        Result<Void, RouteSeatAvailabilityError> result = availability.hold();
+        @Test
+        @DisplayName("AVAILABLE → HELD with bookingId and price")
+        void available_toHeld_capturesBookingIdAndPrice() {
+            RouteSeatAvailability seat = RouteSeatAvailability.create(TRIP_ID, SEAT_ID);
 
-        assertThat(result.isSuccess()).isTrue();
-        assertThat(availability.getStatus()).isEqualTo(RouteSeatAvailabilityStatus.HELD);
+            var result = seat.hold(BOOKING_ID, PRICE_500K);
+
+            assertThat(result.isSuccess()).isTrue();
+            assertThat(seat.getStatus()).isEqualTo(RouteSeatAvailabilityStatus.HELD);
+            assertThat(seat.getBookingId()).isEqualTo(BOOKING_ID);
+            assertThat(seat.getPriceAtBooking()).isEqualTo(PRICE_500K);
+        }
+
+        @Test
+        @DisplayName("AVAILABLE → HELD with null price")
+        void available_toHeld_capturesBookingIdWithNullPrice() {
+            RouteSeatAvailability seat = RouteSeatAvailability.create(TRIP_ID, SEAT_ID);
+
+            var result = seat.hold(BOOKING_ID, null);
+
+            assertThat(result.isSuccess()).isTrue();
+            assertThat(seat.getStatus()).isEqualTo(RouteSeatAvailabilityStatus.HELD);
+            assertThat(seat.getBookingId()).isEqualTo(BOOKING_ID);
+            assertThat(seat.getPriceAtBooking()).isNull();
+        }
+
+        @Test
+        @DisplayName("HELD → fails with SeatNotAvailable")
+        void held_toHeld_fails() {
+            RouteSeatAvailability seat = RouteSeatAvailability.create(TRIP_ID, SEAT_ID);
+            seat.hold(BOOKING_ID, PRICE_500K);
+
+            var result = seat.hold(BOOKING_ID, PRICE_500K);
+
+            assertThat(result.isFailure()).isTrue();
+            assertThat(result)
+                    .isInstanceOfSatisfying(
+                            io.github.phunguy65.ttbs.backend.shared.domain.Result.Failure.class,
+                            f -> assertThat(f.error())
+                                    .isInstanceOf(
+                                            RouteSeatAvailabilityError.SeatNotAvailable.class));
+        }
+
+        @Test
+        @DisplayName("BOOKED → fails with SeatNotAvailable")
+        void booked_toHeld_fails() {
+            RouteSeatAvailability seat = RouteSeatAvailability.create(TRIP_ID, SEAT_ID);
+            seat.hold(BOOKING_ID, PRICE_500K);
+            seat.confirmHold();
+
+            var result = seat.hold(BOOKING_ID, PRICE_500K);
+
+            assertThat(result.isFailure()).isTrue();
+        }
     }
 
-    @Test
-    void hold_whenAlreadyHeld_shouldReturnFailure() {
-        RouteSeatAvailability availability = RouteSeatAvailability.reconstitute(
-                ROUTE_ID, SEAT_ID, RouteSeatAvailabilityStatus.HELD);
+    // ─────────────────────────────────────────────────────────────
+    // confirmHold()
+    // ─────────────────────────────────────────────────────────────
 
-        Result<Void, RouteSeatAvailabilityError> result = availability.hold();
+    @Nested
+    @DisplayName("confirmHold()")
+    class ConfirmHold {
 
-        assertThat(result.isFailure()).isTrue();
-        assertThat(((Result.Failure<Void, RouteSeatAvailabilityError>) result).error())
-                .isInstanceOf(RouteSeatAvailabilityError.SeatNotAvailable.class);
+        @Test
+        @DisplayName("HELD → BOOKED retains price snapshot")
+        void held_toBooked_retainsPrice() {
+            RouteSeatAvailability seat = RouteSeatAvailability.create(TRIP_ID, SEAT_ID);
+            seat.hold(BOOKING_ID, PRICE_500K);
+
+            var result = seat.confirmHold();
+
+            assertThat(result.isSuccess()).isTrue();
+            assertThat(seat.getStatus()).isEqualTo(RouteSeatAvailabilityStatus.BOOKED);
+            assertThat(seat.getBookingId()).isEqualTo(BOOKING_ID);
+            assertThat(seat.getPriceAtBooking()).isEqualTo(PRICE_500K);
+        }
+
+        @Test
+        @DisplayName("AVAILABLE → fails")
+        void available_toBooked_fails() {
+            RouteSeatAvailability seat = RouteSeatAvailability.create(TRIP_ID, SEAT_ID);
+
+            var result = seat.confirmHold();
+
+            assertThat(result.isFailure()).isTrue();
+        }
     }
 
-    @Test
-    void hold_whenBooked_shouldReturnFailure() {
-        RouteSeatAvailability availability = RouteSeatAvailability.reconstitute(
-                ROUTE_ID, SEAT_ID, RouteSeatAvailabilityStatus.BOOKED);
+    // ─────────────────────────────────────────────────────────────
+    // expire()
+    // ─────────────────────────────────────────────────────────────
 
-        Result<Void, RouteSeatAvailabilityError> result = availability.hold();
+    @Nested
+    @DisplayName("expire()")
+    class Expire {
 
-        assertThat(result.isFailure()).isTrue();
+        @Test
+        @DisplayName("HELD → AVAILABLE clears bookingId and price")
+        void held_toAvailable_clearsPrice() {
+            RouteSeatAvailability seat = RouteSeatAvailability.create(TRIP_ID, SEAT_ID);
+            seat.hold(BOOKING_ID, PRICE_500K);
+
+            var result = seat.expire();
+
+            assertThat(result.isSuccess()).isTrue();
+            assertThat(seat.getStatus()).isEqualTo(RouteSeatAvailabilityStatus.AVAILABLE);
+            assertThat(seat.getBookingId()).isNull();
+            assertThat(seat.getPriceAtBooking()).isNull();
+        }
+
+        @Test
+        @DisplayName("AVAILABLE → fails")
+        void available_toExpire_fails() {
+            RouteSeatAvailability seat = RouteSeatAvailability.create(TRIP_ID, SEAT_ID);
+
+            var result = seat.expire();
+
+            assertThat(result.isFailure()).isTrue();
+        }
     }
 
-    // ── confirmHold() ────────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────
+    // cancel()
+    // ─────────────────────────────────────────────────────────────
 
-    @Test
-    void confirmHold_whenHeld_shouldTransitionToBooked() {
-        RouteSeatAvailability availability = RouteSeatAvailability.reconstitute(
-                ROUTE_ID, SEAT_ID, RouteSeatAvailabilityStatus.HELD);
+    @Nested
+    @DisplayName("cancel()")
+    class Cancel {
 
-        Result<Void, RouteSeatAvailabilityError> result = availability.confirmHold();
+        @Test
+        @DisplayName("BOOKED → CANCELLED retains price snapshot")
+        void booked_toCancelled_retainsPrice() {
+            RouteSeatAvailability seat = RouteSeatAvailability.create(TRIP_ID, SEAT_ID);
+            seat.hold(BOOKING_ID, PRICE_500K);
+            seat.confirmHold();
 
-        assertThat(result.isSuccess()).isTrue();
-        assertThat(availability.getStatus()).isEqualTo(RouteSeatAvailabilityStatus.BOOKED);
+            var result = seat.cancel();
+
+            assertThat(result.isSuccess()).isTrue();
+            assertThat(seat.getStatus()).isEqualTo(RouteSeatAvailabilityStatus.CANCELLED);
+            assertThat(seat.getBookingId()).isNull();
+            assertThat(seat.getPriceAtBooking()).isEqualTo(PRICE_500K);
+        }
+
+        @Test
+        @DisplayName("AVAILABLE → fails")
+        void available_toCancelled_fails() {
+            RouteSeatAvailability seat = RouteSeatAvailability.create(TRIP_ID, SEAT_ID);
+
+            var result = seat.cancel();
+
+            assertThat(result.isFailure()).isTrue();
+        }
     }
 
-    @Test
-    void confirmHold_whenAvailable_shouldReturnFailure() {
-        RouteSeatAvailability availability = RouteSeatAvailability.create(ROUTE_ID, SEAT_ID);
+    // ─────────────────────────────────────────────────────────────
+    // release()
+    // ─────────────────────────────────────────────────────────────
 
-        Result<Void, RouteSeatAvailabilityError> result = availability.confirmHold();
+    @Nested
+    @DisplayName("release()")
+    class Release {
 
-        assertThat(result.isFailure()).isTrue();
+        @Test
+        @DisplayName("CANCELLED → AVAILABLE clears price")
+        void cancelled_toAvailable_clearsPrice() {
+            RouteSeatAvailability seat = RouteSeatAvailability.create(TRIP_ID, SEAT_ID);
+            seat.hold(BOOKING_ID, PRICE_500K);
+            seat.confirmHold();
+            seat.cancel();
+
+            var result = seat.release();
+
+            assertThat(result.isSuccess()).isTrue();
+            assertThat(seat.getStatus()).isEqualTo(RouteSeatAvailabilityStatus.AVAILABLE);
+            assertThat(seat.getPriceAtBooking()).isNull();
+        }
+
+        @Test
+        @DisplayName("BOOKED → fails")
+        void booked_toRelease_fails() {
+            RouteSeatAvailability seat = RouteSeatAvailability.create(TRIP_ID, SEAT_ID);
+            seat.hold(BOOKING_ID, PRICE_500K);
+            seat.confirmHold();
+
+            var result = seat.release();
+
+            assertThat(result.isFailure()).isTrue();
+        }
     }
 
-    @Test
-    void confirmHold_whenBooked_shouldReturnFailure() {
-        RouteSeatAvailability availability = RouteSeatAvailability.reconstitute(
-                ROUTE_ID, SEAT_ID, RouteSeatAvailabilityStatus.BOOKED);
+    // ─────────────────────────────────────────────────────────────
+    // book(Money)
+    // ─────────────────────────────────────────────────────────────
 
-        Result<Void, RouteSeatAvailabilityError> result = availability.confirmHold();
+    @Nested
+    @DisplayName("book(Money)")
+    class BookWithPrice {
 
-        assertThat(result.isFailure()).isTrue();
+        @Test
+        @DisplayName("AVAILABLE → BOOKED captures price")
+        void available_toBooked_capturesPrice() {
+            RouteSeatAvailability seat = RouteSeatAvailability.create(TRIP_ID, SEAT_ID);
+
+            var result = seat.book(PRICE_500K);
+
+            assertThat(result.isSuccess()).isTrue();
+            assertThat(seat.getStatus()).isEqualTo(RouteSeatAvailabilityStatus.BOOKED);
+            assertThat(seat.getPriceAtBooking()).isEqualTo(PRICE_500K);
+            assertThat(seat.getBookingId()).isNull();
+        }
+
+        @Test
+        @DisplayName("HELD → fails")
+        void held_toBooked_fails() {
+            RouteSeatAvailability seat = RouteSeatAvailability.create(TRIP_ID, SEAT_ID);
+            seat.hold(BOOKING_ID, PRICE_500K);
+
+            var result = seat.book(PRICE_500K);
+
+            assertThat(result.isFailure()).isTrue();
+        }
     }
 
-    // ── expire() ─────────────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────
+    // hold() — parameterless overload
+    // ─────────────────────────────────────────────────────────────
 
-    @Test
-    void expire_whenHeld_shouldTransitionToAvailable() {
-        RouteSeatAvailability availability = RouteSeatAvailability.reconstitute(
-                ROUTE_ID, SEAT_ID, RouteSeatAvailabilityStatus.HELD);
+    @Nested
+    @DisplayName("hold() — parameterless")
+    class HoldParameterless {
 
-        Result<Void, RouteSeatAvailabilityError> result = availability.expire();
+        @Test
+        @DisplayName("AVAILABLE → HELD with null bookingId and null price")
+        void available_toHeld_nullIds() {
+            RouteSeatAvailability seat = RouteSeatAvailability.create(TRIP_ID, SEAT_ID);
 
-        assertThat(result.isSuccess()).isTrue();
-        assertThat(availability.getStatus()).isEqualTo(RouteSeatAvailabilityStatus.AVAILABLE);
+            var result = seat.hold();
+
+            assertThat(result.isSuccess()).isTrue();
+            assertThat(seat.getStatus()).isEqualTo(RouteSeatAvailabilityStatus.HELD);
+            assertThat(seat.getBookingId()).isNull();
+            assertThat(seat.getPriceAtBooking()).isNull();
+        }
     }
 
-    @Test
-    void expire_whenAvailable_shouldReturnFailure() {
-        RouteSeatAvailability availability = RouteSeatAvailability.create(ROUTE_ID, SEAT_ID);
+    // ─────────────────────────────────────────────────────────────
+    // Full lifecycle
+    // ─────────────────────────────────────────────────────────────
 
-        Result<Void, RouteSeatAvailabilityError> result = availability.expire();
+    @Nested
+    @DisplayName("Full lifecycle: hold → confirm → cancel → release")
+    class FullLifecycle {
 
-        assertThat(result.isFailure()).isTrue();
+        @Test
+        @DisplayName(
+                "AVAILABLE → HELD (price captured) → BOOKED (price retained) → CANCELLED (price retained) → AVAILABLE (price cleared)")
+        void fullLifecycle_priceCaptureRetainClear() {
+            RouteSeatAvailability seat = RouteSeatAvailability.create(TRIP_ID, SEAT_ID);
+
+            // AVAILABLE → HELD: price captured
+            seat.hold(BOOKING_ID, PRICE_500K);
+            assertThat(seat.getStatus()).isEqualTo(RouteSeatAvailabilityStatus.HELD);
+            assertThat(seat.getPriceAtBooking()).isEqualTo(PRICE_500K);
+
+            // HELD → BOOKED: price retained
+            seat.confirmHold();
+            assertThat(seat.getStatus()).isEqualTo(RouteSeatAvailabilityStatus.BOOKED);
+            assertThat(seat.getPriceAtBooking()).isEqualTo(PRICE_500K);
+
+            // BOOKED → CANCELLED: price retained
+            seat.cancel();
+            assertThat(seat.getStatus()).isEqualTo(RouteSeatAvailabilityStatus.CANCELLED);
+            assertThat(seat.getPriceAtBooking()).isEqualTo(PRICE_500K);
+
+            // CANCELLED → AVAILABLE: price cleared
+            seat.release();
+            assertThat(seat.getStatus()).isEqualTo(RouteSeatAvailabilityStatus.AVAILABLE);
+            assertThat(seat.getPriceAtBooking()).isNull();
+        }
     }
 
-    @Test
-    void expire_whenBooked_shouldReturnFailure() {
-        RouteSeatAvailability availability = RouteSeatAvailability.reconstitute(
-                ROUTE_ID, SEAT_ID, RouteSeatAvailabilityStatus.BOOKED);
+    // ─────────────────────────────────────────────────────────────
+    // reconstitute() with price
+    // ─────────────────────────────────────────────────────────────
 
-        Result<Void, RouteSeatAvailabilityError> result = availability.expire();
+    @Nested
+    @DisplayName("reconstitute(..., Money, Integer)")
+    class ReconstituteWithPrice {
 
-        assertThat(result.isFailure()).isTrue();
-    }
+        @Test
+        @DisplayName("reconstitutes with price snapshot")
+        void reconstitute_withPrice() {
+            var seat = RouteSeatAvailability.reconstitute(
+                    TRIP_ID,
+                    SEAT_ID,
+                    RouteSeatAvailabilityStatus.BOOKED,
+                    BOOKING_ID,
+                    PRICE_500K,
+                    5);
 
-    // ── hold() → confirmHold() full chain ────────────────────────────────────
-
-    @Test
-    void holdThenConfirm_fullChain_shouldEndAtBooked() {
-        RouteSeatAvailability availability = RouteSeatAvailability.create(ROUTE_ID, SEAT_ID);
-
-        availability.hold();
-        Result<Void, RouteSeatAvailabilityError> result = availability.confirmHold();
-
-        assertThat(result.isSuccess()).isTrue();
-        assertThat(availability.getStatus()).isEqualTo(RouteSeatAvailabilityStatus.BOOKED);
-    }
-
-    @Test
-    void holdThenExpire_fullChain_shouldEndAtAvailable() {
-        RouteSeatAvailability availability = RouteSeatAvailability.create(ROUTE_ID, SEAT_ID);
-
-        availability.hold();
-        Result<Void, RouteSeatAvailabilityError> result = availability.expire();
-
-        assertThat(result.isSuccess()).isTrue();
-        assertThat(availability.getStatus()).isEqualTo(RouteSeatAvailabilityStatus.AVAILABLE);
-    }
-
-    // ── book() ───────────────────────────────────────────────────────────────
-
-    @Test
-    void book_whenAvailable_shouldTransitionToBooked() {
-        RouteSeatAvailability availability = RouteSeatAvailability.create(ROUTE_ID, SEAT_ID);
-
-        Result<Void, RouteSeatAvailabilityError> result = availability.book();
-
-        assertThat(result.isSuccess()).isTrue();
-        assertThat(availability.getStatus()).isEqualTo(RouteSeatAvailabilityStatus.BOOKED);
-    }
-
-    @Test
-    void book_whenAlreadyBooked_shouldReturnFailure() {
-        RouteSeatAvailability availability = RouteSeatAvailability.create(ROUTE_ID, SEAT_ID);
-        availability.book();
-
-        Result<Void, RouteSeatAvailabilityError> result = availability.book();
-
-        assertThat(result.isFailure()).isTrue();
-        assertThat(((Result.Failure<Void, RouteSeatAvailabilityError>) result).error())
-                .isInstanceOf(RouteSeatAvailabilityError.SeatNotAvailable.class);
-    }
-
-    @Test
-    void book_whenCancelled_shouldReturnFailure() {
-        RouteSeatAvailability availability = RouteSeatAvailability.reconstitute(
-                ROUTE_ID, SEAT_ID, RouteSeatAvailabilityStatus.CANCELLED);
-
-        Result<Void, RouteSeatAvailabilityError> result = availability.book();
-
-        assertThat(result.isFailure()).isTrue();
-    }
-
-    // ── cancel() ─────────────────────────────────────────────────────────────
-
-    @Test
-    void cancel_whenBooked_shouldTransitionToCancelled() {
-        RouteSeatAvailability availability = RouteSeatAvailability.create(ROUTE_ID, SEAT_ID);
-        availability.book();
-
-        Result<Void, RouteSeatAvailabilityError> result = availability.cancel();
-
-        assertThat(result.isSuccess()).isTrue();
-        assertThat(availability.getStatus()).isEqualTo(RouteSeatAvailabilityStatus.CANCELLED);
-    }
-
-    @Test
-    void cancel_whenAvailable_shouldReturnFailure() {
-        RouteSeatAvailability availability = RouteSeatAvailability.create(ROUTE_ID, SEAT_ID);
-
-        Result<Void, RouteSeatAvailabilityError> result = availability.cancel();
-
-        assertThat(result.isFailure()).isTrue();
-    }
-
-    // ── release() ────────────────────────────────────────────────────────────
-
-    @Test
-    void release_whenCancelled_shouldTransitionToAvailable() {
-        RouteSeatAvailability availability = RouteSeatAvailability.create(ROUTE_ID, SEAT_ID);
-        availability.book();
-        availability.cancel();
-
-        Result<Void, RouteSeatAvailabilityError> result = availability.release();
-
-        assertThat(result.isSuccess()).isTrue();
-        assertThat(availability.getStatus()).isEqualTo(RouteSeatAvailabilityStatus.AVAILABLE);
-    }
-
-    @Test
-    void release_whenBooked_shouldReturnFailure() {
-        RouteSeatAvailability availability = RouteSeatAvailability.create(ROUTE_ID, SEAT_ID);
-        availability.book();
-
-        Result<Void, RouteSeatAvailabilityError> result = availability.release();
-
-        assertThat(result.isFailure()).isTrue();
-    }
-
-    // ── create() / reconstitute() ────────────────────────────────────────────
-
-    @Test
-    void create_shouldInitializeWithAvailableStatus() {
-        RouteSeatAvailability availability = RouteSeatAvailability.create(ROUTE_ID, SEAT_ID);
-
-        assertThat(availability.getRouteId()).isEqualTo(ROUTE_ID);
-        assertThat(availability.getSeatId()).isEqualTo(SEAT_ID);
-        assertThat(availability.getStatus()).isEqualTo(RouteSeatAvailabilityStatus.AVAILABLE);
-    }
-
-    @Test
-    void reconstitute_shouldRestoreAllFields() {
-        RouteSeatAvailability availability = RouteSeatAvailability.reconstitute(
-                ROUTE_ID, SEAT_ID, RouteSeatAvailabilityStatus.BOOKED);
-
-        assertThat(availability.getStatus()).isEqualTo(RouteSeatAvailabilityStatus.BOOKED);
+            assertThat(seat.getStatus()).isEqualTo(RouteSeatAvailabilityStatus.BOOKED);
+            assertThat(seat.getBookingId()).isEqualTo(BOOKING_ID);
+            assertThat(seat.getPriceAtBooking()).isEqualTo(PRICE_500K);
+            assertThat(seat.getVersion()).isEqualTo(5);
+        }
     }
 }

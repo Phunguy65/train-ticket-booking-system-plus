@@ -1,0 +1,376 @@
+'use client';
+
+import { useQuery } from '@tanstack/react-query';
+import { AlertCircleIcon } from 'lucide-react';
+import { useTranslations } from 'next-intl';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert.tsx';
+import { Badge } from '@/components/ui/badge.tsx';
+import { Button } from '@/components/ui/button.tsx';
+import {
+    Card,
+    CardContent,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card.tsx';
+import { Skeleton } from '@/components/ui/skeleton.tsx';
+import { Link, useRouter } from '@/i18n/routing.ts';
+import { getBookingOptions } from '@/lib/api/index.ts';
+import type { BookingStatus } from '@/lib/customer-utils.ts';
+import {
+    formatDateTime,
+    formatPrice,
+    formatShortDate,
+    formatTime,
+} from '@/lib/customer-utils.ts';
+import { getErrorMessage } from '@/lib/toast.ts';
+import { BookingStepper } from './booking-stepper.tsx';
+import { PaymentStatus, type PaymentUIState } from './payment-status.tsx';
+
+type BookingDetailProps = {
+    bookingId: string;
+};
+
+/**
+ * Derive payment UI state from booking status and deadline.
+ */
+function derivePaymentUIState(
+    status: string | undefined,
+    paymentDeadline: string | undefined,
+): PaymentUIState {
+    if (status === 'CONFIRMED') return 'SUCCESS';
+    if (status === 'CANCELLED') return 'EXPIRED';
+    if (status === 'HELD') {
+        if (paymentDeadline) {
+            const deadline = new Date(paymentDeadline);
+            if (deadline <= new Date()) {
+                return 'EXPIRED';
+            }
+        }
+        return 'PENDING';
+    }
+    return 'PENDING';
+}
+
+export function BookingDetail({ bookingId }: BookingDetailProps) {
+    const t = useTranslations('Booking.detail');
+    const tStatus = useTranslations('Status');
+    const router = useRouter();
+
+    const {
+        data: booking,
+        isLoading,
+        isError,
+        error,
+        refetch,
+    } = useQuery({
+        ...getBookingOptions({
+            path: { id: bookingId },
+        }),
+        refetchInterval: (query) => {
+            const status = query.state.data?.status;
+            return status === 'HELD' ? 3000 : false;
+        },
+    });
+
+    // Handle start over from expired state
+    const handleStartOver = () => {
+        router.push('/');
+    };
+
+    // Loading state
+    if (isLoading) {
+        return (
+            <div className='space-y-6'>
+                <Skeleton className='h-8 w-48' />
+                <div className='grid gap-6 md:grid-cols-2'>
+                    <Skeleton className='h-64' />
+                    <Skeleton className='h-64' />
+                </div>
+            </div>
+        );
+    }
+
+    // Error state
+    if (isError) {
+        return (
+            <Alert variant='destructive'>
+                <AlertCircleIcon className='h-4 w-4' />
+                <AlertTitle>{t('notFound')}</AlertTitle>
+                <AlertDescription className='flex items-center gap-4'>
+                    <span>{getErrorMessage(error, t('notFound'))}</span>
+                    <Button
+                        variant='outline'
+                        size='sm'
+                        onClick={() => refetch()}
+                    >
+                        {t('retry')}
+                    </Button>
+                </AlertDescription>
+            </Alert>
+        );
+    }
+
+    if (!booking) {
+        return (
+            <Alert>
+                <AlertCircleIcon className='h-4 w-4' />
+                <AlertTitle>{t('notFound')}</AlertTitle>
+            </Alert>
+        );
+    }
+
+    const statusVariant = getStatusVariant(booking.status as BookingStatus);
+    const paymentUIState = derivePaymentUIState(
+        booking.status,
+        booking.paymentDeadline,
+    );
+    const showPaymentStatus = booking.status === 'HELD';
+
+    // Build seat lookup for passenger mapping
+    const seatMap = new Map(
+        (booking.seats || []).map((seat) => [seat.seatId, seat]),
+    );
+
+    return (
+        <div className='space-y-6'>
+            {/* Booking Progress Stepper */}
+            <BookingStepper currentStep='payment' />
+
+            <div className='flex flex-wrap items-center justify-between gap-4'>
+                <h1 className='text-2xl font-bold'>{t('title')}</h1>
+                <Badge variant={statusVariant}>
+                    {tStatus(booking.status as BookingStatus)}
+                </Badge>
+            </div>
+
+            {/* Payment Status for HELD bookings - prominent position */}
+            {showPaymentStatus && (
+                <PaymentStatus
+                    state={paymentUIState}
+                    paymentDeadline={booking.paymentDeadline}
+                    checkoutUrl={booking.payment?.checkoutUrl}
+                    onStartOver={handleStartOver}
+                />
+            )}
+
+            <div className='grid gap-6 md:grid-cols-2'>
+                {/* Booking Info */}
+                <Card>
+                    <CardHeader>
+                        <CardTitle>{t('bookingId')}</CardTitle>
+                    </CardHeader>
+                    <CardContent className='space-y-3'>
+                        <div className='flex justify-between'>
+                            <span className='text-muted-foreground'>
+                                {t('id')}
+                            </span>
+                            <span className='font-mono text-sm'>
+                                {booking.id}
+                            </span>
+                        </div>
+                        <div className='flex justify-between'>
+                            <span className='text-muted-foreground'>
+                                {t('status')}
+                            </span>
+                            <Badge variant={statusVariant}>
+                                {tStatus(booking.status as BookingStatus)}
+                            </Badge>
+                        </div>
+                        <div className='flex justify-between'>
+                            <span className='text-muted-foreground'>
+                                {t('createdAt')}
+                            </span>
+                            <span>
+                                {booking.createdAt
+                                    ? formatDateTime(booking.createdAt)
+                                    : '-'}
+                            </span>
+                        </div>
+                        {booking.paymentDeadline
+                            && booking.status === 'HELD' && (
+                                <div className='flex justify-between'>
+                                    <span className='text-muted-foreground'>
+                                        {t('paymentDeadline')}
+                                    </span>
+                                    <span className='text-destructive'>
+                                        {formatDateTime(
+                                            booking.paymentDeadline,
+                                        )}
+                                    </span>
+                                </div>
+                            )}
+                        <div className='flex justify-between border-t pt-3'>
+                            <span className='font-semibold'>{t('total')}</span>
+                            <span className='text-lg font-bold text-primary'>
+                                {booking.totalPrice
+                                    ? formatPrice(booking.totalPrice)
+                                    : '-'}
+                            </span>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                {/* Trip Info */}
+                <Card>
+                    <CardHeader>
+                        <CardTitle>{t('trip')}</CardTitle>
+                    </CardHeader>
+                    <CardContent className='space-y-3'>
+                        {booking.trip && (
+                            <>
+                                <div className='flex justify-between'>
+                                    <span className='text-muted-foreground'>
+                                        {booking.trip.train?.name}
+                                    </span>
+                                    <span>
+                                        {booking.trip.train?.trainNumber}
+                                    </span>
+                                </div>
+                                <div className='flex justify-between'>
+                                    <span className='text-muted-foreground'>
+                                        {booking.trip.route?.origin?.name}
+                                    </span>
+                                    <span>
+                                        {booking.trip.departureTime
+                                            ? formatTime(
+                                                  booking.trip.departureTime,
+                                              )
+                                            : '-'}
+                                    </span>
+                                </div>
+                                <div className='flex justify-between'>
+                                    <span className='text-muted-foreground'>
+                                        {booking.trip.route?.destination?.name}
+                                    </span>
+                                    <span>
+                                        {booking.trip.arrivalTime
+                                            ? formatTime(
+                                                  booking.trip.arrivalTime,
+                                              )
+                                            : '-'}
+                                    </span>
+                                </div>
+                            </>
+                        )}
+                    </CardContent>
+                </Card>
+
+                {/* Seats */}
+                <Card>
+                    <CardHeader>
+                        <CardTitle>{t('seats')}</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className='flex flex-wrap gap-2'>
+                            {booking.seats?.map((seat) => (
+                                <span
+                                    key={seat.seatId}
+                                    className='inline-flex items-center rounded-md bg-secondary px-2 py-1 text-sm font-medium'
+                                >
+                                    {seat.seatNumber}
+                                </span>
+                            ))}
+                        </div>
+                    </CardContent>
+                </Card>
+
+                {/* Booker Info */}
+                <Card>
+                    <CardHeader>
+                        <CardTitle>{t('booker')}</CardTitle>
+                    </CardHeader>
+                    <CardContent className='space-y-3'>
+                        {booking.bookerInfo && (
+                            <>
+                                <div>{booking.bookerInfo.fullName}</div>
+                                <div className='text-sm text-muted-foreground'>
+                                    {booking.bookerInfo.email}
+                                </div>
+                                {booking.bookerInfo.phone && (
+                                    <div className='text-sm text-muted-foreground'>
+                                        {booking.bookerInfo.phone}
+                                    </div>
+                                )}
+                            </>
+                        )}
+                    </CardContent>
+                </Card>
+            </div>
+
+            {/* Passengers by Seat */}
+            <Card>
+                <CardHeader>
+                    <CardTitle>{t('passengers')}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    {booking.passengers && booking.passengers.length > 0 ? (
+                        <div className='space-y-4'>
+                            {booking.passengers.map((passenger) => {
+                                const seat = seatMap.get(passenger.seatId);
+                                return (
+                                    <div
+                                        key={passenger.seatId}
+                                        className='rounded-lg border p-4'
+                                    >
+                                        <div className='mb-2 flex items-center justify-between'>
+                                            <h3 className='font-medium'>
+                                                {passenger.fullName}
+                                            </h3>
+                                            <Badge variant='secondary'>
+                                                {seat?.seatNumber
+                                                    ?? passenger.seatId}
+                                            </Badge>
+                                        </div>
+                                        <div className='space-y-1 text-sm text-muted-foreground'>
+                                            <div>
+                                                {t('idDocument')}:{' '}
+                                                {passenger.idDocumentNumber}
+                                            </div>
+                                            <div>
+                                                {t('dateOfBirth')}:{' '}
+                                                {passenger.dateOfBirth
+                                                    ? formatShortDate(
+                                                          passenger.dateOfBirth,
+                                                      )
+                                                    : '-'}
+                                            </div>
+                                            <div>
+                                                {t('gender')}:{' '}
+                                                {passenger.gender}
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    ) : (
+                        <p className='text-sm text-muted-foreground'>
+                            {t('noPassengers')}
+                        </p>
+                    )}
+                </CardContent>
+            </Card>
+
+            <div className='flex justify-start'>
+                <Button variant='outline' asChild>
+                    <Link href='/account'>{t('backToBookings')}</Link>
+                </Button>
+            </div>
+        </div>
+    );
+}
+
+function getStatusVariant(
+    status: BookingStatus,
+): 'default' | 'secondary' | 'destructive' | 'outline' {
+    switch (status) {
+        case 'CONFIRMED':
+            return 'default';
+        case 'HELD':
+            return 'secondary';
+        case 'CANCELLED':
+            return 'destructive';
+        default:
+            return 'outline';
+    }
+}

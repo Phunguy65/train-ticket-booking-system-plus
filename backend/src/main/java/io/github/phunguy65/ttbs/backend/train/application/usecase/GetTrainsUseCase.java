@@ -1,10 +1,12 @@
 package io.github.phunguy65.ttbs.backend.train.application.usecase;
 
-import io.github.phunguy65.ttbs.backend.shared.domain.PageResult;
-import io.github.phunguy65.ttbs.backend.shared.domain.SortDirection;
-import io.github.phunguy65.ttbs.backend.train.application.dto.TrainDto;
-import io.github.phunguy65.ttbs.backend.train.domain.model.Train;
+import io.github.phunguy65.ttbs.backend.shared.domain.PageResponse;
+import io.github.phunguy65.ttbs.backend.shared.domain.SortOrder;
+import io.github.phunguy65.ttbs.backend.train.application.query.GetTrainsQuery;
+import io.github.phunguy65.ttbs.backend.train.application.response.TrainResponse;
+import io.github.phunguy65.ttbs.backend.train.domain.projection.TrainSummary;
 import io.github.phunguy65.ttbs.backend.train.domain.repository.TrainRepository;
+import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,22 +20,24 @@ public class GetTrainsUseCase {
     }
 
     @Transactional(readOnly = true)
-    public PageResult<TrainDto> execute(
-            int page, int size, String sortField, SortDirection direction) {
-        PageResult<Train> trains = trainRepository.findAll(page, size, sortField, direction);
-        return PageResult.of(
-                trains.items().stream().map(this::toDto).toList(),
-                trains.pageNumber(),
-                trains.pageSize(),
-                trains.hasNext());
+    public PageResponse<TrainResponse> execute(GetTrainsQuery query) {
+        List<SortOrder> sort = List.of(SortOrder.asc("trainNumber"), SortOrder.asc("id"));
+        PageResponse<TrainSummary> trains =
+                trainRepository.findAllSummaries(query.page(), query.size(), sort);
+        return PageResponse.of(
+                trains.content().stream().map(this::toDto).toList(),
+                trains.page(),
+                trains.size(),
+                trains.hasNext(),
+                trains.total());
     }
 
-    private TrainDto toDto(Train train) {
-        return new TrainDto(
-                train.getId().value(),
-                train.getTrainNumber(),
-                train.getName(),
-                train.getTotalSeats(),
-                train.getCreatedAt());
+    private TrainResponse toDto(TrainSummary train) {
+        return new TrainResponse(
+                train.id(),
+                train.trainNumber(),
+                train.name(),
+                train.totalSeats(),
+                train.createdAt());
     }
 }

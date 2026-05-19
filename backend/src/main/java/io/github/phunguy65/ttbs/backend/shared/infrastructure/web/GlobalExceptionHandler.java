@@ -1,6 +1,7 @@
 package io.github.phunguy65.ttbs.backend.shared.infrastructure.web;
 
 import io.github.phunguy65.ttbs.backend.payment.StripeGatewayException;
+import io.github.phunguy65.ttbs.backend.shared.infrastructure.cursor.InvalidCursorException;
 import jakarta.persistence.LockTimeoutException;
 import jakarta.persistence.OptimisticLockException;
 import jakarta.persistence.PessimisticLockException;
@@ -23,6 +24,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 /**
  * Translates <em>technical</em> exceptions into JSend-compliant HTTP responses.
@@ -131,15 +133,33 @@ public class GlobalExceptionHandler {
                         List.of())));
     }
 
+    @ExceptionHandler(InvalidCursorException.class)
+    ResponseEntity<JsendResponse<FailData>> handleInvalidCursor(InvalidCursorException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(JsendResponse.fail(new FailData(
+                        "The pagination cursor is malformed or expired",
+                        ErrorCode.CURSOR_INVALID,
+                        List.of())));
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    ResponseEntity<JsendResponse<FailData>> handleTypeMismatch(
+            MethodArgumentTypeMismatchException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(JsendResponse.fail(new FailData(
+                        "Invalid request parameter", ErrorCode.VALIDATION_ERROR, List.of())));
+    }
+
     /**
      * Handles Stripe gateway failures (network errors, API errors, rate limits).
-     * Returns JSend {@code error} with HTTP 502 Bad Gateway so the client knows
-     * the payment provider is unavailable rather than seeing a generic 500.
+     * Returns JSend {@code error} with HTTP 503 Service Unavailable and a {@code Retry-After}
+     * header so the client knows the payment provider is temporarily unavailable.
      */
     @ExceptionHandler(StripeGatewayException.class)
     ResponseEntity<JsendResponse<Void>> handleStripeGateway(StripeGatewayException ex) {
         log.error("Stripe gateway error", ex);
-        return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                .header("Retry-After", "5")
                 .body(JsendResponse.error(
                         "Payment service is temporarily unavailable. Please try again."));
     }

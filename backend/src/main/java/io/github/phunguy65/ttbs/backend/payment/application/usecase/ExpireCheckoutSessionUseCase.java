@@ -1,6 +1,6 @@
 package io.github.phunguy65.ttbs.backend.payment.application.usecase;
 
-import io.github.phunguy65.ttbs.backend.booking.domain.model.BookingId;
+import io.github.phunguy65.ttbs.backend.payment.application.command.ExpireCheckoutSessionCommand;
 import io.github.phunguy65.ttbs.backend.payment.application.port.StripeGatewayPort;
 import io.github.phunguy65.ttbs.backend.payment.domain.model.Payment;
 import io.github.phunguy65.ttbs.backend.payment.domain.model.PaymentStatus;
@@ -25,7 +25,8 @@ public class ExpireCheckoutSessionUseCase {
     }
 
     @Transactional
-    public void execute(BookingId bookingId) {
+    public void execute(ExpireCheckoutSessionCommand command) {
+        var bookingId = command.bookingId();
         Payment payment = paymentRepository.findByBookingId(bookingId).orElse(null);
 
         if (payment == null) {

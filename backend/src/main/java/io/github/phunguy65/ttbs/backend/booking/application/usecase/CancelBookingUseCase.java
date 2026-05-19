@@ -8,8 +8,12 @@ import io.github.phunguy65.ttbs.backend.booking.domain.model.BookingStatus;
 import io.github.phunguy65.ttbs.backend.booking.domain.repository.BookingRepository;
 import io.github.phunguy65.ttbs.backend.shared.domain.DomainEvent;
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
-import io.github.phunguy65.ttbs.backend.train.application.port.RouteSeatAvailabilityPort;
+import io.github.phunguy65.ttbs.backend.shared.domain.event.SeatStatusChangedEvent;
+import io.github.phunguy65.ttbs.backend.train.application.port.RouteSeatAvailabilityManager;
+import io.github.phunguy65.ttbs.backend.train.domain.model.RouteSeatAvailability;
+import io.github.phunguy65.ttbs.backend.train.domain.model.ScheduledTripId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.SeatId;
+import java.time.Instant;
 import java.util.List;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -19,12 +23,12 @@ import org.springframework.transaction.annotation.Transactional;
 public class CancelBookingUseCase {
 
     private final BookingRepository bookingRepository;
-    private final RouteSeatAvailabilityPort seatAvailabilityPort;
+    private final RouteSeatAvailabilityManager seatAvailabilityPort;
     private final ApplicationEventPublisher eventPublisher;
 
     public CancelBookingUseCase(
             BookingRepository bookingRepository,
-            RouteSeatAvailabilityPort seatAvailabilityPort,
+            RouteSeatAvailabilityManager seatAvailabilityPort,
             ApplicationEventPublisher eventPublisher) {
         this.bookingRepository = bookingRepository;
         this.seatAvailabilityPort = seatAvailabilityPort;
@@ -33,46 +37,53 @@ public class CancelBookingUseCase {
 
     @Transactional
     public Result<Void, BookingError> execute(CancelBookingCommand command) {
-        // 1. Load booking
         var found = bookingRepository.findById(BookingId.of(command.bookingId()));
         if (found.isEmpty()) {
             return Result.failure(new BookingError.BookingNotFound());
         }
         Booking booking = found.get();
 
-        // 2. Ownership check
         if (!booking.getUserId().value().equals(command.requestingUserId())) {
             return Result.failure(new BookingError.Forbidden());
         }
 
-        // 3. Remember previous status for seat release strategy
         BookingStatus previousStatus = booking.getStatus();
 
-        // 4. Cancel the booking (domain method)
         Result<Void, BookingError> cancelResult = booking.cancel();
         if (cancelResult.isFailure()) {
             return cancelResult;
         }
 
-        // 5. Status-aware seat release
+        ScheduledTripId scheduledTripId = booking.getScheduledTripId();
         List<SeatId> seatIds = seatAvailabilityPort.findSeatIdsByBookingId(command.bookingId());
 
         if (!seatIds.isEmpty()) {
             if (previousStatus == BookingStatus.HELD) {
-                seatAvailabilityPort.releaseHeldSeats(booking.getRouteId(), seatIds);
+                seatAvailabilityPort.releaseHeldSeats(scheduledTripId, seatIds);
             } else if (previousStatus == BookingStatus.CONFIRMED) {
-                seatAvailabilityPort.cancelBookedSeats(booking.getRouteId(), seatIds);
+                seatAvailabilityPort.cancelBookedSeats(scheduledTripId, seatIds);
             }
         }
 
-        // 6. Persist
         bookingRepository.save(booking);
 
-        // 7. Publish events
         for (DomainEvent event : booking.getDomainEvents()) {
             eventPublisher.publishEvent(event);
         }
         booking.clearDomainEvents();
+
+        // Emit SSE event for released/cancelled seats (HELD->AVAILABLE or BOOKED->CANCELLED)
+        if (!seatIds.isEmpty()) {
+            List<RouteSeatAvailability> affectedSeats =
+                    seatAvailabilityPort.findByScheduledTripIdAndSeatIds(scheduledTripId, seatIds);
+            List<SeatStatusChangedEvent.SeatChange> changes = affectedSeats.stream()
+                    .map(seat -> new SeatStatusChangedEvent.SeatChange(
+                            seat.getSeatId().value(), seat.getStatus().name(), seat.getBookingId()))
+                    .toList();
+            SeatStatusChangedEvent sseEvent =
+                    new SeatStatusChangedEvent(scheduledTripId.value(), changes, Instant.now());
+            eventPublisher.publishEvent(sseEvent);
+        }
 
         return Result.success();
     }

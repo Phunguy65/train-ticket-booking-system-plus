@@ -1,432 +1,3093 @@
-openapi: 3.0.3
+---
+openapi: "3.1.0"
 info:
-  title: Train Booking API
-  description: REST API for train ticket booking system
-  version: 1.0.0
-  contact:
-    name: Train Booking Support
-    email: support@trainbooking.com
-
+  title: "TTBS Customer API"
+  description: "Customer-facing API contract for the train ticket booking system."
+  version: "1.0"
 servers:
-  - url: http://localhost:8080/api/v1
-    description: Development server
-  - url: https://api.trainbooking.com/api/v1
-    description: Production server
-
+- url: "/"
+  description: "Versioned customer API root"
+security:
+- bearerAuth: []
+tags:
+- name: "Authentication"
+  description: "Customer identity, session, and profile endpoints."
+- name: "Bookings"
+  description: "Customer booking creation, lookup, and cancellation endpoints."
+- name: "Payments"
+  description: "Customer payment lookup endpoints."
+- name: "Stations"
+  description: "Station browse and search endpoints."
+- name: "Trains"
+  description: "Train, coach, seat, and route lookup endpoints."
 paths:
-  /auth/register:
-    post:
-      tags:
-        - Authentication
-      summary: Register a new user
-      operationId: register
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - email
-                - password
-                - fullName
-              properties:
-                email:
-                  type: string
-                  format: email
-                password:
-                  type: string
-                  minLength: 8
-                fullName:
-                  type: string
-                phone:
-                  type: string
-      responses:
-        '201':
-          description: User registered successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/User'
-        '400':
-          description: Invalid input
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
-  /auth/login:
-    post:
-      tags:
-        - Authentication
-      summary: Login user
-      operationId: login
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - email
-                - password
-              properties:
-                email:
-                  type: string
-                  format: email
-                password:
-                  type: string
-      responses:
-        '200':
-          description: Login successful
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  accessToken:
-                    type: string
-                  refreshToken:
-                    type: string
-                  user:
-                    $ref: '#/components/schemas/User'
-        '401':
-          description: Invalid credentials
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
-  /trains:
+  /api/v1/auth/me:
     get:
       tags:
-        - Trains
-      summary: Get all trains
-      operationId: getTrains
-      security:
-        - bearerAuth: []
+      - "Authentication"
+      summary: "Get the current customer profile"
+      operationId: "getAuthenticatedUser"
       responses:
-        '200':
-          description: List of trains
+        "200":
+          description: "Authenticated customer profile"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendResponseObject"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+        "401":
+          description: "Authentication required"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendFailResponse"
+        "404":
+          description: "Customer profile not found"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendFailResponse"
+        "500":
+          description: "Unexpected technical failure."
           content:
             application/json:
               schema:
-                type: array
+                $ref: "#/components/schemas/JsendErrorResponse"
+      security:
+      - bearerAuth: []
+    put:
+      tags:
+      - "Authentication"
+      summary: "Replace the current customer profile"
+      description: "Performs a full replacement of the authenticated customer's editable\
+        \ profile fields."
+      operationId: "updateAuthenticatedUser"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateAuthenticatedUserRequest"
+        required: true
+      responses:
+        "200":
+          description: "Customer profile updated"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendResponseObject"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+        "400":
+          description: "Invalid update payload"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendFailResponse"
+        "401":
+          description: "Authentication required"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendFailResponse"
+        "404":
+          description: "Customer profile not found"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendFailResponse"
+        "409":
+          description: "Email address already exists"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendFailResponse"
+        "500":
+          description: "Unexpected technical failure."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JsendErrorResponse"
+      security:
+      - bearerAuth: []
+    delete:
+      tags:
+      - "Authentication"
+      summary: "Soft-delete the current customer account"
+      operationId: "deleteAuthenticatedUser"
+      responses:
+        "200":
+          description: "Customer account deleted"
+        "401":
+          description: "Authentication required"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendFailResponse"
+        "404":
+          description: "Customer profile not found"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendFailResponse"
+        "409":
+          description: "Customer still has active bookings"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendFailResponse"
+        "500":
+          description: "Unexpected technical failure."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JsendErrorResponse"
+      security:
+      - bearerAuth: []
+  /api/v1/bookings:
+    post:
+      tags:
+      - "Bookings"
+      summary: "Create a booking"
+      operationId: "createBooking"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateBookingRequest"
+        required: true
+      responses:
+        "201":
+          description: "Booking created"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendResponseObject"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BookingResponse"
+        "400":
+          description: "Invalid booking payload"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendFailResponse"
+        "404":
+          description: "Scheduled trip or customer not found"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendFailResponse"
+        "409":
+          description: "Booking cannot be created because seats are unavailable or\
+            \ already held"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendFailResponse"
+        "500":
+          description: "Unexpected technical failure."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JsendErrorResponse"
+      security:
+      - bearerAuth: []
+  /api/v1/bookings/{id}/cancel:
+    post:
+      tags:
+      - "Bookings"
+      summary: "Cancel an existing booking"
+      operationId: "cancelBooking"
+      parameters:
+      - name: "id"
+        in: "path"
+        description: "Booking identifier"
+        required: true
+        schema:
+          type: "string"
+          format: "uuid"
+      responses:
+        "200":
+          description: "Booking cancelled"
+        "403":
+          description: "Customer cannot cancel this booking"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendFailResponse"
+        "404":
+          description: "Booking not found"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendFailResponse"
+        "409":
+          description: "Booking cannot transition to cancelled state"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendFailResponse"
+        "500":
+          description: "Unexpected technical failure."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JsendErrorResponse"
+      security:
+      - bearerAuth: []
+  /api/v1/bookings/{bookingId}/checkout:
+    post:
+      tags:
+      - "Payments"
+      summary: "Create a Stripe checkout session for a booking"
+      operationId: "createCheckoutSession"
+      parameters:
+      - name: "bookingId"
+        in: "path"
+        description: "Booking identifier"
+        required: true
+        schema:
+          type: "string"
+          format: "uuid"
+      responses:
+        "201":
+          description: "Checkout session created"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendResponseObject"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CheckoutSessionResponse"
+        "200":
+          description: "Checkout session already exists (idempotent)"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendResponseObject"
+        "403":
+          description: "Customer cannot create a payment for this booking"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendFailResponse"
+        "404":
+          description: "Booking not found"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendFailResponse"
+        "409":
+          description: "Booking is not in a payable state or payment was already processed"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendFailResponse"
+        "500":
+          description: "Unexpected technical failure."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JsendErrorResponse"
+      security:
+      - bearerAuth: []
+  /api/v1/auth/register:
+    post:
+      tags:
+      - "Authentication"
+      summary: "Register a customer account"
+      operationId: "register"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterRequest"
+        required: true
+      responses:
+        "201":
+          description: "Customer account created"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendResponseObject"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+        "400":
+          description: "Invalid registration payload"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendFailResponse"
+        "409":
+          description: "Email address already exists"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendFailResponse"
+        "500":
+          description: "Unexpected technical failure."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JsendErrorResponse"
+  /api/v1/auth/refresh:
+    post:
+      tags:
+      - "Authentication"
+      summary: "Rotate access and refresh tokens"
+      operationId: "refreshToken"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RefreshTokenRequest"
+        required: true
+      responses:
+        "200":
+          description: "Token pair rotated"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendResponseObject"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoginResultResponse"
+        "400":
+          description: "Invalid refresh-token payload"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendFailResponse"
+        "401":
+          description: "Refresh token is invalid or expired"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendFailResponse"
+        "500":
+          description: "Unexpected technical failure."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JsendErrorResponse"
+  /api/v1/auth/logout:
+    post:
+      tags:
+      - "Authentication"
+      summary: "Revoke the current refresh token"
+      operationId: "logout"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RefreshTokenRequest"
+        required: true
+      responses:
+        "200":
+          description: "Refresh token revoked"
+        "400":
+          description: "Invalid refresh-token payload"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendFailResponse"
+        "401":
+          description: "Refresh token is invalid or expired"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendFailResponse"
+        "500":
+          description: "Unexpected technical failure."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JsendErrorResponse"
+  /api/v1/auth/login:
+    post:
+      tags:
+      - "Authentication"
+      summary: "Authenticate a customer"
+      operationId: "login"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+        required: true
+      responses:
+        "200":
+          description: "Authentication successful"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendResponseObject"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoginResultResponse"
+        "400":
+          description: "Invalid login payload"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendFailResponse"
+        "401":
+          description: "Invalid customer credentials"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendFailResponse"
+        "500":
+          description: "Unexpected technical failure."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JsendErrorResponse"
+  /api/v1/users/{userId}/payments:
+    get:
+      tags:
+      - "Payments"
+      summary: "List payments for a customer"
+      operationId: "getUserPayments"
+      parameters:
+      - name: "userId"
+        in: "path"
+        description: "Customer identifier that owns the payments"
+        required: true
+        schema:
+          type: "string"
+          format: "uuid"
+      - name: "page"
+        in: "query"
+        description: "Zero-based page index."
+        required: false
+        schema:
+          type: "integer"
+          format: "int32"
+          description: "Zero-based page index."
+          example: 0
+          minimum: 0
+        example: 0
+      - name: "size"
+        in: "query"
+        description: "Number of payments per page."
+        required: false
+        schema:
+          type: "integer"
+          format: "int32"
+          description: "Number of payments per page."
+          example: 20
+          maximum: 100
+          minimum: 1
+        example: 20
+      responses:
+        "200":
+          description: "Paged payment history"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendResponseObject"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PageResponseUserPaymentResponse"
+        "400":
+          description: "Invalid pagination parameters"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendFailResponse"
+        "403":
+          description: "Customer cannot access another customer's payments"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendFailResponse"
+        "500":
+          description: "Unexpected technical failure."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JsendErrorResponse"
+      security:
+      - bearerAuth: []
+  /api/v1/users/{userId}/bookings:
+    get:
+      tags:
+      - "Bookings"
+      summary: "List bookings for a customer"
+      operationId: "getUserBookings"
+      parameters:
+      - name: "userId"
+        in: "path"
+        description: "Customer identifier that owns the bookings"
+        required: true
+        schema:
+          type: "string"
+          format: "uuid"
+      - name: "page"
+        in: "query"
+        description: "Zero-based page index."
+        required: false
+        schema:
+          type: "integer"
+          format: "int32"
+          description: "Zero-based page index."
+          example: 0
+          minimum: 0
+        example: 0
+      - name: "size"
+        in: "query"
+        description: "Number of bookings per page."
+        required: false
+        schema:
+          type: "integer"
+          format: "int32"
+          description: "Number of bookings per page."
+          example: 20
+          maximum: 100
+          minimum: 1
+        example: 20
+      responses:
+        "200":
+          description: "Paged booking history"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendResponseObject"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PageResponseUserBookingResponse"
+        "400":
+          description: "Invalid pagination parameters"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendFailResponse"
+        "403":
+          description: "Customer cannot access another customer's bookings"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendFailResponse"
+        "500":
+          description: "Unexpected technical failure."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JsendErrorResponse"
+      security:
+      - bearerAuth: []
+  /api/v1/trains:
+    get:
+      tags:
+      - "Trains"
+      summary: "List trains"
+      operationId: "getTrains"
+      parameters:
+      - name: "page"
+        in: "query"
+        description: "Zero-based page index."
+        required: false
+        schema:
+          type: "integer"
+          format: "int32"
+          description: "Zero-based page index."
+          example: 0
+          minimum: 0
+        example: 0
+      - name: "size"
+        in: "query"
+        description: "Number of trains per page."
+        required: false
+        schema:
+          type: "integer"
+          format: "int32"
+          description: "Number of trains per page."
+          example: 20
+          maximum: 100
+          minimum: 1
+        example: 20
+      responses:
+        "200":
+          description: "Paged train catalog"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendResponseObject"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PageResponseTrainResponse"
+        "400":
+          description: "Invalid pagination parameters"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendFailResponse"
+        "500":
+          description: "Unexpected technical failure."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JsendErrorResponse"
+  /api/v1/trains/{trainId}/seats:
+    get:
+      tags:
+      - "Trains"
+      summary: "List seats for a train"
+      operationId: "getTrainSeats"
+      parameters:
+      - name: "trainId"
+        in: "path"
+        description: "Train identifier"
+        required: true
+        schema:
+          type: "string"
+          format: "uuid"
+      - name: "page"
+        in: "query"
+        description: "Zero-based page index."
+        required: false
+        schema:
+          type: "integer"
+          format: "int32"
+          description: "Zero-based page index."
+          example: 0
+          minimum: 0
+        example: 0
+      - name: "size"
+        in: "query"
+        description: "Number of seats per page."
+        required: false
+        schema:
+          type: "integer"
+          format: "int32"
+          description: "Number of seats per page."
+          example: 20
+          maximum: 100
+          minimum: 1
+        example: 20
+      responses:
+        "200":
+          description: "Paged seats for the train"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendResponseObject"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PageResponseSeatResponse"
+        "400":
+          description: "Invalid pagination parameters"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendFailResponse"
+        "500":
+          description: "Unexpected technical failure."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JsendErrorResponse"
+  /api/v1/trains/{trainId}/coaches:
+    get:
+      tags:
+      - "Trains"
+      summary: "List coaches for a train"
+      operationId: "getTrainCoaches"
+      parameters:
+      - name: "trainId"
+        in: "path"
+        description: "Train identifier"
+        required: true
+        schema:
+          type: "string"
+          format: "uuid"
+      - name: "page"
+        in: "query"
+        description: "Zero-based page index."
+        required: false
+        schema:
+          type: "integer"
+          format: "int32"
+          description: "Zero-based page index."
+          example: 0
+          minimum: 0
+        example: 0
+      - name: "size"
+        in: "query"
+        description: "Number of coaches per page."
+        required: false
+        schema:
+          type: "integer"
+          format: "int32"
+          description: "Number of coaches per page."
+          example: 20
+          maximum: 100
+          minimum: 1
+        example: 20
+      responses:
+        "200":
+          description: "Paged coaches for the train"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendResponseObject"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PageResponseCoachResponse"
+        "400":
+          description: "Invalid pagination parameters"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendFailResponse"
+        "404":
+          description: "Train not found"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendFailResponse"
+        "500":
+          description: "Unexpected technical failure."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JsendErrorResponse"
+  /api/v1/trains/{trainId}/coaches/{id}:
+    get:
+      tags:
+      - "Trains"
+      summary: "Get a coach by id"
+      operationId: "getTrainCoach"
+      parameters:
+      - name: "trainId"
+        in: "path"
+        description: "Train identifier"
+        required: true
+        schema:
+          type: "string"
+          format: "uuid"
+      - name: "id"
+        in: "path"
+        description: "Coach identifier"
+        required: true
+        schema:
+          type: "string"
+          format: "uuid"
+      responses:
+        "200":
+          description: "Coach detail"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendResponseObject"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CoachResponse"
+        "404":
+          description: "Coach or train not found"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendFailResponse"
+        "500":
+          description: "Unexpected technical failure."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JsendErrorResponse"
+  /api/v1/trains/{id}:
+    get:
+      tags:
+      - "Trains"
+      summary: "Get a train by id"
+      operationId: "getTrain"
+      parameters:
+      - name: "id"
+        in: "path"
+        description: "Train identifier"
+        required: true
+        schema:
+          type: "string"
+          format: "uuid"
+      responses:
+        "200":
+          description: "Train detail"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendResponseObject"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TrainResponse"
+        "404":
+          description: "Train not found"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendFailResponse"
+        "500":
+          description: "Unexpected technical failure."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JsendErrorResponse"
+  /api/v1/stations:
+    get:
+      tags:
+      - "Stations"
+      summary: "List stations"
+      operationId: "getStations"
+      parameters:
+      - name: "page"
+        in: "query"
+        description: "Zero-based page index."
+        required: false
+        schema:
+          type: "integer"
+          format: "int32"
+          description: "Zero-based page index."
+          example: 0
+          minimum: 0
+        example: 0
+      - name: "size"
+        in: "query"
+        description: "Number of stations per page."
+        required: false
+        schema:
+          type: "integer"
+          format: "int32"
+          description: "Number of stations per page."
+          example: 20
+          maximum: 100
+          minimum: 1
+        example: 20
+      responses:
+        "200":
+          description: "Paged station catalog"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendResponseObject"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PageResponseStationResponse"
+        "400":
+          description: "Invalid pagination parameters"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendFailResponse"
+        "500":
+          description: "Unexpected technical failure."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JsendErrorResponse"
+  /api/v1/stations/{id}:
+    get:
+      tags:
+      - "Stations"
+      summary: "Get a station by id"
+      operationId: "getStation"
+      parameters:
+      - name: "id"
+        in: "path"
+        description: "Station identifier"
+        required: true
+        schema:
+          type: "string"
+          format: "uuid"
+      responses:
+        "200":
+          description: "Station detail"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendResponseObject"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StationResponse"
+        "404":
+          description: "Station not found"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendFailResponse"
+        "500":
+          description: "Unexpected technical failure."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JsendErrorResponse"
+  /api/v1/stations/search:
+    get:
+      tags:
+      - "Stations"
+      summary: "Search stations by keyword"
+      operationId: "searchStations"
+      parameters:
+      - name: "q"
+        in: "query"
+        description: "Free-text station search term."
+        required: false
+        schema:
+          type: "string"
+          description: "Free-text station search term."
+          example: "ha noi"
+        example: "ha noi"
+      - name: "limit"
+        in: "query"
+        description: "Maximum number of station suggestions to return."
+        required: false
+        schema:
+          type: "integer"
+          format: "int32"
+          description: "Maximum number of station suggestions to return."
+          example: 10
+          maximum: 20
+          minimum: 1
+        example: 10
+      responses:
+        "200":
+          description: "Matching station suggestions"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendResponseObject"
+            application/json:
+              schema:
+                type: "array"
                 items:
-                  $ref: '#/components/schemas/Train'
-        '401':
-          description: Unauthorized
+                  $ref: "#/components/schemas/StationSearchResponse"
+        "400":
+          description: "Invalid station search parameters"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendFailResponse"
+        "500":
+          description: "Unexpected technical failure."
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
-  /trains/{id}:
+                $ref: "#/components/schemas/JsendErrorResponse"
+  /api/v1/scheduled-trips:
     get:
       tags:
-        - Trains
-      summary: Get train by ID
-      operationId: getTrainById
-      security:
-        - bearerAuth: []
+      - "Trains"
+      summary: "List scheduled trips"
+      operationId: "getScheduledTrips"
       parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-            format: int64
+      - name: "page"
+        in: "query"
+        description: "Zero-based page index."
+        required: false
+        schema:
+          type: "integer"
+          format: "int32"
+          description: "Zero-based page index."
+          example: 0
+          minimum: 0
+        example: 0
+      - name: "size"
+        in: "query"
+        description: "Number of scheduled trips per page."
+        required: false
+        schema:
+          type: "integer"
+          format: "int32"
+          description: "Number of scheduled trips per page."
+          example: 20
+          maximum: 100
+          minimum: 1
+        example: 20
       responses:
-        '200':
-          description: Train details
+        "200":
+          description: "Paged scheduled trips"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendResponseObject"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PageResponseScheduledTripResponse"
+        "400":
+          description: "Invalid pagination parameters"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendFailResponse"
+        "500":
+          description: "Unexpected technical failure."
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Train'
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '404':
-          description: Train not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
-  /bookings:
+                $ref: "#/components/schemas/JsendErrorResponse"
+  /api/v1/scheduled-trips:filter:
     get:
       tags:
-        - Bookings
-      summary: Get user bookings
-      operationId: getUserBookings
-      security:
-        - bearerAuth: []
-      responses:
-        '200':
-          description: List of bookings
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Booking'
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
-    post:
-      tags:
-        - Bookings
-      summary: Create a new booking
-      operationId: createBooking
-      security:
-        - bearerAuth: []
+      - "Trains"
+      summary: "Filter scheduled trips"
+      operationId: "filterScheduledTrips"
       parameters:
-        - name: Idempotency-Key
-          in: header
-          required: true
-          schema:
-            type: string
-      requestBody:
+      - name: "originStationId"
+        in: "query"
+        description: "Origin station filter."
+        required: false
+        schema:
+          type: "string"
+          format: "uuid"
+          description: "Origin station filter."
+      - name: "destinationStationId"
+        in: "query"
+        description: "Destination station filter."
+        required: false
+        schema:
+          type: "string"
+          format: "uuid"
+          description: "Destination station filter."
+      - name: "departureDate"
+        in: "query"
+        description: "Departure date filter."
+        required: false
+        schema:
+          type: "string"
+          format: "date"
+          description: "Departure date filter."
+      - name: "status"
+        in: "query"
+        description: "Scheduled trip status filter."
+        required: false
+        schema:
+          type: "string"
+          description: "Scheduled trip status filter."
+          enum:
+          - "SCHEDULED"
+          - "BOARDING"
+          - "DEPARTED"
+          - "ARRIVED"
+          - "CANCELLED"
+          pattern: "SCHEDULED|BOARDING|DEPARTED|ARRIVED|CANCELLED"
+      - name: "availableOnly"
+        in: "query"
+        description: "When true, only trips with currently available seats are returned."
+        required: false
+        schema:
+          type: "boolean"
+          description: "When true, only trips with currently available seats are returned."
+          example: true
+        example: true
+      - name: "minPrice"
+        in: "query"
+        description: "Minimum fare filter in minor currency units."
+        required: false
+        schema:
+          type: "integer"
+          format: "int64"
+          description: "Minimum fare filter in minor currency units."
+          example: 350000
+          minimum: 0
+        example: 350000
+      - name: "maxPrice"
+        in: "query"
+        description: "Maximum fare filter in minor currency units."
+        required: false
+        schema:
+          type: "integer"
+          format: "int64"
+          description: "Maximum fare filter in minor currency units."
+          example: 950000
+          minimum: 0
+        example: 950000
+      - name: "sortBy"
+        in: "query"
+        description: "Field used to sort results."
+        required: false
+        schema:
+          type: "string"
+          description: "Field used to sort results."
+          enum:
+          - "DEPARTURE_TIME"
+          - "PRICE"
+          - "DURATION"
+          - "AVAILABLE_SEATS"
+          pattern: "DEPARTURE_TIME|PRICE|DURATION|AVAILABLE_SEATS"
+      - name: "sortDirection"
+        in: "query"
+        description: "Sort direction."
+        required: false
+        schema:
+          type: "string"
+          description: "Sort direction."
+          enum:
+          - "ASC"
+          - "DESC"
+          pattern: "ASC|DESC"
+      - name: "cursor"
+        in: "query"
+        description: "Opaque cursor from the previous search page. Omit to start from\
+          \ the beginning."
+        required: false
+        schema:
+          type: "string"
+          description: "Opaque cursor from the previous search page. Omit to start\
+            \ from the beginning."
+          example: "opaque-cursor-token"
+        example: "opaque-cursor-token"
+      - name: "size"
+        in: "query"
+        description: "Number of results per page."
+        required: false
+        schema:
+          type: "integer"
+          format: "int32"
+          description: "Number of results per page."
+          example: 20
+          maximum: 50
+          minimum: 1
+        example: 20
+      responses:
+        "200":
+          description: "Cursor-paged scheduled trip search results"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendResponseObject"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SliceResponseSearchScheduledTripsResponse"
+        "400":
+          description: "Invalid scheduled trip filter parameters"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendFailResponse"
+        "500":
+          description: "Unexpected technical failure."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JsendErrorResponse"
+  /api/v1/scheduled-trips/{scheduledTripId}/seats/available:
+    get:
+      tags:
+      - "Trains"
+      summary: "List available seats for a scheduled trip"
+      operationId: "getAvailableSeats"
+      parameters:
+      - name: "scheduledTripId"
+        in: "path"
+        description: "Scheduled trip identifier"
         required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - routeId
-                - seatId
-                - passengerName
-                - passengerEmail
-              properties:
-                routeId:
-                  type: integer
-                  format: int64
-                seatId:
-                  type: integer
-                  format: int64
-                passengerName:
-                  type: string
-                passengerEmail:
-                  type: string
-                  format: email
-                passengerPhone:
-                  type: string
+        schema:
+          type: "string"
+          format: "uuid"
+      - name: "page"
+        in: "query"
+        description: "Zero-based page index."
+        required: false
+        schema:
+          type: "integer"
+          format: "int32"
+          description: "Zero-based page index."
+          example: 0
+          minimum: 0
+        example: 0
+      - name: "size"
+        in: "query"
+        description: "Number of seats per page."
+        required: false
+        schema:
+          type: "integer"
+          format: "int32"
+          description: "Number of seats per page."
+          example: 20
+          maximum: 100
+          minimum: 1
+        example: 20
       responses:
-        '201':
-          description: Booking created successfully
+        "200":
+          description: "Paged available seats"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendResponseObject"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PageResponseSeatResponse"
+        "400":
+          description: "Invalid seat filter or pagination parameters"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendFailResponse"
+        "404":
+          description: "Scheduled trip not found"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendFailResponse"
+        "500":
+          description: "Unexpected technical failure."
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Booking'
-        '400':
-          description: Invalid input
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '409':
-          description: Seat already booked
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
-  /bookings/{id}:
+                $ref: "#/components/schemas/JsendErrorResponse"
+  /api/v1/scheduled-trips/{scheduledTripId}/coach-seats:
     get:
       tags:
-        - Bookings
-      summary: Get booking by ID
-      operationId: getBookingById
-      security:
-        - bearerAuth: []
+      - "Trains"
+      summary: "Get the seat map for a scheduled trip"
+      operationId: "getCoachSeatMap"
       parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-            format: int64
+      - name: "scheduledTripId"
+        in: "path"
+        description: "Scheduled trip identifier"
+        required: true
+        schema:
+          type: "string"
+          format: "uuid"
+      - name: "page"
+        in: "query"
+        description: "Zero-based page index."
+        required: false
+        schema:
+          type: "integer"
+          format: "int32"
+          description: "Zero-based page index."
+          example: 0
+          minimum: 0
+        example: 0
+      - name: "size"
+        in: "query"
+        description: "Number of seats per page."
+        required: false
+        schema:
+          type: "integer"
+          format: "int32"
+          description: "Number of seats per page."
+          example: 20
+          maximum: 100
+          minimum: 1
+        example: 20
       responses:
-        '200':
-          description: Booking details
+        "200":
+          description: "Coach seat map for the scheduled trip"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendResponseObject"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PageResponseCoachSeatMapResponse"
+        "400":
+          description: "Invalid coach selection parameters"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendFailResponse"
+        "404":
+          description: "Scheduled trip not found"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendFailResponse"
+        "500":
+          description: "Unexpected technical failure."
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Booking'
-        '401':
-          description: Unauthorized
+                $ref: "#/components/schemas/JsendErrorResponse"
+  /api/v1/scheduled-trips/{id}:
+    get:
+      tags:
+      - "Trains"
+      summary: "Get a scheduled trip by id"
+      operationId: "getScheduledTrip"
+      parameters:
+      - name: "id"
+        in: "path"
+        description: "Scheduled trip identifier"
+        required: true
+        schema:
+          type: "string"
+          format: "uuid"
+      responses:
+        "200":
+          description: "Scheduled trip detail"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendResponseObject"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ScheduledTripResponse"
+        "404":
+          description: "Scheduled trip not found"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendFailResponse"
+        "500":
+          description: "Unexpected technical failure."
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '404':
-          description: Booking not found
+                $ref: "#/components/schemas/JsendErrorResponse"
+  /api/v1/route-templates:
+    get:
+      tags:
+      - "Trains"
+      summary: "List route templates"
+      operationId: "getRouteTemplates"
+      parameters:
+      - name: "page"
+        in: "query"
+        description: "Zero-based page index."
+        required: false
+        schema:
+          type: "integer"
+          format: "int32"
+          description: "Zero-based page index."
+          example: 0
+          minimum: 0
+        example: 0
+      - name: "size"
+        in: "query"
+        description: "Number of route templates per page."
+        required: false
+        schema:
+          type: "integer"
+          format: "int32"
+          description: "Number of route templates per page."
+          example: 20
+          maximum: 100
+          minimum: 1
+        example: 20
+      responses:
+        "200":
+          description: "Paged route templates"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendResponseObject"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PageResponseRouteTemplateResponse"
+        "400":
+          description: "Invalid pagination parameters"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendFailResponse"
+        "500":
+          description: "Unexpected technical failure."
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '500':
-          description: Internal server error
+                $ref: "#/components/schemas/JsendErrorResponse"
+  /api/v1/route-templates/{id}:
+    get:
+      tags:
+      - "Trains"
+      summary: "Get a route template by id"
+      operationId: "getRouteTemplate"
+      parameters:
+      - name: "id"
+        in: "path"
+        description: "Route template identifier"
+        required: true
+        schema:
+          type: "string"
+          format: "uuid"
+      responses:
+        "200":
+          description: "Route template detail"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendResponseObject"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RouteTemplateResponse"
+        "404":
+          description: "Route template not found"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendFailResponse"
+        "500":
+          description: "Unexpected technical failure."
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-
+                $ref: "#/components/schemas/JsendErrorResponse"
+  /api/v1/payments/{paymentId}:
+    get:
+      tags:
+      - "Payments"
+      summary: "Get a payment by id"
+      operationId: "getPayment"
+      parameters:
+      - name: "paymentId"
+        in: "path"
+        description: "Payment identifier"
+        required: true
+        schema:
+          type: "string"
+          format: "uuid"
+      responses:
+        "200":
+          description: "Payment detail"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendResponseObject"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaymentDetailResponse"
+        "403":
+          description: "Customer cannot access this payment"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendFailResponse"
+        "404":
+          description: "Payment not found"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendFailResponse"
+        "500":
+          description: "Unexpected technical failure."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JsendErrorResponse"
+      security:
+      - bearerAuth: []
+  /api/v1/bookings/{id}:
+    get:
+      tags:
+      - "Bookings"
+      summary: "Get a booking by id"
+      operationId: "getBooking"
+      parameters:
+      - name: "id"
+        in: "path"
+        description: "Booking identifier"
+        required: true
+        schema:
+          type: "string"
+          format: "uuid"
+      responses:
+        "200":
+          description: "Booking detail"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendResponseObject"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BookingDetailResponse"
+        "403":
+          description: "Customer cannot access this booking"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendFailResponse"
+        "404":
+          description: "Booking not found"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendFailResponse"
+        "500":
+          description: "Unexpected technical failure."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JsendErrorResponse"
+      security:
+      - bearerAuth: []
+  /api/v1/bookings/{bookingId}/payment:
+    get:
+      tags:
+      - "Payments"
+      summary: "Get the payment linked to a booking"
+      operationId: "getBookingPayment"
+      parameters:
+      - name: "bookingId"
+        in: "path"
+        description: "Booking identifier"
+        required: true
+        schema:
+          type: "string"
+          format: "uuid"
+      responses:
+        "200":
+          description: "Payment linked to the booking"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendResponseObject"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaymentResponse"
+        "403":
+          description: "Customer cannot access this booking payment"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendFailResponse"
+        "404":
+          description: "Payment or booking not found"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/JsendFailResponse"
+        "500":
+          description: "Unexpected technical failure."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JsendErrorResponse"
+      security:
+      - bearerAuth: []
 components:
+  schemas:
+    FailData:
+      description: "Shared payload used inside JSend fail responses."
+      properties:
+        message:
+          type: "string"
+          description: "Human-readable summary of the failure."
+        code:
+          $ref: "#/components/schemas/ErrorCode"
+        errors:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/Violation"
+    ErrorCode:
+      type: "string"
+      description: "Machine-readable error code carried by shared fail responses."
+      enum:
+      - "VALIDATION_ERROR"
+      - "CURSOR_INVALID"
+      - "ACCESS_DENIED"
+      - "USER_EMAIL_ALREADY_EXISTS"
+      - "USER_INVALID_CREDENTIALS"
+      - "USER_INVALID_REFRESH_TOKEN"
+      - "USER_NOT_FOUND"
+      - "USER_CANNOT_BULK_DELETE_SELF"
+      - "USER_HAS_ACTIVE_BOOKINGS"
+      - "BOOKING_NOT_FOUND"
+      - "BOOKING_CANNOT_CONFIRM"
+      - "BOOKING_ALREADY_CANCELLED"
+      - "TRAIN_NUMBER_ALREADY_EXISTS"
+      - "TRAIN_NOT_FOUND"
+      - "TRAIN_IN_USE"
+      - "SEAT_NOT_FOUND"
+      - "SEAT_NUMBER_ALREADY_EXISTS"
+      - "SEAT_NOT_AVAILABLE"
+      - "SEAT_IN_USE"
+      - "SCHEDULED_TRIP_NOT_FOUND"
+      - "COACH_NOT_FOUND"
+      - "COACH_CAR_NUMBER_ALREADY_EXISTS"
+      - "COACH_TRAIN_NOT_FOUND"
+      - "COACH_IN_USE"
+      - "COACH_CAR_NUMBERS_ALREADY_EXIST"
+      - "COACH_DUPLICATE_CAR_NUMBERS_IN_REQUEST"
+      - "SEAT_NUMBERS_ALREADY_EXIST"
+      - "SEAT_DUPLICATE_SEAT_NUMBERS_IN_REQUEST"
+      - "ROUTE_TEMPLATE_NOT_FOUND"
+      - "STATION_NOT_FOUND"
+      - "STATION_CODE_ALREADY_EXISTS"
+      - "STATION_IN_USE"
+      - "PAYMENT_NOT_FOUND"
+      - "PAYMENT_ALREADY_PROCESSED"
+      - "PAYMENT_REFUND_FAILED"
+      - "PAYMENT_BOOKING_NOT_FOUND"
+      - "PAYMENT_BOOKING_INVALID_STATE"
+    Violation:
+      description: "Field-level validation issue inside a fail response."
+      properties:
+        field:
+          type: "string"
+          description: "Request field that failed validation."
+        message:
+          type: "string"
+          description: "Human-readable validation message."
+        code:
+          $ref: "#/components/schemas/ViolationCode"
+    ViolationCode:
+      type: "string"
+      description: "Machine-readable validation category attached to a field violation."
+      enum:
+      - "REQUIRED"
+      - "INVALID_FORMAT"
+      - "TOO_SHORT"
+      - "TOO_LONG"
+      - "INVALID_VALUE"
+    JsendFailResponse:
+      type: "object"
+      description: "Shared JSend fail envelope used for validation and domain errors."
+      properties:
+        status:
+          type: "string"
+          enum:
+          - "fail"
+        data:
+          $ref: "#/components/schemas/FailData"
+    JsendErrorResponse:
+      type: "object"
+      description: "Shared JSend error envelope used for unexpected technical failures."
+      properties:
+        status:
+          type: "string"
+          enum:
+          - "error"
+        message:
+          type: "string"
+          description: "Human-readable technical failure message."
+    UpdateAuthenticatedUserRequest:
+      type: "object"
+      description: "Full replacement payload for the authenticated customer profile.\
+        \ Send the complete editable profile state."
+      properties:
+        fullName:
+          type: "string"
+          description: "Updated full name."
+          example: "Nguyen Phuong"
+          minLength: 1
+        email:
+          type: "string"
+          format: "email"
+          description: "Updated email address."
+          example: "customer@example.com"
+          minLength: 1
+        phone:
+          type:
+          - "string"
+          - "null"
+          description: "Updated phone number."
+          example: "+84901234567"
+          pattern: ".*\\S.*"
+        dateOfBirth:
+          type:
+          - "string"
+          - "null"
+          format: "date"
+          description: "Updated date of birth."
+        gender:
+          type:
+          - "string"
+          - "null"
+          description: "Updated self-declared gender label."
+          example: "female"
+          pattern: ".*\\S.*"
+        idDocumentNumber:
+          type:
+          - "string"
+          - "null"
+          description: "Updated government-issued identity document number."
+          example: "redacted-id-document"
+          pattern: ".*\\S.*"
+          writeOnly: true
+        addressLine:
+          type:
+          - "string"
+          - "null"
+          description: "Updated address line."
+          example: "redacted-address"
+          pattern: ".*\\S.*"
+      required:
+      - "email"
+      - "fullName"
+    JsendResponseObject:
+      type: "object"
+      description: "Runtime JSend response envelope used by the API implementation."
+      properties:
+        status:
+          type: "string"
+          description: "JSend status value."
+          enum:
+          - "success"
+          - "fail"
+          - "error"
+        data:
+          description: "Payload returned for the response status."
+        message:
+          type: "string"
+          description: "Human-readable technical error message for error responses."
+    CreateBookingRequest:
+      type: "object"
+      description: "Booking creation payload."
+      properties:
+        scheduledTripId:
+          type: "string"
+          format: "uuid"
+          description: "Scheduled trip to book."
+        seatIds:
+          type: "array"
+          items:
+            type: "string"
+            format: "uuid"
+            description: "Seat identifier."
+          minItems: 1
+        passengers:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/PassengerInput"
+          minItems: 1
+        idempotencyKey:
+          type: "string"
+          description: "Client-generated idempotency key used to safely retry booking\
+            \ creation."
+          example: "booking-create-request-001"
+          minLength: 1
+          writeOnly: true
+      required:
+      - "idempotencyKey"
+      - "passengers"
+      - "scheduledTripId"
+      - "seatIds"
+    PassengerInput:
+      type: "object"
+      description: "Passenger input for a booking seat."
+      properties:
+        seatId:
+          type: "string"
+          format: "uuid"
+          description: "Seat identifier for this passenger."
+        fullName:
+          type: "string"
+          description: "Passenger full name."
+          example: "Nguyen Van A"
+          minLength: 1
+        idDocumentNumber:
+          type: "string"
+          description: "Passenger identity document number."
+          example: "001234567890"
+          minLength: 1
+        dateOfBirth:
+          type: "string"
+          format: "date"
+          description: "Passenger date of birth."
+        gender:
+          type: "string"
+          description: "Passenger gender."
+          example: "male"
+          minLength: 1
+      required:
+      - "dateOfBirth"
+      - "fullName"
+      - "gender"
+      - "idDocumentNumber"
+      - "seatId"
+    RegisterRequest:
+      type: "object"
+      description: "Customer registration payload."
+      properties:
+        email:
+          type: "string"
+          format: "email"
+          description: "Email address used to sign in."
+          example: "customer@example.com"
+          minLength: 1
+        password:
+          type: "string"
+          description: "Account password. The value is accepted on write and never\
+            \ returned."
+          example: "********"
+          maxLength: 2147483647
+          minLength: 8
+          writeOnly: true
+        fullName:
+          type: "string"
+          description: "Customer full name."
+          example: "Nguyen Phuong"
+          minLength: 1
+      required:
+      - "email"
+      - "fullName"
+      - "password"
+    RefreshTokenRequest:
+      type: "object"
+      description: "Refresh-token payload used to rotate or revoke a session."
+      properties:
+        refreshToken:
+          type: "string"
+          description: "Refresh token issued during login. The value is accepted on\
+            \ write and never returned."
+          example: "redacted-refresh-token"
+          minLength: 1
+          writeOnly: true
+      required:
+      - "refreshToken"
+    LoginRequest:
+      type: "object"
+      description: "Customer login payload."
+      properties:
+        email:
+          type: "string"
+          format: "email"
+          description: "Email address used to sign in."
+          example: "customer@example.com"
+          minLength: 1
+        password:
+          type: "string"
+          description: "Account password. The value is accepted on write and never\
+            \ returned."
+          example: "********"
+          minLength: 1
+          writeOnly: true
+      required:
+      - "email"
+      - "password"
+    UserResponse:
+      description: "Customer profile returned by authenticated user endpoints."
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+          description: "Customer identifier."
+          readOnly: true
+        email:
+          type: "string"
+          description: "Customer email address."
+          example: "customer@example.com"
+        fullName:
+          type: "string"
+          description: "Customer full name."
+          example: "Nguyen Phuong"
+        phone:
+          type:
+          - "string"
+          - "null"
+          description: "Customer phone number."
+          example: "+84901234567"
+        dateOfBirth:
+          type:
+          - "string"
+          - "null"
+          format: "date"
+          description: "Customer date of birth."
+        gender:
+          type:
+          - "string"
+          - "null"
+          description: "Customer self-declared gender label."
+          example: "female"
+        idDocumentNumber:
+          type:
+          - "string"
+          - "null"
+          description: "Government-issued identity document number on file."
+          example: "redacted-id-document"
+        addressLine:
+          type:
+          - "string"
+          - "null"
+          description: "Primary address line on file."
+          example: "redacted-address"
+        role:
+          type: "string"
+          description: "Customer role granted by the system."
+          example: "CUSTOMER"
+        createdAt:
+          type: "string"
+          format: "date-time"
+          description: "Profile creation timestamp."
+          readOnly: true
+    BookingResponse:
+      description: "Booking resource returned after successful booking creation."
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+          description: "Booking identifier."
+          readOnly: true
+        userId:
+          type: "string"
+          format: "uuid"
+          description: "Customer identifier that owns the booking."
+        scheduledTripId:
+          type: "string"
+          format: "uuid"
+          description: "Scheduled trip identifier."
+        bookerInfo:
+          $ref: "#/components/schemas/PassengerInfoResponse"
+        passengers:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/PassengerResponse"
+        totalPrice:
+          type: "integer"
+          format: "int64"
+          description: "Booking total in minor currency units."
+          example: 650000
+        currency:
+          type: "string"
+          description: "ISO-like currency code."
+          example: "VND"
+        status:
+          type: "string"
+          description: "Booking lifecycle status."
+          enum:
+          - "HELD"
+          - "CONFIRMED"
+          - "CANCELLED"
+        paymentDeadline:
+          type: "string"
+          format: "date-time"
+          description: "Deadline for completing payment before the booking expires."
+        createdAt:
+          type: "string"
+          format: "date-time"
+          description: "Booking creation timestamp."
+          readOnly: true
+    PassengerInfoResponse:
+      description: "Passenger identity and contact information captured for a booking."
+      properties:
+        fullName:
+          type: "string"
+          description: "Passenger full name."
+          example: "Nguyen Phuong"
+        email:
+          type: "string"
+          description: "Passenger email address."
+          example: "customer@example.com"
+        phone:
+          type:
+          - "string"
+          - "null"
+          description: "Passenger phone number."
+          example: "+84901234567"
+        dateOfBirth:
+          type:
+          - "string"
+          - "null"
+          format: "date"
+          description: "Passenger date of birth."
+        gender:
+          type:
+          - "string"
+          - "null"
+          description: "Passenger self-declared gender label."
+          example: "female"
+        idDocumentNumber:
+          type:
+          - "string"
+          - "null"
+          description: "Passenger government-issued identity document number."
+          example: "redacted-id-document"
+        addressLine:
+          type:
+          - "string"
+          - "null"
+          description: "Passenger address line."
+          example: "redacted-address"
+    PassengerResponse:
+      description: "Passenger assigned to a seat in a booking."
+      properties:
+        seatId:
+          type: "string"
+          format: "uuid"
+          description: "Seat identifier."
+        fullName:
+          type: "string"
+          description: "Passenger full name."
+          example: "Nguyen Van A"
+        idDocumentNumber:
+          type: "string"
+          description: "Passenger identity document number."
+          example: "001234567890"
+        dateOfBirth:
+          type: "string"
+          format: "date"
+          description: "Passenger date of birth."
+        gender:
+          type: "string"
+          description: "Passenger gender."
+          example: "male"
+    CheckoutSessionResponse:
+      description: "Checkout session resource returned after creating or retrieving\
+        \ a payment."
+      properties:
+        paymentId:
+          type: "string"
+          format: "uuid"
+          description: "Payment identifier."
+        checkoutUrl:
+          type: "string"
+          format: "uri"
+          description: "Hosted checkout URL where the customer completes the payment."
+        status:
+          type: "string"
+          description: "Payment lifecycle status."
+          enum:
+          - "PENDING"
+          - "PAID"
+          - "CANCELLED"
+          - "FAILED"
+          - "REFUNDED"
+    LoginResultResponse:
+      description: "Authentication result containing rotated tokens and the authenticated\
+        \ customer profile."
+      properties:
+        accessToken:
+          type: "string"
+          description: "Short-lived bearer access token."
+          example: "redacted-access-token"
+          readOnly: true
+        refreshToken:
+          type: "string"
+          description: "Refresh token used to rotate the session."
+          example: "redacted-refresh-token"
+          readOnly: true
+        user:
+          $ref: "#/components/schemas/UserResponse"
+    BookingSummary:
+      description: "Booking summary embedded in a payment history item."
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+          description: "Booking identifier."
+        origin:
+          type: "string"
+          description: "Origin station name."
+          example: "Hanoi"
+        destination:
+          type: "string"
+          description: "Destination station name."
+          example: "Ho Chi Minh City"
+        departureTime:
+          type: "string"
+          format: "date-time"
+          description: "Scheduled departure timestamp."
+    PageResponseUserPaymentResponse:
+      description: "Offset-based pagination wrapper."
+      properties:
+        content:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/UserPaymentResponse"
+        page:
+          type: "integer"
+          format: "int32"
+          description: "Zero-based page index."
+          example: 0
+          minimum: 0
+        size:
+          type: "integer"
+          format: "int32"
+          description: "Requested page size."
+          example: 20
+          minimum: 1
+        hasNext:
+          type: "boolean"
+          description: "Whether a subsequent page exists."
+        hasPrevious:
+          type: "boolean"
+          description: "Whether a previous page exists."
+        total:
+          type: "integer"
+          format: "int64"
+          description: "Total number of matching items across all pages."
+          example: 125
+          minimum: 0
+    UserPaymentResponse:
+      description: "Compact payment summary for payment-history listings."
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+          description: "Payment identifier."
+          readOnly: true
+        status:
+          type: "string"
+          description: "Payment lifecycle status."
+          enum:
+          - "PENDING"
+          - "PAID"
+          - "CANCELLED"
+          - "FAILED"
+          - "REFUNDED"
+        amount:
+          type: "number"
+          description: "Payment amount in major currency units."
+          example: 650000
+        currency:
+          type: "string"
+          description: "ISO-like currency code."
+          example: "VND"
+        createdAt:
+          type: "string"
+          format: "date-time"
+          description: "Payment creation timestamp."
+          readOnly: true
+        bookingId:
+          type: "string"
+          format: "uuid"
+          description: "Booking identifier linked to the payment."
+        booking:
+          $ref: "#/components/schemas/BookingSummary"
+    PageResponseUserBookingResponse:
+      description: "Offset-based pagination wrapper."
+      properties:
+        content:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/UserBookingResponse"
+        page:
+          type: "integer"
+          format: "int32"
+          description: "Zero-based page index."
+          example: 0
+          minimum: 0
+        size:
+          type: "integer"
+          format: "int32"
+          description: "Requested page size."
+          example: 20
+          minimum: 1
+        hasNext:
+          type: "boolean"
+          description: "Whether a subsequent page exists."
+        hasPrevious:
+          type: "boolean"
+          description: "Whether a previous page exists."
+        total:
+          type: "integer"
+          format: "int64"
+          description: "Total number of matching items across all pages."
+          example: 125
+          minimum: 0
+    UserBookingResponse:
+      description: "Compact booking summary for booking-history listings."
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+          description: "Booking identifier."
+          readOnly: true
+        userId:
+          type: "string"
+          format: "uuid"
+          description: "Customer identifier that owns the booking."
+        scheduledTripId:
+          type: "string"
+          format: "uuid"
+          description: "Scheduled trip identifier."
+        totalPrice:
+          type: "integer"
+          format: "int64"
+          description: "Booking total in minor currency units."
+          example: 650000
+        currency:
+          type: "string"
+          description: "ISO-like currency code."
+          example: "VND"
+        status:
+          type: "string"
+          description: "Booking lifecycle status."
+          enum:
+          - "HELD"
+          - "CONFIRMED"
+          - "CANCELLED"
+        paymentDeadline:
+          type: "string"
+          format: "date-time"
+          description: "Deadline for completing payment before the booking expires."
+        createdAt:
+          type: "string"
+          format: "date-time"
+          description: "Booking creation timestamp."
+          readOnly: true
+    PageResponseTrainResponse:
+      description: "Offset-based pagination wrapper."
+      properties:
+        content:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/TrainResponse"
+        page:
+          type: "integer"
+          format: "int32"
+          description: "Zero-based page index."
+          example: 0
+          minimum: 0
+        size:
+          type: "integer"
+          format: "int32"
+          description: "Requested page size."
+          example: 20
+          minimum: 1
+        hasNext:
+          type: "boolean"
+          description: "Whether a subsequent page exists."
+        hasPrevious:
+          type: "boolean"
+          description: "Whether a previous page exists."
+        total:
+          type: "integer"
+          format: "int64"
+          description: "Total number of matching items across all pages."
+          example: 125
+          minimum: 0
+    TrainResponse:
+      description: "Train summary."
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+          description: "Train identifier."
+        trainNumber:
+          type: "string"
+          description: "Train number visible to operators and customers."
+          example: "SE1"
+        name:
+          type: "string"
+          description: "Train display name."
+          example: "Reunification Express"
+        totalSeats:
+          type: "integer"
+          format: "int32"
+          description: "Total number of seats across the train."
+          example: 320
+        createdAt:
+          type: "string"
+          format: "date-time"
+          description: "Train creation timestamp."
+    PageResponseSeatResponse:
+      description: "Offset-based pagination wrapper."
+      properties:
+        content:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/SeatResponse"
+        page:
+          type: "integer"
+          format: "int32"
+          description: "Zero-based page index."
+          example: 0
+          minimum: 0
+        size:
+          type: "integer"
+          format: "int32"
+          description: "Requested page size."
+          example: 20
+          minimum: 1
+        hasNext:
+          type: "boolean"
+          description: "Whether a subsequent page exists."
+        hasPrevious:
+          type: "boolean"
+          description: "Whether a previous page exists."
+        total:
+          type: "integer"
+          format: "int64"
+          description: "Total number of matching items across all pages."
+          example: 125
+          minimum: 0
+    SeatResponse:
+      description: "Seat summary."
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+          description: "Seat identifier."
+        coachId:
+          type: "string"
+          format: "uuid"
+          description: "Parent coach identifier."
+        seatNumber:
+          type: "string"
+          description: "Seat label shown to customers."
+          example: "12A"
+        createdAt:
+          type: "string"
+          format: "date-time"
+          description: "Seat creation timestamp."
+    CoachResponse:
+      description: "Coach summary belonging to a train."
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+          description: "Coach identifier."
+        trainId:
+          type: "string"
+          format: "uuid"
+          description: "Parent train identifier."
+        carNumber:
+          type: "integer"
+          format: "int32"
+          description: "Coach car number within the train."
+          example: 5
+        totalSeats:
+          type: "integer"
+          format: "int32"
+          description: "Total seats in the coach."
+          example: 64
+        createdAt:
+          type: "string"
+          format: "date-time"
+          description: "Coach creation timestamp."
+    PageResponseCoachResponse:
+      description: "Offset-based pagination wrapper."
+      properties:
+        content:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/CoachResponse"
+        page:
+          type: "integer"
+          format: "int32"
+          description: "Zero-based page index."
+          example: 0
+          minimum: 0
+        size:
+          type: "integer"
+          format: "int32"
+          description: "Requested page size."
+          example: 20
+          minimum: 1
+        hasNext:
+          type: "boolean"
+          description: "Whether a subsequent page exists."
+        hasPrevious:
+          type: "boolean"
+          description: "Whether a previous page exists."
+        total:
+          type: "integer"
+          format: "int64"
+          description: "Total number of matching items across all pages."
+          example: 125
+          minimum: 0
+    PageResponseStationResponse:
+      description: "Offset-based pagination wrapper."
+      properties:
+        content:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/StationResponse"
+        page:
+          type: "integer"
+          format: "int32"
+          description: "Zero-based page index."
+          example: 0
+          minimum: 0
+        size:
+          type: "integer"
+          format: "int32"
+          description: "Requested page size."
+          example: 20
+          minimum: 1
+        hasNext:
+          type: "boolean"
+          description: "Whether a subsequent page exists."
+        hasPrevious:
+          type: "boolean"
+          description: "Whether a previous page exists."
+        total:
+          type: "integer"
+          format: "int64"
+          description: "Total number of matching items across all pages."
+          example: 125
+          minimum: 0
+    StationResponse:
+      description: "Station summary."
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+          description: "Station identifier."
+        code:
+          type: "string"
+          description: "Station code."
+          example: "HNO"
+        name:
+          type: "string"
+          description: "Station name."
+          example: "Ha Noi"
+        city:
+          type: "string"
+          description: "Station city."
+          example: "Ha Noi"
+        createdAt:
+          type: "string"
+          format: "date-time"
+          description: "Station creation timestamp."
+    StationSearchResponse:
+      description: "Station suggestion returned by station search."
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+          description: "Station identifier."
+        code:
+          type: "string"
+          description: "Station code."
+          example: "HNO"
+        name:
+          type: "string"
+          description: "Station name."
+          example: "Ha Noi"
+        city:
+          type: "string"
+          description: "Station city."
+          example: "Ha Noi"
+    PageResponseScheduledTripResponse:
+      description: "Offset-based pagination wrapper."
+      properties:
+        content:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/ScheduledTripResponse"
+        page:
+          type: "integer"
+          format: "int32"
+          description: "Zero-based page index."
+          example: 0
+          minimum: 0
+        size:
+          type: "integer"
+          format: "int32"
+          description: "Requested page size."
+          example: 20
+          minimum: 1
+        hasNext:
+          type: "boolean"
+          description: "Whether a subsequent page exists."
+        hasPrevious:
+          type: "boolean"
+          description: "Whether a previous page exists."
+        total:
+          type: "integer"
+          format: "int64"
+          description: "Total number of matching items across all pages."
+          example: 125
+          minimum: 0
+    ScheduledTripResponse:
+      description: "Scheduled trip summary."
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+          description: "Scheduled trip identifier."
+          example: "11111111-1111-1111-1111-111111111111"
+        routeTemplateId:
+          type: "string"
+          format: "uuid"
+          description: "Route template identifier."
+          example: "22222222-2222-2222-2222-222222222222"
+        trainId:
+          type: "string"
+          format: "uuid"
+          description: "Train identifier."
+          example: "33333333-3333-3333-3333-333333333333"
+        departureTime:
+          type: "string"
+          format: "date-time"
+          description: "Scheduled departure timestamp."
+          example: "2026-05-01T01:00:00Z"
+        arrivalTime:
+          type: "string"
+          format: "date-time"
+          description: "Scheduled arrival timestamp."
+          example: "2026-05-01T11:00:00Z"
+        status:
+          type: "string"
+          description: "Scheduled trip lifecycle status."
+          enum:
+          - "SCHEDULED"
+          - "BOARDING"
+          - "DEPARTED"
+          - "ARRIVED"
+          - "CANCELLED"
+        createdAt:
+          type: "string"
+          format: "date-time"
+          description: "Scheduled trip creation timestamp."
+          example: "2026-04-01T10:15:30Z"
+    Route:
+      description: "Route summary embedded inside a search result."
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+          description: "Route template identifier."
+        basePrice:
+          type: "integer"
+          format: "int64"
+          description: "Base fare in minor currency units."
+          example: 650000
+        currency:
+          type: "string"
+          description: "ISO-like currency code."
+          example: "VND"
+        origin:
+          $ref: "#/components/schemas/Station"
+        destination:
+          $ref: "#/components/schemas/Station"
+    SearchScheduledTripsResponse:
+      description: "Search result row for cursor-based scheduled trip discovery."
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+          description: "Scheduled trip identifier."
+        departureTime:
+          type: "string"
+          format: "date-time"
+          description: "Scheduled departure timestamp."
+        arrivalTime:
+          type: "string"
+          format: "date-time"
+          description: "Scheduled arrival timestamp."
+        status:
+          type: "string"
+          description: "Scheduled trip lifecycle status."
+          enum:
+          - "SCHEDULED"
+          - "BOARDING"
+          - "DEPARTED"
+          - "ARRIVED"
+          - "CANCELLED"
+        durationMinutes:
+          type: "integer"
+          format: "int64"
+          description: "Trip duration in minutes."
+          example: 600
+        availableSeatCount:
+          type: "integer"
+          format: "int64"
+          description: "Currently available seat count."
+          example: 8
+        occupancyPercentage:
+          type: "integer"
+          format: "int32"
+          description: "Current occupancy percentage."
+          example: 75
+        train:
+          $ref: "#/components/schemas/Train"
+        route:
+          $ref: "#/components/schemas/Route"
+    SliceResponseSearchScheduledTripsResponse:
+      description: "Cursor-based pagination wrapper."
+      properties:
+        content:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/SearchScheduledTripsResponse"
+        size:
+          type: "integer"
+          format: "int32"
+          description: "Requested slice size."
+          example: 20
+          minimum: 1
+        hasNext:
+          type: "boolean"
+          description: "Whether another slice exists after this one."
+        nextCursor:
+          type:
+          - "string"
+          - "null"
+          description: "Opaque cursor for the next slice. Null when no more results\
+            \ exist."
+          example: "opaque-cursor-token"
+    Station:
+      description: "Station summary embedded inside a route."
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+          description: "Station identifier."
+        code:
+          type: "string"
+          description: "Station code."
+          example: "HNO"
+        name:
+          type: "string"
+          description: "Station name."
+          example: "Ha Noi"
+        city:
+          type: "string"
+          description: "Station city."
+          example: "Ha Noi"
+    Train:
+      description: "Train summary embedded inside a search result."
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+          description: "Train identifier."
+        trainNumber:
+          type: "string"
+          description: "Train number."
+          example: "SE1"
+        name:
+          type: "string"
+          description: "Train display name."
+          example: "Reunification Express"
+        totalSeats:
+          type: "integer"
+          format: "int32"
+          description: "Total seats available on the train."
+          example: 320
+    CoachSeatMapResponse:
+      description: "Seat map for a coach on a scheduled trip."
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+          description: "Coach identifier."
+        carNumber:
+          type: "integer"
+          format: "int32"
+          description: "Coach car number within the train."
+          example: 5
+        totalSeats:
+          type: "integer"
+          format: "int32"
+          description: "Total seats in the coach."
+          example: 64
+        seats:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/Seat"
+    PageResponseCoachSeatMapResponse:
+      description: "Offset-based pagination wrapper."
+      properties:
+        content:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/CoachSeatMapResponse"
+        page:
+          type: "integer"
+          format: "int32"
+          description: "Zero-based page index."
+          example: 0
+          minimum: 0
+        size:
+          type: "integer"
+          format: "int32"
+          description: "Requested page size."
+          example: 20
+          minimum: 1
+        hasNext:
+          type: "boolean"
+          description: "Whether a subsequent page exists."
+        hasPrevious:
+          type: "boolean"
+          description: "Whether a previous page exists."
+        total:
+          type: "integer"
+          format: "int64"
+          description: "Total number of matching items across all pages."
+          example: 125
+          minimum: 0
+    Seat:
+      description: "Seat state inside a coach seat map."
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+          description: "Seat identifier."
+        seatNumber:
+          type: "string"
+          description: "Seat label shown to customers."
+          example: "12A"
+        status:
+          type: "string"
+          description: "Current seat availability status."
+          enum:
+          - "AVAILABLE"
+          - "HELD"
+          - "BOOKED"
+          - "CANCELLED"
+    PageResponseRouteTemplateResponse:
+      description: "Offset-based pagination wrapper."
+      properties:
+        content:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/RouteTemplateResponse"
+        page:
+          type: "integer"
+          format: "int32"
+          description: "Zero-based page index."
+          example: 0
+          minimum: 0
+        size:
+          type: "integer"
+          format: "int32"
+          description: "Requested page size."
+          example: 20
+          minimum: 1
+        hasNext:
+          type: "boolean"
+          description: "Whether a subsequent page exists."
+        hasPrevious:
+          type: "boolean"
+          description: "Whether a previous page exists."
+        total:
+          type: "integer"
+          format: "int64"
+          description: "Total number of matching items across all pages."
+          example: 125
+          minimum: 0
+    RouteTemplateResponse:
+      description: "Route template summary describing the default fare between two\
+        \ stations."
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+          description: "Route template identifier."
+        originStationId:
+          type: "string"
+          format: "uuid"
+          description: "Origin station identifier."
+        destinationStationId:
+          type: "string"
+          format: "uuid"
+          description: "Destination station identifier."
+        basePrice:
+          type: "integer"
+          format: "int64"
+          description: "Default fare in minor currency units."
+          example: 650000
+        currency:
+          type: "string"
+          description: "ISO-like currency code."
+          example: "VND"
+        createdAt:
+          type: "string"
+          format: "date-time"
+          description: "Route template creation timestamp."
+    BookerInfo:
+      description: "Booker (authenticated user) identity information."
+      properties:
+        fullName:
+          type: "string"
+          description: "Booker full name."
+          example: "Nguyen Phuong"
+        email:
+          type: "string"
+          description: "Booker email address."
+          example: "customer@example.com"
+        phone:
+          type:
+          - "string"
+          - "null"
+          description: "Booker phone number."
+          example: "+84901234567"
+        dateOfBirth:
+          type:
+          - "string"
+          - "null"
+          format: "date"
+          description: "Booker date of birth."
+        gender:
+          type:
+          - "string"
+          - "null"
+          description: "Booker self-declared gender label."
+          example: "female"
+        idDocumentNumber:
+          type:
+          - "string"
+          - "null"
+          description: "Booker government-issued identity document number."
+          example: "redacted-id-document"
+    BookingForTicket:
+      description: "Booking summary with ticket-ready data for printing."
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+          description: "Booking identifier."
+        status:
+          type: "string"
+          description: "Booking lifecycle status."
+          enum:
+          - "HELD"
+          - "CONFIRMED"
+          - "CANCELLED"
+        bookerInfo:
+          $ref: "#/components/schemas/BookerInfo"
+        passengers:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/PassengerWithSeat"
+        seats:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/SeatInfo"
+        trip:
+          $ref: "#/components/schemas/TripInfo"
+    PassengerWithSeat:
+      description: "Passenger with seat assignment for ticket printing."
+      properties:
+        seatId:
+          type: "string"
+          format: "uuid"
+          description: "Seat identifier."
+        coachNumber:
+          type: "integer"
+          format: "int32"
+          description: "Coach car number."
+          example: 5
+        seatNumber:
+          type: "string"
+          description: "Seat label shown to customers."
+          example: "12A"
+        fullName:
+          type: "string"
+          description: "Passenger full name."
+          example: "Nguyen Van A"
+        idDocumentNumber:
+          type:
+          - "string"
+          - "null"
+          description: "Passenger identity document number."
+          example: "001234567890"
+        dateOfBirth:
+          type:
+          - "string"
+          - "null"
+          format: "date"
+          description: "Passenger date of birth."
+        gender:
+          type:
+          - "string"
+          - "null"
+          description: "Passenger gender."
+          example: "male"
+    PaymentDetailResponse:
+      description: "Enriched payment detail with ticket-ready booking information."
+      properties:
+        paymentId:
+          type: "string"
+          format: "uuid"
+          description: "Payment identifier."
+        bookingId:
+          type: "string"
+          format: "uuid"
+          description: "Booking identifier linked to the payment."
+        status:
+          type: "string"
+          description: "Payment lifecycle status."
+          enum:
+          - "PENDING"
+          - "PAID"
+          - "CANCELLED"
+          - "FAILED"
+          - "REFUNDED"
+        checkoutUrl:
+          type:
+          - "string"
+          - "null"
+          format: "uri"
+          description: "Hosted checkout URL when customer action is still required."
+        amount:
+          type: "number"
+          description: "Payment amount in major currency units."
+          example: 650000
+        currency:
+          type: "string"
+          description: "ISO-like currency code."
+          example: "VND"
+        createdAt:
+          type: "string"
+          format: "date-time"
+          description: "Payment creation timestamp."
+          readOnly: true
+        booking:
+          $ref: "#/components/schemas/BookingForTicket"
+    SeatInfo:
+      description: "Seat information for ticket printing."
+      properties:
+        seatId:
+          type: "string"
+          format: "uuid"
+          description: "Seat identifier."
+        coachNumber:
+          type: "integer"
+          format: "int32"
+          description: "Coach car number."
+          example: 5
+        seatNumber:
+          type: "string"
+          description: "Seat label shown to customers."
+          example: "12A"
+    TripInfo:
+      description: "Trip data with train and route information for ticket printing."
+      properties:
+        trainName:
+          type: "string"
+          description: "Train name."
+          example: "SE1"
+        trainNumber:
+          type: "string"
+          description: "Train number."
+          example: "SE001"
+        origin:
+          type: "string"
+          description: "Origin station name."
+          example: "Hanoi"
+        destination:
+          type: "string"
+          description: "Destination station name."
+          example: "Ho Chi Minh City"
+        departureTime:
+          type: "string"
+          format: "date-time"
+          description: "Scheduled departure timestamp."
+        arrivalTime:
+          type: "string"
+          format: "date-time"
+          description: "Scheduled arrival timestamp."
+    BookingDetailResponse:
+      description: "Detailed booking resource with trip, seat, and payment information."
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+          description: "Booking identifier."
+          readOnly: true
+        userId:
+          type: "string"
+          format: "uuid"
+          description: "Customer identifier that owns the booking."
+        scheduledTripId:
+          type: "string"
+          format: "uuid"
+          description: "Scheduled trip identifier."
+        bookerInfo:
+          $ref: "#/components/schemas/PassengerInfoResponse"
+        passengers:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/PassengerResponse"
+        totalPrice:
+          type: "integer"
+          format: "int64"
+          description: "Booking total in minor currency units."
+          example: 650000
+        currency:
+          type: "string"
+          description: "ISO-like currency code."
+          example: "VND"
+        status:
+          type: "string"
+          description: "Booking lifecycle status."
+          enum:
+          - "HELD"
+          - "CONFIRMED"
+          - "CANCELLED"
+        paymentDeadline:
+          type: "string"
+          format: "date-time"
+          description: "Deadline for completing payment before the booking expires."
+        createdAt:
+          type: "string"
+          format: "date-time"
+          description: "Booking creation timestamp."
+          readOnly: true
+        trip:
+          oneOf:
+          - $ref: "#/components/schemas/Trip"
+          - type: "null"
+        payment:
+          oneOf:
+          - $ref: "#/components/schemas/PaymentDetailResponse"
+          - type: "null"
+        seats:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/Seat"
+    Trip:
+      description: "Trip summary embedded inside a booking detail."
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+          description: "Scheduled trip identifier."
+        routeTemplateId:
+          type: "string"
+          format: "uuid"
+          description: "Route template identifier."
+        trainId:
+          type: "string"
+          format: "uuid"
+          description: "Train identifier."
+        departureTime:
+          type: "string"
+          format: "date-time"
+          description: "Scheduled departure timestamp."
+        arrivalTime:
+          type: "string"
+          format: "date-time"
+          description: "Scheduled arrival timestamp."
+        status:
+          type: "string"
+          description: "Scheduled trip status."
+        createdAt:
+          type: "string"
+          format: "date-time"
+          description: "Scheduled trip creation timestamp."
+        train:
+          oneOf:
+          - $ref: "#/components/schemas/Train"
+          - type: "null"
+        route:
+          $ref: "#/components/schemas/Route"
+    PaymentResponse:
+      description: "Payment resource exposed to customers."
+      properties:
+        paymentId:
+          type: "string"
+          format: "uuid"
+          description: "Payment identifier."
+        bookingId:
+          type: "string"
+          format: "uuid"
+          description: "Booking identifier linked to the payment."
+        status:
+          type: "string"
+          description: "Payment lifecycle status."
+          enum:
+          - "PENDING"
+          - "PAID"
+          - "CANCELLED"
+          - "FAILED"
+          - "REFUNDED"
+        checkoutUrl:
+          type:
+          - "string"
+          - "null"
+          format: "uri"
+          description: "Hosted checkout URL when customer action is still required."
+        amount:
+          type: "number"
+          description: "Payment amount in major currency units."
+          example: 650000
+        currency:
+          type: "string"
+          description: "ISO-like currency code."
+          example: "VND"
   securitySchemes:
     bearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
-
-  schemas:
-    User:
-      type: object
-      properties:
-        id:
-          type: integer
-          format: int64
-        email:
-          type: string
-          format: email
-        fullName:
-          type: string
-        phone:
-          type: string
-        role:
-          type: string
-          enum: [CUSTOMER, ADMIN]
-        createdAt:
-          type: string
-          format: date-time
-
-    Train:
-      type: object
-      properties:
-        id:
-          type: integer
-          format: int64
-        trainNumber:
-          type: string
-        name:
-          type: string
-        totalSeats:
-          type: integer
-        createdAt:
-          type: string
-          format: date-time
-
-    Seat:
-      type: object
-      properties:
-        id:
-          type: integer
-          format: int64
-        trainId:
-          type: integer
-          format: int64
-        seatNumber:
-          type: string
-        status:
-          type: string
-          enum: [AVAILABLE, RESERVED, BLOCKED]
-
-    Booking:
-      type: object
-      properties:
-        id:
-          type: integer
-          format: int64
-        userId:
-          type: integer
-          format: int64
-        routeId:
-          type: integer
-          format: int64
-        seatId:
-          type: integer
-          format: int64
-        bookingReference:
-          type: string
-        passengerName:
-          type: string
-        passengerEmail:
-          type: string
-          format: email
-        passengerPhone:
-          type: string
-        totalPrice:
-          type: number
-          format: decimal
-        status:
-          type: string
-          enum: [PENDING, CONFIRMED, CANCELLED]
-        paymentStatus:
-          type: string
-          enum: [PENDING, PAID, REFUNDED]
-        createdAt:
-          type: string
-          format: date-time
-        updatedAt:
-          type: string
-          format: date-time
-
-    Error:
-      type: object
-      properties:
-        code:
-          type: string
-        message:
-          type: string
-        timestamp:
-          type: string
-          format: date-time
+      type: "http"
+      scheme: "bearer"
+      bearerFormat: "JWT"

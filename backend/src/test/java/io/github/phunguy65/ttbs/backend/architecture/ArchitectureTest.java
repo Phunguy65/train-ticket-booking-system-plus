@@ -1,95 +1,94 @@
 package io.github.phunguy65.ttbs.backend.architecture;
 
-import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.*;
-
-import com.tngtech.archunit.core.domain.JavaClasses;
-import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.core.importer.ImportOption;
+import com.tngtech.archunit.junit.AnalyzeClasses;
+import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchRule;
-import jakarta.persistence.Entity;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-import org.springframework.transaction.annotation.Transactional;
 
-class ArchitectureTest {
+/**
+ * Architecture test suite for the train-ticket-booking-system backend.
+ *
+ * <p>The backend is organized into domain-oriented packages at the top level. These tests keep
+ * the internal package structure consistent by enforcing layer dependency direction and
+ * naming/location conventions. Rules are grouped into focused classes and imported here via
+ * {@code @ArchTest} field references so that {@link AnalyzeClasses} caching is shared across all
+ * of them.
+ *
+ * <ul>
+ *   <li>{@link LayerRules}  - layer dependency direction (domain / application / infrastructure / web)
+ *   <li>{@link NamingRules} - naming-convention / location contracts
+ * </ul>
+ */
+@AnalyzeClasses(
+        packages = "io.github.phunguy65.ttbs.backend",
+        importOptions = {ImportOption.DoNotIncludeTests.class, ImportOption.DoNotIncludeJars.class})
+public class ArchitectureTest {
 
-    private static final String BASE_PACKAGE = "io.github.phunguy65.ttbs.backend";
-    private static JavaClasses importedClasses;
+    // ── Layer rules ───────────────────────────────────────────────────────
 
-    @BeforeAll
-    static void setUp() {
-        importedClasses = new ClassFileImporter()
-                .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
-                .importPackages(BASE_PACKAGE);
-    }
+    @ArchTest
+    static final ArchRule domain_must_not_depend_on_application =
+            LayerRules.domain_must_not_depend_on_application;
 
-    @Test
-    void jpaEntitiesShouldNotResideInDomainPackages() {
-        ArchRule rule = noClasses()
-                .that()
-                .resideInAPackage("..domain..")
-                .should()
-                .beAnnotatedWith(Entity.class)
-                .because("JPA entities must not live in domain packages");
-        rule.check(importedClasses);
-    }
+    @ArchTest
+    static final ArchRule domain_must_not_depend_on_infrastructure =
+            LayerRules.domain_must_not_depend_on_infrastructure;
 
-    @Test
-    void domainClassesShouldNotDependOnSpringOrJpa() {
-        ArchRule rule = noClasses()
-                .that()
-                .resideInAPackage("..domain..")
-                .and()
-                .resideOutsideOfPackage("..shared.domain..")
-                .and()
-                .haveSimpleNameNotEndingWith("package-info")
-                .should()
-                .dependOnClassesThat()
-                .resideInAnyPackage(
-                        "org.springframework..",
-                        "jakarta.persistence..",
-                        "jakarta.transaction..",
-                        "tools.jackson..",
-                        "com.fasterxml.jackson..")
-                .because("Domain classes must be pure Java with no framework dependencies");
-        rule.check(importedClasses);
-    }
+    @ArchTest
+    static final ArchRule domain_must_not_depend_on_spring =
+            LayerRules.domain_must_not_depend_on_spring;
 
-    @Test
-    void applicationClassesShouldOnlyDependOnDomainAndShared() {
-        ArchRule rule = noClasses()
-                .that()
-                .resideInAPackage("..application..")
-                .should()
-                .dependOnClassesThat()
-                .resideInAPackage("..infrastructure..")
-                .because("Application layer must not depend on infrastructure layer");
-        rule.check(importedClasses);
-    }
+    @ArchTest
+    static final ArchRule application_must_not_depend_on_infrastructure =
+            LayerRules.application_must_not_depend_on_infrastructure;
 
-    @Test
-    void useCasesShouldBeAnnotatedWithTransactional() {
-        ArchRule rule = methods()
-                .that()
-                .areDeclaredInClassesThat()
-                .haveSimpleNameEndingWith("UseCase")
-                .and()
-                .haveNameMatching("execute")
-                .should()
-                .beAnnotatedWith(Transactional.class)
-                .because("All use case execute() methods must be @Transactional");
-        rule.check(importedClasses);
-    }
+    @ArchTest
+    static final ArchRule application_must_not_depend_on_web =
+            LayerRules.application_must_not_depend_on_web;
 
-    @Test
-    void jpaEntitiesShouldResideInPersistencePackages() {
-        ArchRule rule = classes()
-                .that()
-                .areAnnotatedWith(Entity.class)
-                .should()
-                .resideInAPackage("..infrastructure.persistence..")
-                .because(
-                        "JPA entities must reside exclusively in infrastructure/persistence packages");
-        rule.check(importedClasses);
-    }
+    @ArchTest
+    static final ArchRule infrastructure_must_not_depend_on_web =
+            LayerRules.infrastructure_must_not_depend_on_web;
+
+    @ArchTest
+    static final ArchRule controllers_must_not_access_repositories =
+            LayerRules.controllers_must_not_access_repositories;
+
+    @ArchTest
+    static final ArchRule controllers_must_not_access_jpa_entities =
+            LayerRules.controllers_must_not_access_jpa_entities;
+
+    // ── Naming rules ──────────────────────────────────────────────────────
+
+    @ArchTest
+    static final ArchRule use_cases_must_reside_in_application_usecase =
+            NamingRules.use_cases_must_reside_in_application_usecase;
+
+    @ArchTest
+    static final ArchRule controllers_must_reside_in_infrastructure_web =
+            NamingRules.controllers_must_reside_in_infrastructure_web;
+
+    @ArchTest
+    static final ArchRule jpa_entities_must_reside_in_infrastructure_persistence =
+            NamingRules.jpa_entities_must_reside_in_infrastructure_persistence;
+
+    @ArchTest
+    static final ArchRule entity_suffix_classes_must_not_reside_in_domain =
+            NamingRules.entity_suffix_classes_must_not_reside_in_domain;
+
+    @ArchTest
+    static final ArchRule entity_suffix_classes_must_reside_in_infrastructure_persistence =
+            NamingRules.entity_suffix_classes_must_reside_in_infrastructure_persistence;
+
+    @ArchTest
+    static final ArchRule repository_interfaces_must_reside_in_domain_repository =
+            NamingRules.repository_interfaces_must_reside_in_domain_repository;
+
+    @ArchTest
+    static final ArchRule port_interfaces_must_reside_in_application_port =
+            NamingRules.port_interfaces_must_reside_in_application_port;
+
+    @ArchTest
+    static final ArchRule repository_adapters_must_reside_in_infrastructure_persistence =
+            NamingRules.repository_adapters_must_reside_in_infrastructure_persistence;
 }

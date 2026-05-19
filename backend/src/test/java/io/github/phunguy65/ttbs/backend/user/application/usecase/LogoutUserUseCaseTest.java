@@ -1,9 +1,15 @@
 package io.github.phunguy65.ttbs.backend.user.application.usecase;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
+import io.github.phunguy65.ttbs.backend.user.application.command.LogoutUserCommand;
 import io.github.phunguy65.ttbs.backend.user.application.port.RefreshTokenManager;
 import io.github.phunguy65.ttbs.backend.user.domain.error.UserError;
 import io.github.phunguy65.ttbs.backend.user.domain.model.UserId;
@@ -13,69 +19,182 @@ import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.InOrder;
 
-@ExtendWith(MockitoExtension.class)
+@DisplayName("LogoutUserUseCase")
 class LogoutUserUseCaseTest {
 
-    @Mock
+    private static final String RAW_TOKEN = "raw-refresh-token";
+    private static final String TOKEN_HASH = "hashed-refresh-token";
+    private static final UUID TOKEN_ID = UUID.fromString("22222222-2222-2222-2222-222222222222");
+    private static final UserId USER_ID =
+            UserId.of(UUID.fromString("11111111-1111-1111-1111-111111111111"));
+
     private RefreshTokenRepository refreshTokenRepository;
-
-    @Mock
     private RefreshTokenManager refreshTokenManager;
-
     private LogoutUserUseCase useCase;
-
-    private static final UUID TOKEN_ID = UUID.randomUUID();
-    private static final UserId USER_ID = UserId.of(UUID.randomUUID());
-    private static final String RAW_TOKEN = "rawRefreshTokenForLogoutTest12345";
 
     @BeforeEach
     void setUp() {
+        refreshTokenRepository = mock(RefreshTokenRepository.class);
+        refreshTokenManager = mock(RefreshTokenManager.class);
         useCase = new LogoutUserUseCase(refreshTokenRepository, refreshTokenManager);
     }
 
-    private String sha256(String input) {
-        try {
-            var digest = java.security.MessageDigest.getInstance("SHA-256");
-            byte[] hash = digest.digest(input.getBytes(java.nio.charset.StandardCharsets.UTF_8));
-            var sb = new StringBuilder();
-            for (byte b : hash) {
-                sb.append(String.format("%02x", b));
-            }
-            return sb.toString();
-        } catch (java.security.NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
+    @Nested
+    @DisplayName("happy path")
+    class HappyPath {
+
+        @Test
+        @DisplayName("hashes, finds and revokes an active refresh token")
+        void execute_revokesActiveRefreshToken() {
+            RefreshTokenData tokenData = activeTokenData();
+            when(refreshTokenManager.hashToken(RAW_TOKEN)).thenReturn(TOKEN_HASH);
+            when(refreshTokenRepository.findActiveByTokenHash(TOKEN_HASH))
+                    .thenReturn(Optional.of(tokenData));
+
+            Result<Void, UserError> result = useCase.execute(new LogoutUserCommand(RAW_TOKEN));
+
+            assertThat(result).isInstanceOf(Result.Success.class);
+            verify(refreshTokenManager).hashToken(RAW_TOKEN);
+            verify(refreshTokenRepository).findActiveByTokenHash(TOKEN_HASH);
+            verify(refreshTokenRepository).revokeById(TOKEN_ID);
+        }
+
+        @Test
+        @DisplayName("executes hash, lookup and revoke in order")
+        void execute_revokesInExpectedOrder() {
+            when(refreshTokenManager.hashToken(RAW_TOKEN)).thenReturn(TOKEN_HASH);
+            when(refreshTokenRepository.findActiveByTokenHash(TOKEN_HASH))
+                    .thenReturn(Optional.of(activeTokenData()));
+
+            useCase.execute(new LogoutUserCommand(RAW_TOKEN));
+
+            InOrder inOrder = inOrder(refreshTokenManager, refreshTokenRepository);
+            inOrder.verify(refreshTokenManager).hashToken(RAW_TOKEN);
+            inOrder.verify(refreshTokenRepository).findActiveByTokenHash(TOKEN_HASH);
+            inOrder.verify(refreshTokenRepository).revokeById(TOKEN_ID);
         }
     }
 
-    @Test
-    void execute_activeToken_shouldRevokeAndReturnSuccess() {
-        String tokenHash = sha256(RAW_TOKEN);
-        RefreshTokenData tokenData =
-                new RefreshTokenData(TOKEN_ID, USER_ID, tokenHash, Instant.now().plusSeconds(3600));
-        when(refreshTokenManager.hashToken(RAW_TOKEN)).thenReturn(tokenHash);
-        when(refreshTokenRepository.findActiveByTokenHash(tokenHash))
-                .thenReturn(Optional.of(tokenData));
+    @Nested
+    @DisplayName("idempotent behavior")
+    class IdempotentBehavior {
 
-        Result<Void, UserError> result = useCase.execute(RAW_TOKEN);
+        @Test
+        @DisplayName("returns success and does not revoke when token is not active")
+        void execute_returnsSuccessWhenTokenNotFound() {
+            when(refreshTokenManager.hashToken(RAW_TOKEN)).thenReturn(TOKEN_HASH);
+            when(refreshTokenRepository.findActiveByTokenHash(TOKEN_HASH))
+                    .thenReturn(Optional.empty());
 
-        assertThat(result.isSuccess()).isTrue();
-        verify(refreshTokenRepository).revokeById(TOKEN_ID);
+            Result<Void, UserError> result = useCase.execute(new LogoutUserCommand(RAW_TOKEN));
+
+            assertThat(result.isSuccess()).isTrue();
+            verify(refreshTokenRepository, never()).revokeById(TOKEN_ID);
+        }
+
+        @Test
+        @DisplayName("returns success regardless of token existence")
+        void execute_alwaysReturnsSuccessForTokenExistence() {
+            when(refreshTokenManager.hashToken(RAW_TOKEN)).thenReturn(TOKEN_HASH);
+            when(refreshTokenRepository.findActiveByTokenHash(TOKEN_HASH))
+                    .thenReturn(Optional.empty());
+
+            Result<Void, UserError> missingResult =
+                    useCase.execute(new LogoutUserCommand(RAW_TOKEN));
+
+            when(refreshTokenRepository.findActiveByTokenHash(TOKEN_HASH))
+                    .thenReturn(Optional.of(activeTokenData()));
+
+            Result<Void, UserError> foundResult = useCase.execute(new LogoutUserCommand(RAW_TOKEN));
+
+            assertThat(missingResult.isSuccess()).isTrue();
+            assertThat(foundResult.isSuccess()).isTrue();
+        }
     }
 
-    @Test
-    void execute_alreadyRevoked_shouldReturnSuccessIdempotently() {
-        String tokenHash = sha256(RAW_TOKEN);
-        when(refreshTokenManager.hashToken(RAW_TOKEN)).thenReturn(tokenHash);
-        when(refreshTokenRepository.findActiveByTokenHash(tokenHash)).thenReturn(Optional.empty());
+    @Nested
+    @DisplayName("internal behavior")
+    class InternalBehavior {
 
-        Result<Void, UserError> result = useCase.execute(RAW_TOKEN);
+        @Test
+        @DisplayName("passes the exact raw command token to the token manager")
+        void execute_hashesExactRawToken() {
+            String exactToken = "exact.raw.token";
+            when(refreshTokenManager.hashToken(exactToken)).thenReturn(TOKEN_HASH);
+            when(refreshTokenRepository.findActiveByTokenHash(TOKEN_HASH))
+                    .thenReturn(Optional.empty());
 
-        assertThat(result.isSuccess()).isTrue();
-        verify(refreshTokenRepository, never()).revokeById(any());
+            useCase.execute(new LogoutUserCommand(exactToken));
+
+            verify(refreshTokenManager).hashToken(exactToken);
+        }
+
+        @Test
+        @DisplayName("passes the exact hash returned by the token manager to the repository")
+        void execute_usesExactTokenHash() {
+            String exactHash = "exact-token-hash";
+            when(refreshTokenManager.hashToken(RAW_TOKEN)).thenReturn(exactHash);
+            when(refreshTokenRepository.findActiveByTokenHash(exactHash))
+                    .thenReturn(Optional.empty());
+
+            useCase.execute(new LogoutUserCommand(RAW_TOKEN));
+
+            verify(refreshTokenRepository).findActiveByTokenHash(exactHash);
+        }
+    }
+
+    @Nested
+    @DisplayName("exception handling")
+    class ExceptionHandling {
+
+        @Test
+        @DisplayName("propagates token hashing failures")
+        void execute_propagatesHashTokenFailures() {
+            when(refreshTokenManager.hashToken(RAW_TOKEN))
+                    .thenThrow(new RuntimeException("hash failed"));
+
+            assertThatThrownBy(() -> useCase.execute(new LogoutUserCommand(RAW_TOKEN)))
+                    .isInstanceOf(RuntimeException.class)
+                    .hasMessage("hash failed");
+        }
+
+        @Test
+        @DisplayName("propagates active token lookup failures")
+        void execute_propagatesFindActiveTokenFailures() {
+            when(refreshTokenManager.hashToken(RAW_TOKEN)).thenReturn(TOKEN_HASH);
+            when(refreshTokenRepository.findActiveByTokenHash(TOKEN_HASH))
+                    .thenThrow(new RuntimeException("lookup failed"));
+
+            assertThatThrownBy(() -> useCase.execute(new LogoutUserCommand(RAW_TOKEN)))
+                    .isInstanceOf(RuntimeException.class)
+                    .hasMessage("lookup failed");
+        }
+
+        @Test
+        @DisplayName("propagates revoke failures")
+        void execute_propagatesRevokeFailures() {
+            when(refreshTokenManager.hashToken(RAW_TOKEN)).thenReturn(TOKEN_HASH);
+            when(refreshTokenRepository.findActiveByTokenHash(TOKEN_HASH))
+                    .thenReturn(Optional.of(activeTokenData()));
+            when(refreshTokenRepository.findActiveByTokenHash(TOKEN_HASH))
+                    .thenReturn(Optional.of(activeTokenData()));
+            org.mockito.Mockito.doThrow(new RuntimeException("revoke failed"))
+                    .when(refreshTokenRepository)
+                    .revokeById(TOKEN_ID);
+
+            assertThatThrownBy(() -> useCase.execute(new LogoutUserCommand(RAW_TOKEN)))
+                    .isInstanceOf(RuntimeException.class)
+                    .hasMessage("revoke failed");
+        }
+    }
+
+    private RefreshTokenData activeTokenData() {
+        return new RefreshTokenData(
+                TOKEN_ID, USER_ID, TOKEN_HASH, Instant.parse("2026-05-16T10:15:30Z"));
     }
 }

@@ -1,5 +1,7 @@
 package io.github.phunguy65.ttbs.backend.shared.infrastructure.web;
 
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.List;
 
 /**
@@ -26,4 +28,15 @@ import java.util.List;
  * @param code    machine-readable error code (enables frontend i18n)
  * @param errors  field-level violations; never {@code null} — use an empty list for domain errors
  */
-public record FailData(String message, ErrorCode code, List<Violation> errors) {}
+@Schema(description = "Shared payload used inside JSend fail responses.")
+public record FailData(
+        @Schema(description = "Human-readable summary of the failure.")
+        String message,
+
+        @Schema(
+                description = "Machine-readable error code for frontend handling.",
+                ref = "#/components/schemas/ErrorCode")
+        ErrorCode code,
+
+        @ArraySchema(schema = @Schema(implementation = Violation.class))
+        List<Violation> errors) {}

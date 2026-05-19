@@ -1,8 +1,11 @@
 package io.github.phunguy65.ttbs.backend.train.domain.repository;
 
+import io.github.phunguy65.ttbs.backend.shared.domain.PageResponse;
+import io.github.phunguy65.ttbs.backend.shared.domain.SortOrder;
 import io.github.phunguy65.ttbs.backend.train.domain.model.Coach;
 import io.github.phunguy65.ttbs.backend.train.domain.model.CoachId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.TrainId;
+import io.github.phunguy65.ttbs.backend.train.domain.projection.CoachSummary;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -20,7 +23,14 @@ public interface CoachRepository {
 
     Optional<Coach> findById(CoachId id);
 
+    Optional<CoachSummary> findSummaryById(CoachId id);
+
     List<Coach> findByTrainId(TrainId trainId);
+
+    PageResponse<Coach> findAll(int page, int size, List<SortOrder> sort, TrainId trainId);
+
+    PageResponse<CoachSummary> findAllSummaries(
+            int page, int size, List<SortOrder> sort, TrainId trainId);
 
     List<CoachId> findActiveIdsByTrainIds(List<TrainId> trainIds);
 

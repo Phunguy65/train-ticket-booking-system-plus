@@ -10,14 +10,6 @@ pre-commit:
                 https://github.com/gitleaks/gitleaks)"
 
         # ── Backend ──────────────────────────────────
-        backend-lint:
-            root: 'backend/'
-            glob: '**/*.{java,kt,kts}'
-            exclude:
-                - 'third_party/**'
-            run: ./gradlew spotlessCheck
-            stage_fixed: false
-
         backend-format:
             root: 'backend/'
             glob: '**/*.{java,kt,kts}'
@@ -27,46 +19,22 @@ pre-commit:
             stage_fixed: true
 
         # ── Build logic ──────────────────────────────────
-        build-logic-lint:
-            glob: 'build-logic/**/*.{kt,kts}'
-            run: ./gradlew ktlintCheck
-            stage_fixed: false
-
         build-logic-format:
             glob: 'build-logic/**/*.{kt,kts}'
             run: ./gradlew ktlintFormat
             stage_fixed: true
 
         # ── Frontend / Customer ──────────────────────────────────
-        customer-lint:
-            root: 'frontend/customer/'
-            glob: '**/*.{kt,kts}'
-            run: ./gradlew ktlintCheck
-            stage_fixed: false
-
         customer-format:
             root: 'frontend/customer/'
-            glob: '**/*.{kt,kts}'
-            run: ./gradlew ktlintFormat
-            stage_fixed: true
-
-        # ── Frontend / Admin – TypeScript (Biome) ─────────────────────
-        admin-lint:
-            root: 'frontend/admin/'
-            glob: '**/*.{ts,tsx,js,jsx,json}'
-            run: bun --bun run lint
-
-        admin-format:
-            root: 'frontend/admin/'
-            glob: '**/*.{ts,tsx,js,jsx,json}'
-            run: bun --bun run format
+            glob: '**/*.{ts,tsx,js,jsx,json,css}'
+            run: bun run lint:fix
             stage_fixed: true
 
         # ── Database – SQL (Prettier) ─────────────────────────────────────
         database-format:
-            root: 'database/'
             glob: '**/*.sql'
-            run: bun --bun run format
+            run: bunx prettier --write {staged_files}
             stage_fixed: true
 
 commit-msg:

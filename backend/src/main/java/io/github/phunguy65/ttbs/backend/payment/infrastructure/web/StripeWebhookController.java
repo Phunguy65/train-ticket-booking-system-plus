@@ -3,14 +3,18 @@ package io.github.phunguy65.ttbs.backend.payment.infrastructure.web;
 import com.stripe.exception.SignatureVerificationException;
 import com.stripe.model.Event;
 import com.stripe.model.PaymentIntent;
+import com.stripe.model.StripeObject;
 import com.stripe.model.checkout.Session;
 import com.stripe.net.Webhook;
-import io.github.phunguy65.ttbs.backend.payment.application.usecase.HandlePaymentFailedUseCase;
+import io.github.phunguy65.ttbs.backend.payment.application.command.CancelPendingPaymentCommand;
+import io.github.phunguy65.ttbs.backend.payment.application.command.HandlePaymentFailedByPaymentIntentCommand;
+import io.github.phunguy65.ttbs.backend.payment.application.command.HandlePaymentSuccessCommand;
+import io.github.phunguy65.ttbs.backend.payment.application.usecase.CancelPendingPaymentUseCase;
+import io.github.phunguy65.ttbs.backend.payment.application.usecase.HandlePaymentFailedByPaymentIntentUseCase;
 import io.github.phunguy65.ttbs.backend.payment.application.usecase.HandlePaymentSuccessUseCase;
-import io.github.phunguy65.ttbs.backend.payment.domain.model.PaymentStatus;
-import io.github.phunguy65.ttbs.backend.payment.domain.repository.PaymentRepository;
 import io.github.phunguy65.ttbs.backend.payment.infrastructure.stripe.StripeConfig;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.JsendResponse;
+import io.swagger.v3.oas.annotations.Hidden;
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -22,24 +26,26 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@Hidden
 class StripeWebhookController {
 
     private static final Logger log = LoggerFactory.getLogger(StripeWebhookController.class);
 
     private final StripeConfig stripeConfig;
     private final HandlePaymentSuccessUseCase handlePaymentSuccessUseCase;
-    private final HandlePaymentFailedUseCase handlePaymentFailedUseCase;
-    private final PaymentRepository paymentRepository;
+    private final HandlePaymentFailedByPaymentIntentUseCase
+            handlePaymentFailedByPaymentIntentUseCase;
+    private final CancelPendingPaymentUseCase cancelPendingPaymentUseCase;
 
     StripeWebhookController(
             StripeConfig stripeConfig,
             HandlePaymentSuccessUseCase handlePaymentSuccessUseCase,
-            HandlePaymentFailedUseCase handlePaymentFailedUseCase,
-            PaymentRepository paymentRepository) {
+            HandlePaymentFailedByPaymentIntentUseCase handlePaymentFailedByPaymentIntentUseCase,
+            CancelPendingPaymentUseCase cancelPendingPaymentUseCase) {
         this.stripeConfig = stripeConfig;
         this.handlePaymentSuccessUseCase = handlePaymentSuccessUseCase;
-        this.handlePaymentFailedUseCase = handlePaymentFailedUseCase;
-        this.paymentRepository = paymentRepository;
+        this.handlePaymentFailedByPaymentIntentUseCase = handlePaymentFailedByPaymentIntentUseCase;
+        this.cancelPendingPaymentUseCase = cancelPendingPaymentUseCase;
     }
 
     @PostMapping(value = "/{version}/webhooks/stripe", version = "1.0")
@@ -62,37 +68,23 @@ class StripeWebhookController {
         try {
             switch (event.getType()) {
                 case "checkout.session.completed" -> {
-                    Session session = (Session) event.getDataObjectDeserializer()
-                            .getObject()
-                            .orElseThrow(() -> new IllegalStateException("Missing session data"));
-                    handlePaymentSuccessUseCase.execute(
-                            session.getId(), session.getPaymentIntent(), event.getId());
+                    Session session = deserializeEventData(event, Session.class);
+                    handlePaymentSuccessUseCase.execute(new HandlePaymentSuccessCommand(
+                            session.getId(), session.getPaymentIntent(), event.getId()));
                 }
                 case "checkout.session.expired" -> {
-                    Session session = (Session) event.getDataObjectDeserializer()
-                            .getObject()
-                            .orElseThrow(() -> new IllegalStateException("Missing session data"));
-                    paymentRepository
-                            .findByCheckoutSessionId(session.getId())
-                            .filter(p -> p.getStatus() == PaymentStatus.PENDING)
-                            .ifPresent(p -> {
-                                p.markCancelled();
-                                paymentRepository.save(p);
-                                log.info(
-                                        "Payment cancelled via Stripe expiry for session={}",
-                                        session.getId());
-                            });
+                    Session session = deserializeEventData(event, Session.class);
+                    cancelPendingPaymentUseCase.execute(
+                            new CancelPendingPaymentCommand(session.getId()));
                 }
                 case "payment_intent.payment_failed" -> {
-                    PaymentIntent pi = (PaymentIntent) event.getDataObjectDeserializer()
-                            .getObject()
-                            .orElseThrow(
-                                    () -> new IllegalStateException("Missing payment intent data"));
+                    PaymentIntent pi = deserializeEventData(event, PaymentIntent.class);
                     String errorMsg = pi.getLastPaymentError() != null
                             ? pi.getLastPaymentError().getMessage()
                             : "Payment failed";
-                    handlePaymentFailedUseCase.executeByPaymentIntent(
-                            pi.getId(), errorMsg, event.getId());
+                    handlePaymentFailedByPaymentIntentUseCase.execute(
+                            new HandlePaymentFailedByPaymentIntentCommand(
+                                    pi.getId(), errorMsg, event.getId()));
                 }
                 default -> log.debug("Unhandled Stripe event type: {}", event.getType());
             }
@@ -107,5 +99,17 @@ class StripeWebhookController {
         }
 
         return ResponseEntity.ok(JsendResponse.success());
+    }
+
+    private <T extends StripeObject> T deserializeEventData(Event event, Class<T> clazz) {
+        var deserializer = event.getDataObjectDeserializer();
+        StripeObject obj = deserializer.getObject().orElseGet(() -> {
+            try {
+                return deserializer.deserializeUnsafe();
+            } catch (Exception e) {
+                throw new IllegalStateException("Unable to deserialize event data", e);
+            }
+        });
+        return clazz.cast(obj);
     }
 }

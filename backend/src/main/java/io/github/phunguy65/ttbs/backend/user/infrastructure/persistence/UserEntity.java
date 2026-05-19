@@ -1,8 +1,8 @@
 package io.github.phunguy65.ttbs.backend.user.infrastructure.persistence;
 
-import io.github.phunguy65.ttbs.backend.user.domain.model.UserRole;
 import jakarta.persistence.*;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.UUID;
 
 @Entity
@@ -25,9 +25,20 @@ class UserEntity {
     @Column(name = "phone", length = 20)
     private String phone;
 
-    @Enumerated(EnumType.STRING)
+    @Column(name = "date_of_birth")
+    private LocalDate dateOfBirth;
+
+    @Column(name = "gender", length = 20)
+    private String gender;
+
+    @Column(name = "id_document_number", length = 50)
+    private String idDocumentNumber;
+
+    @Column(name = "address_line", length = 255)
+    private String addressLine;
+
     @Column(name = "role", nullable = false, length = 20)
-    private UserRole role;
+    private String role;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
@@ -80,11 +91,43 @@ class UserEntity {
         this.phone = phone;
     }
 
-    UserRole getRole() {
+    LocalDate getDateOfBirth() {
+        return dateOfBirth;
+    }
+
+    void setDateOfBirth(LocalDate dateOfBirth) {
+        this.dateOfBirth = dateOfBirth;
+    }
+
+    String getGender() {
+        return gender;
+    }
+
+    void setGender(String gender) {
+        this.gender = gender;
+    }
+
+    String getIdDocumentNumber() {
+        return idDocumentNumber;
+    }
+
+    void setIdDocumentNumber(String idDocumentNumber) {
+        this.idDocumentNumber = idDocumentNumber;
+    }
+
+    String getAddressLine() {
+        return addressLine;
+    }
+
+    void setAddressLine(String addressLine) {
+        this.addressLine = addressLine;
+    }
+
+    String getRole() {
         return role;
     }
 
-    void setRole(UserRole role) {
+    void setRole(String role) {
         this.role = role;
     }
 

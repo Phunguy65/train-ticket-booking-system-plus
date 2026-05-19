@@ -1,6 +1,6 @@
 package io.github.phunguy65.ttbs.backend.payment.application.port;
 
-import io.github.phunguy65.ttbs.backend.payment.application.command.CreateCheckoutSessionCommand;
+import io.github.phunguy65.ttbs.backend.payment.application.command.CreateStripeCheckoutSessionCommand;
 
 /**
  * Port abstracting all Stripe SDK calls.
@@ -17,7 +17,7 @@ public interface StripeGatewayPort {
      * @param command the session parameters
      * @return the session ID and checkout URL
      */
-    CheckoutSessionResult createCheckoutSession(CreateCheckoutSessionCommand command);
+    CheckoutSessionResult createCheckoutSession(CreateStripeCheckoutSessionCommand command);
 
     /**
      * Expires an active Stripe Checkout Session.

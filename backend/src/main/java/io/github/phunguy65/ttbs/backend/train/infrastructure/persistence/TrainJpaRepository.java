@@ -1,11 +1,12 @@
 package io.github.phunguy65.ttbs.backend.train.infrastructure.persistence;
 
+import io.github.phunguy65.ttbs.backend.train.domain.projection.TrainSummary;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -18,8 +19,30 @@ interface TrainJpaRepository extends JpaRepository<TrainEntity, UUID> {
     @Query("SELECT t FROM TrainEntity t WHERE t.id = :id AND t.deletedAt IS NULL")
     Optional<TrainEntity> findActiveById(@Param("id") UUID id);
 
+    @Query("""
+            SELECT new io.github.phunguy65.ttbs.backend.train.domain.projection.TrainSummary(
+                t.id,
+                t.trainNumber,
+                t.name,
+                t.totalSeats,
+                t.createdAt
+            ) FROM TrainEntity t WHERE t.id = :id AND t.deletedAt IS NULL
+            """)
+    Optional<TrainSummary> findSummaryById(@Param("id") UUID id);
+
     @Query("SELECT t FROM TrainEntity t WHERE t.deletedAt IS NULL")
-    Slice<TrainEntity> findAllActive(Pageable pageable);
+    Page<TrainEntity> findAllActive(Pageable pageable);
+
+    @Query("""
+            SELECT new io.github.phunguy65.ttbs.backend.train.domain.projection.TrainSummary(
+                t.id,
+                t.trainNumber,
+                t.name,
+                t.totalSeats,
+                t.createdAt
+            ) FROM TrainEntity t WHERE t.deletedAt IS NULL
+            """)
+    Page<TrainSummary> findAllSummaries(Pageable pageable);
 
     @Modifying
     @Query(

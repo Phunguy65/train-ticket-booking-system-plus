@@ -1,0 +1,26 @@
+# Build artifacts
+build/
+.gradle/
+
+# IDE metadata
+.idea/
+.settings/
+.classpath
+.project
+.factorypath
+bin/
+out/
+*.iml
+*.iws
+*.ipr
+
+# Spring Boot dev-tools / IDE helpers
+.springBeans
+.sts4-cache
+.ace-tool/
+.apt_generated/
+.apt_generated_tests/
+
+# Temp / OS
+.DS_Store
+*.log

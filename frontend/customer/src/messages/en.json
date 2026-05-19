@@ -1,0 +1,513 @@
+{
+    "Navigation": {
+        "login": "Sign In",
+        "register": "Sign Up",
+        "myBookings": "My Bookings",
+        "profile": "Profile",
+        "logout": "Sign Out",
+        "loggingOut": "Signing out...",
+        "openMenu": "Open menu",
+        "footerCopyright": "© {year} VietRail. Online train ticket booking.",
+        "footerDescription": "Vietnam's online train ticket booking system — fast, secure, and convenient.",
+        "footerServices": "Services",
+        "footerSearchTrips": "Search Trains",
+        "footerManageBookings": "Manage Bookings",
+        "footerProfile": "My Profile",
+        "footerSupport": "Support",
+        "footerFaq": "FAQ",
+        "footerTerms": "Terms of Service",
+        "footerPrivacy": "Privacy Policy",
+        "footerContact": "Contact",
+        "footerAddress": "1 Le Duan Street, District 1, Ho Chi Minh City"
+    },
+    "Search": {
+        "title": "Search Trains",
+        "origin": "Origin",
+        "originPlaceholder": "Select origin station",
+        "destination": "Destination",
+        "destinationPlaceholder": "Select destination station",
+        "departureDate": "Departure Date",
+        "datePlaceholder": "Select date",
+        "swap": "Swap stations",
+        "submit": "Search",
+        "searching": "Searching...",
+        "noStationsFound": "No stations found",
+        "loadingStations": "Loading...",
+        "stationSearchError": "Error loading stations. Please try again."
+    },
+    "Trips": {
+        "title": "Search Results",
+        "backToHome": "Back to Home",
+        "results": "{count, plural, =0 {No trains} one {{count} train} other {{count} trains}}",
+        "noResults": "No trains found",
+        "noResultsDescription": "Try searching with different criteria",
+        "train": "Train",
+        "departure": "Departure",
+        "arrival": "Arrival",
+        "duration": "Duration",
+        "price": "Price",
+        "available": "{count} seats available",
+        "noSeats": "Sold out",
+        "selectSeats": "Select Seats",
+        "sort": {
+            "label": "Sort by",
+            "departureTime": "Departure time",
+            "price": "Price",
+            "duration": "Duration"
+        },
+        "filter": {
+            "label": "Filters",
+            "priceRange": "Price range",
+            "minPrice": "Min price",
+            "maxPrice": "Max price",
+            "availableOnly": "Available seats only",
+            "apply": "Apply",
+            "clear": "Clear filters"
+        },
+        "loadMore": "Load more",
+        "loadingMore": "Loading...",
+        "error": "Error loading trips",
+        "retry": "Retry"
+    },
+    "Seats": {
+        "title": "Select Seats",
+        "coach": "Coach {number}",
+        "available": "Available",
+        "held": "Held",
+        "booked": "Booked",
+        "selected": "Selected",
+        "seatNumber": "Seat {number}",
+        "selectSeat": "Select seat {number}",
+        "deselectSeat": "Deselect seat {number}",
+        "unavailable": "Seat unavailable",
+        "maxSeats": "Maximum {count} seats per booking",
+        "maxSeatsReached": "Maximum {count} seats selected",
+        "selectedSeats": "Selected Seats",
+        "noSeatsSelected": "No seats selected",
+        "totalPrice": "Total",
+        "continue": "Continue to Booking",
+        "error": "Error loading seat map",
+        "retry": "Retry",
+        "tripNotFound": "Trip not found",
+        "seatsUnavailable": "{count, plural, one {# seat} other {# seats}} no longer available",
+        "sse": {
+            "connecting": "Connecting...",
+            "connected": "Live updates",
+            "reconnecting": "Reconnecting..."
+        }
+    },
+    "Booking": {
+        "title": "Confirm Booking",
+        "tripSummary": "Trip Information",
+        "seatsSummary": "Selected Seats",
+        "passengerInfo": "Passenger Information",
+        "priceDetails": "Price Details",
+        "pricePerSeat": "Price per seat",
+        "totalSeats": "{count} seats",
+        "totalPrice": "Total",
+        "confirm": "Confirm Booking",
+        "confirming": "Confirming...",
+        "missingContext": "Missing booking information",
+        "missingContextDescription": "Please go back and select a trip",
+        "backToSearch": "Back to Search",
+        "backToSeats": "Back to Seat Selection",
+        "success": "Booking Confirmed!",
+        "successDescription": "Booking ID: {bookingId}",
+        "paymentDeadline": "Pay before: {deadline}",
+        "proceedToPayment": "Proceed to Payment",
+        "error": "Booking failed",
+        "seatsUnavailable": "Seats have been booked by someone else. Please select different seats.",
+        "train": "Train",
+        "date": "Date",
+        "bookerInfo": "Booker Information",
+        "detail": {
+            "title": "Booking Details",
+            "bookingId": "Booking ID",
+            "id": "ID",
+            "status": "Status",
+            "createdAt": "Created",
+            "paymentDeadline": "Payment Deadline",
+            "trip": "Trip Information",
+            "seats": "Seats",
+            "passenger": "Passenger",
+            "booker": "Booker",
+            "passengers": "Passengers",
+            "idDocument": "ID Document",
+            "dateOfBirth": "Date of Birth",
+            "gender": "Gender",
+            "noPassengers": "No passenger information available",
+            "payment": "Payment",
+            "pay": "Pay Now",
+            "notFound": "Booking not found",
+            "total": "Total",
+            "retry": "Retry",
+            "backToBookings": "Back to My Bookings"
+        },
+        "redirectingToPayment": "Redirecting to payment...",
+        "loadingPayment": "Loading payment..."
+    },
+    "Account": {
+        "title": "My Account",
+        "tabs": {
+            "bookings": "Bookings",
+            "payments": "Payments"
+        },
+        "stats": {
+            "totalBookings": "Total bookings",
+            "upcomingTrips": "Upcoming trips",
+            "totalSpent": "Total spent"
+        },
+        "empty": "You don't have any bookings yet",
+        "emptyDescription": "Search and book your first train trip",
+        "searchTrips": "Search Trains",
+        "bookingId": "Booking ID",
+        "viewDetails": "View Details",
+        "cancel": "Cancel",
+        "cancelConfirm": {
+            "title": "Confirm Cancellation",
+            "description": "Are you sure you want to cancel this booking? This action cannot be undone.",
+            "confirm": "Cancel Booking",
+            "cancelling": "Cancelling...",
+            "cancel": "Go Back"
+        },
+        "cancelSuccess": "Booking cancelled successfully",
+        "cancelError": "Failed to cancel booking. Please try again.",
+        "error": "Error loading bookings",
+        "retry": "Retry"
+    },
+    "AccountPayments": {
+        "empty": "You don't have any payments yet",
+        "emptyDescription": "Your payment history will appear here after your first booking",
+        "searchTrips": "Search Trains",
+        "viewDetails": "View Details",
+        "departureDate": "Travel date",
+        "error": "Error loading payments",
+        "retry": "Retry"
+    },
+    "PaymentDetail": {
+        "title": "Payment Details",
+        "paymentId": "Payment ID",
+        "backToAccount": "Back to Account",
+        "tripInfo": "Trip Information",
+        "train": "Train",
+        "route": "Route",
+        "departure": "Departure",
+        "arrival": "Arrival",
+        "seats": "Seats",
+        "coachSeat": "Coach {coach} - Seat {seat}",
+        "bookerInfo": "Booker Information",
+        "bookerName": "Name",
+        "passengersInfo": "Passengers",
+        "passengerInfo": "Passenger Information",
+        "passengerName": "Name",
+        "email": "Email",
+        "phone": "Phone",
+        "idDocument": "ID Document",
+        "dateOfBirth": "Date of Birth",
+        "gender": "Gender",
+        "printTicket": "Print Ticket",
+        "error": "Error loading payment",
+        "notFound": "Payment not found",
+        "retry": "Retry"
+    },
+    "PaymentSuccess": {
+        "title": "Payment Successful",
+        "description": "Thank you! Your payment has been processed.",
+        "viewBookings": "View Bookings",
+        "backToHome": "Back to Home",
+        "note": "Your ticket will be ready shortly."
+    },
+    "Ticket": {
+        "electronicTicket": "Electronic Ticket",
+        "bookingId": "Booking ID",
+        "qrCodeTitle": "Ticket QR Code",
+        "scanToVerify": "Scan to verify ticket",
+        "departure": "Departure",
+        "arrival": "Arrival",
+        "train": "Train",
+        "departureTime": "Departure Time",
+        "arrivalTime": "Est. Arrival Time",
+        "seats": "Seats",
+        "coachSeat": "Coach {coach} - Seat {seat}",
+        "ticketAriaLabel": "Ticket for {passenger}",
+        "route": "Route",
+        "ticketCount": "Tickets",
+        "ticketCountValue": "{count} tickets",
+        "passenger": "Passenger",
+        "passengers": "Passengers",
+        "idDocument": "ID",
+        "footer": "Please present this ticket along with a valid ID for boarding",
+        "print": "Print",
+        "share": "Share",
+        "shareTitle": "My Train Ticket",
+        "shareText": "Train ticket from {origin} to {destination}",
+        "error": "Error loading ticket",
+        "notFound": "Booking not found",
+        "notPaid": "Ticket Unavailable",
+        "notPaidDescription": "This booking has not been paid yet. Please complete payment first.",
+        "retry": "Retry"
+    },
+    "Passenger": {
+        "sectionTitle": "Passenger Information",
+        "seatLabel": "Seat {seat}",
+        "fullName": "Full Name",
+        "fullNamePlaceholder": "Enter full name",
+        "idDocumentNumber": "ID Document Number",
+        "idDocumentPlaceholder": "Enter ID document number",
+        "dateOfBirth": "Date of Birth",
+        "gender": "Gender",
+        "duplicateIdDocument": "This ID document is already used for another passenger",
+        "duplicateIdWarning": "Each passenger must have a unique ID document number"
+    },
+    "Profile": {
+        "title": "Profile",
+        "memberSince": "Member since {date}",
+        "personalInfo": "Personal Information",
+        "travelDocuments": "Travel Documents",
+        "fullName": "Full Name",
+        "email": "Email",
+        "phone": "Phone Number",
+        "phonePlaceholder": "Enter phone number",
+        "phoneDescription": "Used for booking notifications",
+        "dateOfBirth": "Date of Birth",
+        "selectDate": "Select date",
+        "gender": "Gender",
+        "selectGender": "Select gender",
+        "genderOptions": {
+            "male": "Male",
+            "female": "Female",
+            "other": "Other"
+        },
+        "idDocument": "ID Document Number",
+        "idDocumentPlaceholder": "Enter ID number",
+        "idDocumentDescription": "Required for train ticket verification",
+        "address": "Address",
+        "addressPlaceholder": "Enter address",
+        "addressDescription": "For billing and ticket delivery",
+        "save": "Save Changes",
+        "saving": "Saving...",
+        "saveSuccess": "Profile updated successfully",
+        "saveError": "Failed to update profile. Please try again.",
+        "error": "Error loading profile",
+        "retry": "Retry"
+    },
+    "Status": {
+        "HELD": "Pending Payment",
+        "CONFIRMED": "Confirmed",
+        "CANCELLED": "Cancelled",
+        "PENDING": "Processing",
+        "PAID": "Paid",
+        "FAILED": "Failed",
+        "REFUNDED": "Refunded",
+        "SCHEDULED": "Scheduled",
+        "BOARDING": "Boarding",
+        "DEPARTED": "Departed",
+        "ARRIVED": "Arrived"
+    },
+    "Common": {
+        "loading": "Loading...",
+        "error": "An error occurred",
+        "retry": "Retry",
+        "back": "Back",
+        "cancel": "Cancel",
+        "confirm": "Confirm",
+        "save": "Save",
+        "close": "Close",
+        "currency": "{amount, number, ::currency/VND}",
+        "date": "{date, date, medium}",
+        "time": "{time, time, short}",
+        "datetime": "{datetime, date, medium} {datetime, time, short}"
+    },
+    "Auth": {
+        "login": {
+            "title": "Sign In",
+            "subtitle": "Welcome back",
+            "email": "Email",
+            "emailPlaceholder": "email@example.com",
+            "password": "Password",
+            "passwordPlaceholder": "Enter your password",
+            "submit": "Sign In",
+            "submitting": "Signing in...",
+            "noAccount": "Don't have an account?",
+            "registerLink": "Sign up",
+            "registerSuccess": "Registration successful! Please sign in."
+        },
+        "register": {
+            "title": "Sign Up",
+            "subtitle": "Create a new account",
+            "fullName": "Full Name",
+            "fullNamePlaceholder": "John Doe",
+            "email": "Email",
+            "emailPlaceholder": "email@example.com",
+            "password": "Password",
+            "passwordPlaceholder": "Enter your password",
+            "confirmPassword": "Confirm Password",
+            "confirmPasswordPlaceholder": "Re-enter your password",
+            "submit": "Sign Up",
+            "submitting": "Signing up...",
+            "hasAccount": "Already have an account?",
+            "loginLink": "Sign in"
+        },
+        "password": {
+            "show": "Show password",
+            "hide": "Hide password"
+        }
+    },
+    "Validation": {
+        "email": {
+            "required": "Email is required",
+            "invalid": "Invalid email address"
+        },
+        "password": {
+            "required": "Password is required",
+            "minLength": "Password must be at least 8 characters"
+        },
+        "confirmPassword": {
+            "required": "Please confirm your password",
+            "mismatch": "Passwords do not match"
+        },
+        "fullName": {
+            "required": "Full name is required",
+            "minLength": "Full name must be at least 2 characters"
+        },
+        "origin": {
+            "required": "Please select an origin station"
+        },
+        "destination": {
+            "required": "Please select a destination station",
+            "sameAsOrigin": "Destination must be different from origin"
+        },
+        "departureDate": {
+            "required": "Please select a departure date",
+            "past": "Departure date must be today or later"
+        },
+        "phone": {
+            "invalid": "Invalid phone number"
+        },
+        "seats": {
+            "required": "Please select at least one seat",
+            "maxExceeded": "Maximum {count} seats per booking"
+        }
+    },
+    "Errors": {
+        "invalidCredentials": "Invalid email or password",
+        "emailExists": "This email is already registered",
+        "validationError": "Validation failed",
+        "networkError": "Unable to connect. Please try again.",
+        "unknownError": "Something went wrong. Please try again.",
+        "unauthorized": "Please sign in to continue",
+        "forbidden": "You don't have permission to perform this action",
+        "notFound": "Data not found",
+        "seatsUnavailable": "Seats are no longer available"
+    },
+    "Stepper": {
+        "search": "Search",
+        "seats": "Seats",
+        "review": "Review",
+        "payment": "Payment",
+        "stepOf": "Step {current} of {total}"
+    },
+    "Payment": {
+        "remaining": "remaining",
+        "pending": {
+            "title": "Payment Pending",
+            "description": "Complete your payment within {time} to confirm your booking.",
+            "urgent": "Time is running out! Complete payment now to avoid losing your seats.",
+            "payNow": "Pay Now"
+        },
+        "redirecting": {
+            "title": "Redirecting to Payment",
+            "description": "Please wait while we redirect you to the secure payment page..."
+        },
+        "success": {
+            "title": "Payment Successful",
+            "description": "Your booking has been confirmed. You will receive a confirmation email shortly."
+        },
+        "failed": {
+            "title": "Payment Failed",
+            "description": "We were unable to process your payment. Please try again.",
+            "retry": "Try Again"
+        },
+        "expired": {
+            "title": "Payment Expired",
+            "description": "Your payment session has expired. The seats are no longer reserved.",
+            "startOver": "Start Over"
+        }
+    },
+    "PriceBreakdown": {
+        "title": "Price Details",
+        "pricePerSeat": "Seat price",
+        "serviceFee": "Service fee",
+        "discount": "Discount",
+        "total": "Total"
+    },
+    "Landing": {
+        "features": {
+            "title": "Why Choose VietRail?",
+            "subtitle": "Experience modern, fast, and secure train ticket booking in Vietnam",
+            "quickBooking": {
+                "title": "Quick Booking",
+                "description": "Book your train tickets online in just a few simple steps, saving time from queuing"
+            },
+            "securePayment": {
+                "title": "Secure Payment",
+                "description": "Multiple payment methods supported with high security through Stripe gateway"
+            },
+            "eTicket": {
+                "title": "E-Ticket",
+                "description": "Receive your ticket instantly on your phone with QR code, no printing needed"
+            },
+            "realtime": {
+                "title": "Real-time Updates",
+                "description": "Track seat availability and train status with continuous live updates"
+            }
+        },
+        "howItWorks": {
+            "title": "Book in Just 4 Steps",
+            "subtitle": "Simple and fast process from search to receiving your ticket",
+            "search": {
+                "title": "Search Trains",
+                "description": "Select origin, destination, and departure date"
+            },
+            "selectSeat": {
+                "title": "Select Seats",
+                "description": "View coach layout and pick your preferred seats"
+            },
+            "payment": {
+                "title": "Payment",
+                "description": "Pay securely through multiple payment methods"
+            },
+            "getTicket": {
+                "title": "Get E-Ticket",
+                "description": "QR ticket delivered instantly after successful payment"
+            }
+        },
+        "popularRoutes": {
+            "title": "Popular Routes",
+            "subtitle": "The most loved journeys on Vietnam's railway system",
+            "hnSg": {
+                "duration": "~33 hours • Reunification Express"
+            },
+            "hnDn": {
+                "duration": "~17 hours • Reunification Express"
+            },
+            "sgNt": {
+                "duration": "~7 hours • Reunification Express"
+            },
+            "hnHue": {
+                "duration": "~13 hours • Reunification Express"
+            },
+            "dnSg": {
+                "duration": "~17 hours • Reunification Express"
+            },
+            "sgDn": {
+                "duration": "~17 hours • Reunification Express"
+            }
+        },
+        "cta": {
+            "title": "Ready for Your Next Journey?",
+            "subtitle": "Book your train ticket today and discover the beauty of Vietnam through every railway route",
+            "button": "Book Now"
+        }
+    }
+}

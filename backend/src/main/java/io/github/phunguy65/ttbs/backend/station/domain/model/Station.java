@@ -3,12 +3,13 @@ package io.github.phunguy65.ttbs.backend.station.domain.model;
 import io.github.phunguy65.ttbs.backend.shared.domain.AggregateRoot;
 import io.github.phunguy65.ttbs.backend.station.domain.event.StationCreated;
 import io.github.phunguy65.ttbs.backend.station.domain.event.StationDeleted;
+import io.github.phunguy65.ttbs.backend.station.domain.event.StationUpdated;
 import java.time.Instant;
 
 public class Station extends AggregateRoot<StationId> {
 
     private final StationId id;
-    private final String code;
+    private final StationCode code;
     private final String name;
     private final String city;
     private final Instant createdAt;
@@ -22,7 +23,7 @@ public class Station extends AggregateRoot<StationId> {
             Instant createdAt,
             Instant deletedAt) {
         this.id = id;
-        this.code = code;
+        this.code = StationCode.of(code);
         this.name = name;
         this.city = city;
         this.createdAt = createdAt;
@@ -54,6 +55,16 @@ public class Station extends AggregateRoot<StationId> {
     }
 
     /**
+     * Updates this station's business fields and registers a {@link StationUpdated} domain event.
+     * Returns a new {@code Station} instance (fields are immutable).
+     */
+    public Station update(String code, String name, String city) {
+        Station updated = new Station(this.id, code, name, city, this.createdAt, this.deletedAt);
+        updated.registerEvent(StationUpdated.of(this.id, code, name, city));
+        return updated;
+    }
+
+    /**
      * Soft-deletes this station by setting {@code deletedAt} to now and registering a
      * {@link StationDeleted} domain event. Idempotent: if already deleted, returns immediately.
      */
@@ -76,7 +87,7 @@ public class Station extends AggregateRoot<StationId> {
     }
 
     public String getCode() {
-        return code;
+        return code.value();
     }
 
     public String getName() {

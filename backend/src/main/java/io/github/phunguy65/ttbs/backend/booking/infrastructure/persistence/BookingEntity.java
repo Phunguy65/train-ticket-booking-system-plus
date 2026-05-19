@@ -5,7 +5,10 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Entity
 @Table(name = "bookings")
@@ -18,17 +21,16 @@ class BookingEntity {
     @Column(name = "user_id", nullable = false, updatable = false)
     private UUID userId;
 
-    @Column(name = "route_id", nullable = false, updatable = false)
-    private UUID routeId;
+    @Column(name = "scheduled_trip_id", nullable = false, updatable = false)
+    private UUID scheduledTripId;
 
-    @Column(name = "passenger_name", nullable = false, length = 255)
-    private String passengerName;
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "user_info_snapshot", nullable = false, columnDefinition = "jsonb")
+    private BookingUserInfoSnapshotJson userInfoSnapshot;
 
-    @Column(name = "passenger_email", nullable = false, length = 255)
-    private String passengerEmail;
-
-    @Column(name = "passenger_phone", length = 20)
-    private String passengerPhone;
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "passengers_snapshot", columnDefinition = "jsonb")
+    private List<BookingPassengerSnapshotJson> passengersSnapshot;
 
     @Column(name = "total_price", nullable = false)
     private long totalPrice;
@@ -66,36 +68,28 @@ class BookingEntity {
         this.userId = userId;
     }
 
-    UUID getRouteId() {
-        return routeId;
+    UUID getScheduledTripId() {
+        return scheduledTripId;
     }
 
-    void setRouteId(UUID routeId) {
-        this.routeId = routeId;
+    void setScheduledTripId(UUID scheduledTripId) {
+        this.scheduledTripId = scheduledTripId;
     }
 
-    String getPassengerName() {
-        return passengerName;
+    BookingUserInfoSnapshotJson getUserInfoSnapshot() {
+        return userInfoSnapshot;
     }
 
-    void setPassengerName(String passengerName) {
-        this.passengerName = passengerName;
+    void setUserInfoSnapshot(BookingUserInfoSnapshotJson userInfoSnapshot) {
+        this.userInfoSnapshot = userInfoSnapshot;
     }
 
-    String getPassengerEmail() {
-        return passengerEmail;
+    List<BookingPassengerSnapshotJson> getPassengersSnapshot() {
+        return passengersSnapshot;
     }
 
-    void setPassengerEmail(String passengerEmail) {
-        this.passengerEmail = passengerEmail;
-    }
-
-    String getPassengerPhone() {
-        return passengerPhone;
-    }
-
-    void setPassengerPhone(String passengerPhone) {
-        this.passengerPhone = passengerPhone;
+    void setPassengersSnapshot(List<BookingPassengerSnapshotJson> passengersSnapshot) {
+        this.passengersSnapshot = passengersSnapshot;
     }
 
     long getTotalPrice() {

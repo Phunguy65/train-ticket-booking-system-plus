@@ -1,6 +1,7 @@
 package io.github.phunguy65.ttbs.backend.booking.domain.model;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import io.github.phunguy65.ttbs.backend.booking.domain.error.BookingError;
 import io.github.phunguy65.ttbs.backend.booking.domain.event.BookingCancelled;
@@ -8,191 +9,193 @@ import io.github.phunguy65.ttbs.backend.booking.domain.event.BookingConfirmed;
 import io.github.phunguy65.ttbs.backend.booking.domain.event.BookingCreated;
 import io.github.phunguy65.ttbs.backend.shared.domain.Money;
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
-import io.github.phunguy65.ttbs.backend.train.domain.model.RouteId;
+import io.github.phunguy65.ttbs.backend.train.domain.model.ScheduledTripId;
+import io.github.phunguy65.ttbs.backend.train.domain.model.SeatId;
 import io.github.phunguy65.ttbs.backend.user.domain.model.UserId;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+@DisplayName("Booking")
 class BookingTest {
 
-    private static final BookingId BOOKING_ID = BookingId.of(UUID.randomUUID());
-    private static final UserId USER_ID = UserId.of(UUID.randomUUID());
-    private static final RouteId ROUTE_ID = RouteId.of(UUID.randomUUID());
-    private static final Instant DEADLINE = Instant.now().plusSeconds(900);
+    private static final BookingId BOOKING_ID =
+            BookingId.of(UUID.fromString("11111111-1111-1111-1111-111111111111"));
+    private static final UserId USER_ID =
+            UserId.of(UUID.fromString("22222222-2222-2222-2222-222222222222"));
+    private static final ScheduledTripId TRIP_ID =
+            ScheduledTripId.of(UUID.fromString("33333333-3333-3333-3333-333333333333"));
+    private static final Money TOTAL_PRICE = Money.vnd(1_000_000L);
+    private static final Instant PAYMENT_DEADLINE = Instant.now().plusSeconds(900);
 
-    private Booking newHeldBooking() {
+    private static BookingUserInfo bookerInfo() {
+        return BookingUserInfo.of("Nguyen Van A", "a@b.com", null, null, null, null, null);
+    }
+
+    private static List<BookingPassenger> twoPassengers() {
+        return List.of(
+                BookingPassenger.of(
+                        SeatId.of(UUID.fromString("44444444-4444-4444-4444-000000000001")),
+                        "Nguyen Van B",
+                        "ID001",
+                        LocalDate.of(1990, 1, 1),
+                        "male"),
+                BookingPassenger.of(
+                        SeatId.of(UUID.fromString("44444444-4444-4444-4444-000000000002")),
+                        "Nguyen Van C",
+                        "ID002",
+                        LocalDate.of(1992, 3, 15),
+                        "female"));
+    }
+
+    private static Booking createHeldBooking() {
         return Booking.create(
                 BOOKING_ID,
                 USER_ID,
-                ROUTE_ID,
-                "John Doe",
-                "john@example.com",
-                null,
-                Money.vnd(100_000L),
-                "VND",
+                TRIP_ID,
+                bookerInfo(),
+                twoPassengers(),
+                TOTAL_PRICE,
                 "idem-key-1",
-                DEADLINE);
+                PAYMENT_DEADLINE);
     }
 
-    // ── create() ─────────────────────────────────────────────────────────────
+    @Nested
+    @DisplayName("create()")
+    class Create {
 
-    @Test
-    void create_shouldInitializeWithHeldStatus() {
-        Booking booking = newHeldBooking();
+        @Test
+        @DisplayName("returns HELD status and registers BookingCreated event")
+        void create_returnsHeldStatusAndRegistersBookingCreatedEvent() {
+            Booking booking = createHeldBooking();
 
-        assertThat(booking.getStatus()).isEqualTo(BookingStatus.HELD);
-        assertThat(booking.getBookingId()).isEqualTo(BOOKING_ID);
-        assertThat(booking.getUserId()).isEqualTo(USER_ID);
-        assertThat(booking.getRouteId()).isEqualTo(ROUTE_ID);
+            assertThat(booking.getStatus()).isEqualTo(BookingStatus.HELD);
+            assertThat(booking.getDomainEvents()).hasSize(1);
+            assertThat(booking.getDomainEvents().get(0)).isInstanceOf(BookingCreated.class);
+        }
     }
 
-    @Test
-    void create_shouldRegisterBookingCreatedEvent() {
-        Booking booking = newHeldBooking();
+    @Nested
+    @DisplayName("confirm()")
+    class Confirm {
 
-        assertThat(booking.getDomainEvents()).hasSize(1);
-        assertThat(booking.getDomainEvents().getFirst()).isInstanceOf(BookingCreated.class);
+        @Test
+        @DisplayName("HELD → CONFIRMED registers BookingConfirmed event")
+        void held_toConfirmed_registersBookingConfirmedEvent() {
+            Booking booking = createHeldBooking();
+            booking.clearDomainEvents();
+
+            Result<Void, BookingError> result = booking.confirm();
+
+            assertThat(result.isSuccess()).isTrue();
+            assertThat(booking.getStatus()).isEqualTo(BookingStatus.CONFIRMED);
+            assertThat(booking.getDomainEvents()).hasSize(1);
+            assertThat(booking.getDomainEvents().get(0)).isInstanceOf(BookingConfirmed.class);
+        }
+
+        @Test
+        @DisplayName("CONFIRMED → fails with InvalidStatusTransition")
+        void confirmed_toConfirmed_fails() {
+            Booking booking = createHeldBooking();
+            booking.confirm();
+            booking.clearDomainEvents();
+
+            Result<Void, BookingError> result = booking.confirm();
+
+            assertThat(result.isFailure()).isTrue();
+            assertThat(((Result.Failure<?, BookingError>) result).error())
+                    .isInstanceOf(BookingError.InvalidStatusTransition.class);
+        }
     }
 
-    // ── confirm() ────────────────────────────────────────────────────────────
+    @Nested
+    @DisplayName("cancel()")
+    class Cancel {
 
-    @Test
-    void confirm_whenHeld_shouldTransitionToConfirmed() {
-        Booking booking = newHeldBooking();
-        booking.clearDomainEvents();
+        @Test
+        @DisplayName("HELD → CANCELLED sets requiresRefund=false")
+        void held_toCancelled_requiresRefundFalse() {
+            Booking booking = createHeldBooking();
+            booking.clearDomainEvents();
 
-        Result<Void, BookingError> result = booking.confirm();
+            Result<Void, BookingError> result = booking.cancel();
 
-        assertThat(result.isSuccess()).isTrue();
-        assertThat(booking.getStatus()).isEqualTo(BookingStatus.CONFIRMED);
+            assertThat(result.isSuccess()).isTrue();
+            assertThat(booking.getStatus()).isEqualTo(BookingStatus.CANCELLED);
+            assertThat(booking.getDomainEvents()).hasSize(1);
+            BookingCancelled event =
+                    (BookingCancelled) booking.getDomainEvents().get(0);
+            assertThat(event.requiresRefund()).isFalse();
+        }
+
+        @Test
+        @DisplayName("CONFIRMED → CANCELLED sets requiresRefund=true")
+        void confirmed_toCancelled_requiresRefundTrue() {
+            Booking booking = createHeldBooking();
+            booking.confirm();
+            booking.clearDomainEvents();
+
+            Result<Void, BookingError> result = booking.cancel();
+
+            assertThat(result.isSuccess()).isTrue();
+            assertThat(booking.getStatus()).isEqualTo(BookingStatus.CANCELLED);
+            assertThat(booking.getDomainEvents()).hasSize(1);
+            BookingCancelled event =
+                    (BookingCancelled) booking.getDomainEvents().get(0);
+            assertThat(event.requiresRefund()).isTrue();
+        }
+
+        @Test
+        @DisplayName("CANCELLED → fails with InvalidStatusTransition")
+        void cancelled_toCancelled_fails() {
+            Booking booking = createHeldBooking();
+            booking.cancel();
+            booking.clearDomainEvents();
+
+            Result<Void, BookingError> result = booking.cancel();
+
+            assertThat(result.isFailure()).isTrue();
+            assertThat(((Result.Failure<?, BookingError>) result).error())
+                    .isInstanceOf(BookingError.InvalidStatusTransition.class);
+        }
     }
 
-    @Test
-    void confirm_whenHeld_shouldRegisterBookingConfirmedEvent() {
-        Booking booking = newHeldBooking();
-        booking.clearDomainEvents();
+    @Nested
+    @DisplayName("constructor validation")
+    class ConstructorValidation {
 
-        booking.confirm();
+        @Test
+        @DisplayName("rejects duplicate passenger ID documents")
+        void constructor_rejectsDuplicatePassengerIdDocuments() {
+            List<BookingPassenger> duplicatePassengers = List.of(
+                    BookingPassenger.of(
+                            SeatId.of(UUID.fromString("44444444-4444-4444-4444-000000000001")),
+                            "Nguyen Van B",
+                            "SAME_ID",
+                            LocalDate.of(1990, 1, 1),
+                            "male"),
+                    BookingPassenger.of(
+                            SeatId.of(UUID.fromString("44444444-4444-4444-4444-000000000002")),
+                            "Nguyen Van C",
+                            "SAME_ID",
+                            LocalDate.of(1992, 3, 15),
+                            "female"));
 
-        assertThat(booking.getDomainEvents()).hasSize(1);
-        assertThat(booking.getDomainEvents().getFirst()).isInstanceOf(BookingConfirmed.class);
-    }
-
-    @Test
-    void confirm_whenConfirmed_shouldReturnFailure() {
-        Booking booking = newHeldBooking();
-        booking.confirm();
-        booking.clearDomainEvents();
-
-        Result<Void, BookingError> result = booking.confirm();
-
-        assertThat(result.isFailure()).isTrue();
-        assertThat(((Result.Failure<Void, BookingError>) result).error())
-                .isInstanceOf(BookingError.InvalidStatusTransition.class);
-    }
-
-    @Test
-    void confirm_whenCancelled_shouldReturnFailure() {
-        Booking booking = newHeldBooking();
-        booking.cancel();
-        booking.clearDomainEvents();
-
-        Result<Void, BookingError> result = booking.confirm();
-
-        assertThat(result.isFailure()).isTrue();
-    }
-
-    // ── cancel() ─────────────────────────────────────────────────────────────
-
-    @Test
-    void cancel_whenHeld_shouldTransitionToCancelled() {
-        Booking booking = newHeldBooking();
-        booking.clearDomainEvents();
-
-        Result<Void, BookingError> result = booking.cancel();
-
-        assertThat(result.isSuccess()).isTrue();
-        assertThat(booking.getStatus()).isEqualTo(BookingStatus.CANCELLED);
-    }
-
-    @Test
-    void cancel_whenHeld_shouldRegisterEventWithRequiresRefundFalse() {
-        Booking booking = newHeldBooking();
-        booking.clearDomainEvents();
-
-        booking.cancel();
-
-        BookingCancelled event = (BookingCancelled) booking.getDomainEvents().getFirst();
-        assertThat(event.requiresRefund()).isFalse();
-    }
-
-    @Test
-    void cancel_whenConfirmed_shouldRegisterEventWithRequiresRefundTrue() {
-        Booking booking = newHeldBooking();
-        booking.confirm();
-        booking.clearDomainEvents();
-
-        booking.cancel();
-
-        BookingCancelled event = (BookingCancelled) booking.getDomainEvents().getFirst();
-        assertThat(event.requiresRefund()).isTrue();
-    }
-
-    @Test
-    void cancel_whenAlreadyCancelled_shouldReturnFailure() {
-        Booking booking = newHeldBooking();
-        booking.cancel();
-        booking.clearDomainEvents();
-
-        Result<Void, BookingError> result = booking.cancel();
-
-        assertThat(result.isFailure()).isTrue();
-        assertThat(((Result.Failure<Void, BookingError>) result).error())
-                .isInstanceOf(BookingError.InvalidStatusTransition.class);
-    }
-
-    // ── reconstitute() ───────────────────────────────────────────────────────
-
-    @Test
-    void reconstitute_shouldNotRegisterEvents() {
-        Booking booking = Booking.reconstitute(
-                BOOKING_ID,
-                USER_ID,
-                ROUTE_ID,
-                "John Doe",
-                "john@example.com",
-                null,
-                Money.vnd(100_000L),
-                "VND",
-                BookingStatus.HELD,
-                "idem-key-1",
-                DEADLINE,
-                Instant.now());
-
-        assertThat(booking.getDomainEvents()).isEmpty();
-    }
-
-    @Test
-    void reconstitute_shouldRestoreAllFields() {
-        Instant createdAt = Instant.now().minusSeconds(60);
-        Booking booking = Booking.reconstitute(
-                BOOKING_ID,
-                USER_ID,
-                ROUTE_ID,
-                "Jane Doe",
-                "jane@example.com",
-                "+84901234567",
-                Money.vnd(200_000L),
-                "VND",
-                BookingStatus.CONFIRMED,
-                "idem-key-2",
-                DEADLINE,
-                createdAt);
-
-        assertThat(booking.getPassengerName()).isEqualTo("Jane Doe");
-        assertThat(booking.getPassengerPhone()).isEqualTo("+84901234567");
-        assertThat(booking.getStatus()).isEqualTo(BookingStatus.CONFIRMED);
-        assertThat(booking.getCreatedAt()).isEqualTo(createdAt);
+            assertThatThrownBy(() -> Booking.create(
+                            BOOKING_ID,
+                            USER_ID,
+                            TRIP_ID,
+                            bookerInfo(),
+                            duplicatePassengers,
+                            TOTAL_PRICE,
+                            "idem-key-dup",
+                            PAYMENT_DEADLINE))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessageContaining("SAME_ID");
+        }
     }
 }

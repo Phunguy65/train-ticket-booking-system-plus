@@ -5,7 +5,10 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -13,13 +16,20 @@ interface BookingJpaRepository extends JpaRepository<BookingEntity, UUID> {
 
     Optional<BookingEntity> findByIdempotencyKey(String idempotencyKey);
 
+    Page<BookingEntity> findAllByUserId(UUID userId, Pageable pageable);
+
     boolean existsByUserIdAndStatusIn(UUID userId, Collection<String> statuses);
 
     @Query(
-            "SELECT e FROM BookingEntity e WHERE e.userId = :userId AND e.routeId = :routeId AND e.status = 'HELD'")
-    Optional<BookingEntity> findByUserIdAndRouteIdAndStatusHeld(
-            @Param("userId") UUID userId, @Param("routeId") UUID routeId);
+            "SELECT e FROM BookingEntity e WHERE e.userId = :userId AND e.scheduledTripId = :scheduledTripId AND e.status = 'HELD'")
+    Optional<BookingEntity> findByUserIdAndScheduledTripIdAndStatusHeld(
+            @Param("userId") UUID userId, @Param("scheduledTripId") UUID scheduledTripId);
 
     @Query("SELECT e FROM BookingEntity e WHERE e.status = 'HELD' AND e.paymentDeadline < :now")
     List<BookingEntity> findByStatusHeldAndPaymentDeadlineBefore(@Param("now") Instant now);
+
+    @Modifying
+    @Query("UPDATE BookingEntity e SET e.status = 'CANCELLED' "
+            + "WHERE e.id IN :bookingIds AND e.status IN ('HELD', 'CONFIRMED')")
+    int cancelByIds(@Param("bookingIds") List<UUID> bookingIds);
 }

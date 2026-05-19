@@ -8,7 +8,9 @@ plugins {
 }
 
 group = "io.github.phunguy65.ttbs"
-version = "0.0.1-SNAPSHOT"
+// x-release-please-start-version
+version = "0.1.0"
+// x-release-please-end
 description = "backend"
 
 java {
@@ -30,22 +32,21 @@ configurations {
 
 dependencies {
     implementation(libs.spring.boot.starter.actuator)
-    implementation(libs.spring.boot.starter.amqp)
+    implementation(libs.spring.boot.starter.cache)
+    implementation(libs.spring.boot.starter.flyway)
+    runtimeOnly(libs.flyway.database.postgresql)
     implementation(libs.spring.boot.starter.data.jpa)
+    implementation(libs.spring.boot.starter.data.redis)
+    implementation(libs.commons.pool2)
     implementation(libs.spring.boot.starter.integration)
     implementation(libs.spring.boot.starter.security)
     implementation(libs.spring.boot.starter.webmvc)
     implementation(libs.spring.boot.starter.validation)
-    implementation(libs.spring.rabbit.stream)
-    implementation(libs.spring.integration.amqp)
+    implementation(libs.springdoc.openapi.starter.webmvc.ui)
     implementation(libs.spring.integration.http)
     implementation(libs.spring.integration.jpa)
-    implementation(libs.spring.modulith.events.api)
-    implementation(libs.spring.modulith.starter.core)
-    implementation(libs.spring.modulith.starter.jpa)
     implementation(libs.spring.security.messaging)
     implementation(libs.jjwt.api)
-    implementation(libs.jackson.databind.nullable)
     compileOnly(libs.jspecify)
     implementation(libs.stripe.java)
     implementation(libs.uuid.creator)
@@ -53,34 +54,23 @@ dependencies {
     runtimeOnly(libs.jjwt.jackson)
     developmentOnly(libs.spring.boot.devtools)
     runtimeOnly(libs.postgresql)
-    runtimeOnly(libs.spring.modulith.actuator)
-    runtimeOnly(libs.spring.modulith.events.amqp)
-    runtimeOnly(libs.spring.modulith.observability)
     annotationProcessor(libs.spring.boot.configuration.processor)
     testImplementation(libs.spring.boot.starter.actuator.test)
     testImplementation(libs.spring.boot.starter.data.jpa.test)
     testImplementation(libs.spring.boot.starter.security.test)
     testImplementation(libs.spring.boot.starter.webmvc.test)
     testImplementation(libs.spring.integration.test)
-    testImplementation(libs.spring.modulith.starter.test)
     testRuntimeOnly(libs.junit.platform.launcher)
-    testRuntimeOnly(libs.h2)
+    testImplementation(platform(libs.testcontainers.bom))
+    testImplementation(libs.testcontainers.junit.jupiter)
+    testImplementation(libs.testcontainers.postgresql)
+    testImplementation(libs.spring.boot.testcontainers)
     testImplementation(libs.archunit.junit5)
-}
-
-dependencyManagement {
-    imports {
-        mavenBom(
-            libs.spring.modulith.bom
-                .get()
-                .toString()
-        )
-    }
 }
 
 hibernate {
     enhancement {
-        enableAssociationManagement = true
+        enableAssociationManagement = false
     }
 }
 
@@ -88,8 +78,20 @@ tasks.withType<Test> {
     useJUnitPlatform()
 }
 
-// Disable AOT test processing to allow regular JVM test execution.
-// Native image test compilation (nativeTest) can still be run explicitly.
-tasks.named("processTestAot") {
-    enabled = false
+tasks.withType<JavaCompile>().configureEach {
+    options.compilerArgs.add("-parameters")
+}
+
+tasks.register<JavaExec>("exportCustomerOpenApi") {
+    group = "documentation"
+    description = "Exports the generated customer OpenAPI YAML artifact"
+    dependsOn(tasks.named("testClasses"))
+    classpath(
+        layout.buildDirectory.dir("classes/java/main"),
+        layout.buildDirectory.dir("resources/main"),
+        layout.buildDirectory.dir("classes/java/test"),
+        layout.buildDirectory.dir("resources/test"),
+        configurations.named("testRuntimeClasspath")
+    )
+    mainClass.set("io.github.phunguy65.ttbs.backend.shared.infrastructure.web.CustomerOpenApiExporter")
 }

@@ -1,11 +1,16 @@
 package io.github.phunguy65.ttbs.backend.user.application.usecase;
 
+import io.github.phunguy65.ttbs.backend.shared.domain.AddressLine;
+import io.github.phunguy65.ttbs.backend.shared.domain.EmailAddress;
+import io.github.phunguy65.ttbs.backend.shared.domain.Gender;
+import io.github.phunguy65.ttbs.backend.shared.domain.IdDocumentNumber;
+import io.github.phunguy65.ttbs.backend.shared.domain.PhoneNumber;
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
 import io.github.phunguy65.ttbs.backend.user.application.command.LoginCommand;
-import io.github.phunguy65.ttbs.backend.user.application.dto.LoginResultDto;
-import io.github.phunguy65.ttbs.backend.user.application.dto.UserDto;
 import io.github.phunguy65.ttbs.backend.user.application.port.PasswordEncoder;
 import io.github.phunguy65.ttbs.backend.user.application.port.RefreshTokenManager;
+import io.github.phunguy65.ttbs.backend.user.application.response.LoginResultResponse;
+import io.github.phunguy65.ttbs.backend.user.application.response.UserResponse;
 import io.github.phunguy65.ttbs.backend.user.domain.error.UserError;
 import io.github.phunguy65.ttbs.backend.user.domain.model.User;
 import io.github.phunguy65.ttbs.backend.user.domain.repository.UserRepository;
@@ -29,30 +34,33 @@ public class LoginUserUseCase {
     }
 
     @Transactional
-    public Result<LoginResultDto, UserError> execute(LoginCommand command) {
-        var userOpt = userRepository.findByEmail(command.email());
+    public Result<LoginResultResponse, UserError> execute(LoginCommand command) {
+        var userOpt =
+                userRepository.findByEmail(EmailAddress.of(command.email()).value());
         if (userOpt.isEmpty()) {
             return Result.failure(new UserError.InvalidCredentials());
         }
 
         User user = userOpt.get();
-        if (!passwordEncoder.matches(command.password(), user.getPasswordHash())) {
+        if (!passwordEncoder.matches(command.password(), user.getPasswordHash().value())) {
             return Result.failure(new UserError.InvalidCredentials());
         }
 
         RefreshTokenManager.TokenPair tokens = refreshTokenManager.generateAndSaveTokens(user);
 
-        return Result.success(
-                new LoginResultDto(tokens.accessToken(), tokens.refreshToken(), toDto(user)));
-    }
-
-    private UserDto toDto(User user) {
-        return new UserDto(
-                user.getId().value(),
-                user.getEmail(),
-                user.getFullName(),
-                user.getPhone(),
-                user.getRole(),
-                user.getCreatedAt());
+        return Result.success(new LoginResultResponse(
+                tokens.accessToken(),
+                tokens.refreshToken(),
+                new UserResponse(
+                        user.getId().value(),
+                        user.getEmail().value(),
+                        user.getFullName().value(),
+                        user.getPhone().map(PhoneNumber::value).orElse(null),
+                        user.getDateOfBirth().orElse(null),
+                        user.getGender().map(Gender::value).orElse(null),
+                        user.getIdDocumentNumber().map(IdDocumentNumber::value).orElse(null),
+                        user.getAddressLine().map(AddressLine::value).orElse(null),
+                        user.getRole().name(),
+                        user.getCreatedAt())));
     }
 }

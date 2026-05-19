@@ -1,172 +1,128 @@
 package io.github.phunguy65.ttbs.backend.train.infrastructure.web;
 
+import io.github.phunguy65.ttbs.backend.shared.domain.PageResponse;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.ErrorCode;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.FailData;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.JsendResponse;
-import io.github.phunguy65.ttbs.backend.train.application.command.BulkSoftDeleteSeatsCommand;
-import io.github.phunguy65.ttbs.backend.train.application.command.SoftDeleteSeatCommand;
-import io.github.phunguy65.ttbs.backend.train.application.usecase.BulkCreateSeatsUseCase;
-import io.github.phunguy65.ttbs.backend.train.application.usecase.BulkSoftDeleteSeatsUseCase;
-import io.github.phunguy65.ttbs.backend.train.application.usecase.CreateSeatUseCase;
-import io.github.phunguy65.ttbs.backend.train.application.usecase.GetAvailableSeatsForRouteUseCase;
+import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.SuccessPayload;
+import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.SuccessResponseKind;
+import io.github.phunguy65.ttbs.backend.train.application.response.CoachSeatMapResponse;
+import io.github.phunguy65.ttbs.backend.train.application.response.SeatResponse;
+import io.github.phunguy65.ttbs.backend.train.application.usecase.GetAvailableSeatsForScheduledTripUseCase;
+import io.github.phunguy65.ttbs.backend.train.application.usecase.GetCoachSeatMapByScheduledTripUseCase;
 import io.github.phunguy65.ttbs.backend.train.application.usecase.GetSeatsByTrainUseCase;
-import io.github.phunguy65.ttbs.backend.train.application.usecase.SoftDeleteSeatUseCase;
-import io.github.phunguy65.ttbs.backend.train.domain.error.SeatError;
-import io.github.phunguy65.ttbs.backend.train.domain.model.SeatId;
+import io.github.phunguy65.ttbs.backend.train.domain.error.ScheduledTripError;
+import io.github.phunguy65.ttbs.backend.train.infrastructure.web.request.*;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
+@Tag(name = "Trains")
 class SeatController {
 
-    private final CreateSeatUseCase createSeatUseCase;
     private final GetSeatsByTrainUseCase getSeatsByTrainUseCase;
-    private final GetAvailableSeatsForRouteUseCase getAvailableSeatsForRouteUseCase;
-    private final SoftDeleteSeatUseCase softDeleteSeatUseCase;
-    private final BulkSoftDeleteSeatsUseCase bulkSoftDeleteSeatsUseCase;
-    private final BulkCreateSeatsUseCase bulkCreateSeatsUseCase;
-    private final SeatRequestMapper mapper;
+    private final GetAvailableSeatsForScheduledTripUseCase getAvailableSeatsForScheduledTripUseCase;
+    private final GetCoachSeatMapByScheduledTripUseCase getCoachSeatMapByScheduledTripUseCase;
 
     SeatController(
-            CreateSeatUseCase createSeatUseCase,
             GetSeatsByTrainUseCase getSeatsByTrainUseCase,
-            GetAvailableSeatsForRouteUseCase getAvailableSeatsForRouteUseCase,
-            SoftDeleteSeatUseCase softDeleteSeatUseCase,
-            BulkSoftDeleteSeatsUseCase bulkSoftDeleteSeatsUseCase,
-            BulkCreateSeatsUseCase bulkCreateSeatsUseCase,
-            SeatRequestMapper mapper) {
-        this.createSeatUseCase = createSeatUseCase;
+            GetAvailableSeatsForScheduledTripUseCase getAvailableSeatsForScheduledTripUseCase,
+            GetCoachSeatMapByScheduledTripUseCase getCoachSeatMapByScheduledTripUseCase) {
         this.getSeatsByTrainUseCase = getSeatsByTrainUseCase;
-        this.getAvailableSeatsForRouteUseCase = getAvailableSeatsForRouteUseCase;
-        this.softDeleteSeatUseCase = softDeleteSeatUseCase;
-        this.bulkSoftDeleteSeatsUseCase = bulkSoftDeleteSeatsUseCase;
-        this.bulkCreateSeatsUseCase = bulkCreateSeatsUseCase;
-        this.mapper = mapper;
+        this.getAvailableSeatsForScheduledTripUseCase = getAvailableSeatsForScheduledTripUseCase;
+        this.getCoachSeatMapByScheduledTripUseCase = getCoachSeatMapByScheduledTripUseCase;
     }
 
-    @PostMapping(value = "/{version}/trains/{trainId}/seats", version = "1.0")
-    @PreAuthorize("hasRole('ADMIN')")
-    ResponseEntity<JsendResponse<?>> createSeat(
-            @PathVariable UUID trainId, @Valid @RequestBody CreateSeatHttpRequest request) {
-        return createSeatUseCase
-                .execute(mapper.toCommand(trainId, request))
-                .fold(
-                        dto -> {
-                            var location = ServletUriComponentsBuilder.fromCurrentRequest()
-                                    .path("/{id}")
-                                    .buildAndExpand(dto.id())
-                                    .toUri();
-                            return ResponseEntity.created(location)
-                                    .body(JsendResponse.success(mapper.toResponse(dto)));
-                        },
-                        this::seatErrorResponse);
-    }
-
+    @Operation(operationId = "getTrainSeats", summary = "List seats for a train")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Paged seats for the train"),
+        @ApiResponse(
+                responseCode = "400",
+                description = "Invalid pagination parameters",
+                content =
+                        @Content(schema = @Schema(ref = "#/components/schemas/JsendFailResponse")))
+    })
+    @SuccessPayload(value = SeatResponse.class, kind = SuccessResponseKind.PAGE)
     @GetMapping(value = "/{version}/trains/{trainId}/seats", version = "1.0")
-    ResponseEntity<JsendResponse<?>> getSeatsByTrain(@PathVariable UUID trainId) {
-        List<SeatHttpResponse> responses = getSeatsByTrainUseCase.execute(trainId).stream()
-                .map(mapper::toResponse)
-                .toList();
-        return ResponseEntity.ok(JsendResponse.success(responses));
+    ResponseEntity<JsendResponse<?>> getSeatsByTrain(
+            @Parameter(description = "Train identifier") @PathVariable UUID trainId,
+            @ParameterObject @Valid GetSeatsRequest request) {
+        PageResponse<SeatResponse> result =
+                getSeatsByTrainUseCase.execute(request.toQuery(trainId));
+        return ResponseEntity.ok(JsendResponse.success(result));
     }
 
-    @GetMapping(value = "/{version}/routes/{routeId}/seats/available", version = "1.0")
-    ResponseEntity<JsendResponse<?>> getAvailableSeats(@PathVariable UUID routeId) {
-        List<SeatHttpResponse> responses =
-                getAvailableSeatsForRouteUseCase.execute(routeId).stream()
-                        .map(mapper::toResponse)
-                        .toList();
-        return ResponseEntity.ok(JsendResponse.success(responses));
+    @Operation(
+            operationId = "getAvailableSeats",
+            summary = "List available seats for a scheduled trip")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Paged available seats"),
+        @ApiResponse(
+                responseCode = "400",
+                description = "Invalid seat filter or pagination parameters",
+                content =
+                        @Content(schema = @Schema(ref = "#/components/schemas/JsendFailResponse"))),
+        @ApiResponse(
+                responseCode = "404",
+                description = "Scheduled trip not found",
+                content =
+                        @Content(schema = @Schema(ref = "#/components/schemas/JsendFailResponse")))
+    })
+    @SuccessPayload(value = SeatResponse.class, kind = SuccessResponseKind.PAGE)
+    @GetMapping(
+            value = "/{version}/scheduled-trips/{scheduledTripId}/seats/available",
+            version = "1.0")
+    ResponseEntity<JsendResponse<?>> getAvailableSeats(
+            @Parameter(description = "Scheduled trip identifier") @PathVariable
+                    UUID scheduledTripId,
+            @ParameterObject @Valid GetAvailableSeatsRequest request) {
+        PageResponse<SeatResponse> result =
+                getAvailableSeatsForScheduledTripUseCase.execute(request.toQuery(scheduledTripId));
+        return ResponseEntity.ok(JsendResponse.success(result));
     }
 
-    @DeleteMapping(value = "/{version}/seats/{id}", version = "1.0")
-    @PreAuthorize("hasRole('ADMIN')")
-    ResponseEntity<JsendResponse<?>> deleteById(@PathVariable UUID id) {
-        return softDeleteSeatUseCase
-                .execute(new SoftDeleteSeatCommand(SeatId.of(id)))
-                .fold(v -> ResponseEntity.ok(JsendResponse.success()), this::seatErrorResponse);
-    }
-
-    @PostMapping(value = "/{version}/seats:bulkDelete", version = "1.0")
-    @PreAuthorize("hasRole('ADMIN')")
-    ResponseEntity<JsendResponse<?>> bulkDelete(
-            @Valid @RequestBody BulkSoftDeleteSeatsHttpRequest request) {
-        List<SeatId> seatIds = request.seatIds().stream().map(SeatId::of).toList();
-        return bulkSoftDeleteSeatsUseCase
-                .execute(new BulkSoftDeleteSeatsCommand(seatIds))
+    @Operation(operationId = "getCoachSeatMap", summary = "Get the seat map for a scheduled trip")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Coach seat map for the scheduled trip"),
+        @ApiResponse(
+                responseCode = "400",
+                description = "Invalid coach selection parameters",
+                content =
+                        @Content(schema = @Schema(ref = "#/components/schemas/JsendFailResponse"))),
+        @ApiResponse(
+                responseCode = "404",
+                description = "Scheduled trip not found",
+                content =
+                        @Content(schema = @Schema(ref = "#/components/schemas/JsendFailResponse")))
+    })
+    @SuccessPayload(value = CoachSeatMapResponse.class, kind = SuccessResponseKind.PAGE)
+    @GetMapping(value = "/{version}/scheduled-trips/{scheduledTripId}/coach-seats", version = "1.0")
+    ResponseEntity<JsendResponse<?>> getCoachSeatMap(
+            @Parameter(description = "Scheduled trip identifier") @PathVariable
+                    UUID scheduledTripId,
+            @ParameterObject @Valid GetCoachSeatMapRequest request) {
+        return getCoachSeatMapByScheduledTripUseCase
+                .execute(request.toQuery(scheduledTripId))
                 .fold(
-                        deletedCount -> ResponseEntity.ok(
-                                JsendResponse.success(Map.of("deletedCount", deletedCount))),
-                        this::seatErrorResponse);
+                        dto -> ResponseEntity.ok(JsendResponse.success(dto)),
+                        this::scheduledTripErrorResponse);
     }
 
-    @PostMapping(value = "/{version}/coaches/{coachId}/seats:bulkCreate", version = "1.0")
-    @PreAuthorize("hasRole('ADMIN')")
-    ResponseEntity<JsendResponse<?>> bulkCreateSeats(
-            @PathVariable UUID coachId, @Valid @RequestBody BulkCreateSeatsHttpRequest request) {
-        return bulkCreateSeatsUseCase
-                .execute(mapper.toBulkCommand(coachId, request))
-                .fold(
-                        dtos -> ResponseEntity.status(HttpStatus.CREATED)
-                                .body(JsendResponse.success(mapper.toResponseList(dtos))),
-                        this::seatErrorResponse);
-    }
-
-    private ResponseEntity<JsendResponse<?>> seatErrorResponse(SeatError error) {
-        HttpStatus status =
-                switch (error) {
-                    case SeatError.SeatNotFound e -> HttpStatus.NOT_FOUND;
-                    case SeatError.TrainNotFound e -> HttpStatus.NOT_FOUND;
-                    case SeatError.SeatNumberAlreadyExists e -> HttpStatus.CONFLICT;
-                    case SeatError.SeatInUse e -> HttpStatus.UNPROCESSABLE_CONTENT;
-                    case SeatError.CoachNotFound e -> HttpStatus.NOT_FOUND;
-                    case SeatError.SeatNumbersAlreadyExist e -> HttpStatus.CONFLICT;
-                    case SeatError.DuplicateSeatNumbersInRequest e ->
-                        HttpStatus.UNPROCESSABLE_CONTENT;
-                };
-        ErrorCode code =
-                switch (error) {
-                    case SeatError.SeatNotFound e -> ErrorCode.SEAT_NOT_FOUND;
-                    case SeatError.TrainNotFound e -> ErrorCode.TRAIN_NOT_FOUND;
-                    case SeatError.SeatNumberAlreadyExists e ->
-                        ErrorCode.SEAT_NUMBER_ALREADY_EXISTS;
-                    case SeatError.SeatInUse e -> ErrorCode.SEAT_IN_USE;
-                    case SeatError.CoachNotFound e -> ErrorCode.COACH_NOT_FOUND;
-                    case SeatError.SeatNumbersAlreadyExist e ->
-                        ErrorCode.SEAT_NUMBERS_ALREADY_EXIST;
-                    case SeatError.DuplicateSeatNumbersInRequest e ->
-                        ErrorCode.SEAT_DUPLICATE_SEAT_NUMBERS_IN_REQUEST;
-                };
-
-        if (error instanceof SeatError.SeatNumbersAlreadyExist conflict) {
-            return ResponseEntity.status(status)
-                    .body(JsendResponse.fail(Map.of(
-                            "message", conflict.message(),
-                            "code", code,
-                            "conflictingNumbers", conflict.conflictingNumbers())));
-        }
-
-        if (error instanceof SeatError.DuplicateSeatNumbersInRequest dup) {
-            return ResponseEntity.status(status)
-                    .body(JsendResponse.fail(Map.of(
-                            "message", dup.message(),
-                            "code", code,
-                            "duplicates", dup.duplicates())));
-        }
-
-        return ResponseEntity.status(status)
-                .body(JsendResponse.fail(new FailData(error.message(), code, List.of())));
+    private ResponseEntity<JsendResponse<?>> scheduledTripErrorResponse(ScheduledTripError error) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(JsendResponse.fail(new FailData(
+                        error.message(), ErrorCode.SCHEDULED_TRIP_NOT_FOUND, List.of())));
     }
 }

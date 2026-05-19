@@ -14,6 +14,13 @@ public sealed interface PaymentError {
         }
     }
 
+    record Forbidden() implements PaymentError {
+        @Override
+        public String message() {
+            return "You are not allowed to access this payment";
+        }
+    }
+
     record AlreadyProcessed() implements PaymentError {
         @Override
         public String message() {
@@ -25,6 +32,20 @@ public sealed interface PaymentError {
         @Override
         public String message() {
             return "Refund failed: " + reason;
+        }
+    }
+
+    record BookingNotFound() implements PaymentError {
+        @Override
+        public String message() {
+            return "Booking not found";
+        }
+    }
+
+    record InvalidBookingState(String reason) implements PaymentError {
+        @Override
+        public String message() {
+            return reason;
         }
     }
 

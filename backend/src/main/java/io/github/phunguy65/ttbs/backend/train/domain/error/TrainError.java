@@ -27,7 +27,7 @@ public sealed interface TrainError {
     record TrainInUse(List<UUID> conflictingIds) implements TrainError {
         @Override
         public String message() {
-            return "One or more trains are referenced by active routes and cannot be deleted";
+            return "One or more trains are referenced by active scheduled trips and cannot be deleted";
         }
     }
 

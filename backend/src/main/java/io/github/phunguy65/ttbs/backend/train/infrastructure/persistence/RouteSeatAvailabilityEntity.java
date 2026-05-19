@@ -3,7 +3,7 @@ package io.github.phunguy65.ttbs.backend.train.infrastructure.persistence;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "route_seat_availability")
+@Table(name = "trip_seat_availability")
 class RouteSeatAvailabilityEntity {
 
     @EmbeddedId
@@ -14,6 +14,9 @@ class RouteSeatAvailabilityEntity {
 
     @Column(name = "booking_id")
     private java.util.UUID bookingId;
+
+    @Column(name = "price_at_booking")
+    private Long priceAtBooking;
 
     @Version
     @Column(name = "version", nullable = false)
@@ -51,5 +54,13 @@ class RouteSeatAvailabilityEntity {
 
     void setBookingId(java.util.UUID bookingId) {
         this.bookingId = bookingId;
+    }
+
+    Long getPriceAtBooking() {
+        return priceAtBooking;
+    }
+
+    void setPriceAtBooking(Long priceAtBooking) {
+        this.priceAtBooking = priceAtBooking;
     }
 }

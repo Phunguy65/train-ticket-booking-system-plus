@@ -1,180 +1,106 @@
 package io.github.phunguy65.ttbs.backend.station.infrastructure.web;
 
-import io.github.phunguy65.ttbs.backend.shared.domain.PageResult;
-import io.github.phunguy65.ttbs.backend.shared.domain.SortDirection;
+import io.github.phunguy65.ttbs.backend.shared.domain.PageResponse;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.ErrorCode;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.FailData;
 import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.JsendResponse;
-import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.SliceHttpResponse;
-import io.github.phunguy65.ttbs.backend.station.application.command.BulkSoftDeleteStationsCommand;
-import io.github.phunguy65.ttbs.backend.station.application.command.SoftDeleteStationCommand;
-import io.github.phunguy65.ttbs.backend.station.application.dto.StationDto;
-import io.github.phunguy65.ttbs.backend.station.application.usecase.BulkSoftDeleteStationsUseCase;
-import io.github.phunguy65.ttbs.backend.station.application.usecase.CreateStationUseCase;
+import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.SuccessPayload;
+import io.github.phunguy65.ttbs.backend.shared.infrastructure.web.SuccessResponseKind;
+import io.github.phunguy65.ttbs.backend.station.application.response.StationResponse;
+import io.github.phunguy65.ttbs.backend.station.application.response.StationSearchResponse;
 import io.github.phunguy65.ttbs.backend.station.application.usecase.GetStationByIdUseCase;
 import io.github.phunguy65.ttbs.backend.station.application.usecase.GetStationsUseCase;
-import io.github.phunguy65.ttbs.backend.station.application.usecase.SoftDeleteStationUseCase;
-import io.github.phunguy65.ttbs.backend.station.application.usecase.UpdateStationUseCase;
+import io.github.phunguy65.ttbs.backend.station.application.usecase.SearchStationsUseCase;
 import io.github.phunguy65.ttbs.backend.station.domain.error.StationError;
-import io.github.phunguy65.ttbs.backend.station.domain.model.StationId;
+import io.github.phunguy65.ttbs.backend.station.infrastructure.web.request.GetStationByIdRequest;
+import io.github.phunguy65.ttbs.backend.station.infrastructure.web.request.GetStationsRequest;
+import io.github.phunguy65.ttbs.backend.station.infrastructure.web.request.SearchStationsRequest;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 @RestController
+@Tag(name = "Stations")
 class StationController {
 
-    private static final Set<String> ALLOWED_SORT_FIELDS =
-            Set.of("createdAt", "code", "name", "city");
-
-    private final CreateStationUseCase createStationUseCase;
     private final GetStationByIdUseCase getStationByIdUseCase;
     private final GetStationsUseCase getStationsUseCase;
-    private final UpdateStationUseCase updateStationUseCase;
-    private final SoftDeleteStationUseCase softDeleteStationUseCase;
-    private final BulkSoftDeleteStationsUseCase bulkSoftDeleteStationsUseCase;
-    private final StationRequestMapper mapper;
+    private final SearchStationsUseCase searchStationsUseCase;
 
     StationController(
-            CreateStationUseCase createStationUseCase,
             GetStationByIdUseCase getStationByIdUseCase,
             GetStationsUseCase getStationsUseCase,
-            UpdateStationUseCase updateStationUseCase,
-            SoftDeleteStationUseCase softDeleteStationUseCase,
-            BulkSoftDeleteStationsUseCase bulkSoftDeleteStationsUseCase,
-            StationRequestMapper mapper) {
-        this.createStationUseCase = createStationUseCase;
+            SearchStationsUseCase searchStationsUseCase) {
         this.getStationByIdUseCase = getStationByIdUseCase;
         this.getStationsUseCase = getStationsUseCase;
-        this.updateStationUseCase = updateStationUseCase;
-        this.softDeleteStationUseCase = softDeleteStationUseCase;
-        this.bulkSoftDeleteStationsUseCase = bulkSoftDeleteStationsUseCase;
-        this.mapper = mapper;
+        this.searchStationsUseCase = searchStationsUseCase;
     }
 
-    @PostMapping(value = "/{version}/stations", version = "1.0")
-    @PreAuthorize("hasRole('ADMIN')")
-    ResponseEntity<JsendResponse<?>> create(@Valid @RequestBody CreateStationHttpRequest request) {
-        return createStationUseCase
-                .execute(mapper.toCommand(request))
-                .fold(
-                        dto -> {
-                            var location = ServletUriComponentsBuilder.fromCurrentRequest()
-                                    .path("/{id}")
-                                    .buildAndExpand(dto.id())
-                                    .toUri();
-                            return ResponseEntity.created(location)
-                                    .body(JsendResponse.success(mapper.toResponse(dto)));
-                        },
-                        error -> errorResponse(error));
-    }
-
+    @Operation(operationId = "getStations", summary = "List stations")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Paged station catalog"),
+        @ApiResponse(
+                responseCode = "400",
+                description = "Invalid pagination parameters",
+                content =
+                        @Content(schema = @Schema(ref = "#/components/schemas/JsendFailResponse")))
+    })
+    @SuccessPayload(value = StationResponse.class, kind = SuccessResponseKind.PAGE)
     @GetMapping(value = "/{version}/stations", version = "1.0")
-    ResponseEntity<JsendResponse<?>> list(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size,
-            @RequestParam(defaultValue = "createdAt,desc") String sort) {
+    ResponseEntity<JsendResponse<?>> list(@ParameterObject @Valid GetStationsRequest request) {
+        PageResponse<StationResponse> result = getStationsUseCase.execute(request.toQuery());
 
-        if (page < 0) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(JsendResponse.fail(new FailData(
-                            "page must be >= 0", ErrorCode.VALIDATION_ERROR, List.of())));
-        }
-
-        if (size < 1 || size > 100) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(JsendResponse.fail(new FailData(
-                            "size must be between 1 and 100",
-                            ErrorCode.VALIDATION_ERROR,
-                            List.of())));
-        }
-
-        String[] sortParts = sort.split(",", 2);
-        String sortField = sortParts[0].trim();
-        SortDirection direction =
-                (sortParts.length > 1 && "asc".equalsIgnoreCase(sortParts[1].trim()))
-                        ? SortDirection.ASC
-                        : SortDirection.DESC;
-
-        if (!ALLOWED_SORT_FIELDS.contains(sortField)) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(JsendResponse.fail(new FailData(
-                            "sort field not allowed: " + sortField,
-                            ErrorCode.VALIDATION_ERROR,
-                            List.of())));
-        }
-
-        PageResult<StationDto> result =
-                getStationsUseCase.execute(page, size, sortField, direction);
-
-        List<StationHttpResponse> content =
-                result.items().stream().map(mapper::toResponse).toList();
-
-        SliceHttpResponse<StationHttpResponse> sliceResponse = new SliceHttpResponse<>(
-                content,
-                result.pageNumber(),
-                result.pageSize(),
-                result.hasNext(),
-                result.hasPrevious());
-
-        return ResponseEntity.ok(JsendResponse.success(sliceResponse));
+        return ResponseEntity.ok(JsendResponse.success(result));
     }
 
+    @Operation(operationId = "searchStations", summary = "Search stations by keyword")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Matching station suggestions"),
+        @ApiResponse(
+                responseCode = "400",
+                description = "Invalid station search parameters",
+                content =
+                        @Content(schema = @Schema(ref = "#/components/schemas/JsendFailResponse")))
+    })
+    @SuccessPayload(value = StationSearchResponse.class, kind = SuccessResponseKind.ARRAY)
+    @GetMapping(value = "/{version}/stations/search", version = "1.0")
+    ResponseEntity<JsendResponse<?>> search(@ParameterObject @Valid SearchStationsRequest request) {
+        List<StationSearchResponse> result = searchStationsUseCase.execute(request.toQuery());
+        String message = result.isEmpty() ? "No stations matched your search." : null;
+        return ResponseEntity.ok(new JsendResponse<>("success", result, message));
+    }
+
+    @Operation(operationId = "getStation", summary = "Get a station by id")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Station detail"),
+        @ApiResponse(
+                responseCode = "404",
+                description = "Station not found",
+                content =
+                        @Content(schema = @Schema(ref = "#/components/schemas/JsendFailResponse")))
+    })
+    @SuccessPayload(StationResponse.class)
     @GetMapping(value = "/{version}/stations/{id}", version = "1.0")
-    ResponseEntity<JsendResponse<?>> getById(@PathVariable UUID id) {
+    ResponseEntity<JsendResponse<?>> getById(
+            @Parameter(description = "Station identifier") @PathVariable UUID id,
+            @ParameterObject GetStationByIdRequest request) {
         return getStationByIdUseCase
-                .execute(StationId.of(id))
+                .execute(request.toQuery(id))
                 .fold(
-                        dto -> ResponseEntity.ok(JsendResponse.success(mapper.toResponse(dto))),
-                        error -> errorResponse(error));
-    }
-
-    @PatchMapping(value = "/{version}/stations/{id}", version = "1.0")
-    @PreAuthorize("hasRole('ADMIN')")
-    ResponseEntity<JsendResponse<?>> patchById(
-            @PathVariable UUID id, @Valid @RequestBody UpdateStationHttpRequest request) {
-        return updateStationUseCase
-                .execute(mapper.toUpdateCommand(id, request))
-                .fold(
-                        dto -> ResponseEntity.ok(JsendResponse.success(mapper.toResponse(dto))),
-                        error -> errorResponse(error));
-    }
-
-    @DeleteMapping(value = "/{version}/stations/{id}", version = "1.0")
-    @PreAuthorize("hasRole('ADMIN')")
-    ResponseEntity<JsendResponse<?>> deleteById(@PathVariable UUID id) {
-        return softDeleteStationUseCase
-                .execute(new SoftDeleteStationCommand(StationId.of(id)))
-                .fold(
-                        v -> ResponseEntity.ok(JsendResponse.success()),
-                        error -> errorResponse(error));
-    }
-
-    @PostMapping(value = "/{version}/stations:bulkDelete", version = "1.0")
-    @PreAuthorize("hasRole('ADMIN')")
-    ResponseEntity<JsendResponse<?>> bulkDelete(
-            @Valid @RequestBody BulkSoftDeleteStationsHttpRequest request) {
-        List<StationId> stationIds =
-                request.stationIds().stream().map(StationId::of).toList();
-        return bulkSoftDeleteStationsUseCase
-                .execute(new BulkSoftDeleteStationsCommand(stationIds))
-                .fold(
-                        deletedCount -> ResponseEntity.ok(
-                                JsendResponse.success(Map.of("deletedCount", deletedCount))),
+                        dto -> ResponseEntity.ok(JsendResponse.success(dto)),
                         error -> errorResponse(error));
     }
 
@@ -183,7 +109,7 @@ class StationController {
                 switch (error) {
                     case StationError.StationNotFound e -> HttpStatus.NOT_FOUND;
                     case StationError.StationCodeAlreadyExists e -> HttpStatus.CONFLICT;
-                    case StationError.StationInUse e -> HttpStatus.UNPROCESSABLE_ENTITY;
+                    case StationError.StationInUse e -> HttpStatus.UNPROCESSABLE_CONTENT;
                 };
         ErrorCode code =
                 switch (error) {

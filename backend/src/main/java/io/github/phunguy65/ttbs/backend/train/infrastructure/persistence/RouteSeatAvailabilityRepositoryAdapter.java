@@ -1,8 +1,10 @@
 package io.github.phunguy65.ttbs.backend.train.infrastructure.persistence;
 
-import io.github.phunguy65.ttbs.backend.train.domain.model.RouteId;
+import io.github.phunguy65.ttbs.backend.booking.domain.model.BookingId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteSeatAvailability;
+import io.github.phunguy65.ttbs.backend.train.domain.model.ScheduledTripId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.SeatId;
+import io.github.phunguy65.ttbs.backend.train.domain.projection.BookedSeatSummary;
 import io.github.phunguy65.ttbs.backend.train.domain.repository.RouteSeatAvailabilityRepository;
 import java.util.Comparator;
 import java.util.List;
@@ -24,35 +26,59 @@ class RouteSeatAvailabilityRepositoryAdapter implements RouteSeatAvailabilityRep
     }
 
     @Override
-    public List<RouteSeatAvailability> findAvailableByRouteId(RouteId routeId) {
-        return jpaRepository.findAvailableByRouteId(routeId.value()).stream()
+    public List<RouteSeatAvailability> findAvailableByScheduledTripId(
+            ScheduledTripId scheduledTripId) {
+        return jpaRepository.findAvailableByScheduledTripId(scheduledTripId.value()).stream()
                 .map(mapper::toDomain)
                 .toList();
     }
 
     @Override
-    public Optional<RouteSeatAvailability> findByRouteIdAndSeatId(RouteId routeId, SeatId seatId) {
+    public List<RouteSeatAvailability> findAllByScheduledTripId(ScheduledTripId scheduledTripId) {
+        return jpaRepository.findAllByScheduledTripId(scheduledTripId.value()).stream()
+                .map(mapper::toDomain)
+                .toList();
+    }
+
+    @Override
+    public Optional<RouteSeatAvailability> findByScheduledTripIdAndSeatId(
+            ScheduledTripId scheduledTripId, SeatId seatId) {
         return jpaRepository
-                .findByRouteIdAndSeatId(routeId.value(), seatId.value())
+                .findByScheduledTripIdAndSeatId(scheduledTripId.value(), seatId.value())
                 .map(mapper::toDomain);
     }
 
     @Override
-    public List<RouteSeatAvailability> findByRouteIdAndSeatIds(
-            RouteId routeId, List<SeatId> seatIds) {
+    public List<RouteSeatAvailability> findByScheduledTripIdAndSeatIds(
+            ScheduledTripId scheduledTripId, List<SeatId> seatIds) {
         List<UUID> sortedSeatUuids = seatIds.stream()
                 .map(SeatId::value)
                 .sorted(Comparator.naturalOrder())
                 .toList();
-        return jpaRepository.findByRouteIdAndSeatIds(routeId.value(), sortedSeatUuids).stream()
+        return jpaRepository
+                .findByScheduledTripIdAndSeatIds(scheduledTripId.value(), sortedSeatUuids)
+                .stream()
                 .map(mapper::toDomain)
                 .toList();
     }
 
     @Override
-    public List<RouteSeatAvailability> findByBookingId(java.util.UUID bookingId) {
-        return jpaRepository.findByBookingId(bookingId).stream()
+    public List<RouteSeatAvailability> findByBookingId(BookingId bookingId) {
+        return jpaRepository.findByBookingId(bookingId.value()).stream()
                 .map(mapper::toDomain)
+                .toList();
+    }
+
+    @Override
+    public List<BookedSeatSummary> findBookedSeatSummariesByBookingId(BookingId bookingId) {
+        return jpaRepository.findBookedSeatSummariesByBookingId(bookingId.value()).stream()
+                .map(view -> new BookedSeatSummary(
+                        view.getSeatId(),
+                        view.getCoachId(),
+                        view.getCoachNumber(),
+                        view.getSeatNumber(),
+                        view.getStatus(),
+                        view.getPriceAtBooking()))
                 .toList();
     }
 
@@ -81,9 +107,20 @@ class RouteSeatAvailabilityRepositoryAdapter implements RouteSeatAvailabilityRep
     }
 
     @Override
-    public void hardDeleteByRouteIds(List<RouteId> routeIds) {
-        List<UUID> uuids = routeIds.stream().map(RouteId::value).toList();
-        jpaRepository.hardDeleteByRouteIds(uuids);
+    public List<UUID> findActiveBookingIdsBySeatId(SeatId seatId) {
+        return jpaRepository.findActiveBookingIdsBySeatId(seatId.value());
+    }
+
+    @Override
+    public List<UUID> findDistinctActiveBookingIdsBySeatIds(List<SeatId> seatIds) {
+        List<UUID> uuids = seatIds.stream().map(SeatId::value).toList();
+        return jpaRepository.findDistinctActiveBookingIdsBySeatIds(uuids);
+    }
+
+    @Override
+    public void hardDeleteByScheduledTripIds(List<ScheduledTripId> scheduledTripIds) {
+        List<UUID> uuids = scheduledTripIds.stream().map(ScheduledTripId::value).toList();
+        jpaRepository.hardDeleteByScheduledTripIds(uuids);
     }
 
     @Override

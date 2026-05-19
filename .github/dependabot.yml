@@ -17,13 +17,13 @@ updates:
     commit-message:
       prefix: "chore"
 
-  # Frontend Admin (Bun / npm ecosystem)
+  # Frontend Customer (Bun / npm ecosystem)
   - package-ecosystem: npm
-    directory: /frontend/admin
+    directory: /frontend/customer
     schedule:
       interval: weekly
     commit-message:
-      prefix: "chore(admin)"
+      prefix: "chore(customer)"
 
   # Backend (Gradle)
   - package-ecosystem: gradle

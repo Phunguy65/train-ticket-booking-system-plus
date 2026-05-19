@@ -39,11 +39,27 @@ obj/
 # node modules
 node_modules/
 
+# Python virtual environments
+.venv/
+__pycache__/
+*.pyc
+
 # turbo
 .turbo/
+
+# Sql generate
+R__*.sql
 
 # generate files
 dist/
 .classpath
 .project
 .settings/
+
+# java
+*.hprof
+
+# Report build output
+docs/report/**/*.docx
+docs/report/**/media/
+.gitnexus

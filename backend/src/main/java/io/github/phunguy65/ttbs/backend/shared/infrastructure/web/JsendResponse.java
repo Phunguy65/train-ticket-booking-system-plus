@@ -1,6 +1,7 @@
 package io.github.phunguy65.ttbs.backend.shared.infrastructure.web;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
  * JSend-compliant response envelope.
@@ -14,7 +15,18 @@ import com.fasterxml.jackson.annotation.JsonInclude;
  * @see <a href="https://github.com/omniti-labs/jsend">JSend specification</a>
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public record JsendResponse<T>(String status, T data, String message) {
+@Schema(description = "Runtime JSend response envelope used by the API implementation.")
+public record JsendResponse<T>(
+        @Schema(
+                description = "JSend status value.",
+                allowableValues = {"success", "fail", "error"})
+        String status,
+
+        @Schema(description = "Payload returned for the response status.")
+        T data,
+
+        @Schema(description = "Human-readable technical error message for error responses.")
+        String message) {
 
     /** 2xx – successful operation with data payload. */
     public static <T> JsendResponse<T> success(T data) {

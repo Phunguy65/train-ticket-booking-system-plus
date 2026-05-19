@@ -1,9 +1,12 @@
 package io.github.phunguy65.ttbs.backend.train.infrastructure.persistence;
 
+import io.github.phunguy65.ttbs.backend.train.domain.projection.SeatSummary;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -18,6 +21,74 @@ interface SeatJpaRepository extends JpaRepository<SeatEntity, UUID> {
     List<UUID> findActiveIdsByCoachIds(@Param("coachIds") List<UUID> coachIds);
 
     boolean existsByCoachIdAndSeatNumber(UUID coachId, String seatNumber);
+
+    @Query(
+            "SELECT s FROM SeatEntity s JOIN CoachEntity c ON s.coachId = c.id WHERE c.trainId = :trainId AND s.deletedAt IS NULL")
+    Page<SeatEntity> findAllActiveByTrainId(@Param("trainId") UUID trainId, Pageable pageable);
+
+    @Query("""
+            SELECT new io.github.phunguy65.ttbs.backend.train.domain.projection.SeatSummary(
+                s.id,
+                s.coachId,
+                s.seatNumber,
+                s.createdAt
+            )
+            FROM SeatEntity s
+            JOIN CoachEntity c ON s.coachId = c.id
+            WHERE c.trainId = :trainId AND s.deletedAt IS NULL
+            """)
+    Page<SeatSummary> findAllSummariesByTrainId(@Param("trainId") UUID trainId, Pageable pageable);
+
+    @Query(
+            value = "SELECT s.* FROM seats s "
+                    + "JOIN trip_seat_availability tsa ON tsa.seat_id = s.id "
+                    + "LEFT JOIN bookings b ON b.id = tsa.booking_id "
+                    + "WHERE tsa.scheduled_trip_id = :scheduledTripId "
+                    + "AND (tsa.status = 'AVAILABLE' "
+                    + "     OR (tsa.status = 'HELD' AND b.payment_deadline < CURRENT_TIMESTAMP)) "
+                    + "AND s.deleted_at IS NULL",
+            nativeQuery = true,
+            countQuery = "SELECT COUNT(*) FROM seats s "
+                    + "JOIN trip_seat_availability tsa ON tsa.seat_id = s.id "
+                    + "LEFT JOIN bookings b ON b.id = tsa.booking_id "
+                    + "WHERE tsa.scheduled_trip_id = :scheduledTripId "
+                    + "AND (tsa.status = 'AVAILABLE' "
+                    + "     OR (tsa.status = 'HELD' AND b.payment_deadline < CURRENT_TIMESTAMP)) "
+                    + "AND s.deleted_at IS NULL")
+    Page<SeatEntity> findAllAvailableByScheduledTripId(
+            @Param("scheduledTripId") UUID scheduledTripId, Pageable pageable);
+
+    @Query("""
+            SELECT new io.github.phunguy65.ttbs.backend.train.domain.projection.SeatSummary(
+                s.id,
+                s.coachId,
+                s.seatNumber,
+                s.createdAt
+            )
+            FROM SeatEntity s
+            JOIN RouteSeatAvailabilityEntity tsa ON tsa.id.seatId = s.id
+            LEFT JOIN BookingEntity b ON b.id = tsa.bookingId
+            WHERE tsa.id.scheduledTripId = :scheduledTripId
+                AND (tsa.status = 'AVAILABLE'
+                    OR (tsa.status = 'HELD' AND b.paymentDeadline < CURRENT_TIMESTAMP))
+                AND s.deletedAt IS NULL
+            """)
+    Page<SeatSummary> findAllAvailableSummariesByScheduledTripId(
+            @Param("scheduledTripId") UUID scheduledTripId, Pageable pageable);
+
+    @Query(
+            "SELECT COUNT(s) FROM SeatEntity s JOIN CoachEntity c ON s.coachId = c.id WHERE c.trainId = :trainId AND s.deletedAt IS NULL")
+    int countActiveByTrainId(@Param("trainId") UUID trainId);
+
+    @Query("SELECT COUNT(s) FROM SeatEntity s WHERE s.coachId = :coachId AND s.deletedAt IS NULL")
+    int countActiveByCoachId(@Param("coachId") UUID coachId);
+
+    @Query(
+            "SELECT DISTINCT c.trainId FROM SeatEntity s JOIN CoachEntity c ON s.coachId = c.id WHERE s.id IN :seatIds")
+    List<UUID> findDistinctTrainIdsBySeatIds(@Param("seatIds") List<UUID> seatIds);
+
+    @Query("SELECT DISTINCT s.coachId FROM SeatEntity s WHERE s.id IN :seatIds")
+    List<UUID> findDistinctCoachIdsBySeatIds(@Param("seatIds") List<UUID> seatIds);
 
     @Query("SELECT s FROM SeatEntity s WHERE s.id = :id AND s.deletedAt IS NULL")
     Optional<SeatEntity> findActiveById(@Param("id") UUID id);

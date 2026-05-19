@@ -1,10 +1,11 @@
 package io.github.phunguy65.ttbs.backend.station.application.usecase;
 
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
-import io.github.phunguy65.ttbs.backend.station.application.dto.StationDto;
+import io.github.phunguy65.ttbs.backend.station.application.query.GetStationByIdQuery;
+import io.github.phunguy65.ttbs.backend.station.application.response.StationResponse;
 import io.github.phunguy65.ttbs.backend.station.domain.error.StationError;
-import io.github.phunguy65.ttbs.backend.station.domain.model.Station;
 import io.github.phunguy65.ttbs.backend.station.domain.model.StationId;
+import io.github.phunguy65.ttbs.backend.station.domain.projection.StationSummary;
 import io.github.phunguy65.ttbs.backend.station.domain.repository.StationRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,19 +20,15 @@ public class GetStationByIdUseCase {
     }
 
     @Transactional(readOnly = true)
-    public Result<StationDto, StationError> execute(StationId stationId) {
+    public Result<StationResponse, StationError> execute(GetStationByIdQuery query) {
         return stationRepository
-                .findById(stationId)
-                .map(station -> Result.<StationDto, StationError>success(toDto(station)))
+                .findSummaryById(StationId.of(query.stationId()))
+                .map(summary -> Result.<StationResponse, StationError>success(toDto(summary)))
                 .orElseGet(() -> Result.failure(new StationError.StationNotFound()));
     }
 
-    private StationDto toDto(Station station) {
-        return new StationDto(
-                station.getId().value(),
-                station.getCode(),
-                station.getName(),
-                station.getCity(),
-                station.getCreatedAt());
+    private StationResponse toDto(StationSummary station) {
+        return new StationResponse(
+                station.id(), station.code(), station.name(), station.city(), station.createdAt());
     }
 }

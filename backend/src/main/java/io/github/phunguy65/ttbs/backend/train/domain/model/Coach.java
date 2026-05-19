@@ -15,7 +15,7 @@ public class Coach extends AggregateRoot<CoachId> {
     private final CoachId id;
     private final TrainId trainId;
     private final int carNumber;
-    private final int totalSeats;
+    private int totalSeats;
     private final Instant createdAt;
     private Instant deletedAt;
 
@@ -36,10 +36,11 @@ public class Coach extends AggregateRoot<CoachId> {
 
     /**
      * Factory method for creating a new coach.
+     * {@code totalSeats} starts at 0 and is updated automatically as seats are created/deleted.
      * Does NOT register domain events (coaches are admin reference data).
      */
-    public static Coach create(CoachId id, TrainId trainId, int carNumber, int totalSeats) {
-        return new Coach(id, trainId, carNumber, totalSeats, Instant.now(), null);
+    public static Coach create(CoachId id, TrainId trainId, int carNumber) {
+        return new Coach(id, trainId, carNumber, 0, Instant.now(), null);
     }
 
     /**
@@ -54,6 +55,18 @@ public class Coach extends AggregateRoot<CoachId> {
             Instant createdAt,
             Instant deletedAt) {
         return new Coach(id, trainId, carNumber, totalSeats, createdAt, deletedAt);
+    }
+
+    /**
+     * Updates the total seat count. Called by event listeners when seats are created or removed.
+     *
+     * @param count new total seat count (must be non-negative)
+     */
+    public void updateTotalSeats(int count) {
+        if (count < 0) {
+            throw new IllegalArgumentException("totalSeats must be non-negative");
+        }
+        this.totalSeats = count;
     }
 
     /**

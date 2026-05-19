@@ -5,11 +5,15 @@ import io.github.phunguy65.ttbs.backend.booking.domain.event.BookingCancelled;
 import io.github.phunguy65.ttbs.backend.booking.domain.event.BookingConfirmed;
 import io.github.phunguy65.ttbs.backend.booking.domain.event.BookingCreated;
 import io.github.phunguy65.ttbs.backend.shared.domain.AggregateRoot;
+import io.github.phunguy65.ttbs.backend.shared.domain.IdempotencyKey;
 import io.github.phunguy65.ttbs.backend.shared.domain.Money;
 import io.github.phunguy65.ttbs.backend.shared.domain.Result;
-import io.github.phunguy65.ttbs.backend.train.domain.model.RouteId;
+import io.github.phunguy65.ttbs.backend.train.domain.model.ScheduledTripId;
 import io.github.phunguy65.ttbs.backend.user.domain.model.UserId;
 import java.time.Instant;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Aggregate root representing a train ticket booking.
@@ -25,42 +29,55 @@ public class Booking extends AggregateRoot<BookingId> {
 
     private final BookingId bookingId;
     private final UserId userId;
-    private final RouteId routeId;
-    private final String passengerName;
-    private final String passengerEmail;
-    private final String passengerPhone;
+    private final ScheduledTripId scheduledTripId;
+    private final BookingUserInfo bookerInfo;
+    private final List<BookingPassenger> passengers;
     private final Money totalPrice;
-    private final String currency;
     private BookingStatus status;
-    private final String idempotencyKey;
+    private final IdempotencyKey idempotencyKey;
     private final Instant paymentDeadline;
     private final Instant createdAt;
 
     private Booking(
             BookingId bookingId,
             UserId userId,
-            RouteId routeId,
-            String passengerName,
-            String passengerEmail,
-            String passengerPhone,
+            ScheduledTripId scheduledTripId,
+            BookingUserInfo bookerInfo,
+            List<BookingPassenger> passengers,
             Money totalPrice,
-            String currency,
             BookingStatus status,
             String idempotencyKey,
             Instant paymentDeadline,
             Instant createdAt) {
         this.bookingId = bookingId;
         this.userId = userId;
-        this.routeId = routeId;
-        this.passengerName = passengerName;
-        this.passengerEmail = passengerEmail;
-        this.passengerPhone = passengerPhone;
+        this.scheduledTripId = scheduledTripId;
+        this.bookerInfo = bookerInfo;
+        this.passengers = passengers == null ? List.of() : List.copyOf(passengers);
         this.totalPrice = totalPrice;
-        this.currency = currency;
         this.status = status;
-        this.idempotencyKey = idempotencyKey;
+        this.idempotencyKey = IdempotencyKey.of(idempotencyKey);
         this.paymentDeadline = paymentDeadline;
         this.createdAt = createdAt;
+
+        validateUniquePassengerIdDocuments(this.passengers);
+    }
+
+    /**
+     * Validates that all passengers have unique ID document numbers.
+     */
+    private static void validateUniquePassengerIdDocuments(List<BookingPassenger> passengers) {
+        if (passengers == null || passengers.isEmpty()) {
+            return;
+        }
+        Set<String> seenIds = new HashSet<>();
+        for (BookingPassenger passenger : passengers) {
+            String idDoc = passenger.idDocumentNumber();
+            if (idDoc != null && !seenIds.add(idDoc)) {
+                throw new IllegalArgumentException(
+                        "Duplicate passenger ID document number: " + idDoc);
+            }
+        }
     }
 
     /**
@@ -69,28 +86,29 @@ public class Booking extends AggregateRoot<BookingId> {
     public static Booking create(
             BookingId bookingId,
             UserId userId,
-            RouteId routeId,
-            String passengerName,
-            String passengerEmail,
-            String passengerPhone,
+            ScheduledTripId scheduledTripId,
+            BookingUserInfo bookerInfo,
+            List<BookingPassenger> passengers,
             Money totalPrice,
-            String currency,
             String idempotencyKey,
             Instant paymentDeadline) {
         Booking booking = new Booking(
                 bookingId,
                 userId,
-                routeId,
-                passengerName,
-                passengerEmail,
-                passengerPhone,
+                scheduledTripId,
+                bookerInfo,
+                passengers,
                 totalPrice,
-                currency,
                 BookingStatus.HELD,
                 idempotencyKey,
                 paymentDeadline,
                 Instant.now());
-        booking.registerEvent(new BookingCreated(bookingId, userId, routeId, totalPrice, currency));
+        booking.registerEvent(new BookingCreated(
+                bookingId,
+                userId,
+                scheduledTripId,
+                totalPrice,
+                totalPrice.getCurrency().getCurrencyCode()));
         return booking;
     }
 
@@ -100,12 +118,10 @@ public class Booking extends AggregateRoot<BookingId> {
     public static Booking reconstitute(
             BookingId bookingId,
             UserId userId,
-            RouteId routeId,
-            String passengerName,
-            String passengerEmail,
-            String passengerPhone,
+            ScheduledTripId scheduledTripId,
+            BookingUserInfo bookerInfo,
+            List<BookingPassenger> passengers,
             Money totalPrice,
-            String currency,
             BookingStatus status,
             String idempotencyKey,
             Instant paymentDeadline,
@@ -113,12 +129,10 @@ public class Booking extends AggregateRoot<BookingId> {
         return new Booking(
                 bookingId,
                 userId,
-                routeId,
-                passengerName,
-                passengerEmail,
-                passengerPhone,
+                scheduledTripId,
+                bookerInfo,
+                passengers,
                 totalPrice,
-                currency,
                 status,
                 idempotencyKey,
                 paymentDeadline,
@@ -136,7 +150,7 @@ public class Booking extends AggregateRoot<BookingId> {
                     status.name(), BookingStatus.CONFIRMED.name()));
         }
         this.status = BookingStatus.CONFIRMED;
-        registerEvent(new BookingConfirmed(bookingId, userId, routeId));
+        registerEvent(new BookingConfirmed(bookingId, userId, scheduledTripId));
         return Result.success();
     }
 
@@ -155,7 +169,7 @@ public class Booking extends AggregateRoot<BookingId> {
         }
         boolean requiresRefund = (status == BookingStatus.CONFIRMED);
         this.status = BookingStatus.CANCELLED;
-        registerEvent(new BookingCancelled(bookingId, userId, routeId, requiresRefund));
+        registerEvent(new BookingCancelled(bookingId, userId, scheduledTripId, requiresRefund));
         return Result.success();
     }
 
@@ -172,20 +186,23 @@ public class Booking extends AggregateRoot<BookingId> {
         return userId;
     }
 
-    public RouteId getRouteId() {
-        return routeId;
+    public ScheduledTripId getScheduledTripId() {
+        return scheduledTripId;
     }
 
-    public String getPassengerName() {
-        return passengerName;
+    /**
+     * Returns the booker (authenticated user) information snapshot.
+     */
+    public BookingUserInfo getBookerInfo() {
+        return bookerInfo;
     }
 
-    public String getPassengerEmail() {
-        return passengerEmail;
-    }
-
-    public String getPassengerPhone() {
-        return passengerPhone;
+    /**
+     * Returns the list of passengers assigned to seats.
+     * May be empty for legacy bookings.
+     */
+    public List<BookingPassenger> getPassengers() {
+        return passengers;
     }
 
     public Money getTotalPrice() {
@@ -193,7 +210,7 @@ public class Booking extends AggregateRoot<BookingId> {
     }
 
     public String getCurrency() {
-        return currency;
+        return totalPrice.getCurrency().getCurrencyCode();
     }
 
     public BookingStatus getStatus() {
@@ -201,7 +218,7 @@ public class Booking extends AggregateRoot<BookingId> {
     }
 
     public String getIdempotencyKey() {
-        return idempotencyKey;
+        return idempotencyKey.value();
     }
 
     public Instant getPaymentDeadline() {

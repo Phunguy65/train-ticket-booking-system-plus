@@ -1,0 +1,513 @@
+{
+    "Navigation": {
+        "login": "Đăng nhập",
+        "register": "Đăng ký",
+        "myBookings": "Đơn đặt vé",
+        "profile": "Hồ sơ",
+        "logout": "Đăng xuất",
+        "loggingOut": "Đang đăng xuất...",
+        "openMenu": "Mở menu",
+        "footerCopyright": "© {year} VietRail. Đặt vé tàu trực tuyến.",
+        "footerDescription": "Hệ thống đặt vé tàu trực tuyến Việt Nam — nhanh chóng, an toàn, tiện lợi.",
+        "footerServices": "Dịch vụ",
+        "footerSearchTrips": "Tìm chuyến tàu",
+        "footerManageBookings": "Quản lý đặt vé",
+        "footerProfile": "Hồ sơ cá nhân",
+        "footerSupport": "Hỗ trợ",
+        "footerFaq": "Câu hỏi thường gặp",
+        "footerTerms": "Điều khoản sử dụng",
+        "footerPrivacy": "Chính sách bảo mật",
+        "footerContact": "Liên hệ",
+        "footerAddress": "Số 1 Đường Lê Duẩn, Quận 1, TP. Hồ Chí Minh"
+    },
+    "Search": {
+        "title": "Tìm chuyến tàu",
+        "origin": "Ga đi",
+        "originPlaceholder": "Chọn ga đi",
+        "destination": "Ga đến",
+        "destinationPlaceholder": "Chọn ga đến",
+        "departureDate": "Ngày đi",
+        "datePlaceholder": "Chọn ngày",
+        "swap": "Đổi ga",
+        "submit": "Tìm chuyến",
+        "searching": "Đang tìm...",
+        "noStationsFound": "Không tìm thấy ga",
+        "loadingStations": "Đang tải...",
+        "stationSearchError": "Lỗi tải danh sách ga. Vui lòng thử lại."
+    },
+    "Trips": {
+        "title": "Kết quả tìm kiếm",
+        "backToHome": "Về trang chủ",
+        "results": "{count, plural, =0 {Không có chuyến tàu} one {{count} chuyến tàu} other {{count} chuyến tàu}}",
+        "noResults": "Không tìm thấy chuyến tàu phù hợp",
+        "noResultsDescription": "Vui lòng thử tìm kiếm với điều kiện khác",
+        "train": "Tàu",
+        "departure": "Khởi hành",
+        "arrival": "Đến",
+        "duration": "Thời gian",
+        "price": "Giá vé",
+        "available": "{count} chỗ trống",
+        "noSeats": "Hết chỗ",
+        "selectSeats": "Chọn ghế",
+        "sort": {
+            "label": "Sắp xếp",
+            "departureTime": "Giờ khởi hành",
+            "price": "Giá vé",
+            "duration": "Thời gian"
+        },
+        "filter": {
+            "label": "Bộ lọc",
+            "priceRange": "Khoảng giá",
+            "minPrice": "Giá từ",
+            "maxPrice": "Giá đến",
+            "availableOnly": "Chỉ hiện còn chỗ",
+            "apply": "Áp dụng",
+            "clear": "Xóa bộ lọc"
+        },
+        "loadMore": "Tải thêm",
+        "loadingMore": "Đang tải...",
+        "error": "Lỗi tải danh sách chuyến tàu",
+        "retry": "Thử lại"
+    },
+    "Seats": {
+        "title": "Chọn ghế",
+        "coach": "Toa {number}",
+        "available": "Còn trống",
+        "held": "Đang giữ",
+        "booked": "Đã đặt",
+        "selected": "Đã chọn",
+        "seatNumber": "Ghế {number}",
+        "selectSeat": "Chọn ghế {number}",
+        "deselectSeat": "Bỏ chọn ghế {number}",
+        "unavailable": "Ghế không khả dụng",
+        "maxSeats": "Tối đa {count} ghế mỗi lần đặt",
+        "maxSeatsReached": "Đã chọn tối đa {count} ghế",
+        "selectedSeats": "Ghế đã chọn",
+        "noSeatsSelected": "Chưa chọn ghế nào",
+        "totalPrice": "Tổng tiền",
+        "continue": "Tiếp tục đặt vé",
+        "error": "Lỗi tải sơ đồ ghế",
+        "retry": "Thử lại",
+        "tripNotFound": "Không tìm thấy chuyến tàu",
+        "seatsUnavailable": "{count, plural, one {# ghế} other {# ghế}} không còn khả dụng",
+        "sse": {
+            "connecting": "Đang kết nối...",
+            "connected": "Cập nhật trực tiếp",
+            "reconnecting": "Đang kết nối lại..."
+        }
+    },
+    "Booking": {
+        "title": "Xác nhận đặt vé",
+        "tripSummary": "Thông tin chuyến tàu",
+        "seatsSummary": "Ghế đã chọn",
+        "passengerInfo": "Thông tin hành khách",
+        "priceDetails": "Chi tiết giá",
+        "pricePerSeat": "Giá mỗi ghế",
+        "totalSeats": "{count} ghế",
+        "totalPrice": "Tổng cộng",
+        "confirm": "Xác nhận đặt vé",
+        "confirming": "Đang xác nhận...",
+        "missingContext": "Thiếu thông tin đặt vé",
+        "missingContextDescription": "Vui lòng quay lại và chọn chuyến tàu",
+        "backToSearch": "Quay lại tìm kiếm",
+        "backToSeats": "Quay lại chọn ghế",
+        "success": "Đặt vé thành công!",
+        "successDescription": "Mã đặt vé: {bookingId}",
+        "paymentDeadline": "Thanh toán trước: {deadline}",
+        "proceedToPayment": "Tiến hành thanh toán",
+        "error": "Lỗi đặt vé",
+        "seatsUnavailable": "Ghế đã được đặt bởi người khác. Vui lòng chọn ghế khác.",
+        "train": "Tàu",
+        "date": "Ngày",
+        "bookerInfo": "Thông tin người đặt",
+        "detail": {
+            "title": "Chi tiết đặt vé",
+            "bookingId": "Mã đặt vé",
+            "id": "Mã",
+            "status": "Trạng thái",
+            "createdAt": "Ngày đặt",
+            "paymentDeadline": "Hạn thanh toán",
+            "trip": "Thông tin chuyến",
+            "seats": "Ghế",
+            "passenger": "Hành khách",
+            "booker": "Người đặt",
+            "passengers": "Hành khách",
+            "idDocument": "Số CMND/CCCD",
+            "dateOfBirth": "Ngày sinh",
+            "gender": "Giới tính",
+            "noPassengers": "Không có thông tin hành khách",
+            "payment": "Thanh toán",
+            "pay": "Thanh toán ngay",
+            "notFound": "Không tìm thấy đơn đặt vé",
+            "total": "Tổng cộng",
+            "retry": "Thử lại",
+            "backToBookings": "Quay lại đơn đặt vé"
+        },
+        "redirectingToPayment": "Đang chuyển đến trang thanh toán...",
+        "loadingPayment": "Đang tải thanh toán..."
+    },
+    "Account": {
+        "title": "Tài khoản của tôi",
+        "tabs": {
+            "bookings": "Đơn đặt vé",
+            "payments": "Thanh toán"
+        },
+        "stats": {
+            "totalBookings": "Tổng đơn đặt vé",
+            "upcomingTrips": "Chuyến sắp tới",
+            "totalSpent": "Tổng đã chi"
+        },
+        "empty": "Bạn chưa có đơn đặt vé nào",
+        "emptyDescription": "Hãy tìm và đặt chuyến tàu đầu tiên của bạn",
+        "searchTrips": "Tìm chuyến tàu",
+        "bookingId": "Mã đặt vé",
+        "viewDetails": "Xem chi tiết",
+        "cancel": "Hủy vé",
+        "cancelConfirm": {
+            "title": "Xác nhận hủy vé",
+            "description": "Bạn có chắc muốn hủy đơn đặt vé này? Hành động này không thể hoàn tác.",
+            "confirm": "Hủy vé",
+            "cancelling": "Đang hủy...",
+            "cancel": "Quay lại"
+        },
+        "cancelSuccess": "Đã hủy vé thành công",
+        "cancelError": "Lỗi hủy vé. Vui lòng thử lại.",
+        "error": "Lỗi tải danh sách đặt vé",
+        "retry": "Thử lại"
+    },
+    "AccountPayments": {
+        "empty": "Bạn chưa có giao dịch thanh toán nào",
+        "emptyDescription": "Lịch sử thanh toán sẽ xuất hiện ở đây sau khi đặt vé đầu tiên",
+        "searchTrips": "Tìm chuyến tàu",
+        "viewDetails": "Xem chi tiết",
+        "departureDate": "Ngày đi",
+        "error": "Lỗi tải lịch sử thanh toán",
+        "retry": "Thử lại"
+    },
+    "PaymentDetail": {
+        "title": "Chi tiết thanh toán",
+        "paymentId": "Mã thanh toán",
+        "backToAccount": "Quay lại tài khoản",
+        "tripInfo": "Thông tin chuyến đi",
+        "train": "Tàu",
+        "route": "Lộ trình",
+        "departure": "Khởi hành",
+        "arrival": "Đến",
+        "seats": "Ghế",
+        "coachSeat": "Toa {coach} - Ghế {seat}",
+        "bookerInfo": "Thông tin người đặt",
+        "bookerName": "Họ tên",
+        "passengersInfo": "Hành khách",
+        "passengerInfo": "Thông tin hành khách",
+        "passengerName": "Họ tên",
+        "email": "Email",
+        "phone": "Số điện thoại",
+        "idDocument": "Số CMND/CCCD",
+        "dateOfBirth": "Ngày sinh",
+        "gender": "Giới tính",
+        "printTicket": "In vé",
+        "error": "Lỗi tải thông tin thanh toán",
+        "notFound": "Không tìm thấy thanh toán",
+        "retry": "Thử lại"
+    },
+    "PaymentSuccess": {
+        "title": "Thanh toán thành công",
+        "description": "Cảm ơn bạn! Thanh toán của bạn đã được xử lý.",
+        "viewBookings": "Xem đặt chỗ",
+        "backToHome": "Về trang chủ",
+        "note": "Vé của bạn sẽ sẵn sàng trong giây lát."
+    },
+    "Ticket": {
+        "electronicTicket": "Vé điện tử",
+        "bookingId": "Mã đặt vé",
+        "qrCodeTitle": "Mã QR vé",
+        "scanToVerify": "Quét để xác minh vé",
+        "departure": "Khởi hành",
+        "arrival": "Đến",
+        "train": "Tàu",
+        "departureTime": "Giờ khởi hành",
+        "arrivalTime": "Giờ đến dự kiến",
+        "seats": "Ghế",
+        "coachSeat": "Toa {coach} - Ghế {seat}",
+        "ticketAriaLabel": "Vé của {passenger}",
+        "route": "Tuyến đường",
+        "ticketCount": "Số vé",
+        "ticketCountValue": "{count} vé",
+        "passenger": "Hành khách",
+        "passengers": "Hành khách",
+        "idDocument": "CMND/CCCD",
+        "footer": "Vui lòng xuất trình vé này cùng CMND/CCCD khi lên tàu",
+        "print": "In",
+        "share": "Chia sẻ",
+        "shareTitle": "Vé tàu của tôi",
+        "shareText": "Vé tàu từ {origin} đến {destination}",
+        "error": "Lỗi tải vé",
+        "notFound": "Không tìm thấy đơn đặt vé",
+        "notPaid": "Vé chưa sẵn sàng",
+        "notPaidDescription": "Đơn đặt vé này chưa được thanh toán. Vui lòng thanh toán trước.",
+        "retry": "Thử lại"
+    },
+    "Passenger": {
+        "sectionTitle": "Thông tin hành khách",
+        "seatLabel": "Ghế {seat}",
+        "fullName": "Họ và tên",
+        "fullNamePlaceholder": "Nhập họ và tên",
+        "idDocumentNumber": "Số CMND/CCCD",
+        "idDocumentPlaceholder": "Nhập số CMND/CCCD",
+        "dateOfBirth": "Ngày sinh",
+        "gender": "Giới tính",
+        "duplicateIdDocument": "Số CMND/CCCD này đã được sử dụng cho hành khách khác",
+        "duplicateIdWarning": "Mỗi hành khách phải có số CMND/CCCD riêng"
+    },
+    "Profile": {
+        "title": "Hồ sơ cá nhân",
+        "memberSince": "Thành viên từ {date}",
+        "personalInfo": "Thông tin cá nhân",
+        "travelDocuments": "Giấy tờ đi lại",
+        "fullName": "Họ và tên",
+        "email": "Email",
+        "phone": "Số điện thoại",
+        "phonePlaceholder": "Nhập số điện thoại",
+        "phoneDescription": "Dùng cho thông báo đặt vé",
+        "dateOfBirth": "Ngày sinh",
+        "selectDate": "Chọn ngày",
+        "gender": "Giới tính",
+        "selectGender": "Chọn giới tính",
+        "genderOptions": {
+            "male": "Nam",
+            "female": "Nữ",
+            "other": "Khác"
+        },
+        "idDocument": "Số CMND/CCCD",
+        "idDocumentPlaceholder": "Nhập số CMND/CCCD",
+        "idDocumentDescription": "Bắt buộc để xác minh vé tàu",
+        "address": "Địa chỉ",
+        "addressPlaceholder": "Nhập địa chỉ",
+        "addressDescription": "Dùng cho thanh toán và giao vé",
+        "save": "Lưu thay đổi",
+        "saving": "Đang lưu...",
+        "saveSuccess": "Đã cập nhật hồ sơ",
+        "saveError": "Lỗi cập nhật hồ sơ. Vui lòng thử lại.",
+        "error": "Lỗi tải hồ sơ",
+        "retry": "Thử lại"
+    },
+    "Status": {
+        "HELD": "Chờ thanh toán",
+        "CONFIRMED": "Đã xác nhận",
+        "CANCELLED": "Đã hủy",
+        "PENDING": "Đang xử lý",
+        "PAID": "Đã thanh toán",
+        "FAILED": "Thất bại",
+        "REFUNDED": "Đã hoàn tiền",
+        "SCHEDULED": "Sắp khởi hành",
+        "BOARDING": "Đang lên tàu",
+        "DEPARTED": "Đã khởi hành",
+        "ARRIVED": "Đã đến"
+    },
+    "Common": {
+        "loading": "Đang tải...",
+        "error": "Đã xảy ra lỗi",
+        "retry": "Thử lại",
+        "back": "Quay lại",
+        "cancel": "Hủy",
+        "confirm": "Xác nhận",
+        "save": "Lưu",
+        "close": "Đóng",
+        "currency": "{amount, number, ::currency/VND}",
+        "date": "{date, date, medium}",
+        "time": "{time, time, short}",
+        "datetime": "{datetime, date, medium} {datetime, time, short}"
+    },
+    "Auth": {
+        "login": {
+            "title": "Đăng nhập",
+            "subtitle": "Chào mừng bạn trở lại",
+            "email": "Email",
+            "emailPlaceholder": "email@example.com",
+            "password": "Mật khẩu",
+            "passwordPlaceholder": "Nhập mật khẩu",
+            "submit": "Đăng nhập",
+            "submitting": "Đang đăng nhập...",
+            "noAccount": "Chưa có tài khoản?",
+            "registerLink": "Đăng ký ngay",
+            "registerSuccess": "Đăng ký thành công! Vui lòng đăng nhập."
+        },
+        "register": {
+            "title": "Đăng ký",
+            "subtitle": "Tạo tài khoản mới",
+            "fullName": "Họ và tên",
+            "fullNamePlaceholder": "Nguyễn Văn A",
+            "email": "Email",
+            "emailPlaceholder": "email@example.com",
+            "password": "Mật khẩu",
+            "passwordPlaceholder": "Nhập mật khẩu",
+            "confirmPassword": "Xác nhận mật khẩu",
+            "confirmPasswordPlaceholder": "Nhập lại mật khẩu",
+            "submit": "Đăng ký",
+            "submitting": "Đang đăng ký...",
+            "hasAccount": "Đã có tài khoản?",
+            "loginLink": "Đăng nhập"
+        },
+        "password": {
+            "show": "Hiện mật khẩu",
+            "hide": "Ẩn mật khẩu"
+        }
+    },
+    "Validation": {
+        "email": {
+            "required": "Vui lòng nhập email",
+            "invalid": "Email không hợp lệ"
+        },
+        "password": {
+            "required": "Vui lòng nhập mật khẩu",
+            "minLength": "Mật khẩu phải có ít nhất 8 ký tự"
+        },
+        "confirmPassword": {
+            "required": "Vui lòng xác nhận mật khẩu",
+            "mismatch": "Mật khẩu xác nhận không khớp"
+        },
+        "fullName": {
+            "required": "Vui lòng nhập họ và tên",
+            "minLength": "Họ và tên phải có ít nhất 2 ký tự"
+        },
+        "origin": {
+            "required": "Vui lòng chọn ga đi"
+        },
+        "destination": {
+            "required": "Vui lòng chọn ga đến",
+            "sameAsOrigin": "Ga đến phải khác ga đi"
+        },
+        "departureDate": {
+            "required": "Vui lòng chọn ngày đi",
+            "past": "Ngày đi phải từ hôm nay trở đi"
+        },
+        "phone": {
+            "invalid": "Số điện thoại không hợp lệ"
+        },
+        "seats": {
+            "required": "Vui lòng chọn ít nhất một ghế",
+            "maxExceeded": "Tối đa {count} ghế mỗi lần đặt"
+        }
+    },
+    "Errors": {
+        "invalidCredentials": "Email hoặc mật khẩu không đúng",
+        "emailExists": "Email này đã được đăng ký",
+        "validationError": "Dữ liệu không hợp lệ",
+        "networkError": "Không thể kết nối. Vui lòng thử lại.",
+        "unknownError": "Đã có lỗi xảy ra. Vui lòng thử lại.",
+        "unauthorized": "Vui lòng đăng nhập để tiếp tục",
+        "forbidden": "Bạn không có quyền thực hiện hành động này",
+        "notFound": "Không tìm thấy dữ liệu",
+        "seatsUnavailable": "Ghế đã không còn khả dụng"
+    },
+    "Stepper": {
+        "search": "Tìm kiếm",
+        "seats": "Chọn ghế",
+        "review": "Xác nhận",
+        "payment": "Thanh toán",
+        "stepOf": "Bước {current} / {total}"
+    },
+    "Payment": {
+        "remaining": "còn lại",
+        "pending": {
+            "title": "Chờ thanh toán",
+            "description": "Hoàn tất thanh toán trong {time} để xác nhận đặt vé.",
+            "urgent": "Sắp hết thời gian! Thanh toán ngay để giữ ghế của bạn.",
+            "payNow": "Thanh toán ngay"
+        },
+        "redirecting": {
+            "title": "Đang chuyển hướng",
+            "description": "Vui lòng chờ trong khi chuyển đến trang thanh toán bảo mật..."
+        },
+        "success": {
+            "title": "Thanh toán thành công",
+            "description": "Đặt vé của bạn đã được xác nhận. Bạn sẽ nhận được email xác nhận trong giây lát."
+        },
+        "failed": {
+            "title": "Thanh toán thất bại",
+            "description": "Không thể xử lý thanh toán của bạn. Vui lòng thử lại.",
+            "retry": "Thử lại"
+        },
+        "expired": {
+            "title": "Hết hạn thanh toán",
+            "description": "Phiên thanh toán đã hết hạn. Ghế không còn được giữ chỗ.",
+            "startOver": "Bắt đầu lại"
+        }
+    },
+    "PriceBreakdown": {
+        "title": "Chi tiết giá",
+        "pricePerSeat": "Giá ghế",
+        "serviceFee": "Phí dịch vụ",
+        "discount": "Giảm giá",
+        "total": "Tổng cộng"
+    },
+    "Landing": {
+        "features": {
+            "title": "Tại sao chọn VietRail?",
+            "subtitle": "Trải nghiệm đặt vé tàu hiện đại, nhanh chóng và an toàn nhất Việt Nam",
+            "quickBooking": {
+                "title": "Đặt vé nhanh chóng",
+                "description": "Chỉ vài bước đơn giản để hoàn tất đặt vé tàu trực tuyến, tiết kiệm thời gian xếp hàng"
+            },
+            "securePayment": {
+                "title": "Thanh toán an toàn",
+                "description": "Hỗ trợ nhiều phương thức thanh toán với bảo mật cao qua cổng Stripe"
+            },
+            "eTicket": {
+                "title": "Vé điện tử",
+                "description": "Nhận vé ngay trên điện thoại với mã QR, không cần in giấy"
+            },
+            "realtime": {
+                "title": "Cập nhật thời gian thực",
+                "description": "Theo dõi trạng thái ghế và chuyến tàu được cập nhật liên tục"
+            }
+        },
+        "howItWorks": {
+            "title": "Đặt vé chỉ với 4 bước",
+            "subtitle": "Quy trình đơn giản, nhanh chóng từ tìm kiếm đến nhận vé",
+            "search": {
+                "title": "Tìm chuyến tàu",
+                "description": "Chọn ga đi, ga đến và ngày khởi hành"
+            },
+            "selectSeat": {
+                "title": "Chọn ghế ngồi",
+                "description": "Xem sơ đồ toa và chọn ghế yêu thích"
+            },
+            "payment": {
+                "title": "Thanh toán",
+                "description": "Thanh toán an toàn qua nhiều phương thức"
+            },
+            "getTicket": {
+                "title": "Nhận vé điện tử",
+                "description": "Vé QR gửi ngay sau khi thanh toán thành công"
+            }
+        },
+        "popularRoutes": {
+            "title": "Tuyến đường phổ biến",
+            "subtitle": "Những hành trình được yêu thích nhất trên hệ thống đường sắt Việt Nam",
+            "hnSg": {
+                "duration": "~33 giờ • Thống Nhất"
+            },
+            "hnDn": {
+                "duration": "~17 giờ • Thống Nhất"
+            },
+            "sgNt": {
+                "duration": "~7 giờ • Thống Nhất"
+            },
+            "hnHue": {
+                "duration": "~13 giờ • Thống Nhất"
+            },
+            "dnSg": {
+                "duration": "~17 giờ • Thống Nhất"
+            },
+            "sgDn": {
+                "duration": "~17 giờ • Thống Nhất"
+            }
+        },
+        "cta": {
+            "title": "Sẵn sàng cho hành trình tiếp theo?",
+            "subtitle": "Đặt vé tàu ngay hôm nay và khám phá vẻ đẹp Việt Nam qua từng cung đường sắt",
+            "button": "Đặt vé ngay"
+        }
+    }
+}

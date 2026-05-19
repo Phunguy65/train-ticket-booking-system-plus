@@ -4,10 +4,15 @@ import io.github.phunguy65.ttbs.backend.booking.domain.model.Booking;
 import io.github.phunguy65.ttbs.backend.booking.domain.model.BookingId;
 import io.github.phunguy65.ttbs.backend.booking.domain.model.BookingStatus;
 import io.github.phunguy65.ttbs.backend.booking.domain.repository.BookingRepository;
+import io.github.phunguy65.ttbs.backend.payment.application.command.HandlePaymentSuccessCommand;
 import io.github.phunguy65.ttbs.backend.payment.application.port.StripeGatewayPort;
 import io.github.phunguy65.ttbs.backend.payment.domain.model.Payment;
 import io.github.phunguy65.ttbs.backend.payment.domain.repository.PaymentRepository;
-import io.github.phunguy65.ttbs.backend.train.application.port.RouteSeatAvailabilityPort;
+import io.github.phunguy65.ttbs.backend.shared.domain.event.SeatStatusChangedEvent;
+import io.github.phunguy65.ttbs.backend.train.application.port.RouteSeatAvailabilityManager;
+import io.github.phunguy65.ttbs.backend.train.domain.model.RouteSeatAvailability;
+import java.time.Instant;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
@@ -21,14 +26,14 @@ public class HandlePaymentSuccessUseCase {
 
     private final PaymentRepository paymentRepository;
     private final BookingRepository bookingRepository;
-    private final RouteSeatAvailabilityPort seatAvailabilityPort;
+    private final RouteSeatAvailabilityManager seatAvailabilityPort;
     private final StripeGatewayPort stripeGatewayPort;
     private final ApplicationEventPublisher eventPublisher;
 
     public HandlePaymentSuccessUseCase(
             PaymentRepository paymentRepository,
             BookingRepository bookingRepository,
-            RouteSeatAvailabilityPort seatAvailabilityPort,
+            RouteSeatAvailabilityManager seatAvailabilityPort,
             StripeGatewayPort stripeGatewayPort,
             ApplicationEventPublisher eventPublisher) {
         this.paymentRepository = paymentRepository;
@@ -39,18 +44,17 @@ public class HandlePaymentSuccessUseCase {
     }
 
     @Transactional
-    public void execute(
-            String checkoutSessionId, String stripePaymentIntentId, String stripeEventId) {
+    public void execute(HandlePaymentSuccessCommand command) {
 
-        if (paymentRepository.findByStripeEventId(stripeEventId).isPresent()) {
-            log.info("Stripe event {} already processed, skipping", stripeEventId);
+        if (paymentRepository.findByStripeEventId(command.stripeEventId()).isPresent()) {
+            log.info("Stripe event {} already processed, skipping", command.stripeEventId());
             return;
         }
 
         Payment payment = paymentRepository
-                .findByCheckoutSessionId(checkoutSessionId)
+                .findByCheckoutSessionId(command.checkoutSessionId())
                 .orElseThrow(() -> new IllegalStateException(
-                        "No payment found for checkoutSessionId=" + checkoutSessionId));
+                        "No payment found for checkoutSessionId=" + command.checkoutSessionId()));
 
         BookingId bookingId = payment.getBookingId();
         Booking booking = bookingRepository
@@ -62,7 +66,8 @@ public class HandlePaymentSuccessUseCase {
             log.warn(
                     "Payment arrived after booking expiry for bookingId={}, issuing immediate refund",
                     bookingId);
-            stripeGatewayPort.createRefund(stripePaymentIntentId, "refund_" + bookingId.value());
+            stripeGatewayPort.createRefund(
+                    command.stripePaymentIntentId(), "refund_" + bookingId.value());
             payment.markRefunded();
             paymentRepository.save(payment);
             return;
@@ -92,12 +97,24 @@ public class HandlePaymentSuccessUseCase {
         }
 
         // Mark payment as PAID
-        payment.markPaid(stripePaymentIntentId, stripeEventId);
+        payment.markPaid(command.stripePaymentIntentId(), command.stripeEventId());
         paymentRepository.save(payment);
 
         // Publish payment domain events
         payment.getDomainEvents().forEach(eventPublisher::publishEvent);
         payment.clearDomainEvents();
+
+        List<RouteSeatAvailability> confirmedSeats =
+                seatAvailabilityPort.findByBookingId(bookingId.value());
+        if (!confirmedSeats.isEmpty()) {
+            List<SeatStatusChangedEvent.SeatChange> changes = confirmedSeats.stream()
+                    .map(seat -> new SeatStatusChangedEvent.SeatChange(
+                            seat.getSeatId().value(), seat.getStatus().name(), bookingId.value()))
+                    .toList();
+            SeatStatusChangedEvent sseEvent = new SeatStatusChangedEvent(
+                    booking.getScheduledTripId().value(), changes, Instant.now());
+            eventPublisher.publishEvent(sseEvent);
+        }
 
         log.info("Payment success processed for bookingId={}", bookingId);
     }

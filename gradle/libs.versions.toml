@@ -1,14 +1,14 @@
 [versions]
 # ─── Java ─────────────────────────────────────────────────────────────────
 archunitJunit5 = "1.4.1"
-jacksonDatabindNullable = "0.2.9"
+testcontainers = "2.0.3"
 java = "25"
 # ─── Backend ─────────────────────────────────────────────────────────────────
 springBoot = "4.0.3"
+springdocOpenapi = "3.0.3"
 jjwt = "0.13.0"
 uuidCreator = "6.1.1"
 springDependencyManagement = "1.1.7"
-springModulith = "2.0.3"
 hibernateOrm = "7.2.1.Final"
 graalvmNative = "0.11.4"
 spotless = "8.2.1"
@@ -41,17 +41,19 @@ stripeJava = "31.4.0"
 
 [libraries]
 # ─── Backend ─────────────────────────────────────────────────────────────────
-jackson-databind-nullable = { module = "org.openapitools:jackson-databind-nullable", version.ref = "jacksonDatabindNullable" }
-spring-modulith-bom = { module = "org.springframework.modulith:spring-modulith-bom", version.ref = "springModulith" }
-
 # Spring Boot Starters (version managed by Spring Boot BOM)
+spring-boot-starter-flyway = { module = "org.springframework.boot:spring-boot-starter-flyway" }
+spring-boot-starter-cache = { module = "org.springframework.boot:spring-boot-starter-cache" }
+flyway-database-postgresql = { module = "org.flywaydb:flyway-database-postgresql" }
 spring-boot-starter-actuator = { module = "org.springframework.boot:spring-boot-starter-actuator" }
 spring-boot-starter-amqp = { module = "org.springframework.boot:spring-boot-starter-amqp" }
 spring-boot-starter-data-jpa = { module = "org.springframework.boot:spring-boot-starter-data-jpa" }
+spring-boot-starter-data-redis = { module = "org.springframework.boot:spring-boot-starter-data-redis" }
 spring-boot-starter-integration = { module = "org.springframework.boot:spring-boot-starter-integration" }
 spring-boot-starter-security = { module = "org.springframework.boot:spring-boot-starter-security" }
 spring-boot-starter-webmvc = { module = "org.springframework.boot:spring-boot-starter-webmvc" }
 spring-boot-starter-validation = { module = "org.springframework.boot:spring-boot-starter-validation" }
+springdoc-openapi-starter-webmvc-ui = { module = "org.springdoc:springdoc-openapi-starter-webmvc-ui", version.ref = "springdocOpenapi" }
 spring-boot-devtools = { module = "org.springframework.boot:spring-boot-devtools" }
 spring-boot-configuration-processor = { module = "org.springframework.boot:spring-boot-configuration-processor" }
 
@@ -63,15 +65,6 @@ spring-integration-amqp = { module = "org.springframework.integration:spring-int
 spring-integration-http = { module = "org.springframework.integration:spring-integration-http" }
 spring-integration-jpa = { module = "org.springframework.integration:spring-integration-jpa" }
 spring-integration-test = { module = "org.springframework.integration:spring-integration-test" }
-
-# Spring Modulith
-spring-modulith-events-api = { module = "org.springframework.modulith:spring-modulith-events-api" }
-spring-modulith-starter-core = { module = "org.springframework.modulith:spring-modulith-starter-core" }
-spring-modulith-starter-jpa = { module = "org.springframework.modulith:spring-modulith-starter-jpa" }
-spring-modulith-actuator = { module = "org.springframework.modulith:spring-modulith-actuator" }
-spring-modulith-events-amqp = { module = "org.springframework.modulith:spring-modulith-events-amqp" }
-spring-modulith-observability = { module = "org.springframework.modulith:spring-modulith-observability" }
-spring-modulith-starter-test = { module = "org.springframework.modulith:spring-modulith-starter-test" }
 
 # Spring Security
 spring-security-messaging = { module = "org.springframework.security:spring-security-messaging" }
@@ -92,6 +85,7 @@ jjwt-jackson = { module = "io.jsonwebtoken:jjwt-jackson", version.ref = "jjwt" }
 
 # PostgreSQL
 postgresql = { module = "org.postgresql:postgresql" }
+commons-pool2 = { module = "org.apache.commons:commons-pool2" }
 
 # JUnit Platform
 junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
@@ -102,7 +96,13 @@ spring-boot-starter-data-jpa-test = { module = "org.springframework.boot:spring-
 spring-boot-starter-security-test = { module = "org.springframework.boot:spring-boot-starter-security-test" }
 spring-boot-starter-webmvc-test = { module = "org.springframework.boot:spring-boot-starter-webmvc-test" }
 archunit-junit5 = { module = "com.tngtech.archunit:archunit-junit5", version.ref = "archunitJunit5" }
-h2 = { module = "com.h2database:h2" }
+
+# Testcontainers
+testcontainers-bom = { group = "org.testcontainers", name = "testcontainers-bom", version.ref = "testcontainers" }
+testcontainers-junit-jupiter = { group = "org.testcontainers", name = "testcontainers-junit-jupiter", version.ref = "testcontainers" }
+testcontainers-postgresql = { group = "org.testcontainers", name = "testcontainers-postgresql", version.ref = "testcontainers" }
+testcontainers-rabbitmq = { group = "org.testcontainers", name = "testcontainers-rabbitmq", version.ref = "testcontainers" }
+spring-boot-testcontainers = { module = "org.springframework.boot:spring-boot-testcontainers" }
 
 # ─── Frontend – Kotlin & Testing ─────────────────────────────────────────────
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -151,5 +151,5 @@ kotlinJvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlintGradle" }
 
 # ─── Custom Plugin ─────────────────────────────────────────────────────────────
-spotlessConvention = { id = "io.github.phunguy65.ttbs.plugin.spotless"  }
+spotlessConvention = { id = "io.github.phunguy65.ttbs.plugin.spotless" }
 ktlintConvention = { id = "io.github.phunguy65.ttbs.plugin.ktlint" }

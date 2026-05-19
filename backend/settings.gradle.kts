@@ -22,10 +22,3 @@ dependencyResolutionManagement {
         }
     }
 }
-
-includeBuild("third-party/jackson-databind-nullable") {
-    dependencySubstitution {
-        substitute(module("org.openapitools:jackson-databind-nullable"))
-            .using(project(":"))
-    }
-}

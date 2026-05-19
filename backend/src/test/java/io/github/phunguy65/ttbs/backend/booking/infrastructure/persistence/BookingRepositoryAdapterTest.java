@@ -1,169 +1,358 @@
 package io.github.phunguy65.ttbs.backend.booking.infrastructure.persistence;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
-import io.github.phunguy65.ttbs.backend.booking.domain.model.Booking;
+import io.github.phunguy65.ttbs.backend.TestContainerConfiguration;
 import io.github.phunguy65.ttbs.backend.booking.domain.model.BookingId;
-import io.github.phunguy65.ttbs.backend.booking.domain.model.BookingStatus;
-import io.github.phunguy65.ttbs.backend.booking.domain.repository.BookingRepository;
-import io.github.phunguy65.ttbs.backend.shared.domain.Money;
-import io.github.phunguy65.ttbs.backend.train.domain.model.RouteId;
+import io.github.phunguy65.ttbs.backend.booking.domain.projection.BookingSummary;
+import io.github.phunguy65.ttbs.backend.shared.domain.PageResponse;
+import io.github.phunguy65.ttbs.backend.shared.domain.SortOrder;
 import io.github.phunguy65.ttbs.backend.user.domain.model.UserId;
+import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.annotation.Transactional;
 
-@DataJpaTest
-@Import({BookingRepositoryAdapter.class, BookingEntityMapper.class})
-@TestPropertySource(properties = "spring.modulith.detection.disabled=true")
+@SpringBootTest
+@ActiveProfiles("test")
+@Import(TestContainerConfiguration.class)
+@Transactional
 class BookingRepositoryAdapterTest {
 
+    private static final UUID USER_ID = UUID.fromString("11111111-1111-1111-1111-111111111111");
+    private static final UUID OTHER_USER_ID =
+            UUID.fromString("99999999-9999-9999-9999-999999999999");
+    private static final UUID SCHEDULED_TRIP_ID_1 =
+            UUID.fromString("40000000-0000-0000-0000-000000000001");
+    private static final UUID SCHEDULED_TRIP_ID_2 =
+            UUID.fromString("40000000-0000-0000-0000-000000000002");
+    private static final UUID SCHEDULED_TRIP_ID_3 =
+            UUID.fromString("40000000-0000-0000-0000-000000000003");
+
     @Autowired
-    private BookingRepository bookingRepository;
+    private BookingRepositoryAdapter repository;
+
+    @Autowired
+    private BookingJpaRepository jpaRepository;
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
-    private UUID userId;
-    private UUID routeId;
+    @Test
+    void findSummaryByIdReturnsProjectedUserDetails() {
+        insertUser(USER_ID, "booking-summary@example.com");
+        insertScheduledTripGraph();
+        BookingEntity entity = bookingEntity(
+                UUID.fromString("22222222-2222-2222-2222-222222222222"),
+                USER_ID,
+                SCHEDULED_TRIP_ID_1,
+                "CONFIRMED",
+                Instant.parse("2026-04-02T10:00:00Z"),
+                Instant.parse("2026-04-01T09:00:00Z"),
+                "Nguyen Van A",
+                "a@example.com");
+        jpaRepository.save(entity);
 
-    @BeforeEach
-    void setUp() {
-        userId = UUID.randomUUID();
-        routeId = UUID.randomUUID();
+        var summary = repository.findSummaryById(BookingId.of(entity.getId()));
 
+        assertThat(summary).isPresent();
+        assertThat(summary.orElseThrow().id()).isEqualTo(entity.getId());
+        assertThat(summary.orElseThrow().userId()).isEqualTo(USER_ID);
+        assertThat(summary.orElseThrow().scheduledTripId()).isEqualTo(entity.getScheduledTripId());
+        assertThat(summary.orElseThrow().status()).isEqualTo("CONFIRMED");
+        assertThat(summary.orElseThrow().bookerInfo().fullName()).isEqualTo("Nguyen Van A");
+        assertThat(summary.orElseThrow().bookerInfo().email()).isEqualTo("a@example.com");
+        assertThat(summary.orElseThrow().bookerInfo().phone()).isEqualTo("0900000000");
+        assertThat(summary.orElseThrow().bookerInfo().dateOfBirth()).isNull();
+    }
+
+    @Test
+    void findSummaryByIdReturnsEmptyWhenBookingDoesNotExist() {
+        assertThat(repository.findSummaryById(
+                        BookingId.of(UUID.fromString("00000000-0000-0000-0000-000000000000"))))
+                .isEmpty();
+    }
+
+    @Test
+    void findByUserIdAppliesDynamicSortAndFiltersOtherUsers() {
+        insertUser(USER_ID, "booking-sort@example.com");
+        insertUser(OTHER_USER_ID, "other-user@example.com");
+        insertScheduledTripGraph();
+        BookingEntity oldest = bookingEntity(
+                UUID.fromString("44444444-4444-4444-4444-444444444444"),
+                USER_ID,
+                SCHEDULED_TRIP_ID_1,
+                "HELD",
+                Instant.parse("2026-04-03T10:00:00Z"),
+                Instant.parse("2026-04-01T08:00:00Z"),
+                "Oldest",
+                "oldest@example.com");
+        BookingEntity newest = bookingEntity(
+                UUID.fromString("66666666-6666-6666-6666-666666666666"),
+                USER_ID,
+                SCHEDULED_TRIP_ID_2,
+                "CONFIRMED",
+                Instant.parse("2026-04-04T10:00:00Z"),
+                Instant.parse("2026-04-02T08:00:00Z"),
+                "Newest",
+                "newest@example.com");
+        BookingEntity otherUser = bookingEntity(
+                UUID.fromString("88888888-8888-8888-8888-888888888888"),
+                OTHER_USER_ID,
+                SCHEDULED_TRIP_ID_3,
+                "CANCELLED",
+                Instant.parse("2026-04-05T10:00:00Z"),
+                Instant.parse("2026-04-03T08:00:00Z"),
+                "Other User",
+                "other@example.com");
+        jpaRepository.saveAll(List.of(oldest, newest, otherUser));
+
+        PageResponse<BookingSummary> page = repository.findByUserId(
+                UserId.of(USER_ID),
+                0,
+                10,
+                List.of(SortOrder.desc("createdAt"), SortOrder.desc("id")));
+
+        assertThat(page.content())
+                .extracting(BookingSummary::id)
+                .containsExactly(newest.getId(), oldest.getId());
+        assertThat(page.total()).isEqualTo(2);
+        assertThat(page.hasNext()).isFalse();
+        assertThat(page.hasPrevious()).isFalse();
+    }
+
+    @Test
+    void findByUserIdReturnsPaginationMetadataForLaterPages() {
+        insertUser(USER_ID, "booking-page@example.com");
+        insertScheduledTripGraph();
+        BookingEntity first = bookingEntity(
+                UUID.fromString("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"),
+                USER_ID,
+                SCHEDULED_TRIP_ID_1,
+                "HELD",
+                Instant.parse("2026-04-03T10:00:00Z"),
+                Instant.parse("2026-04-01T08:00:00Z"),
+                "First",
+                "first@example.com");
+        BookingEntity second = bookingEntity(
+                UUID.fromString("dddddddd-dddd-dddd-dddd-dddddddddddd"),
+                USER_ID,
+                SCHEDULED_TRIP_ID_2,
+                "CONFIRMED",
+                Instant.parse("2026-04-04T10:00:00Z"),
+                Instant.parse("2026-04-02T08:00:00Z"),
+                "Second",
+                "second@example.com");
+        BookingEntity third = bookingEntity(
+                UUID.fromString("ffffffff-ffff-ffff-ffff-ffffffffffff"),
+                USER_ID,
+                SCHEDULED_TRIP_ID_3,
+                "CANCELLED",
+                Instant.parse("2026-04-05T10:00:00Z"),
+                Instant.parse("2026-04-03T08:00:00Z"),
+                "Third",
+                "third@example.com");
+        jpaRepository.saveAll(List.of(first, second, third));
+
+        var page = repository.findByUserId(
+                UserId.of(USER_ID),
+                1,
+                2,
+                List.of(SortOrder.desc("createdAt"), SortOrder.desc("id")));
+
+        assertThat(page.content()).hasSize(1);
+        assertThat(page.content().getFirst().id()).isEqualTo(first.getId());
+        assertThat(page.page()).isEqualTo(1);
+        assertThat(page.size()).isEqualTo(2);
+        assertThat(page.total()).isEqualTo(3);
+        assertThat(page.hasNext()).isFalse();
+        assertThat(page.hasPrevious()).isTrue();
+    }
+
+    @Test
+    void findByUserIdSupportsAscendingSortOrder() {
+        insertUser(USER_ID, "booking-sort-asc@example.com");
+        insertScheduledTripGraph();
+        BookingEntity older = bookingEntity(
+                UUID.fromString("13131313-1313-1313-1313-131313131313"),
+                USER_ID,
+                SCHEDULED_TRIP_ID_1,
+                "CONFIRMED",
+                Instant.parse("2026-04-03T10:00:00Z"),
+                Instant.parse("2026-04-01T08:00:00Z"),
+                "Older",
+                "older@example.com");
+        BookingEntity newer = bookingEntity(
+                UUID.fromString("14141414-1414-1414-1414-141414141414"),
+                USER_ID,
+                SCHEDULED_TRIP_ID_2,
+                "CONFIRMED",
+                Instant.parse("2026-04-04T10:00:00Z"),
+                Instant.parse("2026-04-02T08:00:00Z"),
+                "Newer",
+                "newer@example.com");
+        jpaRepository.saveAll(List.of(older, newer));
+
+        PageResponse<BookingSummary> page = repository.findByUserId(
+                UserId.of(USER_ID), 0, 10, List.of(SortOrder.asc("createdAt")));
+
+        assertThat(page.content())
+                .extracting(BookingSummary::id)
+                .containsExactly(older.getId(), newer.getId());
+    }
+
+    @Test
+    void findByUserIdHandlesEmptySortListAndExactPageSizeBoundary() {
+        insertUser(USER_ID, "booking-empty-sort@example.com");
+        insertScheduledTripGraph();
+        BookingEntity first = bookingEntity(
+                UUID.fromString("15151515-1515-1515-1515-151515151515"),
+                USER_ID,
+                SCHEDULED_TRIP_ID_1,
+                "CONFIRMED",
+                Instant.parse("2026-04-03T10:00:00Z"),
+                Instant.parse("2026-04-01T08:00:00Z"),
+                "First",
+                "first-empty@example.com");
+        BookingEntity second = bookingEntity(
+                UUID.fromString("16161616-1616-1616-1616-161616161616"),
+                USER_ID,
+                SCHEDULED_TRIP_ID_2,
+                "CONFIRMED",
+                Instant.parse("2026-04-04T10:00:00Z"),
+                Instant.parse("2026-04-02T08:00:00Z"),
+                "Second",
+                "second-empty@example.com");
+        jpaRepository.saveAll(List.of(first, second));
+
+        PageResponse<BookingSummary> page =
+                repository.findByUserId(UserId.of(USER_ID), 0, 2, List.of());
+
+        assertThat(page.content()).hasSize(2);
+        assertThat(page.total()).isEqualTo(2);
+        assertThat(page.hasNext()).isFalse();
+        assertThat(page.hasPrevious()).isFalse();
+    }
+
+    private BookingEntity bookingEntity(
+            UUID bookingId,
+            UUID userId,
+            UUID scheduledTripId,
+            String status,
+            Instant paymentDeadline,
+            Instant createdAt,
+            String fullName,
+            String email) {
+        BookingEntity entity = new BookingEntity();
+        entity.setId(bookingId);
+        entity.setUserId(userId);
+        entity.setScheduledTripId(scheduledTripId);
+        entity.setUserInfoSnapshot(new BookingUserInfoSnapshotJson(
+                fullName, email, "0900000000", null, "MALE", "0123456789", "123 Test Street"));
+        entity.setTotalPrice(450000);
+        entity.setCurrency("VND");
+        entity.setStatus(status);
+        entity.setIdempotencyKey("idem-" + bookingId);
+        entity.setPaymentDeadline(paymentDeadline);
+        entity.setCreatedAt(createdAt);
+        return entity;
+    }
+
+    private void insertUser(UUID userId, String email) {
         jdbcTemplate.update(
-                "INSERT INTO users (id, email, password_hash, full_name, role, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                """
+                INSERT INTO users (id, email, password_hash, full_name, role, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+                """,
                 userId,
-                "test-" + userId + "@example.com",
-                "hash",
+                email,
+                "test-password-hash",
                 "Test User",
                 "CUSTOMER",
-                java.sql.Timestamp.from(Instant.now()),
-                java.sql.Timestamp.from(Instant.now()));
+                Timestamp.from(Instant.parse("2026-04-01T00:00:00Z")),
+                Timestamp.from(Instant.parse("2026-04-01T00:00:00Z")));
+    }
 
-        UUID trainId = UUID.randomUUID();
+    private void insertScheduledTripGraph() {
+        UUID originId = UUID.fromString("40000000-0000-0000-0000-000000000101");
+        UUID destinationId = UUID.fromString("40000000-0000-0000-0000-000000000102");
+        UUID trainId = UUID.fromString("40000000-0000-0000-0000-000000000103");
+        UUID routeId = UUID.fromString("40000000-0000-0000-0000-000000000104");
+        Timestamp createdAt = Timestamp.from(Instant.parse("2026-04-01T00:00:00Z"));
+
+        jdbcTemplate.update(
+                "INSERT INTO stations (id, code, name, city, created_at) VALUES (?, ?, ?, ?, ?)",
+                originId,
+                "BKT1",
+                "Booking Test Origin",
+                "Ho Chi Minh",
+                createdAt);
+        jdbcTemplate.update(
+                "INSERT INTO stations (id, code, name, city, created_at) VALUES (?, ?, ?, ?, ?)",
+                destinationId,
+                "BKT2",
+                "Booking Test Destination",
+                "Da Nang",
+                createdAt);
         jdbcTemplate.update(
                 "INSERT INTO trains (id, train_number, name, total_seats, created_at) VALUES (?, ?, ?, ?, ?)",
                 trainId,
-                "T-" + trainId.toString().substring(0, 8),
-                "Test Train",
-                100,
-                java.sql.Timestamp.from(Instant.now()));
-
-        UUID originId = UUID.randomUUID();
-        UUID destId = UUID.randomUUID();
-        jdbcTemplate.update(
-                "INSERT INTO stations (id, code, name, city, created_at) VALUES (?, ?, ?, ?, ?)",
-                originId,
-                "ORI",
-                "Origin",
-                "City A",
-                java.sql.Timestamp.from(Instant.now()));
-        jdbcTemplate.update(
-                "INSERT INTO stations (id, code, name, city, created_at) VALUES (?, ?, ?, ?, ?)",
-                destId,
-                "DST",
-                "Destination",
-                "City B",
-                java.sql.Timestamp.from(Instant.now()));
-
-        jdbcTemplate.update(
-                "INSERT INTO routes (id, train_id, origin_station_id, destination_station_id, departure_time, arrival_time, base_price, status, created_at) "
-                        + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                "BKT-1",
+                "Booking Test Train",
+                200,
+                createdAt);
+        jdbcTemplate.update("""
+                INSERT INTO route_templates (id, origin_station_id, destination_station_id, base_price, created_at)
+                VALUES (?, ?, ?, ?, ?)
+                """, routeId, originId, destinationId, 450_000, createdAt);
+        insertScheduledTrip(
+                SCHEDULED_TRIP_ID_1,
                 routeId,
                 trainId,
-                originId,
-                destId,
-                java.sql.Timestamp.from(Instant.now().plusSeconds(3600)),
-                java.sql.Timestamp.from(Instant.now().plusSeconds(7200)),
-                100000L,
+                Instant.parse("2026-05-01T08:00:00Z"),
+                Instant.parse("2026-05-01T12:00:00Z"),
+                createdAt);
+        insertScheduledTrip(
+                SCHEDULED_TRIP_ID_2,
+                routeId,
+                trainId,
+                Instant.parse("2026-05-02T08:00:00Z"),
+                Instant.parse("2026-05-02T12:00:00Z"),
+                createdAt);
+        insertScheduledTrip(
+                SCHEDULED_TRIP_ID_3,
+                routeId,
+                trainId,
+                Instant.parse("2026-05-03T08:00:00Z"),
+                Instant.parse("2026-05-03T12:00:00Z"),
+                createdAt);
+    }
+
+    private void insertScheduledTrip(
+            UUID tripId,
+            UUID routeId,
+            UUID trainId,
+            Instant departureTime,
+            Instant arrivalTime,
+            Timestamp createdAt) {
+        jdbcTemplate.update(
+                """
+                INSERT INTO scheduled_trips (id, route_template_id, train_id, departure_time, arrival_time, status, created_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+                """,
+                tripId,
+                routeId,
+                trainId,
+                Timestamp.from(departureTime),
+                Timestamp.from(arrivalTime),
                 "SCHEDULED",
-                java.sql.Timestamp.from(Instant.now()));
-    }
-
-    private Booking newHeldBooking(String idempotencyKey) {
-        return Booking.create(
-                BookingId.of(UUID.randomUUID()),
-                UserId.of(userId),
-                RouteId.of(routeId),
-                "John Doe",
-                "john@example.com",
-                null,
-                Money.vnd(100_000L),
-                "VND",
-                idempotencyKey,
-                Instant.now().plusSeconds(900));
-    }
-
-    @Test
-    void save_andFindById_shouldRoundTrip() {
-        Booking booking = newHeldBooking("idem-1");
-        bookingRepository.save(booking);
-
-        Optional<Booking> found = bookingRepository.findById(booking.getBookingId());
-
-        assertThat(found).isPresent();
-        assertThat(found.get().getStatus()).isEqualTo(BookingStatus.HELD);
-        assertThat(found.get().getPassengerName()).isEqualTo("John Doe");
-    }
-
-    @Test
-    void findByIdempotencyKey_shouldReturnBooking() {
-        Booking booking = newHeldBooking("idem-unique-key");
-        bookingRepository.save(booking);
-
-        Optional<Booking> found = bookingRepository.findByIdempotencyKey("idem-unique-key");
-
-        assertThat(found).isPresent();
-        assertThat(found.get().getBookingId()).isEqualTo(booking.getBookingId());
-    }
-
-    @Test
-    void findByIdempotencyKey_whenNotFound_shouldReturnEmpty() {
-        Optional<Booking> found = bookingRepository.findByIdempotencyKey("nonexistent");
-
-        assertThat(found).isEmpty();
-    }
-
-    @Test
-    void findActiveHoldByUserAndRoute_shouldReturnHeldBooking() {
-        Booking booking = newHeldBooking("idem-hold");
-        bookingRepository.save(booking);
-
-        Optional<Booking> found = bookingRepository.findActiveHoldByUserAndRoute(
-                UserId.of(userId), RouteId.of(routeId));
-
-        assertThat(found).isPresent();
-        assertThat(found.get().getStatus()).isEqualTo(BookingStatus.HELD);
-    }
-
-    @Test
-    void findExpiredHeldBookings_shouldReturnExpiredBookings() {
-        Booking expired = Booking.create(
-                BookingId.of(UUID.randomUUID()),
-                UserId.of(userId),
-                RouteId.of(routeId),
-                "Jane Doe",
-                "jane@example.com",
-                null,
-                Money.vnd(100_000L),
-                "VND",
-                "idem-expired",
-                Instant.now().minusSeconds(60)); // already expired
-        bookingRepository.save(expired);
-
-        List<Booking> found = bookingRepository.findExpiredHeldBookings(Instant.now());
-
-        assertThat(found).hasSize(1);
-        assertThat(found.getFirst().getIdempotencyKey()).isEqualTo("idem-expired");
+                createdAt);
     }
 }

@@ -9,21 +9,21 @@ import java.util.UUID;
 @Embeddable
 class RouteSeatAvailabilityId implements Serializable {
 
-    @Column(name = "route_id", nullable = false, updatable = false)
-    private UUID routeId;
+    @Column(name = "scheduled_trip_id", nullable = false, updatable = false)
+    private UUID scheduledTripId;
 
     @Column(name = "seat_id", nullable = false, updatable = false)
     private UUID seatId;
 
     protected RouteSeatAvailabilityId() {}
 
-    RouteSeatAvailabilityId(UUID routeId, UUID seatId) {
-        this.routeId = routeId;
+    RouteSeatAvailabilityId(UUID scheduledTripId, UUID seatId) {
+        this.scheduledTripId = scheduledTripId;
         this.seatId = seatId;
     }
 
-    UUID getRouteId() {
-        return routeId;
+    UUID getScheduledTripId() {
+        return scheduledTripId;
     }
 
     UUID getSeatId() {
@@ -34,11 +34,12 @@ class RouteSeatAvailabilityId implements Serializable {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof RouteSeatAvailabilityId that)) return false;
-        return Objects.equals(routeId, that.routeId) && Objects.equals(seatId, that.seatId);
+        return Objects.equals(scheduledTripId, that.scheduledTripId)
+                && Objects.equals(seatId, that.seatId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(routeId, seatId);
+        return Objects.hash(scheduledTripId, seatId);
     }
 }

@@ -1,13 +1,19 @@
 package io.github.phunguy65.ttbs.backend.train.infrastructure.persistence;
 
+import io.github.phunguy65.ttbs.backend.shared.domain.PageResponse;
+import io.github.phunguy65.ttbs.backend.shared.domain.SortOrder;
 import io.github.phunguy65.ttbs.backend.train.domain.model.Coach;
 import io.github.phunguy65.ttbs.backend.train.domain.model.CoachId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.TrainId;
+import io.github.phunguy65.ttbs.backend.train.domain.projection.CoachSummary;
 import io.github.phunguy65.ttbs.backend.train.domain.repository.CoachRepository;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -41,10 +47,33 @@ class CoachRepositoryAdapter implements CoachRepository {
     }
 
     @Override
+    public Optional<CoachSummary> findSummaryById(CoachId id) {
+        return jpaRepository.findSummaryById(id.value());
+    }
+
+    @Override
     public List<Coach> findByTrainId(TrainId trainId) {
         return jpaRepository.findAllActiveByTrainId(trainId.value()).stream()
                 .map(mapper::toDomain)
                 .toList();
+    }
+
+    @Override
+    public PageResponse<Coach> findAll(int page, int size, List<SortOrder> sort, TrainId trainId) {
+        PageRequest pageable = PageRequest.of(page, size, toSpringSort(sort));
+        Page<CoachEntity> result = jpaRepository.findAllActiveByTrainId(trainId.value(), pageable);
+        List<Coach> items = result.getContent().stream().map(mapper::toDomain).toList();
+        return PageResponse.of(items, page, size, result.hasNext(), result.getTotalElements());
+    }
+
+    @Override
+    public PageResponse<CoachSummary> findAllSummaries(
+            int page, int size, List<SortOrder> sort, TrainId trainId) {
+        PageRequest pageable = PageRequest.of(page, size, toSpringSort(sort));
+        Page<CoachSummary> result =
+                jpaRepository.findAllSummariesByTrainId(trainId.value(), pageable);
+        List<CoachSummary> items = result.getContent();
+        return PageResponse.of(items, page, size, result.hasNext(), result.getTotalElements());
     }
 
     @Override
@@ -70,5 +99,14 @@ class CoachRepositoryAdapter implements CoachRepository {
         return jpaRepository.findActiveIdsByTrainIds(uuids).stream()
                 .map(CoachId::of)
                 .toList();
+    }
+
+    private Sort toSpringSort(List<SortOrder> orders) {
+        List<Sort.Order> springOrders = orders.stream()
+                .map(o -> o.direction() == SortOrder.Direction.ASC
+                        ? Sort.Order.asc(o.field())
+                        : Sort.Order.desc(o.field()))
+                .toList();
+        return Sort.by(springOrders);
     }
 }

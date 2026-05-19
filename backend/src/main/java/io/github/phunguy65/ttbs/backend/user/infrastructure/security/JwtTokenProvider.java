@@ -53,7 +53,7 @@ public class JwtTokenProvider implements TokenProvider {
         Instant now = Instant.now();
         return Jwts.builder()
                 .subject(user.getId().value().toString())
-                .claim("email", user.getEmail())
+                .claim("email", user.getEmail().value())
                 .claim("role", user.getRole().name())
                 .issuedAt(Date.from(now))
                 .expiration(Date.from(now.plus(accessTokenExpirySeconds, ChronoUnit.SECONDS)))

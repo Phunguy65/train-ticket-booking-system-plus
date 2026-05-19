@@ -1,13 +1,21 @@
 package io.github.phunguy65.ttbs.backend.train.infrastructure.persistence;
 
+import io.github.phunguy65.ttbs.backend.shared.domain.PageResponse;
+import io.github.phunguy65.ttbs.backend.shared.domain.SortOrder;
 import io.github.phunguy65.ttbs.backend.train.domain.model.CoachId;
+import io.github.phunguy65.ttbs.backend.train.domain.model.ScheduledTripId;
 import io.github.phunguy65.ttbs.backend.train.domain.model.Seat;
 import io.github.phunguy65.ttbs.backend.train.domain.model.SeatId;
+import io.github.phunguy65.ttbs.backend.train.domain.model.TrainId;
+import io.github.phunguy65.ttbs.backend.train.domain.projection.SeatSummary;
 import io.github.phunguy65.ttbs.backend.train.domain.repository.SeatRepository;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -43,6 +51,44 @@ class SeatRepositoryAdapter implements SeatRepository {
     }
 
     @Override
+    public PageResponse<Seat> findAll(int page, int size, List<SortOrder> sort, TrainId trainId) {
+        PageRequest pageable = PageRequest.of(page, size, toSpringSort(sort));
+        Page<SeatEntity> result = jpaRepository.findAllActiveByTrainId(trainId.value(), pageable);
+        List<Seat> items = result.getContent().stream().map(mapper::toDomain).toList();
+        return PageResponse.of(items, page, size, result.hasNext(), result.getTotalElements());
+    }
+
+    @Override
+    public PageResponse<SeatSummary> findAllSummaries(
+            int page, int size, List<SortOrder> sort, TrainId trainId) {
+        PageRequest pageable = PageRequest.of(page, size, toSpringSort(sort));
+        Page<SeatSummary> result =
+                jpaRepository.findAllSummariesByTrainId(trainId.value(), pageable);
+        List<SeatSummary> items = result.getContent();
+        return PageResponse.of(items, page, size, result.hasNext(), result.getTotalElements());
+    }
+
+    @Override
+    public PageResponse<Seat> findAllAvailable(
+            int page, int size, List<SortOrder> sort, ScheduledTripId scheduledTripId) {
+        PageRequest pageable = PageRequest.of(page, size, toSpringSort(sort));
+        Page<SeatEntity> result =
+                jpaRepository.findAllAvailableByScheduledTripId(scheduledTripId.value(), pageable);
+        List<Seat> items = result.getContent().stream().map(mapper::toDomain).toList();
+        return PageResponse.of(items, page, size, result.hasNext(), result.getTotalElements());
+    }
+
+    @Override
+    public PageResponse<SeatSummary> findAllAvailableSummaries(
+            int page, int size, List<SortOrder> sort, ScheduledTripId scheduledTripId) {
+        PageRequest pageable = PageRequest.of(page, size, toSpringSort(sort));
+        Page<SeatSummary> result = jpaRepository.findAllAvailableSummariesByScheduledTripId(
+                scheduledTripId.value(), pageable);
+        List<SeatSummary> items = result.getContent();
+        return PageResponse.of(items, page, size, result.hasNext(), result.getTotalElements());
+    }
+
+    @Override
     public Optional<Seat> findById(SeatId id) {
         return jpaRepository.findActiveById(id.value()).map(mapper::toDomain);
     }
@@ -50,6 +96,32 @@ class SeatRepositoryAdapter implements SeatRepository {
     @Override
     public boolean existsByCoachIdAndSeatNumber(CoachId coachId, String seatNumber) {
         return jpaRepository.existsByCoachIdAndSeatNumber(coachId.value(), seatNumber);
+    }
+
+    @Override
+    public int countActiveByTrainId(TrainId trainId) {
+        return jpaRepository.countActiveByTrainId(trainId.value());
+    }
+
+    @Override
+    public int countActiveByCoachId(CoachId coachId) {
+        return jpaRepository.countActiveByCoachId(coachId.value());
+    }
+
+    @Override
+    public List<TrainId> findDistinctTrainIdsBySeatIds(List<SeatId> seatIds) {
+        List<UUID> uuids = seatIds.stream().map(SeatId::value).toList();
+        return jpaRepository.findDistinctTrainIdsBySeatIds(uuids).stream()
+                .map(TrainId::of)
+                .toList();
+    }
+
+    @Override
+    public List<CoachId> findDistinctCoachIdsBySeatIds(List<SeatId> seatIds) {
+        List<UUID> uuids = seatIds.stream().map(SeatId::value).toList();
+        return jpaRepository.findDistinctCoachIdsBySeatIds(uuids).stream()
+                .map(CoachId::of)
+                .toList();
     }
 
     @Override
@@ -69,5 +141,14 @@ class SeatRepositoryAdapter implements SeatRepository {
         return jpaRepository.findActiveIdsByCoachIds(uuids).stream()
                 .map(SeatId::of)
                 .toList();
+    }
+
+    private Sort toSpringSort(List<SortOrder> orders) {
+        List<Sort.Order> springOrders = orders.stream()
+                .map(o -> o.direction() == SortOrder.Direction.ASC
+                        ? Sort.Order.asc(o.field())
+                        : Sort.Order.desc(o.field()))
+                .toList();
+        return Sort.by(springOrders);
     }
 }

@@ -24,7 +24,7 @@ public sealed interface BookingError {
     record ActiveHoldExists() implements BookingError {
         @Override
         public String message() {
-            return "An active hold already exists for this user on this route";
+            return "An active hold already exists for this user on this scheduled trip";
         }
     }
 
@@ -42,10 +42,53 @@ public sealed interface BookingError {
         }
     }
 
-    record RouteNotFound() implements BookingError {
+    record ScheduledTripNotFound() implements BookingError {
         @Override
         public String message() {
-            return "Route not found";
+            return "Scheduled trip not found";
+        }
+    }
+
+    record UserNotFound() implements BookingError {
+        @Override
+        public String message() {
+            return "User not found";
+        }
+    }
+
+    record TooManySeats(int requested, int max) implements BookingError {
+        @Override
+        public String message() {
+            return "Too many seats requested: " + requested + " (max " + max + ")";
+        }
+    }
+
+    record PassengerSeatMismatch(int passengerCount, int seatCount) implements BookingError {
+        @Override
+        public String message() {
+            return "Passenger count (" + passengerCount + ") does not match seat count ("
+                    + seatCount + ")";
+        }
+    }
+
+    record DuplicatePassengerIdDocument(String idDocumentNumber) implements BookingError {
+        @Override
+        public String message() {
+            return "Duplicate passenger ID document number: " + idDocumentNumber;
+        }
+    }
+
+    record InvalidPassengerSeatAssignment(String seatId) implements BookingError {
+        @Override
+        public String message() {
+            return "Passenger references an unselected seat: " + seatId;
+        }
+    }
+
+    record DuplicatePassengerSeatAssignment() implements BookingError {
+        @Override
+        public String message() {
+            return "Multiple passengers assigned to the same seat";
         }
     }
 

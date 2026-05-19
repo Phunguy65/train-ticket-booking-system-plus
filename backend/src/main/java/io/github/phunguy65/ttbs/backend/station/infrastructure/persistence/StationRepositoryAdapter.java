@@ -1,16 +1,17 @@
 package io.github.phunguy65.ttbs.backend.station.infrastructure.persistence;
 
-import io.github.phunguy65.ttbs.backend.shared.domain.PageResult;
-import io.github.phunguy65.ttbs.backend.shared.domain.SortDirection;
+import io.github.phunguy65.ttbs.backend.shared.domain.PageResponse;
+import io.github.phunguy65.ttbs.backend.shared.domain.SortOrder;
 import io.github.phunguy65.ttbs.backend.station.domain.model.Station;
 import io.github.phunguy65.ttbs.backend.station.domain.model.StationId;
+import io.github.phunguy65.ttbs.backend.station.domain.projection.StationSummary;
 import io.github.phunguy65.ttbs.backend.station.domain.repository.StationRepository;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Repository;
 
@@ -38,14 +39,24 @@ class StationRepositoryAdapter implements StationRepository {
     }
 
     @Override
-    public PageResult<Station> findAll(
-            int page, int size, String sortField, SortDirection direction) {
-        Sort.Direction sortDir =
-                direction == SortDirection.ASC ? Sort.Direction.ASC : Sort.Direction.DESC;
-        PageRequest pageable = PageRequest.of(page, size, Sort.by(sortDir, sortField));
-        Slice<StationEntity> slice = jpaRepository.findAllActive(pageable);
-        List<Station> items = slice.getContent().stream().map(mapper::toDomain).toList();
-        return PageResult.of(items, page, size, slice.hasNext());
+    public Optional<StationSummary> findSummaryById(StationId id) {
+        return jpaRepository.findSummaryById(id.value());
+    }
+
+    @Override
+    public PageResponse<Station> findAll(int page, int size, List<SortOrder> sort) {
+        PageRequest pageable = PageRequest.of(page, size, toSpringSort(sort));
+        Page<StationEntity> result = jpaRepository.findAllActive(pageable);
+        List<Station> items = result.getContent().stream().map(mapper::toDomain).toList();
+        return PageResponse.of(items, page, size, result.hasNext(), result.getTotalElements());
+    }
+
+    @Override
+    public PageResponse<StationSummary> findAllSummaries(int page, int size, List<SortOrder> sort) {
+        PageRequest pageable = PageRequest.of(page, size, toSpringSort(sort));
+        Page<StationSummary> result = jpaRepository.findAllSummaries(pageable);
+        List<StationSummary> items = result.getContent();
+        return PageResponse.of(items, page, size, result.hasNext(), result.getTotalElements());
     }
 
     @Override
@@ -62,5 +73,14 @@ class StationRepositoryAdapter implements StationRepository {
     public int softDeleteByIds(List<StationId> ids, Instant deletedAt) {
         List<UUID> uuids = ids.stream().map(StationId::value).toList();
         return jpaRepository.softDeleteByIds(uuids, deletedAt);
+    }
+
+    private Sort toSpringSort(List<SortOrder> orders) {
+        List<Sort.Order> springOrders = orders.stream()
+                .map(o -> o.direction() == SortOrder.Direction.ASC
+                        ? Sort.Order.asc(o.field())
+                        : Sort.Order.desc(o.field()))
+                .toList();
+        return Sort.by(springOrders);
     }
 }

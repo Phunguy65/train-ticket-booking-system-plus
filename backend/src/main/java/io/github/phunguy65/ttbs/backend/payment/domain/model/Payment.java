@@ -26,10 +26,10 @@ public class Payment extends AggregateRoot<PaymentId> {
     private final UserId userId;
     private final Money amount;
     private PaymentStatus status;
-    private final String checkoutSessionId;
+    private final CheckoutSessionId checkoutSessionId;
     private final String checkoutUrl;
-    private String stripePaymentIntentId;
-    private String stripeEventId;
+    private StripePaymentIntentId stripePaymentIntentId;
+    private StripeEventId stripeEventId;
     private String errorMessage;
     private final Instant createdAt;
     private Instant updatedAt;
@@ -52,10 +52,10 @@ public class Payment extends AggregateRoot<PaymentId> {
         this.userId = userId;
         this.amount = amount;
         this.status = status;
-        this.checkoutSessionId = checkoutSessionId;
+        this.checkoutSessionId = CheckoutSessionId.of(checkoutSessionId);
         this.checkoutUrl = checkoutUrl;
-        this.stripePaymentIntentId = stripePaymentIntentId;
-        this.stripeEventId = stripeEventId;
+        this.stripePaymentIntentId = StripePaymentIntentId.ofNullable(stripePaymentIntentId);
+        this.stripeEventId = StripeEventId.ofNullable(stripeEventId);
         this.errorMessage = errorMessage;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
@@ -116,8 +116,8 @@ public class Payment extends AggregateRoot<PaymentId> {
 
     public void markPaid(String stripePaymentIntentId, String stripeEventId) {
         this.status = PaymentStatus.PAID;
-        this.stripePaymentIntentId = stripePaymentIntentId;
-        this.stripeEventId = stripeEventId;
+        this.stripePaymentIntentId = StripePaymentIntentId.of(stripePaymentIntentId);
+        this.stripeEventId = StripeEventId.of(stripeEventId);
         this.updatedAt = Instant.now();
         registerEvent(new PaymentCompleted(paymentId, bookingId));
     }
@@ -130,7 +130,7 @@ public class Payment extends AggregateRoot<PaymentId> {
     public void markFailed(String errorMessage, String stripeEventId) {
         this.status = PaymentStatus.FAILED;
         this.errorMessage = errorMessage;
-        this.stripeEventId = stripeEventId;
+        this.stripeEventId = StripeEventId.of(stripeEventId);
         this.updatedAt = Instant.now();
     }
 
@@ -166,7 +166,7 @@ public class Payment extends AggregateRoot<PaymentId> {
     }
 
     public String getCheckoutSessionId() {
-        return checkoutSessionId;
+        return checkoutSessionId.value();
     }
 
     public String getCheckoutUrl() {
@@ -174,11 +174,11 @@ public class Payment extends AggregateRoot<PaymentId> {
     }
 
     public String getStripePaymentIntentId() {
-        return stripePaymentIntentId;
+        return stripePaymentIntentId == null ? null : stripePaymentIntentId.value();
     }
 
     public String getStripeEventId() {
-        return stripeEventId;
+        return stripeEventId == null ? null : stripeEventId.value();
     }
 
     public String getErrorMessage() {

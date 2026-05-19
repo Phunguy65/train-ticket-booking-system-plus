@@ -46,12 +46,16 @@ public class SecurityConfig {
                         .permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/*/webhooks/stripe")
                         .permitAll()
+                        .requestMatchers(
+                                "/v3/api-docs/**",
+                                "/swagger-ui.html",
+                                "/swagger-ui/**",
+                                "/api/v3/api-docs/**",
+                                "/api/swagger-ui.html",
+                                "/api/swagger-ui/**")
+                        .permitAll()
                         .requestMatchers("/actuator/**")
                         .permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/*/users")
-                        .hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/api/*/users", "/api/*/users/**")
-                        .authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/*/trains/**")
                         .hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/*/trains/**")

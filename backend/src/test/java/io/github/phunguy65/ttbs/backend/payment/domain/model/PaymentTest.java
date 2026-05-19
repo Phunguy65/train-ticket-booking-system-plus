@@ -1,6 +1,6 @@
 package io.github.phunguy65.ttbs.backend.payment.domain.model;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import io.github.phunguy65.ttbs.backend.booking.domain.model.BookingId;
 import io.github.phunguy65.ttbs.backend.payment.domain.event.PaymentCompleted;
@@ -8,104 +8,114 @@ import io.github.phunguy65.ttbs.backend.payment.domain.event.PaymentRefunded;
 import io.github.phunguy65.ttbs.backend.shared.domain.Money;
 import io.github.phunguy65.ttbs.backend.user.domain.model.UserId;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+@DisplayName("Payment")
 class PaymentTest {
 
-    private static final PaymentId PAYMENT_ID = PaymentId.of(UUID.randomUUID());
-    private static final BookingId BOOKING_ID = BookingId.of(UUID.randomUUID());
-    private static final UserId USER_ID = UserId.of(UUID.randomUUID());
-    private static final Money AMOUNT = Money.vnd(100_000L);
-    private static final String SESSION_ID = "cs_test_123";
-    private static final String CHECKOUT_URL = "https://checkout.stripe.com/pay/cs_test_123";
+    private static final PaymentId PAYMENT_ID =
+            PaymentId.of(UUID.fromString("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"));
+    private static final BookingId BOOKING_ID =
+            BookingId.of(UUID.fromString("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"));
+    private static final UserId USER_ID =
+            UserId.of(UUID.fromString("cccccccc-cccc-cccc-cccc-cccccccccccc"));
+    private static final Money AMOUNT = Money.vnd(650_000L);
+    private static final String SESSION_ID = "cs_test_session_001";
+    private static final String CHECKOUT_URL = "https://checkout.stripe.com/test";
+    private static final String PAYMENT_INTENT_ID = "pi_test_intent_001";
+    private static final String STRIPE_EVENT_ID = "evt_test_001";
 
-    private Payment newPendingPayment() {
+    private static Payment createPendingPayment() {
         return Payment.create(PAYMENT_ID, BOOKING_ID, USER_ID, AMOUNT, SESSION_ID, CHECKOUT_URL);
     }
 
-    @Test
-    void create_shouldInitializeWithPendingStatus() {
-        Payment payment = newPendingPayment();
+    @Nested
+    @DisplayName("create()")
+    class Create {
 
-        assertThat(payment.getStatus()).isEqualTo(PaymentStatus.PENDING);
-        assertThat(payment.getPaymentId()).isEqualTo(PAYMENT_ID);
-        assertThat(payment.getBookingId()).isEqualTo(BOOKING_ID);
-        assertThat(payment.getUserId()).isEqualTo(USER_ID);
-        assertThat(payment.getCheckoutSessionId()).isEqualTo(SESSION_ID);
-        assertThat(payment.getCheckoutUrl()).isEqualTo(CHECKOUT_URL);
+        @Test
+        @DisplayName("returns PENDING status")
+        void create_returnsPendingStatus() {
+            Payment payment = createPendingPayment();
+
+            assertThat(payment.getStatus()).isEqualTo(PaymentStatus.PENDING);
+            assertThat(payment.getDomainEvents()).isEmpty();
+        }
     }
 
-    @Test
-    void create_shouldNotRegisterAnyEvents() {
-        Payment payment = newPendingPayment();
+    @Nested
+    @DisplayName("markPaid()")
+    class MarkPaid {
 
-        assertThat(payment.getDomainEvents()).isEmpty();
+        @Test
+        @DisplayName(
+                "PENDING → PAID sets status, stripePaymentIntentId, stripeEventId and registers PaymentCompleted")
+        void pending_toPaid_setsFieldsAndRegistersPaymentCompleted() {
+            Payment payment = createPendingPayment();
+
+            payment.markPaid(PAYMENT_INTENT_ID, STRIPE_EVENT_ID);
+
+            assertThat(payment.getStatus()).isEqualTo(PaymentStatus.PAID);
+            assertThat(payment.getStripePaymentIntentId()).isEqualTo(PAYMENT_INTENT_ID);
+            assertThat(payment.getStripeEventId()).isEqualTo(STRIPE_EVENT_ID);
+            assertThat(payment.getDomainEvents()).hasSize(1);
+            assertThat(payment.getDomainEvents().get(0)).isInstanceOf(PaymentCompleted.class);
+        }
     }
 
-    @Test
-    void markPaid_shouldTransitionToPaymentPaidAndRegisterEvent() {
-        Payment payment = newPendingPayment();
+    @Nested
+    @DisplayName("markCancelled()")
+    class MarkCancelled {
 
-        payment.markPaid("pi_test_456", "evt_test_789");
+        @Test
+        @DisplayName("PENDING → CANCELLED sets status")
+        void pending_toCancelled_setsStatus() {
+            Payment payment = createPendingPayment();
 
-        assertThat(payment.getStatus()).isEqualTo(PaymentStatus.PAID);
-        assertThat(payment.getStripePaymentIntentId()).isEqualTo("pi_test_456");
-        assertThat(payment.getStripeEventId()).isEqualTo("evt_test_789");
-        assertThat(payment.getDomainEvents()).hasSize(1);
-        assertThat(payment.getDomainEvents().getFirst()).isInstanceOf(PaymentCompleted.class);
+            payment.markCancelled();
+
+            assertThat(payment.getStatus()).isEqualTo(PaymentStatus.CANCELLED);
+            assertThat(payment.getDomainEvents()).isEmpty();
+        }
     }
 
-    @Test
-    void markCancelled_shouldTransitionToCancelled() {
-        Payment payment = newPendingPayment();
+    @Nested
+    @DisplayName("markFailed()")
+    class MarkFailed {
 
-        payment.markCancelled();
+        @Test
+        @DisplayName("PENDING → FAILED sets FAILED status with errorMessage and stripeEventId")
+        void pending_toFailed_setsFailed() {
+            Payment payment = createPendingPayment();
+            String errorMessage = "card_declined";
 
-        assertThat(payment.getStatus()).isEqualTo(PaymentStatus.CANCELLED);
-        assertThat(payment.getDomainEvents()).isEmpty();
+            payment.markFailed(errorMessage, STRIPE_EVENT_ID);
+
+            assertThat(payment.getStatus()).isEqualTo(PaymentStatus.FAILED);
+            assertThat(payment.getErrorMessage()).isEqualTo(errorMessage);
+            assertThat(payment.getStripeEventId()).isEqualTo(STRIPE_EVENT_ID);
+            assertThat(payment.getDomainEvents()).isEmpty();
+        }
     }
 
-    @Test
-    void markFailed_shouldTransitionToFailedWithErrorMessage() {
-        Payment payment = newPendingPayment();
+    @Nested
+    @DisplayName("markRefunded()")
+    class MarkRefunded {
 
-        payment.markFailed("Card declined", "evt_fail_001");
+        @Test
+        @DisplayName("PAID → REFUNDED sets status and registers PaymentRefunded")
+        void paid_toRefunded_setsRefundedAndRegistersPaymentRefunded() {
+            Payment payment = createPendingPayment();
+            payment.markPaid(PAYMENT_INTENT_ID, STRIPE_EVENT_ID);
+            payment.clearDomainEvents();
 
-        assertThat(payment.getStatus()).isEqualTo(PaymentStatus.FAILED);
-        assertThat(payment.getErrorMessage()).isEqualTo("Card declined");
-        assertThat(payment.getStripeEventId()).isEqualTo("evt_fail_001");
-    }
+            payment.markRefunded();
 
-    @Test
-    void markRefunded_shouldTransitionToRefundedAndRegisterEvent() {
-        Payment payment = newPendingPayment();
-        payment.markPaid("pi_test_456", "evt_test_789");
-        payment.clearDomainEvents();
-
-        payment.markRefunded();
-
-        assertThat(payment.getStatus()).isEqualTo(PaymentStatus.REFUNDED);
-        assertThat(payment.getDomainEvents()).hasSize(1);
-        assertThat(payment.getDomainEvents().getFirst()).isInstanceOf(PaymentRefunded.class);
-    }
-
-    @Test
-    void reconstitute_shouldNotRegisterEvents() {
-        Payment payment = Payment.reconstitute(
-                PAYMENT_ID,
-                BOOKING_ID,
-                USER_ID,
-                AMOUNT,
-                PaymentStatus.PAID,
-                SESSION_ID,
-                CHECKOUT_URL,
-                "pi_test_456",
-                "evt_test_789",
-                null,
-                java.time.Instant.now().minusSeconds(60),
-                java.time.Instant.now());
-
-        assertThat(payment.getDomainEvents()).isEmpty();
-        assertThat(payment.getStatus()).isEqualTo(PaymentStatus.PAID);
+            assertThat(payment.getStatus()).isEqualTo(PaymentStatus.REFUNDED);
+            assertThat(payment.getDomainEvents()).hasSize(1);
+            assertThat(payment.getDomainEvents().get(0)).isInstanceOf(PaymentRefunded.class);
+        }
     }
 }

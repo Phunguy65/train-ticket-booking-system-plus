@@ -1,5 +1,7 @@
 package io.github.phunguy65.ttbs.backend.shared.infrastructure.web;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 /**
  * Machine-readable error codes for all JSend {@code fail} responses.
  *
@@ -7,10 +9,12 @@ package io.github.phunguy65.ttbs.backend.shared.infrastructure.web;
  * and make provenance clear. {@code VALIDATION_ERROR} is the umbrella code used when Bean
  * Validation fails; individual field violations carry a {@link ViolationCode}.
  */
+@Schema(description = "Machine-readable error code carried by shared fail responses.")
 public enum ErrorCode {
 
     // ── Bean Validation umbrella ──────────────────────────────────────────────
     VALIDATION_ERROR,
+    CURSOR_INVALID,
 
     // ── Authorization ─────────────────────────────────────────────────────────
     ACCESS_DENIED,
@@ -36,8 +40,7 @@ public enum ErrorCode {
     SEAT_NUMBER_ALREADY_EXISTS,
     SEAT_NOT_AVAILABLE,
     SEAT_IN_USE,
-    ROUTE_NOT_FOUND,
-    ROUTES_NOT_FOUND,
+    SCHEDULED_TRIP_NOT_FOUND,
     COACH_NOT_FOUND,
     COACH_CAR_NUMBER_ALREADY_EXISTS,
     COACH_TRAIN_NOT_FOUND,
@@ -46,6 +49,7 @@ public enum ErrorCode {
     COACH_DUPLICATE_CAR_NUMBERS_IN_REQUEST,
     SEAT_NUMBERS_ALREADY_EXIST,
     SEAT_DUPLICATE_SEAT_NUMBERS_IN_REQUEST,
+    ROUTE_TEMPLATE_NOT_FOUND,
 
     // ── Station module ────────────────────────────────────────────────────────
     STATION_NOT_FOUND,
@@ -55,5 +59,7 @@ public enum ErrorCode {
     // ── Payment module ────────────────────────────────────────────────────────
     PAYMENT_NOT_FOUND,
     PAYMENT_ALREADY_PROCESSED,
-    PAYMENT_REFUND_FAILED
+    PAYMENT_REFUND_FAILED,
+    PAYMENT_BOOKING_NOT_FOUND,
+    PAYMENT_BOOKING_INVALID_STATE
 }
