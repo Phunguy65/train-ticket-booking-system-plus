@@ -308,6 +308,38 @@ Chưa hiện thực. Sẽ bổ sung ảnh chụp màn hình khi hoàn thành.
 | Hiệu năng         | Benchmark endpoint POST /api/v1/auth/register với 100 concurrent requests                  | Response time p95 < 500ms trong điều kiện tải bình thường            | Ghi rõ môi trường test                     |
 | Bảo mật           | Kiểm tra password không trả về trong response, password được hash BCrypt, input validation | Không lộ password, hash không reversible, reject input không hợp lệ  | Kiểm tra cả race condition email duplicate |
 
+## Danh sách test thỏa mãn mức hiện thực
+
+### Backend
+
+| # | Tên test case | Mô tả | Endpoint / SP | Table liên quan | Kết quả mong đợi | File test |
+|---|---------------|--------|---------------|-----------------|-------------------|-----------|
+| 1 | `register_returnsCreatedUserResponse` | Đăng ký thành công với dữ liệu hợp lệ | `POST /api/v1/auth/register` | `users` | `201` + `UserResponse` (JSend success) | `backend/src/test/java/.../infrastructure/web/AuthControllerRegisterTest.java:72` |
+| 2 | `register_detectsInvalidEmailFormat` | Email sai định dạng bị từ chối | `POST /api/v1/auth/register` | `users` | Validation error trên field `email` | `backend/src/test/java/.../infrastructure/web/AuthControllerRegisterTest.java:107` |
+| 3 | `register_detectsMissingRequiredFields` | Thiếu trường bắt buộc bị từ chối | `POST /api/v1/auth/register` | `users` | 3 validation errors | `backend/src/test/java/.../infrastructure/web/AuthControllerRegisterTest.java:116` |
+| 4 | `register_detectsShortPassword` | Mật khẩu < 8 ký tự bị từ chối | `POST /api/v1/auth/register` | `users` | Validation error trên field `password` | `backend/src/test/java/.../infrastructure/web/AuthControllerRegisterTest.java:124` |
+| 5 | `register_returnsConflictForDuplicateEmail` | Email đã tồn tại trả 409 | `POST /api/v1/auth/register` | `users` | `409` + `USER_EMAIL_ALREADY_EXISTS` | `backend/src/test/java/.../infrastructure/web/AuthControllerRegisterTest.java:133` |
+| 6 | `execute_createsCustomerUserAndReturnsUserResponse` | UseCase tạo user CUSTOMER và trả UserResponse | `POST /api/v1/auth/register` | `users` | `Result.success(UserResponse)` với role=CUSTOMER | `backend/src/test/java/.../application/usecase/RegisterUserUseCaseTest.java:58` |
+| 7 | `execute_publishesUserRegisteredEvent` | UseCase phát sự kiện UserRegistered sau khi lưu | `POST /api/v1/auth/register` | `users` | Event `UserRegistered` được publish | `backend/src/test/java/.../application/usecase/RegisterUserUseCaseTest.java:84` |
+| 8 | `execute_returnsEmailAlreadyExistsFailure` | UseCase trả lỗi khi email đã tồn tại | `POST /api/v1/auth/register` | `users` | `Result.failure(EmailAlreadyExists)` | `backend/src/test/java/.../application/usecase/RegisterUserUseCaseTest.java:120` |
+| 9 | `allowsExactlyOneSuccessWhen50ThreadsRegisterSameEmail` | Stress test: 50 threads cùng email chỉ 1 thành công | `POST /api/v1/auth/register` | `users` | Đúng 1 success, còn lại failure | `backend/src/test/java/.../application/usecase/RegisterUserStressTest.java:54` |
+| 10 | `register_rejectsSqlInjectionEmail` | SQL injection trong email bị từ chối | `POST /api/v1/auth/register` | `users` | Validation error (email invalid) | `backend/src/test/java/.../infrastructure/web/AuthControllerSecurityTest.java:71` |
+| 11 | `register_returnsXssPayloadAsDataOnly` | XSS payload trong fullName trả về dạng data thuần | `POST /api/v1/auth/register` | `users` | Response chứa XSS string as-is, không có password | `backend/src/test/java/.../infrastructure/web/AuthControllerSecurityTest.java:80` |
+| 12 | `register_doesNotExposePasswordField` | Response không chứa field password | `POST /api/v1/auth/register` | `users` | `data.password` không tồn tại | `backend/src/test/java/.../infrastructure/web/AuthControllerSecurityTest.java:113` |
+
+### Frontend
+
+| # | Tên test case | Mô tả | Endpoint / SP | Table liên quan | Kết quả mong đợi | File test |
+|---|---------------|--------|---------------|-----------------|-------------------|-----------|
+| 1 | `renders all fields and the submit button in Vietnamese` | Form đăng ký hiển thị đầy đủ fields | `POST /api/v1/auth/register` | `users` | Render đúng fullName, email, password, confirmPassword, button | `frontend/customer/src/components/auth/register-form.test.tsx:62` |
+| 2 | `shows all required-field errors when submitting an empty form` | Validate client-side khi submit form rỗng | `POST /api/v1/auth/register` | `users` | Hiển thị lỗi required cho tất cả fields | `frontend/customer/src/components/auth/register-form.test.tsx:78` |
+| 3 | `shows "password min length" when password is shorter than 8 chars` | Validate password tối thiểu 8 ký tự | `POST /api/v1/auth/register` | `users` | Hiển thị lỗi minLength cho password | `frontend/customer/src/components/auth/register-form.test.tsx:99` |
+| 4 | `shows "password mismatch" when confirm password does not match` | Validate confirmPassword khớp password | `POST /api/v1/auth/register` | `users` | Hiển thị lỗi mismatch | `frontend/customer/src/components/auth/register-form.test.tsx:119` |
+| 5 | `calls registerMutation with correct payload when form is valid` | Gọi API đúng payload khi form hợp lệ | `POST /api/v1/auth/register` | `users` | Mutation được gọi với email, password, fullName | `frontend/customer/src/components/auth/register-form.test.tsx:165` |
+| 6 | `registerSchema rejects fullName shorter than 2 characters` | Zod schema reject fullName < 2 chars | `POST /api/v1/auth/register` | `users` | Validation error key `fullName.minLength` | `frontend/customer/src/lib/validations/auth.test.ts:73` |
+| 7 | `registerSchema rejects mismatched confirmPassword` | Zod schema reject confirmPassword mismatch | `POST /api/v1/auth/register` | `users` | Validation error key `confirmPassword.mismatch` | `frontend/customer/src/lib/validations/auth.test.ts:121` |
+| 8 | `resolveRegisterError returns emailExists for USER_EMAIL_ALREADY_EXISTS` | Error handler nhận diện lỗi email trùng | `POST /api/v1/auth/register` | `users` | Message emailExists + showLoginLink=true | `frontend/customer/src/lib/auth-errors.test.ts:65` |
+
 ## Bảng tiêu chí chất lượng theo chức năng
 
 | Chức năng trong UC       | Tiêu chí mức Ý niệm                                                  | Tiêu chí mức Thiết kế                                                          | Tiêu chí mức Hiện thực                                                              |

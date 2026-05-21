@@ -2,18 +2,18 @@
 
 # Mô tả use case
 
-| Mục                         | Nội dung                                                                                                        |
-| --------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| Quan hệ UC                  | **`<<includes>>` (bắt buộc)**: <UC được bao gồm 1>, <UC được bao gồm 2> hoặc <Không> <br> **`<<extends>>` (tùy chọn)**: <UC mở rộng 1> tại <điểm mở rộng>, <UC mở rộng 2> tại <điểm mở rộng> hoặc <Không> <br> **Generalization**: <UC cha> / <UC con chuyên biệt> hoặc <Không> |
-| Mục đích                    | <Nêu rõ tình huống mà actor cần PM trợ giúp, ích lợi cụ thể PM mang lại cho actor trong tình huống này>         |
-| Mô tả                       | <Mô tả ngắn gọn mục đích chức năng từ góc nhìn khách hàng>                                                      |
-| Actor chính                 | <Actor trực tiếp kích hoạt use case — vai trò trong tổ chức, không phải "User" hay "Admin">                    |
-| Actor liên quan             | <Các actor tham gia gián tiếp: actor hỗ trợ PM, actor nhận kết quả,... Nếu không có, ghi "Không">              |
-| Tiền điều kiện              | <Điều kiện bắt buộc trước khi thực hiện>                                                                        |
-| Luồng chính                 | 1. <Bước 1> <br> 2. <Bước 2> <br> 3. <Bước 3>                                                                   |
-| Hậu điều kiện (thành công)  | <Trạng thái hệ thống sau khi use case hoàn thành thành công>                                                    |
-| Hậu điều kiện (thất bại)    | <Trạng thái hệ thống khi use case thất bại — dữ liệu có rollback không, trạng thái entity nào bị ảnh hưởng,...> |
-| Luồng ngoại lệ              | <Ngoại lệ 1> → <Hành vi hệ thống> <br> <Ngoại lệ 2> → <Hành vi hệ thống>                                        |
+| Mục                        | Nội dung                                                                                                                                                                                                                                                                        |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Quan hệ UC                 | **`<<includes>>` (bắt buộc)**: <UC được bao gồm 1>, <UC được bao gồm 2> hoặc <Không> <br> **`<<extends>>` (tùy chọn)**: <UC mở rộng 1> tại <điểm mở rộng>, <UC mở rộng 2> tại <điểm mở rộng> hoặc <Không> <br> **Generalization**: <UC cha> / <UC con chuyên biệt> hoặc <Không> |
+| Mục đích                   | <Nêu rõ tình huống mà actor cần PM trợ giúp, ích lợi cụ thể PM mang lại cho actor trong tình huống này>                                                                                                                                                                         |
+| Mô tả                      | <Mô tả ngắn gọn mục đích chức năng từ góc nhìn khách hàng>                                                                                                                                                                                                                      |
+| Actor chính                | <Actor trực tiếp kích hoạt use case — vai trò trong tổ chức, không phải "User" hay "Admin">                                                                                                                                                                                     |
+| Actor liên quan            | <Các actor tham gia gián tiếp: actor hỗ trợ PM, actor nhận kết quả,... Nếu không có, ghi "Không">                                                                                                                                                                               |
+| Tiền điều kiện             | <Điều kiện bắt buộc trước khi thực hiện>                                                                                                                                                                                                                                        |
+| Luồng chính                | 1. <Bước 1> <br> 2. <Bước 2> <br> 3. <Bước 3>                                                                                                                                                                                                                                   |
+| Hậu điều kiện (thành công) | <Trạng thái hệ thống sau khi use case hoàn thành thành công>                                                                                                                                                                                                                    |
+| Hậu điều kiện (thất bại)   | <Trạng thái hệ thống khi use case thất bại — dữ liệu có rollback không, trạng thái entity nào bị ảnh hưởng,...>                                                                                                                                                                 |
+| Luồng ngoại lệ             | <Ngoại lệ 1> → <Hành vi hệ thống> <br> <Ngoại lệ 2> → <Hành vi hệ thống>                                                                                                                                                                                                        |
 
 # Lược đồ Use Case
 
@@ -227,22 +227,22 @@ Entity ..> ResDTO : <trả kết quả>
 
 ### Stored Procedure: `<StoredProcedureName>`
 
-| Mục             | Nội dung                                                   |
-| --------------- | ---------------------------------------------------------- |
-| Tên             | `<StoredProcedureName>`                                    |
-| Nhiệm vụ        | <Nhiệm vụ xử lý dữ liệu trong CSDL>                        |
-| Inputs          | `<param1: Type>`, `<param2: Type>`                         |
-| Outputs         | `<Dataset/Status/GeneratedId>`                             |
-| Quyền sử dụng   | `<Role được phép gọi SP 1>`, `<Role được phép gọi SP 2>`   |
+| Mục           | Nội dung                                                 |
+| ------------- | -------------------------------------------------------- |
+| Tên           | `<StoredProcedureName>`                                  |
+| Nhiệm vụ      | <Nhiệm vụ xử lý dữ liệu trong CSDL>                      |
+| Inputs        | `<param1: Type>`, `<param2: Type>`                       |
+| Outputs       | `<Dataset/Status/GeneratedId>`                           |
+| Quyền sử dụng | `<Role được phép gọi SP 1>`, `<Role được phép gọi SP 2>` |
 
 ### Trigger: `<TriggerName>`
 
-| Mục       | Nội dung                                          |
-| --------- | ------------------------------------------------- |
-| Tên       | `<TriggerName>`                                   |
-| Nhiệm vụ  | <Ràng buộc toàn vẹn dữ liệu hoặc tự động xử lý>   |
-| Event     | `<BEFORE/AFTER INSERT/UPDATE/DELETE ON table>`    |
-| Action    | <Hành động được thực hiện khi trigger kích hoạt>  |
+| Mục      | Nội dung                                         |
+| -------- | ------------------------------------------------ |
+| Tên      | `<TriggerName>`                                  |
+| Nhiệm vụ | <Ràng buộc toàn vẹn dữ liệu hoặc tự động xử lý>  |
+| Event    | `<BEFORE/AFTER INSERT/UPDATE/DELETE ON table>`   |
+| Action   | <Hành động được thực hiện khi trigger kích hoạt> |
 
 ## Port: `<PortName>` _(nếu có)_
 
@@ -309,10 +309,10 @@ CTL --> Actor: <HTTP status> + <ResponseDTO>
 @endsalt
 ```
 
-| Control          | Nhiệm vụ                              | Inputs                         | Outputs                         | Gọi API                    |
-| ---------------- | ------------------------------------- | ------------------------------ | ------------------------------- | -------------------------- |
-| `<FormControl>`  | <Nhiệm vụ của control trong form>     | `<field1>`, `<field2>`         | `<data/form/status>`            | `<METHOD> /v1/<path>`      |
-| `<Button>`       | <Hành động khi actor kích hoạt>       | `<RequestDTO>`                 | `<ResponseDTO>` hoặc `<Error>`  | `<ApiName>`                |
+| Control         | Nhiệm vụ                          | Inputs                 | Outputs                        | Gọi API               |
+| --------------- | --------------------------------- | ---------------------- | ------------------------------ | --------------------- |
+| `<FormControl>` | <Nhiệm vụ của control trong form> | `<field1>`, `<field2>` | `<data/form/status>`           | `<METHOD> /v1/<path>` |
+| `<Button>`      | <Hành động khi actor kích hoạt>   | `<RequestDTO>`         | `<ResponseDTO>` hoặc `<Error>` | `<ApiName>`           |
 
 ### Giao diện ứng dụng
 
@@ -327,10 +327,10 @@ Chưa hiện thực. Sẽ bổ sung ảnh chụp màn hình khi hoàn thành.
      Mỗi dòng map từ UC → Controller endpoint → UseCase → Repository method → Stored Procedure → DB table.
      Giúp đảm bảo không có chức năng bị bỏ sót khi hiện thực. -->
 
-| Use Case | Controller | Endpoint              | UseCase        | Repository             | SP                  | Table      |
-| -------- | ---------- | --------------------- | -------------- | ---------------------- | ------------------- | ---------- |
-| UC-XX    | XxxCtl     | `METHOD /v1/path`     | XxxUseCase     | XxxRepository.method() | stored_procedure    | table_name |
-|          |            | `METHOD /v1/path/:id` | XxxByIdUseCase | XxxRepository.method() | stored_procedure    | table_name |
+| Use Case | Controller | Endpoint              | UseCase        | Repository             | SP               | Table      |
+| -------- | ---------- | --------------------- | -------------- | ---------------------- | ---------------- | ---------- |
+| UC-XX    | XxxCtl     | `METHOD /v1/path`     | XxxUseCase     | XxxRepository.method() | stored_procedure | table_name |
+|          |            | `METHOD /v1/path/:id` | XxxByIdUseCase | XxxRepository.method() | stored_procedure | table_name |
 
 # Tiêu chí kiểm thử
 
@@ -347,34 +347,40 @@ Chưa hiện thực. Sẽ bổ sung ảnh chụp màn hình khi hoàn thành.
 
 ## Mức thiết kế
 
-| Tiêu chí      | Phép thử                                                       | Kết quả mong đợi                                  | Ghi chú                         |
-| ------------- | -------------------------------------------------------------- | ------------------------------------------------- | ------------------------------- |
-| Chuẩn hóa     | Rà soát thiết kế Controller, UseCase, Repository, Port và DB   | Tuân thủ kiến trúc, quy ước đặt tên và hợp đồng   | Walkthrough/inspection          |
-| Testability   | Rà soát khả năng tách phụ thuộc, mock port/repository và dữ liệu test | Có thể kiểm thử từng thành phần độc lập      | Ưu tiên input/output rõ ràng    |
-| Modularity    | Rà soát ranh giới trách nhiệm giữa các thành phần PM           | Dễ hiểu, dễ thay đổi, không trùng lặp trách nhiệm | Kiểm tra coupling/cohesion      |
+| Tiêu chí    | Phép thử                                                              | Kết quả mong đợi                                  | Ghi chú                      |
+| ----------- | --------------------------------------------------------------------- | ------------------------------------------------- | ---------------------------- |
+| Chuẩn hóa   | Rà soát thiết kế Controller, UseCase, Repository, Port và DB          | Tuân thủ kiến trúc, quy ước đặt tên và hợp đồng   | Walkthrough/inspection       |
+| Testability | Rà soát khả năng tách phụ thuộc, mock port/repository và dữ liệu test | Có thể kiểm thử từng thành phần độc lập           | Ưu tiên input/output rõ ràng |
+| Modularity  | Rà soát ranh giới trách nhiệm giữa các thành phần PM                  | Dễ hiểu, dễ thay đổi, không trùng lặp trách nhiệm | Kiểm tra coupling/cohesion   |
 
 ## Mức hiện thực
 
-| Tiêu chí          | Phép thử                                                 | Kết quả mong đợi                                  | Ghi chú                           |
-| ----------------- | -------------------------------------------------------- | ------------------------------------------------- | --------------------------------- |
-| Xử lý chính xác   | Black-box và white-box test cho luồng chính/ngoại lệ     | Kết quả đúng theo yêu cầu UC và hợp đồng API      | Kết hợp test tự động và thủ công  |
-| Hiệu năng         | Stress test hoặc benchmark với `<test-inputs>`           | Đạt `<ngưỡng hiệu năng>` trong điều kiện tải giả định | Ghi rõ môi trường test        |
-| Bảo mật           | Code review, kiểm thử phân quyền, kiểm thử dữ liệu đầu vào | Không lộ dữ liệu, không vượt quyền, không injection | Bổ sung pen-test nếu cần       |
+| Tiêu chí        | Phép thử                                                   | Kết quả mong đợi                                      | Ghi chú                          |
+| --------------- | ---------------------------------------------------------- | ----------------------------------------------------- | -------------------------------- |
+| Xử lý chính xác | Black-box và white-box test cho luồng chính/ngoại lệ       | Kết quả đúng theo yêu cầu UC và hợp đồng API          | Kết hợp test tự động và thủ công |
+| Hiệu năng       | Stress test hoặc benchmark với `<test-inputs>`             | Đạt `<ngưỡng hiệu năng>` trong điều kiện tải giả định | Ghi rõ môi trường test           |
+| Bảo mật         | Code review, kiểm thử phân quyền, kiểm thử dữ liệu đầu vào | Không lộ dữ liệu, không vượt quyền, không injection   | Bổ sung pen-test nếu cần         |
 
-## Bảng tiêu chí chất lượng theo chức năng
+## Danh sách test thỏa mãn mức hiện thực
 
-| Chức năng trong UC | Tiêu chí mức Ý niệm                              | Tiêu chí mức Thiết kế                                     | Tiêu chí mức Hiện thực                              |
-| ------------------ | ------------------------------------------------ | --------------------------------------------------------- | --------------------------------------------------- |
-| `<Chức năng 1>`    | <Đúng nhu cầu actor, thiết thực cho tình huống>  | <Luồng xử lý chuẩn hóa, dễ test, module rõ trách nhiệm>   | <Testcase xử lý đúng, hiệu năng đạt, bảo mật đạt>   |
-| `<Chức năng 2>`    | <Không bỏ sót luồng chính và luồng ngoại lệ>     | <API/Form/SP hỗ trợ đủ dữ liệu vào/ra>                    | <Test tích hợp, test dữ liệu, test lỗi đầy đủ>      |
+<!-- Bảng liệt kê các test case cụ thể để kiểm chứng tiêu chí mức hiện thực.
+     Mỗi test phải truy vết được về: endpoint/SP, bảng dữ liệu, file test. -->
+
+| # | Tên test case | Mô tả | Endpoint / SP | Table liên quan | Kết quả mong đợi | File test |
+|---|---------------|--------|---------------|-----------------|-------------------|-----------|
+| 1 | `<test_luồng_chính_thành_công>` | <Mô tả ngắn gọn kịch bản test> | `METHOD /v1/<path>` | `<table>` | `<HTTP status>` + `<ResponseDTO>` | `<path/to/test/file>:line` |
+| 2 | `<test_luồng_ngoại_lệ_1>` | <Mô tả ngắn gọn kịch bản test> | `METHOD /v1/<path>` | `<table>` | `<HTTP status>` + `<ErrorCode>` | `<path/to/test/file>:line` |
+| 3 | `<test_hiệu_năng_tải_cao>` | <Mô tả ngắn gọn kịch bản test> | `METHOD /v1/<path>` | `<table>` | `<response time ≤ threshold>` | `<path/to/test/file>:line` |
+| 4 | `<test_phân_quyền>` | <Mô tả ngắn gọn kịch bản test> | `METHOD /v1/<path>` | `<table>` | `403 Forbidden` | `<path/to/test/file>:line` |
+| 5 | `<test_injection>` | <Mô tả ngắn gọn kịch bản test> | `METHOD /v1/<path>` | `<table>` | `<Từ chối hoặc sanitize>` | `<path/to/test/file>:line` |
 
 # Yêu cầu phi chức năng
 
 <!-- Yêu cầu phi chức năng phải có nguồn gốc rõ ràng từ môi trường nghiệp vụ,
      môi trường vận hành hoặc môi trường phát triển. -->
 
-| Loại yêu cầu                         | Nội dung                                      | Nguồn gốc                                      |
-| ------------------------------------ | --------------------------------------------- | --------------------------------------------- |
-| Business                             | <Yêu cầu tạo giá trị sử dụng cho tổ chức>     | <Vai trò/tài liệu/quy định nghiệp vụ>         |
-| Operation                            | <Yêu cầu vận hành ổn định, bảo mật, tuân thủ> | <Luật/quy định vận hành/chính sách an toàn>   |
-| Development                          | <Yêu cầu kiến trúc, công nghệ, quy ước phát triển> | <Chuẩn kỹ thuật/quy ước nhóm/tài liệu công nghệ> |
+| Loại yêu cầu | Nội dung                                           | Nguồn gốc                                        |
+| ------------ | -------------------------------------------------- | ------------------------------------------------ |
+| Business     | <Yêu cầu tạo giá trị sử dụng cho tổ chức>          | <Vai trò/tài liệu/quy định nghiệp vụ>            |
+| Operation    | <Yêu cầu vận hành ổn định, bảo mật, tuân thủ>      | <Luật/quy định vận hành/chính sách an toàn>      |
+| Development  | <Yêu cầu kiến trúc, công nghệ, quy ước phát triển> | <Chuẩn kỹ thuật/quy ước nhóm/tài liệu công nghệ> |
