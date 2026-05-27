@@ -31,6 +31,7 @@ rectangle "Hệ thống Đặt vé Tàu" {
   usecase "UC-09: Xem đặt vé" as UC09
   usecase "UC-10: Hủy đặt vé" as UC10
   usecase "UC-11: Xem thanh toán" as UC11
+  usecase "UC-12: Thanh toán" as UC12
 
   ' ── Relationships ──
   UC08 ..> UC02 : <<include>>
@@ -41,6 +42,8 @@ rectangle "Hệ thống Đặt vé Tàu" {
   UC09 ..> UC02 : <<include>>
   UC10 ..> UC02 : <<include>>
   UC11 ..> UC02 : <<include>>
+  UC12 ..> UC02 : <<include>>
+  UC12 ..> UC08 : <<include>>
 }
 
 ' ── Actor associations ──
@@ -55,6 +58,7 @@ Customer -- UC08
 Customer -- UC09
 Customer -- UC10
 Customer -- UC11
+Customer -- UC12
 
 @enduml
 ```
@@ -114,6 +118,7 @@ Guest -- UC_Login
 Customer -- UC_Account
 Customer -- UC_ViewHistory
 Customer -- UC_Book
+Customer -- UC_Payment
 
 ' ── Tương tác hệ thống bên ngoài ──
 UC_Payment -- PaymentGW

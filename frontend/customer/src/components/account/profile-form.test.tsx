@@ -57,8 +57,8 @@ describe('ProfileForm', () => {
         expect(screen.getByLabelText('Họ và tên')).toBeInTheDocument();
         expect(screen.getByLabelText('Email')).toBeInTheDocument();
         expect(screen.getByLabelText('Số điện thoại')).toBeInTheDocument();
-        expect(screen.getByLabelText('Ngày sinh')).toBeInTheDocument();
-        expect(screen.getByLabelText('Giới tính')).toBeInTheDocument();
+        expect(screen.getByText('Ngày sinh')).toBeInTheDocument();
+        expect(screen.getByText('Giới tính')).toBeInTheDocument();
         expect(screen.getByLabelText('Số CMND/CCCD')).toBeInTheDocument();
         expect(screen.getByLabelText('Địa chỉ')).toBeInTheDocument();
     });

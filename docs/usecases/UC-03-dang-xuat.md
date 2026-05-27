@@ -269,6 +269,29 @@ Chưa hiện thực. Sẽ bổ sung ảnh chụp màn hình khi hoàn thành.
 | Hiệu năng         | Benchmark endpoint POST /api/v1/auth/logout với 100 concurrent requests                    | Response time p95 < 200ms (logic đơn giản, 1 SELECT + 1 UPDATE)      | Ghi rõ môi trường test                     |
 | Bảo mật           | Kiểm tra không để lộ token tồn tại hay không qua response; kiểm tra token hash lookup thay vì raw comparison | Response body identical cho token hợp lệ, không tồn tại, và đã revoked | Chống token enumeration |
 
+## Danh sách test thỏa mãn mức hiện thực
+
+### Backend
+
+| # | Tên test case | Mô tả | Endpoint / SP | Table liên quan | Kết quả mong đợi | File test |
+|---|---------------|--------|---------------|-----------------|-------------------|-----------|
+| 1 | `logout_returnsOkAndJsendSuccess` | Đăng xuất thành công với refresh token hợp lệ | `POST /api/v1/auth/logout` | `refresh_tokens` | `200` + JSend success | `backend/src/test/java/.../infrastructure/web/AuthControllerLogoutTest.java:67` |
+| 2 | `logout_returnsOkForAlreadyRevokedOrUnknownTokens` | Idempotent: token không tồn tại/đã revoked vẫn trả 200 | `POST /api/v1/auth/logout` | `refresh_tokens` | `200` + JSend success | `backend/src/test/java/.../infrastructure/web/AuthControllerLogoutTest.java:82` |
+| 3 | `logout_detectsBlankRefreshToken` | Refresh token rỗng bị từ chối | `POST /api/v1/auth/logout` | `refresh_tokens` | Validation error | `backend/src/test/java/.../infrastructure/web/AuthControllerLogoutTest.java:100` |
+| 4 | `logout_detectsNullRefreshToken` | Refresh token null bị từ chối | `POST /api/v1/auth/logout` | `refresh_tokens` | Validation error | `backend/src/test/java/.../infrastructure/web/AuthControllerLogoutTest.java:109` |
+| 5 | `execute_hashesFindsAndRevokesActiveRefreshToken` | UseCase hash, tìm và thu hồi token active | `POST /api/v1/auth/logout` | `refresh_tokens` | Token bị revoke thành công | `backend/src/test/java/.../application/usecase/LogoutUserUseCaseTest.java:52` |
+| 6 | `execute_executesHashLookupAndRevokeInOrder` | UseCase thực hiện đúng thứ tự: hash → lookup → revoke | `POST /api/v1/auth/logout` | `refresh_tokens` | InOrder verified | `backend/src/test/java/.../application/usecase/LogoutUserUseCaseTest.java:68` |
+| 7 | `execute_returnsSuccessAndDoesNotRevokeWhenTokenNotActive` | Idempotent: token không active vẫn trả success | `POST /api/v1/auth/logout` | `refresh_tokens` | `Result.success()`, không gọi revokeById | `backend/src/test/java/.../application/usecase/LogoutUserUseCaseTest.java:88` |
+| 8 | `execute_returnsSuccessRegardlessOfTokenExistence` | Idempotent: token không tồn tại vẫn trả success | `POST /api/v1/auth/logout` | `refresh_tokens` | `Result.success()` | `backend/src/test/java/.../application/usecase/LogoutUserUseCaseTest.java:101` |
+| 9 | `allows50ConcurrentLogoutsWithSameRefreshToken` | Stress test: 50 concurrent logouts cùng token | `POST /api/v1/auth/logout` | `refresh_tokens` | Tất cả hoàn thành không lỗi | `backend/src/test/java/.../application/usecase/LogoutUserStressTest.java:64` |
+| 10 | `logout_acceptsSqlInjectionLikeRefreshTokenAsInertInput` | SQL injection trong token được xử lý an toàn | `POST /api/v1/auth/logout` | `refresh_tokens` | Không lỗi server, xử lý bình thường | `backend/src/test/java/.../infrastructure/web/AuthControllerLogoutSecurityTest.java:70` |
+| 11 | `logout_doesNotEchoOriginalRefreshTokenInSuccessResponse` | Response không echo lại refresh token | `POST /api/v1/auth/logout` | `refresh_tokens` | Response body không chứa token gốc | `backend/src/test/java/.../infrastructure/web/AuthControllerLogoutSecurityTest.java:114` |
+| 12 | `logout_returnsNullDataWithoutSessionDetails` | Response không chứa session details | `POST /api/v1/auth/logout` | `refresh_tokens` | `data` = null | `backend/src/test/java/.../infrastructure/web/AuthControllerLogoutSecurityTest.java:126` |
+
+### Frontend
+
+Chưa có test riêng cho luồng đăng xuất ở frontend. Chức năng logout được thực hiện qua hook `useLogout()` gọi API trực tiếp, chưa có unit test coverage.
+
 ## Bảng tiêu chí chất lượng theo chức năng
 
 | Chức năng trong UC          | Tiêu chí mức Ý niệm                                                        | Tiêu chí mức Thiết kế                                                          | Tiêu chí mức Hiện thực                                                              |

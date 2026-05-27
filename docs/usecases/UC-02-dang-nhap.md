@@ -316,6 +316,38 @@ Chưa hiện thực. Sẽ bổ sung ảnh chụp màn hình khi hoàn thành.
 | Hiệu năng         | Benchmark endpoint POST /api/v1/auth/login với 100 concurrent requests                     | Response time p95 < 500ms trong điều kiện tải bình thường            | Ghi rõ môi trường test                     |
 | Bảo mật           | Kiểm tra password không trả về trong response, timing-safe comparison, identical error message cho email sai và password sai | Không lộ password/hash, không phân biệt được email sai vs password sai từ response | Chống timing attack và user enumeration |
 
+## Danh sách test thỏa mãn mức hiện thực
+
+### Backend
+
+| # | Tên test case | Mô tả | Endpoint / SP | Table liên quan | Kết quả mong đợi | File test |
+|---|---------------|--------|---------------|-----------------|-------------------|-----------|
+| 1 | `login_returnsOkAndJsendLoginPayload` | Đăng nhập thành công với credentials hợp lệ | `POST /api/v1/auth/login` | `users`, `refresh_tokens` | `200` + `LoginResultResponse` (JSend success) | `backend/src/test/java/.../infrastructure/web/AuthControllerLoginTest.java:72` |
+| 2 | `login_detectsInvalidEmailFormat` | Email sai định dạng bị từ chối | `POST /api/v1/auth/login` | `users` | Validation error trên field `email` | `backend/src/test/java/.../infrastructure/web/AuthControllerLoginTest.java:107` |
+| 3 | `login_detectsMissingRequiredFields` | Thiếu trường bắt buộc bị từ chối | `POST /api/v1/auth/login` | `users` | Validation errors | `backend/src/test/java/.../infrastructure/web/AuthControllerLoginTest.java:115` |
+| 4 | `login_returnsUnauthorizedForInvalidCredentials` | Credentials sai trả 401 | `POST /api/v1/auth/login` | `users` | `401` + `USER_INVALID_CREDENTIALS` | `backend/src/test/java/.../infrastructure/web/AuthControllerLoginTest.java:123` |
+| 5 | `execute_returnsLoginResultResponse` | UseCase xác thực thành công và trả token pair | `POST /api/v1/auth/login` | `users`, `refresh_tokens` | `Result.success(LoginResultResponse)` | `backend/src/test/java/.../application/usecase/LoginUserUseCaseTest.java:86` |
+| 6 | `execute_returnsInvalidCredentials_whenEmailNotFound` | UseCase trả lỗi khi email không tồn tại | `POST /api/v1/auth/login` | `users` | `Result.failure(InvalidCredentials)` | `backend/src/test/java/.../application/usecase/LoginUserUseCaseTest.java:112` |
+| 7 | `execute_returnsInvalidCredentials_whenPasswordWrong` | UseCase trả lỗi khi password sai | `POST /api/v1/auth/login` | `users` | `Result.failure(InvalidCredentials)` | `backend/src/test/java/.../application/usecase/LoginUserUseCaseTest.java:125` |
+| 8 | `execute_checksRawPasswordAgainstStoredHash` | UseCase gọi PasswordEncoder.matches đúng params | `POST /api/v1/auth/login` | `users` | `verify(passwordEncoder).matches(raw, hash)` | `backend/src/test/java/.../application/usecase/LoginUserUseCaseTest.java:145` |
+| 9 | `execute_generatesAndSavesTokensForFoundUser` | UseCase gọi RefreshTokenManager sau xác thực | `POST /api/v1/auth/login` | `refresh_tokens` | `verify(refreshTokenManager).generateAndSaveTokens(user)` | `backend/src/test/java/.../application/usecase/LoginUserUseCaseTest.java:159` |
+| 10 | `allows50ConcurrentLoginsWithSameValidCredentials` | Stress test: 50 concurrent logins thành công | `POST /api/v1/auth/login` | `users`, `refresh_tokens` | Tất cả 50 requests thành công | `backend/src/test/java/.../application/usecase/LoginUserStressTest.java:61` |
+| 11 | `login_rejectsSqlInjectionEmail` | SQL injection trong email bị từ chối | `POST /api/v1/auth/login` | `users` | Validation error (email invalid) | `backend/src/test/java/.../infrastructure/web/AuthControllerLoginSecurityTest.java:73` |
+| 12 | `login_returnsIdenticalFailuresForUnknownEmailAndWrongPassword` | Response giống nhau cho email sai vs password sai | `POST /api/v1/auth/login` | `users` | Cùng status code và error code | `backend/src/test/java/.../infrastructure/web/AuthControllerLoginSecurityTest.java:112` |
+| 13 | `login_doesNotExposePasswordField` | Response không chứa field password | `POST /api/v1/auth/login` | `users` | `data.user.password` không tồn tại | `backend/src/test/java/.../infrastructure/web/AuthControllerLoginSecurityTest.java:141` |
+
+### Frontend
+
+| # | Tên test case | Mô tả | Endpoint / SP | Table liên quan | Kết quả mong đợi | File test |
+|---|---------------|--------|---------------|-----------------|-------------------|-----------|
+| 1 | `renders email and password fields and the submit button in Vietnamese` | Form đăng nhập hiển thị đầy đủ fields | `POST /api/v1/auth/login` | `users` | Render đúng email, password, button | `frontend/customer/src/components/auth/login-form.test.tsx:78` |
+| 2 | `shows validation errors when submitting an empty form` | Validate client-side khi submit form rỗng | `POST /api/v1/auth/login` | `users` | Hiển thị lỗi required cho email và password | `frontend/customer/src/components/auth/login-form.test.tsx:92` |
+| 3 | `shows "invalid email" when email format is wrong` | Validate email format phía client | `POST /api/v1/auth/login` | `users` | Hiển thị lỗi email invalid | `frontend/customer/src/components/auth/login-form.test.tsx:109` |
+| 4 | `calls loginMutation with correct payload when form is valid` | Gọi API đúng payload khi form hợp lệ | `POST /api/v1/auth/login` | `users`, `refresh_tokens` | Mutation được gọi với email, password | `frontend/customer/src/components/auth/login-form.test.tsx:157` |
+| 5 | `loginSchema accepts a valid email + password` | Zod schema accept input hợp lệ | `POST /api/v1/auth/login` | `users` | Parse thành công | `frontend/customer/src/lib/validations/auth.test.ts:5` |
+| 6 | `loginSchema rejects an empty email` | Zod schema reject email rỗng | `POST /api/v1/auth/login` | `users` | Validation error key `email.required` | `frontend/customer/src/lib/validations/auth.test.ts:14` |
+| 7 | `resolveLoginError returns invalidCredentials for USER_INVALID_CREDENTIALS` | Error handler nhận diện lỗi credentials | `POST /api/v1/auth/login` | `users` | Message invalidCredentials | `frontend/customer/src/lib/auth-errors.test.ts:12` |
+
 ## Bảng tiêu chí chất lượng theo chức năng
 
 | Chức năng trong UC          | Tiêu chí mức Ý niệm                                                        | Tiêu chí mức Thiết kế                                                          | Tiêu chí mức Hiện thực                                                              |

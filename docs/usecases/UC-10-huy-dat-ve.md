@@ -408,8 +408,68 @@ Chưa hiện thực. Sẽ bổ sung ảnh chụp màn hình khi hoàn thành.
 
 # Tiêu chí kiểm thử
 
-| Tiêu chí                      | Phép thử                                                                   | Kết quả mong đợi                                                                                       | Ghi chú                                                   |
-| ----------------------------- | -------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ | --------------------------------------------------------- |
-| Toàn diện (coverage)          | Đối chiếu Activity Diagram ↔ Sequence Diagram: mọi luồng đều được thể hiện | Không bỏ sót luồng chính lẫn ngoại lệ                                                                  | Rà soát chéo giữa mục 2 và mục 3                          |
-| Nhất quán                     | Rà soát tên lớp, trạng thái, API giữa các lược đồ trong cùng UC            | Không mâu thuẫn giữa các mục 2–6                                                                       | Đặc biệt kiểm tra tên trong mục 5–6                       |
-| Truy vết                      | Đối chiếu bảng tham chiếu (mục 7) với lược đồ tuần tự nội bộ (mục 6.5)     | Mọi tương tác trong sequence đều có entry                                                              | Kiểm tra không thiếu endpoint/method                      |
+## Mức phân tích
+
+| Tiêu chí             | Phép thử                                                                   | Kết quả mong đợi                          | Ghi chú                              |
+| -------------------- | -------------------------------------------------------------------------- | ----------------------------------------- | ------------------------------------ |
+| Toàn diện (coverage) | Đối chiếu Activity Diagram ↔ Sequence Diagram: mọi luồng đều được thể hiện | Không bỏ sót luồng chính lẫn ngoại lệ     | Rà soát chéo giữa mục 2 và mục 3     |
+| Nhất quán            | Rà soát tên lớp, trạng thái, API giữa các lược đồ trong cùng UC            | Không mâu thuẫn giữa các mục 2–6          | Đặc biệt kiểm tra tên trong mục 5–6  |
+| Truy vết             | Đối chiếu bảng tham chiếu (mục 7) với lược đồ tuần tự nội bộ (mục 6.5)     | Mọi tương tác trong sequence đều có entry | Kiểm tra không thiếu endpoint/method |
+
+## Mức thiết kế
+
+| Tiêu chí      | Phép thử                                                                          | Kết quả mong đợi                                       | Ghi chú                                |
+| ------------- | --------------------------------------------------------------------------------- | ------------------------------------------------------ | -------------------------------------- |
+| Chuẩn hóa     | Rà soát thiết kế BookingController, CancelBookingUseCase, BookingRepository, RouteSeatAvailabilityManager | Tuân thủ Clean Architecture, quy ước đặt tên và hợp đồng | Walkthrough/inspection                 |
+| Testability   | Rà soát khả năng mock BookingRepository, RouteSeatAvailabilityManager trong unit test | Có thể kiểm thử UseCase độc lập không cần DB thật       | Repository và Port đều là interface    |
+| Modularity    | Rà soát ranh giới trách nhiệm: Controller chỉ validate + route, UseCase chỉ orchestrate, Repository chỉ persistence, Port chỉ cross-module | Không trùng lặp trách nhiệm, coupling thấp             | Kiểm tra không có logic nghiệp vụ trong Controller |
+
+## Mức hiện thực
+
+| Tiêu chí          | Phép thử                                                                                  | Kết quả mong đợi                                                    | Ghi chú                                    |
+| ----------------- | ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------- | ------------------------------------------ |
+| Xử lý chính xác   | Test luồng chính (hủy HELD thành công, hủy CONFIRMED thành công), luồng lỗi (booking không tồn tại, không có quyền, đã cancelled) | 200 OK; 404 + BOOKING_NOT_FOUND; 403 + ACCESS_DENIED; 409 + BOOKING_ALREADY_CANCELLED | Kết hợp unit test UseCase + integration test endpoint |
+| Hiệu năng         | Benchmark endpoint POST /api/v1/bookings/{id}/cancel với 100 concurrent requests           | Response time p95 < 500ms trong điều kiện tải bình thường            | Ghi rõ môi trường test                     |
+| Bảo mật           | Kiểm tra chỉ owner mới hủy được booking, xác thực token hợp lệ, không lộ thông tin booking của user khác | 401 nếu chưa xác thực, 403 nếu không phải owner, không leak data    | Kiểm tra cả race condition khi hủy đồng thời |
+| Tính nhất quán dữ liệu | Kiểm tra trạng thái ghế và booking đồng bộ sau khi hủy, rollback khi có lỗi giữa chừng | Booking=CANCELLED ↔ Ghế=AVAILABLE/CANCELLED tương ứng; rollback toàn bộ nếu lỗi | Verify trong transaction boundary          |
+
+## Danh sách test thỏa mãn mức hiện thực
+
+<!-- Bảng liệt kê các test case cụ thể để kiểm chứng tiêu chí mức hiện thực.
+     Mỗi test phải truy vết được về: endpoint/SP, bảng dữ liệu, file test. -->
+
+### Backend
+
+| # | Tên test case | Mô tả | Endpoint / SP | Table liên quan | Kết quả mong đợi | File test |
+|---|---------------|--------|---------------|-----------------|-------------------|-----------|
+| 1 | `execute_heldbooking_cancelsAndReleasesHeldSeats` | Hủy booking HELD thành công, giải phóng ghế qua releaseHeldSeats | `POST /api/v1/bookings/{id}/cancel` | `bookings`, `trip_seat_availability` | `Result.success`, gọi `releaseHeldSeats`, không gọi `cancelBookedSeats` | `backend/src/test/java/.../booking/application/usecase/CancelBookingUseCaseTest.java:87` |
+| 2 | `execute_confirmedBooking_cancelsAndCancelsBookedSeats` | Hủy booking CONFIRMED thành công, hủy ghế qua cancelBookedSeats | `POST /api/v1/bookings/{id}/cancel` | `bookings`, `trip_seat_availability` | `Result.success`, gọi `cancelBookedSeats`, không gọi `releaseHeldSeats` | `backend/src/test/java/.../booking/application/usecase/CancelBookingUseCaseTest.java:111` |
+| 3 | `execute_returnsBookingNotFound_whenBookingMissing` | Booking không tồn tại | `POST /api/v1/bookings/{id}/cancel` | `bookings` | `Result.failure(BookingNotFound)` | `backend/src/test/java/.../booking/application/usecase/CancelBookingUseCaseTest.java:135` |
+| 4 | `execute_returnsForbidden_whenUserIdMismatch` | Hủy booking của người khác | `POST /api/v1/bookings/{id}/cancel` | `bookings` | `Result.failure(Forbidden)` | `backend/src/test/java/.../booking/application/usecase/CancelBookingUseCaseTest.java:148` |
+| 5 | `execute_returnsInvalidStatusTransition_whenAlreadyCancelled` | Booking đã ở trạng thái CANCELLED | `POST /api/v1/bookings/{id}/cancel` | `bookings` | `Result.failure(InvalidStatusTransition)` | `backend/src/test/java/.../booking/application/usecase/CancelBookingUseCaseTest.java:162` |
+| 6 | `execute_publishesBookingCancelledEventOnSuccess` | Publish BookingCancelled event khi hủy thành công | `POST /api/v1/bookings/{id}/cancel` | `bookings` | `eventPublisher.publishEvent(BookingCancelled)` | `backend/src/test/java/.../booking/application/usecase/CancelBookingUseCaseTest.java:181` |
+| 7 | `execute_publishesSeatStatusChangedEventWhenSeatsExist` | Publish SeatStatusChangedEvent (SSE) khi có ghế liên quan | `POST /api/v1/bookings/{id}/cancel` | `trip_seat_availability` | `eventPublisher.publishEvent(SeatStatusChangedEvent)` | `backend/src/test/java/.../booking/application/usecase/CancelBookingUseCaseTest.java:197` |
+| 8 | `execute_skipsSeatReleaseWhenNoSeatsFound` | Bỏ qua giải phóng ghế khi không tìm thấy ghế cho booking | `POST /api/v1/bookings/{id}/cancel` | `trip_seat_availability` | `Result.success`, không gọi releaseHeldSeats/cancelBookedSeats | `backend/src/test/java/.../booking/application/usecase/CancelBookingUseCaseTest.java:222` |
+| 9 | `cancelReturnsOkOnSuccess` | Controller trả 200 OK khi UseCase thành công | `POST /api/v1/bookings/{id}/cancel` | — | `200 OK` + `JsendResponse(success)` | `backend/src/test/java/.../booking/infrastructure/web/BookingControllerTest.java:128` |
+| 10 | `cancelReturnsNotFoundWhenBookingMissing` | Controller trả 404 khi BookingNotFound | `POST /api/v1/bookings/{id}/cancel` | — | `404` + `BOOKING_NOT_FOUND` | `backend/src/test/java/.../booking/infrastructure/web/BookingControllerTest.java:144` |
+| 11 | `execute_allowsOnlyOneCancellationForSameBookingUnderConcurrentLoad` | Stress test: chỉ 1 hủy thành công khi 50 request đồng thời cùng booking | `POST /api/v1/bookings/{id}/cancel` | `bookings`, `trip_seat_availability` | 1 success, 49 failure; booking=CANCELLED, seat=AVAILABLE | `backend/src/test/java/.../booking/application/usecase/CancelBookingStressTest.java:56` |
+
+### Frontend
+
+| # | Tên test case | Mô tả | Component / Flow | Kết quả mong đợi | File test |
+|---|---------------|--------|------------------|-------------------|-----------|
+| 1 | `determines if booking can be cancelled based on status` | Kiểm tra logic cho phép hủy theo trạng thái | `canCancelBooking` utility | `HELD → true`, `CONFIRMED → false`, `CANCELLED → false` | `frontend/customer/src/__tests__/customer-flows.integration.test.ts:172` |
+| 2 | `shows cancel button only for HELD bookings` | Chỉ hiển thị nút hủy cho booking HELD | `BookingsList` component | Chỉ 1 nút hủy (cho booking HELD) | `frontend/customer/src/components/account/bookings-list.test.tsx:125` |
+| 3 | `opens cancel confirmation dialog when cancel is clicked` | Mở dialog xác nhận khi nhấn nút hủy | `BookingsList` component | Dialog "Xác nhận hủy vé" hiển thị | `frontend/customer/src/components/account/bookings-list.test.tsx:141` |
+| 4 | `renders booking cards with price information` | Hiển thị danh sách booking với giá | `BookingsList` component | Hiển thị 500.000 và 750.000 | `frontend/customer/src/components/account/bookings-list.test.tsx:85` |
+| 5 | `displays booking status badges with localized text` | Hiển thị badge trạng thái đã dịch | `BookingsList` component | "Chờ thanh toán", "Đã xác nhận" | `frontend/customer/src/components/account/bookings-list.test.tsx:99` |
+
+## Bảng tiêu chí chất lượng theo chức năng
+
+| Chức năng trong UC              | Tiêu chí mức Ý niệm                                                           | Tiêu chí mức Thiết kế                                                                    | Tiêu chí mức Hiện thực                                                                        |
+| ------------------------------- | ----------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| Hủy đặt vé HELD                 | Đúng nhu cầu: khách hàng hủy được booking chưa thanh toán, ghế được giải phóng | Luồng xử lý chuẩn hóa qua Controller→UseCase→Repository→Port, dễ test với mock            | Unit test UseCase (HELD cancel success + error paths), integration test endpoint               |
+| Hủy đặt vé CONFIRMED            | Đúng nhu cầu: khách hàng hủy được booking đã thanh toán, phát sinh requiresRefund=true | UseCase phân biệt previousStatus để gọi đúng method trên Port                             | Test cancel CONFIRMED → ghế BOOKED→CANCELLED, verify BookingCancelled(requiresRefund=true)    |
+| Kiểm tra quyền sở hữu          | Chỉ owner mới được hủy booking của mình                                        | UseCase kiểm tra booking.userId == requestingUserId trước khi thực hiện cancel             | Test hủy booking của người khác → 403 ACCESS_DENIED                                           |
+| Giải phóng ghế                  | Ghế được trả về trạng thái phù hợp sau khi hủy                                | Port tách biệt releaseHeldSeats vs cancelBookedSeats theo previousStatus                   | Verify ghế HELD→AVAILABLE hoặc BOOKED→CANCELLED tương ứng, SSE event được publish             |
+| Phát sinh sự kiện BookingCancelled | Sự kiện mang đủ thông tin cho downstream (hoàn tiền nếu cần)                  | Domain event register trong aggregate, publish sau save thành công                         | Verify event chứa đúng bookingId, userId, scheduledTripId, requiresRefund, occurredAt         |

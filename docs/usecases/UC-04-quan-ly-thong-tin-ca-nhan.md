@@ -389,6 +389,48 @@ Chưa hiện thực. Sẽ bổ sung ảnh chụp màn hình khi hoàn thành.
 | Hiệu năng         | Benchmark endpoint GET/PUT /api/v1/auth/me với 100 concurrent requests                    | Response time p95 < 200ms (logic đơn giản, SELECT + UPDATE)          | Ghi rõ môi trường test                     |
 | Bảo mật           | Kiểm tra không truy cập được hồ sơ người khác; kiểm tra access token bắt buộc; kiểm tra email uniqueness constraint | Chỉ xem/sửa được hồ sơ của chính mình; 401 khi thiếu token | Chống IDOR, kiểm tra authorization |
 
+## Danh sách test thỏa mãn mức hiện thực
+
+### Backend
+
+| # | Tên test case | Mô tả | Endpoint / SP | Table liên quan | Kết quả mong đợi | File test |
+|---|---------------|--------|---------------|-----------------|-------------------|-----------|
+| 1 | `getMe_returnsOkAndFullUserResponse` | Xem hồ sơ thành công cho user đã xác thực | `GET /api/v1/auth/me` | `users` | `200` + `UserResponse` (JSend success) | `backend/src/test/java/.../infrastructure/web/AuthControllerGetMeTest.java:68` |
+| 2 | `getMe_returnsOkWithNullableFieldsAsNull` | Xem hồ sơ với các trường nullable = null | `GET /api/v1/auth/me` | `users` | `200` + `UserResponse` với nullable fields = null | `backend/src/test/java/.../infrastructure/web/AuthControllerGetMeTest.java:84` |
+| 3 | `getMe_returnsNotFoundWhenUserDoesNotExist` | Xem hồ sơ khi user không tồn tại | `GET /api/v1/auth/me` | `users` | `404` + `USER_NOT_FOUND` | `backend/src/test/java/.../infrastructure/web/AuthControllerGetMeTest.java:101` |
+| 4 | `updateMe_returnsUpdatedUserResponseForValidFullUpdate` | Cập nhật hồ sơ thành công | `PUT /api/v1/auth/me` | `users` | `200` + `UserResponse` (đã cập nhật) | `backend/src/test/java/.../infrastructure/web/AuthControllerUpdateMeTest.java:73` |
+| 5 | `updateMe_returnsSuccessWhenUpdatingWithSameEmail` | Cập nhật giữ nguyên email thành công | `PUT /api/v1/auth/me` | `users` | `200` + email giữ nguyên | `backend/src/test/java/.../infrastructure/web/AuthControllerUpdateMeTest.java:88` |
+| 6 | `updateMe_rejectsBlankFullName` | Validation: fullName rỗng bị từ chối | `PUT /api/v1/auth/me` | `users` | Validation error | `backend/src/test/java/.../infrastructure/web/AuthControllerUpdateMeTest.java:106` |
+| 7 | `updateMe_rejectsInvalidEmailFormat` | Validation: email sai format bị từ chối | `PUT /api/v1/auth/me` | `users` | Validation error | `backend/src/test/java/.../infrastructure/web/AuthControllerUpdateMeTest.java:124` |
+| 8 | `updateMe_returnsUserNotFound` | Cập nhật khi user không tồn tại | `PUT /api/v1/auth/me` | `users` | `404` + `USER_NOT_FOUND` | `backend/src/test/java/.../infrastructure/web/AuthControllerUpdateMeTest.java:185` |
+| 9 | `updateMe_returnsEmailAlreadyTaken` | Cập nhật email đã được tài khoản khác dùng | `PUT /api/v1/auth/me` | `users` | `409` + `USER_EMAIL_ALREADY_EXISTS` | `backend/src/test/java/.../infrastructure/web/AuthControllerUpdateMeTest.java:198` |
+| 10 | `execute_returnsUserResponseWhenUserSummaryFound` | GetAuthenticatedUserUseCase trả UserResponse khi tìm thấy | `GET /api/v1/auth/me` | `users` | `Result.success(UserResponse)` | `backend/src/test/java/.../application/usecase/GetAuthenticatedUserUseCaseTest.java:48` |
+| 11 | `execute_returnsUserNotFoundWhenRepositoryReturnsEmpty` | GetAuthenticatedUserUseCase trả lỗi khi không tìm thấy | `GET /api/v1/auth/me` | `users` | `Result.failure(UserNotFound)` | `backend/src/test/java/.../application/usecase/GetAuthenticatedUserUseCaseTest.java:105` |
+| 12 | `execute_updatesUserAndReturnsUserResponseWhenEmailUnchanged` | UpdateUseCase cập nhật thành công khi email giữ nguyên | `PUT /api/v1/auth/me` | `users` | `Result.success(UserResponse)` | `backend/src/test/java/.../application/usecase/UpdateAuthenticatedUserUseCaseTest.java:63` |
+| 13 | `execute_updatesUserWhenEmailChangedToAvailableOne` | UpdateUseCase cập nhật thành công khi email mới khả dụng | `PUT /api/v1/auth/me` | `users` | `Result.success(UserResponse)` | `backend/src/test/java/.../application/usecase/UpdateAuthenticatedUserUseCaseTest.java:80` |
+| 14 | `execute_skipsFindByEmailWhenEmailUnchanged` | UpdateUseCase không query email khi không đổi | `PUT /api/v1/auth/me` | `users` | Không gọi `findByEmail` | `backend/src/test/java/.../application/usecase/UpdateAuthenticatedUserUseCaseTest.java:115` |
+| 15 | `execute_returnsEmailAlreadyExistsWhenNewEmailTaken` | UpdateUseCase trả lỗi khi email mới đã bị chiếm | `PUT /api/v1/auth/me` | `users` | `Result.failure(EmailAlreadyExists)` | `backend/src/test/java/.../application/usecase/UpdateAuthenticatedUserUseCaseTest.java:226` |
+| 16 | `allows50ConcurrentProfileUpdatesOnSameUser` | Stress test: 50 concurrent updates cùng user | `PUT /api/v1/auth/me` | `users` | Tất cả hoàn thành không lỗi | `backend/src/test/java/.../application/usecase/UpdateAuthenticatedUserStressTest.java:65` |
+| 17 | `me_handlesMalformedUuidInAuthenticationPrincipal` | Pen-test: UUID malformed trong principal | `GET /api/v1/auth/me` | `users` | Exception graceful (không crash) | `backend/src/test/java/.../infrastructure/web/AuthControllerMeSecurityTest.java:71` |
+| 18 | `me_doesNotLeakSensitiveDataInUpdateResponse` | Response không chứa dữ liệu nhạy cảm | `PUT /api/v1/auth/me` | `users` | Không có password/hash trong response | `backend/src/test/java/.../infrastructure/web/AuthControllerMeSecurityTest.java:81` |
+| 19 | `me_declaresPreAuthorizeOnMeEndpoint` | Endpoint GET /me yêu cầu authentication | `GET /api/v1/auth/me` | `users` | Annotation `@PreAuthorize("isAuthenticated()")` | `backend/src/test/java/.../infrastructure/web/AuthControllerMeSecurityTest.java:126` |
+| 20 | `me_declaresPreAuthorizeOnUpdateMeEndpoint` | Endpoint PUT /me yêu cầu authentication | `PUT /api/v1/auth/me` | `users` | Annotation `@PreAuthorize("isAuthenticated()")` | `backend/src/test/java/.../infrastructure/web/AuthControllerMeSecurityTest.java:136` |
+
+### Frontend
+
+| # | Tên test case | Mô tả | Endpoint / SP | Table liên quan | Kết quả mong đợi | File test |
+|---|---------------|--------|---------------|-----------------|-------------------|-----------|
+| 1 | `renders profile form fields in Vietnamese` | Form hồ sơ hiển thị đầy đủ fields tiếng Việt | `GET /api/v1/auth/me`, `PUT /api/v1/auth/me` | `users` | Render đúng fullName, email, phone, dateOfBirth, gender, idDocumentNumber, addressLine | `frontend/customer/src/components/account/profile-form.test.tsx:46` |
+| 2 | `shows save button and can be clicked` | Nút Lưu hiển thị và có thể click | `PUT /api/v1/auth/me` | `users` | Button render và clickable | `frontend/customer/src/components/account/profile-form.test.tsx:66` |
+| 3 | `renders gender select field` | Dropdown giới tính hiển thị đúng | `PUT /api/v1/auth/me` | `users` | Select field render | `frontend/customer/src/components/account/profile-form.test.tsx:82` |
+| 4 | `shows validation error when full name is cleared` | Validate fullName bắt buộc khi submit | `PUT /api/v1/auth/me` | `users` | Hiển thị lỗi validation | `frontend/customer/src/components/account/profile-form.test.tsx:94` |
+| 5 | `profileSchema validates valid profile data` | Zod schema accept profile data hợp lệ | `PUT /api/v1/auth/me` | `users` | Parse thành công | `frontend/customer/src/lib/validations/customer.test.ts:70` |
+| 6 | `profileSchema validates minimal profile data` | Zod schema accept profile chỉ có required fields | `PUT /api/v1/auth/me` | `users` | Parse thành công | `frontend/customer/src/lib/validations/customer.test.ts:84` |
+| 7 | `profileSchema rejects short full name` | Zod schema reject fullName < 2 chars | `PUT /api/v1/auth/me` | `users` | Validation error | `frontend/customer/src/lib/validations/customer.test.ts:93` |
+| 8 | `profileSchema rejects invalid email` | Zod schema reject email sai format | `PUT /api/v1/auth/me` | `users` | Validation error | `frontend/customer/src/lib/validations/customer.test.ts:106` |
+| 9 | `profileSchema rejects invalid phone number` | Zod schema reject phone sai format | `PUT /api/v1/auth/me` | `users` | Validation error | `frontend/customer/src/lib/validations/customer.test.ts:119` |
+| 10 | `validates profile form data (integration)` | Integration test: validate profile data end-to-end | `PUT /api/v1/auth/me` | `users` | Schema parse thành công | `frontend/customer/src/__tests__/customer-flows.integration.test.ts:179` |
+
 ## Bảng tiêu chí chất lượng theo chức năng
 
 | Chức năng trong UC          | Tiêu chí mức Ý niệm                                                        | Tiêu chí mức Thiết kế                                                          | Tiêu chí mức Hiện thực                                                              |
