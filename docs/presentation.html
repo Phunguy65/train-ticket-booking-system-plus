@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Báo cáo Đồ án - Hệ thống Đặt vé Tàu hỏa Trực tuyến</title>
+<script src="https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js"></script>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { font-family: 'Segoe UI', system-ui, sans-serif; background: #1a1a2e; color: #eee; overflow: hidden; height: 100vh; }
@@ -54,13 +55,15 @@ body { font-family: 'Segoe UI', system-ui, sans-serif; background: #1a1a2e; colo
 .slide-num { position: fixed; bottom: 34px; left: 40px; color: #64748b; font-size: 0.9em; }
 .zoomable { cursor: zoom-in; transition: transform 0.2s, box-shadow 0.2s; }
 .zoomable:hover { transform: scale(1.02); box-shadow: 0 0 0 2px #00d4ff; }
-.zoom-hint { position: absolute; top: 8px; right: 8px; background: rgba(15, 23, 42, 0.85); color: #7dd3fc; padding: 4px 10px; border-radius: 4px; font-size: 0.75em; pointer-events: none; display: flex; align-items: center; gap: 4px; }
 .lightbox { display: none; position: fixed; inset: 0; background: rgba(10, 14, 26, 0.95); z-index: 1000; justify-content: center; align-items: center; padding: 40px; cursor: zoom-out; }
 .lightbox.active { display: flex; }
 .lightbox img { max-width: 100%; max-height: 100%; object-fit: contain; box-shadow: 0 0 40px rgba(0, 212, 255, 0.2); }
 .lightbox-close { position: absolute; top: 24px; right: 32px; background: #1e3a5f; color: #7dd3fc; border: 1px solid #334155; width: 44px; height: 44px; border-radius: 50%; cursor: pointer; font-size: 1.4em; display: flex; align-items: center; justify-content: center; }
 .lightbox-close:hover { background: #2d4a6f; }
 .lightbox-caption { position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%); color: #94a3b8; font-size: 0.9em; }
+.plantuml-diagram { display: none; }
+.puml-rendered { flex: 1; display: flex; align-items: center; justify-content: center; background: #f8fafc; border-radius: 5px; padding: 6px; min-height: 0; overflow: hidden; }
+.puml-rendered img { max-width: 100%; max-height: 100%; object-fit: contain; }
 </style>
 </head>
 <body>
@@ -171,20 +174,172 @@ body { font-family: 'Segoe UI', system-ui, sans-serif; background: #1a1a2e; colo
 <div style="display: flex; flex-direction: column; gap: 10px; min-height: 0;">
 <div class="flow-box" style="padding: 12px 14px; flex: 1; display: flex; flex-direction: column; min-height: 0;">
 <h3 style="margin-bottom: 6px;">Lược đồ thực thể (ERD)</h3>
-<div style="flex: 1; display: flex; align-items: center; justify-content: center; background: #f8fafc; border-radius: 6px; padding: 8px; min-height: 0; overflow: hidden; position: relative;">
-<img src="../slide-images/erd-class.png" alt="ERD" class="zoomable" onclick="openLightbox(this.src, 'Lược đồ thực thể (ERD) — 11 bảng')" style="max-width: 100%; max-height: 100%; object-fit: contain;">
-</div>
+<pre class="plantuml-diagram">
+@startuml ERD
+!theme plain
+skinparam linetype ortho
+skinparam classAttributeIconSize 0
+
+entity "users" as users {
+  * id : UUID <<PK>>
+  --
+  * email : VARCHAR(255) <<UNIQUE>>
+  * password_hash : VARCHAR(255)
+  * full_name : VARCHAR(255)
+  phone : VARCHAR(20)
+  date_of_birth : DATE
+  gender : VARCHAR(10)
+  id_document_number : VARCHAR(50)
+  address_line : VARCHAR(500)
+  * role : VARCHAR(20)
+  * created_at : TIMESTAMPTZ
+}
+
+entity "refresh_tokens" as tokens {
+  * id : UUID <<PK>>
+  --
+  * user_id : UUID <<FK>>
+  * token_hash : VARCHAR(255)
+  revoked_at : TIMESTAMPTZ
+  * expires_at : TIMESTAMPTZ
+  * created_at : TIMESTAMPTZ
+}
+
+entity "stations" as stations {
+  * id : UUID <<PK>>
+  --
+  * code : VARCHAR(10) <<UNIQUE>>
+  * name : VARCHAR(255)
+  * city : VARCHAR(100)
+  * created_at : TIMESTAMPTZ
+}
+
+entity "trains" as trains {
+  * id : UUID <<PK>>
+  --
+  * train_number : VARCHAR(20) <<UNIQUE>>
+  * name : VARCHAR(255)
+  * total_coaches : INT
+  * total_seats : INT
+  * created_at : TIMESTAMPTZ
+}
+
+entity "coaches" as coaches {
+  * id : UUID <<PK>>
+  --
+  * train_id : UUID <<FK>>
+  * car_number : INT
+  * total_seats : INT
+  * created_at : TIMESTAMPTZ
+}
+
+entity "seats" as seats {
+  * id : UUID <<PK>>
+  --
+  * coach_id : UUID <<FK>>
+  * seat_number : INT
+  * created_at : TIMESTAMPTZ
+}
+
+entity "route_templates" as routes {
+  * id : UUID <<PK>>
+  --
+  * origin_station_id : UUID <<FK>>
+  * destination_station_id : UUID <<FK>>
+  * base_price : DECIMAL
+  * currency : VARCHAR(3)
+  * created_at : TIMESTAMPTZ
+}
+
+entity "scheduled_trips" as trips {
+  * id : UUID <<PK>>
+  --
+  * route_template_id : UUID <<FK>>
+  * train_id : UUID <<FK>>
+  * departure_time : TIMESTAMPTZ
+  * arrival_time : TIMESTAMPTZ
+  * status : VARCHAR(20)
+  * created_at : TIMESTAMPTZ
+  deleted_at : TIMESTAMPTZ
+}
+
+entity "trip_seat_availability" as tsa {
+  * id : UUID <<PK>>
+  --
+  * scheduled_trip_id : UUID <<FK>>
+  * seat_id : UUID <<FK>>
+  * status : VARCHAR(20)
+  booking_id : UUID <<FK>>
+  price_at_booking : DECIMAL
+  * version : INT
+  * created_at : TIMESTAMPTZ
+}
+
+entity "bookings" as bookings {
+  * id : UUID <<PK>>
+  --
+  * user_id : UUID <<FK>>
+  * scheduled_trip_id : UUID <<FK>>
+  * idempotency_key : VARCHAR(255) <<UNIQUE>>
+  * total_price : DECIMAL
+  * currency : VARCHAR(3)
+  * status : VARCHAR(20)
+  * payment_deadline : TIMESTAMPTZ
+  * created_at : TIMESTAMPTZ
+}
+
+entity "payments" as payments {
+  * id : UUID <<PK>>
+  --
+  * booking_id : UUID <<FK>>
+  * user_id : UUID <<FK>>
+  * amount : DECIMAL
+  * currency : VARCHAR(3)
+  * status : VARCHAR(20)
+  checkout_session_id : VARCHAR(255)
+  checkout_url : TEXT
+  payment_intent_id : VARCHAR(255)
+  stripe_event_id : VARCHAR(255)
+  * created_at : TIMESTAMPTZ
+}
+
+users ||--o{ tokens
+users ||--o{ bookings
+trains ||--o{ coaches
+coaches ||--o{ seats
+stations ||--o{ routes : origin
+stations ||--o{ routes : destination
+routes ||--o{ trips
+trains ||--o{ trips
+trips ||--o{ tsa
+seats ||--o{ tsa
+bookings ||--o{ tsa
+bookings ||--o{ payments
+@enduml
+</pre>
 </div>
 <div class="flow-box" style="padding: 10px 14px;">
-<h3 style="margin-bottom: 6px; font-size: 1em;">11 bảng — 5 phân hệ</h3>
-<p style="font-size: 0.85em; color: #cbd5e1; line-height: 1.5;">
-<span style="color: #fbbf24;">User:</span> users, refresh_tokens &nbsp;·&nbsp;
-<span style="color: #fbbf24;">Station:</span> stations &nbsp;·&nbsp;
-<span style="color: #fbbf24;">Train:</span> trains, coaches, seats, route_templates, scheduled_trips &nbsp;·&nbsp;
-<span style="color: #fbbf24;">Booking:</span> bookings, trip_seat_availability &nbsp;·&nbsp;
-<span style="color: #fbbf24;">Payment:</span> payments
-</p>
-<p style="font-size: 0.82em; color: #94a3b8; margin-top: 6px; font-style: italic;">UUID v7 PK · Soft delete · TIMESTAMPTZ (UTC) · Optimistic locking trên trip_seat_availability</p>
+<h3 style="margin-bottom: 6px; font-size: 1em;">Cấu trúc module <span style="color: #fbbf24;">user</span> (ví dụ)</h3>
+<pre style="font-size: 0.72em; color: #cbd5e1; line-height: 1.45; font-family: 'JetBrains Mono', 'Fira Code', monospace; margin: 0; overflow: hidden;">
+<span style="color: #fbbf24;">user/</span>
+├── <span style="color: #34d399;">domain/</span>
+│   ├── model/        <span style="color: #64748b;">User, UserId, UserRole</span>
+│   ├── event/        <span style="color: #64748b;">UserRegistered, UserDeleted</span>
+│   ├── error/        <span style="color: #64748b;">UserError</span>
+│   ├── projection/   <span style="color: #64748b;">UserSummary</span>
+│   └── repository/   <span style="color: #64748b;">UserRepository, RefreshTokenRepository</span>
+├── <span style="color: #fbbf24;">application/</span>
+│   ├── usecase/      <span style="color: #64748b;">Register, Login, Logout, Refresh, Get, Update, Delete</span>
+│   ├── command/      <span style="color: #64748b;">RegisterUserCommand, LoginCommand, ...</span>
+│   ├── query/        <span style="color: #64748b;">GetUserByIdQuery</span>
+│   ├── response/     <span style="color: #64748b;">UserResponse, LoginResultResponse</span>
+│   └── port/         <span style="color: #64748b;">TokenProvider, PasswordEncoder, RefreshTokenManager</span>
+└── <span style="color: #00d4ff;">infrastructure/</span>
+    ├── persistence/  <span style="color: #64748b;">UserEntity, UserJpaRepository, Adapter, Mapper</span>
+    ├── web/          <span style="color: #64748b;">AuthController, Request DTOs</span>
+    └── security/     <span style="color: #64748b;">JwtTokenProvider, JwtAuthFilter, SecurityConfig</span>
+</pre>
+<p style="font-size: 0.72em; color: #94a3b8; margin-top: 4px; font-style: italic;">Mỗi module (station, train, booking, payment) cùng cấu trúc 3 tầng</p>
 </div>
 </div>
 
@@ -209,27 +364,25 @@ body { font-family: 'Segoe UI', system-ui, sans-serif; background: #1a1a2e; colo
 </div>
 <div class="img-box">
 <h3>Sequence Diagram</h3>
-<div class="img-wrap" style="background: #fff;">
-<svg viewBox="0 0 360 200" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;max-height:100%;">
-<style>.lbl{font:600 9px sans-serif;fill:#1e293b}.act{font:8px sans-serif;fill:#475569}.line{stroke:#94a3b8;stroke-width:1}.arrow{stroke:#0ea5e9;stroke-width:1.4;fill:none;marker-end:url(#a1)}.ret{stroke:#10b981;stroke-width:1.2;stroke-dasharray:3,3;fill:none;marker-end:url(#a2)}</style>
-<defs><marker id="a1" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#0ea5e9"/></marker><marker id="a2" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#10b981"/></marker></defs>
-<rect x="10" y="10" width="60" height="18" rx="3" fill="#dbeafe" stroke="#3b82f6"/><text x="40" y="22" text-anchor="middle" class="lbl">User</text>
-<rect x="100" y="10" width="60" height="18" rx="3" fill="#dbeafe" stroke="#3b82f6"/><text x="130" y="22" text-anchor="middle" class="lbl">Frontend</text>
-<rect x="190" y="10" width="60" height="18" rx="3" fill="#dbeafe" stroke="#3b82f6"/><text x="220" y="22" text-anchor="middle" class="lbl">UseCase</text>
-<rect x="280" y="10" width="60" height="18" rx="3" fill="#dbeafe" stroke="#3b82f6"/><text x="310" y="22" text-anchor="middle" class="lbl">Database</text>
-<line x1="40" y1="28" x2="40" y2="190" class="line"/>
-<line x1="130" y1="28" x2="130" y2="190" class="line"/>
-<line x1="220" y1="28" x2="220" y2="190" class="line"/>
-<line x1="310" y1="28" x2="310" y2="190" class="line"/>
-<line x1="40" y1="50" x2="128" y2="50" class="arrow"/><text x="84" y="46" text-anchor="middle" class="act">submit form</text>
-<line x1="130" y1="75" x2="218" y2="75" class="arrow"/><text x="174" y="71" text-anchor="middle" class="act">register(email,pwd)</text>
-<line x1="220" y1="100" x2="308" y2="100" class="arrow"/><text x="264" y="96" text-anchor="middle" class="act">findByEmail</text>
-<line x1="310" y1="120" x2="222" y2="120" class="ret"/><text x="266" y="116" text-anchor="middle" class="act">empty</text>
-<line x1="220" y1="145" x2="308" y2="145" class="arrow"/><text x="264" y="141" text-anchor="middle" class="act">save(user)</text>
-<line x1="220" y1="170" x2="132" y2="170" class="ret"/><text x="174" y="166" text-anchor="middle" class="act">UserResponse</text>
-<line x1="130" y1="185" x2="42" y2="185" class="ret"/><text x="84" y="181" text-anchor="middle" class="act">success</text>
-</svg>
-</div>
+<pre class="plantuml-diagram">
+@startuml UC-01
+title UC-01: Đăng ký tài khoản
+
+actor "Khách hàng" as Actor
+participant "Hệ thống" as API
+
+Actor -> API: Register(email, password, fullName)
+alt Dữ liệu đầu vào không hợp lệ
+    API --> Actor: 400 + VALIDATION_ERROR
+else Email đã tồn tại
+    API --> Actor: 409 + USER_EMAIL_ALREADY_EXISTS
+else Đăng ký thành công
+    API -> API: Kiểm tra email chưa tồn tại
+    API -> API: Băm mật khẩu, tạo tài khoản (CUSTOMER)
+    API --> Actor: 201 + UserResponse(id, email, fullName, role, createdAt)
+end
+@enduml
+</pre>
 </div>
 <div class="test-box">
 <h3>Kiểm thử (12 tests)</h3>
@@ -269,24 +422,25 @@ body { font-family: 'Segoe UI', system-ui, sans-serif; background: #1a1a2e; colo
 </div>
 <div class="img-box">
 <h3>Sequence Diagram</h3>
-<div class="img-wrap" style="background: #fff;">
-<svg viewBox="0 0 360 200" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;max-height:100%;">
-<style>.lbl{font:600 9px sans-serif;fill:#1e293b}.act{font:8px sans-serif;fill:#475569}.line{stroke:#94a3b8;stroke-width:1}.arrow{stroke:#0ea5e9;stroke-width:1.4;fill:none;marker-end:url(#b1)}.ret{stroke:#10b981;stroke-width:1.2;stroke-dasharray:3,3;fill:none;marker-end:url(#b2)}</style>
-<defs><marker id="b1" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#0ea5e9"/></marker><marker id="b2" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#10b981"/></marker></defs>
-<rect x="10" y="10" width="60" height="18" rx="3" fill="#dbeafe" stroke="#3b82f6"/><text x="40" y="22" text-anchor="middle" class="lbl">User</text>
-<rect x="100" y="10" width="60" height="18" rx="3" fill="#dbeafe" stroke="#3b82f6"/><text x="130" y="22" text-anchor="middle" class="lbl">Frontend</text>
-<rect x="190" y="10" width="60" height="18" rx="3" fill="#dbeafe" stroke="#3b82f6"/><text x="220" y="22" text-anchor="middle" class="lbl">AuthAPI</text>
-<rect x="280" y="10" width="60" height="18" rx="3" fill="#dbeafe" stroke="#3b82f6"/><text x="310" y="22" text-anchor="middle" class="lbl">JWT/DB</text>
-<line x1="40" y1="28" x2="40" y2="190" class="line"/><line x1="130" y1="28" x2="130" y2="190" class="line"/><line x1="220" y1="28" x2="220" y2="190" class="line"/><line x1="310" y1="28" x2="310" y2="190" class="line"/>
-<line x1="40" y1="50" x2="128" y2="50" class="arrow"/><text x="84" y="46" text-anchor="middle" class="act">login form</text>
-<line x1="130" y1="75" x2="218" y2="75" class="arrow"/><text x="174" y="71" text-anchor="middle" class="act">POST /login</text>
-<line x1="220" y1="100" x2="308" y2="100" class="arrow"/><text x="264" y="96" text-anchor="middle" class="act">verify password</text>
-<line x1="220" y1="125" x2="308" y2="125" class="arrow"/><text x="264" y="121" text-anchor="middle" class="act">issue tokens</text>
-<line x1="310" y1="148" x2="222" y2="148" class="ret"/><text x="266" y="144" text-anchor="middle" class="act">access+refresh</text>
-<line x1="220" y1="170" x2="132" y2="170" class="ret"/><text x="174" y="166" text-anchor="middle" class="act">LoginResponse</text>
-<line x1="130" y1="185" x2="42" y2="185" class="ret"/><text x="84" y="181" text-anchor="middle" class="act">authenticated</text>
-</svg>
-</div>
+<pre class="plantuml-diagram">
+@startuml UC-02
+title UC-02: Đăng nhập
+
+actor "Khách hàng" as Actor
+participant "Hệ thống" as API
+
+Actor -> API: Login(email, password)
+alt Dữ liệu đầu vào không hợp lệ
+    API --> Actor: 400 + VALIDATION_ERROR
+else Email không tồn tại hoặc mật khẩu sai
+    API --> Actor: 401 + USER_INVALID_CREDENTIALS
+else Đăng nhập thành công
+    API -> API: Xác thực thông tin đăng nhập
+    API -> API: Tạo cặp token (accessToken, refreshToken)
+    API --> Actor: 200 + LoginResultResponse(accessToken, refreshToken, user)
+end
+@enduml
+</pre>
 </div>
 <div class="test-box">
 <h3>Kiểm thử (13 BE + 7 FE)</h3>
@@ -326,24 +480,22 @@ body { font-family: 'Segoe UI', system-ui, sans-serif; background: #1a1a2e; colo
 </div>
 <div class="img-box">
 <h3>Sequence Diagram</h3>
-<div class="img-wrap" style="background: #fff;">
-<svg viewBox="0 0 360 200" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;max-height:100%;">
-<style>.lbl{font:600 9px sans-serif;fill:#1e293b}.act{font:8px sans-serif;fill:#475569}.line{stroke:#94a3b8;stroke-width:1}.arrow{stroke:#0ea5e9;stroke-width:1.4;fill:none;marker-end:url(#c1)}.ret{stroke:#10b981;stroke-width:1.2;stroke-dasharray:3,3;fill:none;marker-end:url(#c2)}</style>
-<defs><marker id="c1" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#0ea5e9"/></marker><marker id="c2" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#10b981"/></marker></defs>
-<rect x="10" y="10" width="60" height="18" rx="3" fill="#dbeafe" stroke="#3b82f6"/><text x="40" y="22" text-anchor="middle" class="lbl">User</text>
-<rect x="100" y="10" width="60" height="18" rx="3" fill="#dbeafe" stroke="#3b82f6"/><text x="130" y="22" text-anchor="middle" class="lbl">Frontend</text>
-<rect x="190" y="10" width="60" height="18" rx="3" fill="#dbeafe" stroke="#3b82f6"/><text x="220" y="22" text-anchor="middle" class="lbl">AuthAPI</text>
-<rect x="280" y="10" width="60" height="18" rx="3" fill="#dbeafe" stroke="#3b82f6"/><text x="310" y="22" text-anchor="middle" class="lbl">TokenDB</text>
-<line x1="40" y1="28" x2="40" y2="190" class="line"/><line x1="130" y1="28" x2="130" y2="190" class="line"/><line x1="220" y1="28" x2="220" y2="190" class="line"/><line x1="310" y1="28" x2="310" y2="190" class="line"/>
-<line x1="40" y1="50" x2="128" y2="50" class="arrow"/><text x="84" y="46" text-anchor="middle" class="act">click logout</text>
-<line x1="130" y1="75" x2="218" y2="75" class="arrow"/><text x="174" y="71" text-anchor="middle" class="act">POST /logout</text>
-<line x1="220" y1="100" x2="308" y2="100" class="arrow"/><text x="264" y="96" text-anchor="middle" class="act">findByHash</text>
-<line x1="220" y1="125" x2="308" y2="125" class="arrow"/><text x="264" y="121" text-anchor="middle" class="act">revoke token</text>
-<line x1="310" y1="148" x2="222" y2="148" class="ret"/><text x="266" y="144" text-anchor="middle" class="act">OK / no-op</text>
-<line x1="220" y1="170" x2="132" y2="170" class="ret"/><text x="174" y="166" text-anchor="middle" class="act">200 OK</text>
-<line x1="130" y1="185" x2="42" y2="185" class="ret"/><text x="84" y="181" text-anchor="middle" class="act">clear local</text>
-</svg>
-</div>
+<pre class="plantuml-diagram">
+@startuml UC-03
+title UC-03: Đăng xuất
+
+actor "Khách hàng" as Actor
+participant "Hệ thống" as API
+
+Actor -> API: Logout(refreshToken)
+alt Dữ liệu đầu vào không hợp lệ
+    API --> Actor: 400 + VALIDATION_ERROR
+else Đăng xuất được chấp nhận
+    API -> API: Thu hồi refresh token (idempotent)
+    API --> Actor: 200 OK
+end
+@enduml
+</pre>
 </div>
 <div class="test-box">
 <h3>Kiểm thử (12 tests)</h3>
@@ -383,24 +535,41 @@ body { font-family: 'Segoe UI', system-ui, sans-serif; background: #1a1a2e; colo
 </div>
 <div class="img-box">
 <h3>Sequence Diagram</h3>
-<div class="img-wrap" style="background: #fff;">
-<svg viewBox="0 0 360 200" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;max-height:100%;">
-<style>.lbl{font:600 9px sans-serif;fill:#1e293b}.act{font:8px sans-serif;fill:#475569}.line{stroke:#94a3b8;stroke-width:1}.arrow{stroke:#0ea5e9;stroke-width:1.4;fill:none;marker-end:url(#d1)}.ret{stroke:#10b981;stroke-width:1.2;stroke-dasharray:3,3;fill:none;marker-end:url(#d2)}</style>
-<defs><marker id="d1" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#0ea5e9"/></marker><marker id="d2" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#10b981"/></marker></defs>
-<rect x="10" y="10" width="60" height="18" rx="3" fill="#dbeafe" stroke="#3b82f6"/><text x="40" y="22" text-anchor="middle" class="lbl">User</text>
-<rect x="100" y="10" width="60" height="18" rx="3" fill="#dbeafe" stroke="#3b82f6"/><text x="130" y="22" text-anchor="middle" class="lbl">Frontend</text>
-<rect x="190" y="10" width="60" height="18" rx="3" fill="#dbeafe" stroke="#3b82f6"/><text x="220" y="22" text-anchor="middle" class="lbl">UserAPI</text>
-<rect x="280" y="10" width="60" height="18" rx="3" fill="#dbeafe" stroke="#3b82f6"/><text x="310" y="22" text-anchor="middle" class="lbl">UserDB</text>
-<line x1="40" y1="28" x2="40" y2="190" class="line"/><line x1="130" y1="28" x2="130" y2="190" class="line"/><line x1="220" y1="28" x2="220" y2="190" class="line"/><line x1="310" y1="28" x2="310" y2="190" class="line"/>
-<line x1="40" y1="50" x2="128" y2="50" class="arrow"/><text x="84" y="46" text-anchor="middle" class="act">edit profile</text>
-<line x1="130" y1="75" x2="218" y2="75" class="arrow"/><text x="174" y="71" text-anchor="middle" class="act">PUT /me</text>
-<line x1="220" y1="100" x2="308" y2="100" class="arrow"/><text x="264" y="96" text-anchor="middle" class="act">checkEmailUnique</text>
-<line x1="220" y1="125" x2="308" y2="125" class="arrow"/><text x="264" y="121" text-anchor="middle" class="act">update user</text>
-<line x1="310" y1="148" x2="222" y2="148" class="ret"/><text x="266" y="144" text-anchor="middle" class="act">User</text>
-<line x1="220" y1="170" x2="132" y2="170" class="ret"/><text x="174" y="166" text-anchor="middle" class="act">UserResponse</text>
-<line x1="130" y1="185" x2="42" y2="185" class="ret"/><text x="84" y="181" text-anchor="middle" class="act">updated</text>
-</svg>
-</div>
+<pre class="plantuml-diagram">
+@startuml UC-04
+title UC-04: Quản lý thông tin cá nhân
+
+actor "Khách hàng" as Actor
+participant "Hệ thống" as API
+
+== Xem hồ sơ ==
+
+Actor -> API: XemHoSo(accessToken)
+alt Chưa xác thực
+    API --> Actor: 401 Unauthorized
+else Không tìm thấy hồ sơ
+    API --> Actor: 404 + USER_NOT_FOUND
+else Tìm thấy hồ sơ
+    API --> Actor: 200 + UserResponse(id, email, fullName, phone, dateOfBirth, gender, idDocumentNumber, addressLine, role, createdAt)
+end
+
+== Cập nhật hồ sơ ==
+
+Actor -> API: CapNhatHoSo(fullName, email, phone?, dateOfBirth?, gender?, idDocumentNumber?, addressLine?)
+alt Dữ liệu đầu vào không hợp lệ
+    API --> Actor: 400 + VALIDATION_ERROR
+else Chưa xác thực
+    API --> Actor: 401 Unauthorized
+else Không tìm thấy hồ sơ
+    API --> Actor: 404 + USER_NOT_FOUND
+else Email đã được tài khoản khác sử dụng
+    API --> Actor: 409 + USER_EMAIL_ALREADY_EXISTS
+else Cập nhật thành công
+    API -> API: Thay thế toàn bộ trường bằng giá trị mới
+    API --> Actor: 200 + UserResponse(đã cập nhật)
+end
+@enduml
+</pre>
 </div>
 <div class="test-box">
 <h3>Kiểm thử</h3>
@@ -440,24 +609,41 @@ body { font-family: 'Segoe UI', system-ui, sans-serif; background: #1a1a2e; colo
 </div>
 <div class="img-box">
 <h3>Sequence Diagram</h3>
-<div class="img-wrap" style="background: #fff;">
-<svg viewBox="0 0 360 200" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;max-height:100%;">
-<style>.lbl{font:600 9px sans-serif;fill:#1e293b}.act{font:8px sans-serif;fill:#475569}.line{stroke:#94a3b8;stroke-width:1}.arrow{stroke:#0ea5e9;stroke-width:1.4;fill:none;marker-end:url(#e1)}.ret{stroke:#10b981;stroke-width:1.2;stroke-dasharray:3,3;fill:none;marker-end:url(#e2)}</style>
-<defs><marker id="e1" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#0ea5e9"/></marker><marker id="e2" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#10b981"/></marker></defs>
-<rect x="10" y="10" width="60" height="18" rx="3" fill="#dbeafe" stroke="#3b82f6"/><text x="40" y="22" text-anchor="middle" class="lbl">User</text>
-<rect x="100" y="10" width="60" height="18" rx="3" fill="#dbeafe" stroke="#3b82f6"/><text x="130" y="22" text-anchor="middle" class="lbl">Combobox</text>
-<rect x="190" y="10" width="60" height="18" rx="3" fill="#dbeafe" stroke="#3b82f6"/><text x="220" y="22" text-anchor="middle" class="lbl">StationAPI</text>
-<rect x="280" y="10" width="60" height="18" rx="3" fill="#dbeafe" stroke="#3b82f6"/><text x="310" y="22" text-anchor="middle" class="lbl">Cache/DB</text>
-<line x1="40" y1="28" x2="40" y2="190" class="line"/><line x1="130" y1="28" x2="130" y2="190" class="line"/><line x1="220" y1="28" x2="220" y2="190" class="line"/><line x1="310" y1="28" x2="310" y2="190" class="line"/>
-<line x1="40" y1="50" x2="128" y2="50" class="arrow"/><text x="84" y="46" text-anchor="middle" class="act">type "Ha N"</text>
-<line x1="130" y1="75" x2="218" y2="75" class="arrow"/><text x="174" y="71" text-anchor="middle" class="act">GET /stations?q</text>
-<line x1="220" y1="100" x2="308" y2="100" class="arrow"/><text x="264" y="96" text-anchor="middle" class="act">cache lookup</text>
-<line x1="310" y1="120" x2="222" y2="120" class="ret"/><text x="266" y="116" text-anchor="middle" class="act">miss → ILIKE</text>
-<line x1="220" y1="145" x2="308" y2="145" class="arrow"/><text x="264" y="141" text-anchor="middle" class="act">SELECT stations</text>
-<line x1="310" y1="165" x2="222" y2="165" class="ret"/><text x="266" y="161" text-anchor="middle" class="act">List&lt;Station&gt;</text>
-<line x1="220" y1="185" x2="132" y2="185" class="ret"/><text x="174" y="181" text-anchor="middle" class="act">SearchResponse</text>
-</svg>
-</div>
+<pre class="plantuml-diagram">
+@startuml UC-05
+title UC-05: Tra cứu ga tàu
+
+actor "Khách hàng" as Actor
+participant "Hệ thống" as API
+
+== Tìm kiếm theo từ khóa ==
+
+Actor -> API: SearchStations(q, limit)
+alt Không có kết quả
+    API --> Actor: 200 + danh sách rỗng
+else Có kết quả
+    API --> Actor: 200 + StationSearchResponse[](id, code, name, city)
+end
+
+== Duyệt danh sách (phân trang) ==
+
+Actor -> API: GetStations(page, size)
+alt Phân trang không hợp lệ
+    API --> Actor: 400 + VALIDATION_ERROR
+else Thành công
+    API --> Actor: 200 + PageResponse<StationResponse>
+end
+
+== Xem chi tiết ==
+
+Actor -> API: GetStationById(id)
+alt Ga không tồn tại
+    API --> Actor: 404 + STATION_NOT_FOUND
+else Tìm thấy
+    API --> Actor: 200 + StationResponse(id, code, name, city, createdAt)
+end
+@enduml
+</pre>
 </div>
 <div class="test-box">
 <h3>Kiểm thử</h3>
@@ -497,24 +683,44 @@ body { font-family: 'Segoe UI', system-ui, sans-serif; background: #1a1a2e; colo
 </div>
 <div class="img-box">
 <h3>Sequence Diagram</h3>
-<div class="img-wrap" style="background: #fff;">
-<svg viewBox="0 0 360 200" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;max-height:100%;">
-<style>.lbl{font:600 9px sans-serif;fill:#1e293b}.act{font:8px sans-serif;fill:#475569}.line{stroke:#94a3b8;stroke-width:1}.arrow{stroke:#0ea5e9;stroke-width:1.4;fill:none;marker-end:url(#f1)}.ret{stroke:#10b981;stroke-width:1.2;stroke-dasharray:3,3;fill:none;marker-end:url(#f2)}</style>
-<defs><marker id="f1" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#0ea5e9"/></marker><marker id="f2" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#10b981"/></marker></defs>
-<rect x="10" y="10" width="60" height="18" rx="3" fill="#dbeafe" stroke="#3b82f6"/><text x="40" y="22" text-anchor="middle" class="lbl">User</text>
-<rect x="100" y="10" width="60" height="18" rx="3" fill="#dbeafe" stroke="#3b82f6"/><text x="130" y="22" text-anchor="middle" class="lbl">SearchPage</text>
-<rect x="190" y="10" width="60" height="18" rx="3" fill="#dbeafe" stroke="#3b82f6"/><text x="220" y="22" text-anchor="middle" class="lbl">TripAPI</text>
-<rect x="280" y="10" width="60" height="18" rx="3" fill="#dbeafe" stroke="#3b82f6"/><text x="310" y="22" text-anchor="middle" class="lbl">Cache/DB</text>
-<line x1="40" y1="28" x2="40" y2="190" class="line"/><line x1="130" y1="28" x2="130" y2="190" class="line"/><line x1="220" y1="28" x2="220" y2="190" class="line"/><line x1="310" y1="28" x2="310" y2="190" class="line"/>
-<line x1="40" y1="50" x2="128" y2="50" class="arrow"/><text x="84" y="46" text-anchor="middle" class="act">submit filters</text>
-<line x1="130" y1="75" x2="218" y2="75" class="arrow"/><text x="174" y="71" text-anchor="middle" class="act">GET /trips/search</text>
-<line x1="220" y1="100" x2="308" y2="100" class="arrow"/><text x="264" y="96" text-anchor="middle" class="act">cache check</text>
-<line x1="310" y1="120" x2="222" y2="120" class="ret"/><text x="266" y="116" text-anchor="middle" class="act">miss</text>
-<line x1="220" y1="145" x2="308" y2="145" class="arrow"/><text x="264" y="141" text-anchor="middle" class="act">join + filter</text>
-<line x1="310" y1="165" x2="222" y2="165" class="ret"/><text x="266" y="161" text-anchor="middle" class="act">enriched trips</text>
-<line x1="220" y1="185" x2="132" y2="185" class="ret"/><text x="174" y="181" text-anchor="middle" class="act">cursor + items</text>
-</svg>
-</div>
+<pre class="plantuml-diagram">
+@startuml UC-06
+title UC-06: Tra cứu chuyến tàu
+
+actor "Khách hàng" as Actor
+participant "Hệ thống" as API
+
+== Tìm kiếm có bộ lọc (cursor-based) ==
+
+Actor -> API: Filter(originStationId, destinationStationId, departureDate, status, sortBy, cursor, size)
+alt Tham số không hợp lệ
+    API --> Actor: 400 + VALIDATION_ERROR
+else Cursor không hợp lệ
+    API --> Actor: 400 + CURSOR_INVALID
+else Không có kết quả
+    API --> Actor: 200 + SliceResponse rỗng
+else Có kết quả
+    API -> API: Tìm kiếm và cache kết quả
+    API --> Actor: 200 + SliceResponse<SearchScheduledTripsResponse>
+end
+
+== Duyệt danh sách (offset-based) ==
+
+Actor -> API: List(page, size)
+alt Thành công
+    API --> Actor: 200 + PageResponse<ScheduledTripResponse>
+end
+
+== Xem chi tiết ==
+
+Actor -> API: GetById(id)
+alt Chuyến tàu không tồn tại
+    API --> Actor: 404 + SCHEDULED_TRIP_NOT_FOUND
+else Tìm thấy
+    API --> Actor: 200 + ScheduledTripDetailResponse
+end
+@enduml
+</pre>
 </div>
 <div class="test-box">
 <h3>Kiểm thử</h3>
@@ -554,7 +760,38 @@ body { font-family: 'Segoe UI', system-ui, sans-serif; background: #1a1a2e; colo
 </div>
 <div class="img-box">
 <h3>Sequence Diagram</h3>
-<div class="img-wrap"><img src="../slide-images/diagram-seatmap-seq.png" alt="Seat Map Sequence" class="zoomable" onclick="openLightbox(this.src, 'UC-07: Sequence diagram xem sơ đồ ghế')"></div>
+<pre class="plantuml-diagram">
+@startuml UC-07
+title UC-07: Xem sơ đồ ghế
+
+actor "Khách hàng" as Actor
+participant "Hệ thống" as API
+
+== Danh sách ghế trống (flat list) ==
+
+Actor -> API: GetAvailableSeats(scheduledTripId, page, size)
+alt Phân trang không hợp lệ
+    API --> Actor: 400 + VALIDATION_ERROR
+else Thành công
+    API -> API: Truy vấn ghế AVAILABLE (bao gồm HELD quá hạn)
+    API --> Actor: 200 + PageResponse<SeatResponse>(id, coachId, seatNumber, createdAt)
+end
+
+== Sơ đồ ghế theo toa (coach seat map) ==
+
+Actor -> API: GetCoachSeatMap(scheduledTripId, page, size)
+alt Phân trang không hợp lệ
+    API --> Actor: 400 + VALIDATION_ERROR
+else Chuyến tàu không tồn tại
+    API --> Actor: 404 + SCHEDULED_TRIP_NOT_FOUND
+else Chuyến tàu tồn tại nhưng chưa có toa
+    API --> Actor: 200 + PageResponse rỗng
+else Thành công
+    API -> API: Truy vấn toa và ghế, cache kết quả
+    API --> Actor: 200 + PageResponse<CoachSeatMapResponse>(id, carNumber, totalSeats, seats[])
+end
+@enduml
+</pre>
 </div>
 <div class="test-box">
 <h3>Kiểm thử</h3>
@@ -594,7 +831,51 @@ body { font-family: 'Segoe UI', system-ui, sans-serif; background: #1a1a2e; colo
 </div>
 <div class="img-box">
 <h3>Sequence Diagram</h3>
-<div class="img-wrap"><img src="../slide-images/diagram-booking-seq.png" alt="Booking Sequence" class="zoomable" onclick="openLightbox(this.src, 'UC-08: Sequence diagram đặt vé')"></div>
+<pre class="plantuml-diagram">
+@startuml UC-08
+title UC-08: Đặt vé tàu
+
+actor "Khách hàng" as Actor
+participant "Hệ thống" as API
+participant "Stripe" as Stripe
+
+== Tạo booking ==
+
+Actor -> API: CreateBooking(scheduledTripId, seatIds, idempotencyKey)
+alt Chưa xác thực
+    API --> Actor: 401 Unauthorized
+else Dữ liệu đầu vào không hợp lệ
+    API --> Actor: 400 + VALIDATION_ERROR
+else Idempotency key đã tồn tại
+    API --> Actor: 201 + BookingResponse (booking cũ)
+else User không tồn tại
+    API --> Actor: 404 + USER_NOT_FOUND
+else Đã có active hold cho cùng trip
+    API --> Actor: 409 + BOOKING_CANNOT_CONFIRM
+else Scheduled trip không tồn tại
+    API --> Actor: 404 + SCHEDULED_TRIP_NOT_FOUND
+else Ghế không khả dụng
+    API --> Actor: 409 + SEAT_NOT_AVAILABLE
+else Tạo booking thành công
+    API -> API: Tạo booking HELD, paymentDeadline = now + 15m
+    API -> API: Hold seats (AVAILABLE -> HELD)
+    API -> API: Publish BookingCreated event
+    API --> Actor: 201 + BookingResponse(status=HELD)
+end
+
+== Thanh toán bất đồng bộ ==
+
+Actor -> Stripe: Complete payment
+alt checkout.session.completed
+    Stripe -> API: Webhook(payment success)
+    API -> API: Confirm booking (HELD -> CONFIRMED)
+    API -> API: Confirm seats (HELD -> BOOKED)
+else payment_intent.payment_failed
+    Stripe -> API: Webhook(payment failed)
+    API -> API: Mark payment (PENDING -> FAILED)
+end
+@enduml
+</pre>
 </div>
 <div class="test-box">
 <h3>Kiểm thử</h3>
@@ -634,7 +915,42 @@ body { font-family: 'Segoe UI', system-ui, sans-serif; background: #1a1a2e; colo
 </div>
 <div class="img-box">
 <h3>Sequence Diagram</h3>
-<div class="img-wrap"><img src="../slide-images/diagram-viewbooking-seq.png" alt="View Booking Sequence" class="zoomable" onclick="openLightbox(this.src, 'UC-09: Sequence diagram xem đặt vé')"></div>
+<pre class="plantuml-diagram">
+@startuml UC-09
+title UC-09: Xem đặt vé
+
+actor "Khách hàng" as Actor
+participant "Hệ thống" as API
+
+== Danh sách đặt vé (phân trang) ==
+
+Actor -> API: GetUserBookings(userId, page, size)
+alt Chưa xác thực
+    API --> Actor: 401 Unauthorized
+else userId != requestingUserId
+    API --> Actor: 403 + ACCESS_DENIED
+else Tham số phân trang không hợp lệ
+    API --> Actor: 400 + VALIDATION_ERROR
+else Thành công
+    API -> API: Truy vấn danh sách booking theo userId
+    API --> Actor: 200 + PageResponse<UserBookingResponse>
+end
+
+== Chi tiết đặt vé ==
+
+Actor -> API: GetBookingDetail(bookingId)
+alt Chưa xác thực
+    API --> Actor: 401 Unauthorized
+else Đặt vé không tồn tại
+    API --> Actor: 404 + BOOKING_NOT_FOUND
+else booking.userId != requestingUserId
+    API --> Actor: 403 + ACCESS_DENIED
+else Thành công
+    API -> API: Tổng hợp booking + trip + payment + seats
+    API --> Actor: 200 + BookingDetailResponse
+end
+@enduml
+</pre>
 </div>
 <div class="test-box">
 <h3>Kiểm thử</h3>
@@ -674,7 +990,35 @@ body { font-family: 'Segoe UI', system-ui, sans-serif; background: #1a1a2e; colo
 </div>
 <div class="img-box">
 <h3>Sequence Diagram</h3>
-<div class="img-wrap"><img src="../slide-images/diagram-cancel-internal.png" alt="Cancel Booking Sequence" class="zoomable" onclick="openLightbox(this.src, 'UC-10: Sequence diagram hủy đặt vé')"></div>
+<pre class="plantuml-diagram">
+@startuml UC-10
+title UC-10: Hủy đặt vé
+
+actor "Khách hàng" as Actor
+participant "Hệ thống" as API
+
+Actor -> API: CancelBooking(bookingId)
+alt Chưa xác thực
+    API --> Actor: 401 Unauthorized
+else Đặt vé không tồn tại
+    API --> Actor: 404 + BOOKING_NOT_FOUND
+else booking.userId != requestingUserId
+    API --> Actor: 403 + ACCESS_DENIED
+else Đặt vé đã CANCELLED
+    API --> Actor: 409 + BOOKING_ALREADY_CANCELLED
+else Hủy HELD (chưa thanh toán)
+    API -> API: booking.cancel() HELD -> CANCELLED
+    API -> API: releaseHeldSeats() HELD -> AVAILABLE
+    API -> API: Publish events + SSE
+    API --> Actor: 200 OK
+else Hủy CONFIRMED (đã thanh toán)
+    API -> API: booking.cancel() CONFIRMED -> CANCELLED
+    API -> API: cancelBookedSeats() BOOKED -> CANCELLED
+    API -> API: Publish events (requiresRefund=true) + SSE
+    API --> Actor: 200 OK
+end
+@enduml
+</pre>
 </div>
 <div class="test-box">
 <h3>Kiểm thử</h3>
@@ -714,24 +1058,42 @@ body { font-family: 'Segoe UI', system-ui, sans-serif; background: #1a1a2e; colo
 </div>
 <div class="img-box">
 <h3>Sequence Diagram</h3>
-<div class="img-wrap" style="background: #fff;">
-<svg viewBox="0 0 360 200" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;max-height:100%;">
-<style>.lbl{font:600 9px sans-serif;fill:#1e293b}.act{font:8px sans-serif;fill:#475569}.line{stroke:#94a3b8;stroke-width:1}.arrow{stroke:#0ea5e9;stroke-width:1.4;fill:none;marker-end:url(#g1)}.ret{stroke:#10b981;stroke-width:1.2;stroke-dasharray:3,3;fill:none;marker-end:url(#g2)}</style>
-<defs><marker id="g1" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#0ea5e9"/></marker><marker id="g2" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#10b981"/></marker></defs>
-<rect x="10" y="10" width="60" height="18" rx="3" fill="#dbeafe" stroke="#3b82f6"/><text x="40" y="22" text-anchor="middle" class="lbl">User</text>
-<rect x="100" y="10" width="60" height="18" rx="3" fill="#dbeafe" stroke="#3b82f6"/><text x="130" y="22" text-anchor="middle" class="lbl">Frontend</text>
-<rect x="190" y="10" width="60" height="18" rx="3" fill="#dbeafe" stroke="#3b82f6"/><text x="220" y="22" text-anchor="middle" class="lbl">PaymentAPI</text>
-<rect x="280" y="10" width="60" height="18" rx="3" fill="#dbeafe" stroke="#3b82f6"/><text x="310" y="22" text-anchor="middle" class="lbl">PaymentDB</text>
-<line x1="40" y1="28" x2="40" y2="190" class="line"/><line x1="130" y1="28" x2="130" y2="190" class="line"/><line x1="220" y1="28" x2="220" y2="190" class="line"/><line x1="310" y1="28" x2="310" y2="190" class="line"/>
-<line x1="40" y1="50" x2="128" y2="50" class="arrow"/><text x="84" y="46" text-anchor="middle" class="act">click payment</text>
-<line x1="130" y1="75" x2="218" y2="75" class="arrow"/><text x="174" y="71" text-anchor="middle" class="act">GET /payments/:id</text>
-<line x1="220" y1="100" x2="308" y2="100" class="arrow"/><text x="264" y="96" text-anchor="middle" class="act">findById</text>
-<line x1="310" y1="120" x2="222" y2="120" class="ret"/><text x="266" y="116" text-anchor="middle" class="act">Payment</text>
-<rect x="195" y="135" width="50" height="14" fill="#fef3c7" stroke="#f59e0b" rx="2"/><text x="220" y="145" text-anchor="middle" class="act">authz</text>
-<line x1="220" y1="170" x2="132" y2="170" class="ret"/><text x="174" y="166" text-anchor="middle" class="act">PaymentResponse</text>
-<line x1="130" y1="185" x2="42" y2="185" class="ret"/><text x="84" y="181" text-anchor="middle" class="act">render UI</text>
-</svg>
-</div>
+<pre class="plantuml-diagram">
+@startuml UC-11
+title UC-11: Xem thanh toán
+
+actor "Khách hàng" as Actor
+participant "Hệ thống" as API
+
+== Xem theo payment ID ==
+
+Actor -> API: GetPaymentById(paymentId)
+alt Chưa xác thực
+    API --> Actor: 401 Unauthorized
+else Thanh toán không tồn tại
+    API --> Actor: 404 + PAYMENT_NOT_FOUND
+else payment.userId != requestingUserId
+    API --> Actor: 403 + ACCESS_DENIED
+else Thành công
+    API -> API: Truy vấn PaymentSummary qua projection
+    API --> Actor: 200 + PaymentResponse(paymentId, bookingId, status, checkoutUrl, amount, currency)
+end
+
+== Xem theo booking ID ==
+
+Actor -> API: GetPaymentByBookingId(bookingId)
+alt Chưa xác thực
+    API --> Actor: 401 Unauthorized
+else Thanh toán không tồn tại cho booking này
+    API --> Actor: 404 + PAYMENT_NOT_FOUND
+else payment.userId != requestingUserId
+    API --> Actor: 403 + ACCESS_DENIED
+else Thành công
+    API -> API: Truy vấn PaymentSummary (tìm theo bookingId)
+    API --> Actor: 200 + PaymentResponse(paymentId, bookingId, status, checkoutUrl, amount, currency)
+end
+@enduml
+</pre>
 </div>
 <div class="test-box">
 <h3>Kiểm thử</h3>
@@ -771,7 +1133,56 @@ body { font-family: 'Segoe UI', system-ui, sans-serif; background: #1a1a2e; colo
 </div>
 <div class="img-box">
 <h3>Sequence Diagram</h3>
-<div class="img-wrap"><img src="../slide-images/diagram-payment-seq.png" alt="Payment Sequence" class="zoomable" onclick="openLightbox(this.src, 'UC-12: Sequence diagram thanh toán')"></div>
+<pre class="plantuml-diagram">
+@startuml UC-12
+title UC-12: Thanh toán
+
+actor "Khách hàng" as Actor
+participant "Hệ thống" as API
+participant "Stripe" as Stripe
+
+== Tạo phiên thanh toán ==
+
+Actor -> API: CreateCheckout(bookingId)
+alt Chưa xác thực
+    API --> Actor: 401 Unauthorized
+else Booking không tồn tại
+    API --> Actor: 404 + PAYMENT_BOOKING_NOT_FOUND
+else Booking không thuộc về khách hàng
+    API --> Actor: 403 + ACCESS_DENIED
+else Booking không ở trạng thái HELD hoặc đã hết hạn
+    API --> Actor: 409 + PAYMENT_BOOKING_INVALID_STATE
+else Payment đã được xử lý (PAID/REFUNDED)
+    API --> Actor: 409 + PAYMENT_ALREADY_PROCESSED
+else Đã có payment PENDING (idempotent)
+    API --> Actor: 200 + CheckoutSessionResponse(paymentId, checkoutUrl, status=PENDING)
+else Tạo checkout session thành công
+    API -> Stripe: Create Checkout Session(amount, currency, successUrl, cancelUrl)
+    Stripe --> API: sessionId, checkoutUrl
+    API -> API: Tạo Payment(PENDING), lưu checkoutSessionId
+    API --> Actor: 201 + CheckoutSessionResponse(paymentId, checkoutUrl, status=PENDING)
+end
+
+== Xử lý webhook ==
+
+alt checkout.session.completed
+    Stripe -> API: Webhook(completed, sessionId, paymentIntentId)
+    API -> API: Confirm booking (HELD -> CONFIRMED)
+    API -> API: Confirm seats (HELD -> BOOKED)
+    API -> API: Mark payment (PENDING -> PAID)
+else payment_intent.payment_failed
+    Stripe -> API: Webhook(payment_failed)
+    API -> API: Mark payment (PENDING -> FAILED)
+else checkout.session.expired
+    Stripe -> API: Webhook(expired)
+    API -> API: Mark payment (PENDING -> CANCELLED)
+else Payment đến muộn sau khi booking đã CANCELLED
+    Stripe -> API: Webhook(completed)
+    API -> Stripe: Create refund(paymentIntentId)
+    API -> API: Mark payment REFUNDED
+end
+@enduml
+</pre>
 </div>
 <div class="test-box">
 <h3>Kiểm thử</h3>
@@ -793,7 +1204,7 @@ body { font-family: 'Segoe UI', system-ui, sans-serif; background: #1a1a2e; colo
 </div>
 </div>
 
-<!-- Slide 14: Conclusion -->
+<!-- Slide 15: Conclusion -->
 <div class="slide">
 <h2>Kết luận</h2>
 <div class="two-col">
@@ -875,6 +1286,71 @@ document.addEventListener('keydown', e => {
   if (e.key === 'ArrowLeft') prevSlide();
 });
 showSlide(0);
+
+// PlantUML rendering via plantuml.com server
+function encodePlantUml(text) {
+  const data = new TextEncoder().encode(text);
+  const compressed = pako.deflate(data, { level: 9, raw: true });
+  const encoded = encode64(compressed);
+  return encoded;
+}
+
+function encode6bit(b) {
+  if (b < 10) return String.fromCharCode(48 + b);
+  b -= 10;
+  if (b < 26) return String.fromCharCode(65 + b);
+  b -= 26;
+  if (b < 26) return String.fromCharCode(97 + b);
+  b -= 26;
+  if (b === 0) return '-';
+  if (b === 1) return '_';
+  return '?';
+}
+
+function append3bytes(b1, b2, b3) {
+  const c1 = b1 >> 2;
+  const c2 = ((b1 & 0x3) << 4) | (b2 >> 4);
+  const c3 = ((b2 & 0xF) << 2) | (b3 >> 6);
+  const c4 = b3 & 0x3F;
+  return encode6bit(c1 & 0x3F) + encode6bit(c2 & 0x3F) + encode6bit(c3 & 0x3F) + encode6bit(c4 & 0x3F);
+}
+
+function encode64(data) {
+  let r = '';
+  for (let i = 0; i < data.length; i += 3) {
+    if (i + 2 === data.length) {
+      r += append3bytes(data[i], data[i + 1], 0);
+    } else if (i + 1 === data.length) {
+      r += append3bytes(data[i], 0, 0);
+    } else {
+      r += append3bytes(data[i], data[i + 1], data[i + 2]);
+    }
+  }
+  return r;
+}
+
+function renderPlantUmlDiagrams() {
+  const diagrams = document.querySelectorAll('.plantuml-diagram');
+  diagrams.forEach(pre => {
+    const text = pre.textContent.trim();
+    const encoded = encodePlantUml(text);
+    const url = 'https://www.plantuml.com/plantuml/svg/' + encoded;
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'puml-rendered';
+
+    const img = document.createElement('img');
+    img.src = url;
+    img.alt = 'PlantUML Diagram';
+    img.className = 'zoomable';
+    img.onclick = function() { openLightbox(this.src, ''); };
+
+    wrapper.appendChild(img);
+    pre.parentNode.insertBefore(wrapper, pre);
+  });
+}
+
+renderPlantUmlDiagrams();
 </script>
 </body>
 </html>

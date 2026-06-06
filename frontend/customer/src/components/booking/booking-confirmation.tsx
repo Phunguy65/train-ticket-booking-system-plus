@@ -18,7 +18,7 @@ import {
     StickyFooter,
     StickyFooterSpacer,
 } from '@/components/ui/sticky-footer.tsx';
-import { Link, useRouter } from '@/i18n/routing.ts';
+import { Link, usePathname, useRouter } from '@/i18n/routing.ts';
 import { createCheckoutSessionMutation } from '@/lib/api/generated/@tanstack/react-query.gen.ts';
 import {
     createBookingMutation,
@@ -30,6 +30,7 @@ import {
     getStationOptions,
     getTrainOptions,
 } from '@/lib/api/index.ts';
+import { useAuth } from '@/lib/auth/auth-context.tsx';
 import {
     calculateTotalPrice,
     generateIdempotencyKey,
@@ -58,6 +59,8 @@ export function BookingConfirmation() {
     const searchParams = useSearchParams();
     const queryClient = useQueryClient();
     const router = useRouter();
+    const pathname = usePathname();
+    const { isReady: isAuthReady } = useAuth();
 
     // Parse context from URL
     const context = useMemo(
@@ -114,9 +117,21 @@ export function BookingConfirmation() {
     }, [payment?.checkoutUrl, redirectToCheckout]);
 
     // Fetch authenticated user
-    const { data: user, isLoading: userLoading } = useQuery({
+    const {
+        data: user,
+        isLoading: userLoading,
+        isError: userError,
+    } = useQuery({
         ...getAuthenticatedUserOptions(),
+        enabled: isAuthReady,
+        retry: false,
     });
+
+    useEffect(() => {
+        if (isAuthReady && !userLoading && (userError || !user)) {
+            router.replace(`/login?redirect=${encodeURIComponent(pathname)}`);
+        }
+    }, [isAuthReady, userLoading, userError, user, router, pathname]);
 
     // Fetch trip details
     const { data: trip, isLoading: tripLoading } = useQuery({
@@ -255,7 +270,8 @@ export function BookingConfirmation() {
 
     // Loading state
     const isLoading =
-        userLoading
+        !isAuthReady
+        || userLoading
         || tripLoading
         || routeLoading
         || originLoading
@@ -277,6 +293,10 @@ export function BookingConfirmation() {
                 </div>
             </div>
         );
+    }
+
+    if (userError || !user) {
+        return null;
     }
 
     // Missing context
