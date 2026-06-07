@@ -68,21 +68,27 @@ TRAIN_CONFIGS = [
     {"number": "TN2", "name": "Tàu Nhanh 2", "coaches": 3, "seats_per_coach": 20},
 ]
 
-# Major routes (origin_idx, destination_idx, trips_per_day)
-MAJOR_ROUTES = [
-    (0, 18, 3),   # Hà Nội → Sài Gòn (3 trips/day)
-    (18, 0, 3),  # Sài Gòn → Hà Nội (3 trips/day)
-    (0, 9, 2),   # Hà Nội → Đà Nẵng (2 trips/day)
-    (9, 0, 2),   # Đà Nẵng → Hà Nội (2 trips/day)
-    (9, 18, 2),  # Đà Nẵng → Sài Gòn (2 trips/day)
-    (18, 9, 2),  # Sài Gòn → Đà Nẵng (2 trips/day)
-    (0, 8, 1),   # Hà Nội → Huế (1 trip/day)
-    (8, 0, 1),   # Huế → Hà Nội (1 trip/day)
-    (0, 5, 2),   # Hà Nội → Vinh (2 trips/day)
-    (5, 0, 2),   # Vinh → Hà Nội (2 trips/day)
-    (14, 18, 1), # Nha Trang → Sài Gòn (1 trip/day)
-    (18, 14, 1), # Sài Gòn → Nha Trang (1 trip/day)
-]
+# Generate ALL station pairs as routes
+def _build_all_routes():
+    """Build routes for every (origin, destination) pair with trips_per_day based on distance."""
+    routes = []
+    num_stations = len(VIETNAMESE_STATIONS)
+    for i in range(num_stations):
+        for j in range(num_stations):
+            if i == j:
+                continue
+            distance = abs(VIETNAMESE_STATIONS[i].km_from_hanoi - VIETNAMESE_STATIONS[j].km_from_hanoi)
+            if distance >= 1000:
+                trips_per_day = 3
+            elif distance >= 500:
+                trips_per_day = 2
+            else:
+                trips_per_day = 1
+            routes.append((i, j, trips_per_day))
+    return routes
+
+
+MAJOR_ROUTES = _build_all_routes()
 
 # Departure times (hour, minute) for different trip slots
 DEPARTURE_TIMES = [

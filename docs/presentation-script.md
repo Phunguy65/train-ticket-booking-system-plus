@@ -29,6 +29,26 @@ Mỗi UC trình bày theo 3 phần:
 
 *(Chuyển slide)*
 
+### Slide 1b: Mục đích & Cách triển khai tổng quan
+
+🎤 **Người B:**
+
+> **Mục đích đồ án:**
+>
+> Đồ án nhằm xây dựng một hệ thống đặt vé tàu hoả trực tuyến hoàn chỉnh, đồng thời áp dụng và minh chứng các kỹ thuật đảm bảo chất lượng phần mềm xuyên suốt vòng đời phát triển. Cụ thể:
+> - Thiết kế kiến trúc **dễ kiểm thử** (testable) từ đầu nhờ Clean Architecture + DDD
+> - Áp dụng đa tầng kiểm thử: unit, integration, stress, security
+> - Đảm bảo **tính nhất quán dữ liệu** (data consistency) dưới tải đồng thời cao
+> - Đảm bảo **trải nghiệm thời gian thực** khi nhiều người dùng cùng thao tác
+>
+> **Cách triển khai tổng quan — 3 cơ chế kỹ thuật then chốt:**
+>
+> - **Cursor-based Pagination** (phân trang dựa trên con trỏ) — hiệu năng cao, không bỏ sót/trùng lặp → chi tiết tại UC-05, UC-06
+> - **Redis/Valkey Caching** (bộ nhớ đệm) — giảm tải DB, tăng tốc truy vấn → chi tiết tại UC-05, UC-06, UC-07
+> - **Optimistic Locking** (khoá lạc quan) — đảm bảo tính nhất quán dưới tải đồng thời → chi tiết tại UC-08
+
+*(Chuyển slide)*
+
 ### Slide 2: Kiến trúc & Lược đồ CSDL
 
 🎤 **Người B:**
@@ -146,6 +166,10 @@ Mỗi UC trình bày theo 3 phần:
 
 > UC-05: Tra cứu ga tàu — 3 cách: search ILIKE, browse cursor pagination, detail by ID.
 >
+> **Kỹ thuật triển khai:**
+> - **Cursor-based Pagination:** Thay vì OFFSET (chậm ở page lớn, dễ trùng/sót khi data thay đổi), dùng cursor — mỗi response trả `nextCursor`, request tiếp gửi cursor đó để lấy page kế. Query: `WHERE (name, id) > (cursor_name, cursor_id) ORDER BY name, id LIMIT size`. Hiệu năng O(1) không phụ thuộc số trang.
+> - **Redis Caching (Valkey):** Kết quả search được cache theo key = query + limit. Chiến lược **cache-aside**: đọc cache trước → miss thì query DB → ghi cache. TTL ngắn vì data ga ít thay đổi.
+>
 > **Kiểm thử:** Kỹ thuật **Boundary Value** cho search query: empty string, 1 char, keyword match, no match. Cursor pagination: first page, middle page, last page (no more items). Cache verification: request 1 = cache miss (DB hit), request 2 = cache hit (no DB). Ga không tồn tại → 404.
 
 💻 **Người B:** *(Demo combobox: gõ "Hà N" → suggestion list)*
@@ -159,6 +183,10 @@ Mỗi UC trình bày theo 3 phần:
 🎤 **Người A:**
 
 > UC-06: Tra cứu chuyến tàu — bộ lọc đa tiêu chí, sort, phân trang.
+>
+> **Kỹ thuật triển khai:**
+> - **Cursor-based Pagination:** Hỗ trợ sort đa tiêu chí (giờ khởi hành, giá, ghế trống). Cursor encode cặp `(sort_value, id)` — đảm bảo không trùng/sót ngay cả khi có booking mới chen giữa 2 lần phân trang. Query: `WHERE (departure_time, id) > (:cursorTime, :cursorId)`.
+> - **Redis Caching (Valkey):** Cache kết quả search theo composite key = filter params + sort + cursor. Chiến lược **cache-aside** với TTL ngắn (30s–60s). Cache invalidation: khi ghế bị hold/book → invalidate các cache key liên quan đến trip đó (số ghế trống thay đổi).
 >
 > **Kiểm thử:**
 > - **Equivalence Partitioning**: Filter combinations — chỉ ga đi, ga đi + đến, ga đi + đến + ngày, full filter. Sort: by time ASC/DESC, by price, by available seats.
@@ -190,11 +218,16 @@ Mỗi UC trình bày theo 3 phần:
 
 > UC-07: Xem sơ đồ ghế — 2 view: flat list phân trang và sơ đồ toa. 3 trạng thái ghế: AVAILABLE, HELD, BOOKED. Real-time update qua SSE.
 >
+> **Kỹ thuật triển khai — Redis Caching (Valkey):**
+> - Sơ đồ ghế theo toa (coach seat map) được cache trong Valkey theo key = `trip:{tripId}:coach-seat-map:page:{page}`.
+> - Chiến lược **cache-aside** + **event-driven invalidation**: khi SeatStatusChangedEvent phát ra (ghế bị hold/book/release), cache của trip tương ứng bị xoá ngay lập tức → request tiếp theo sẽ query DB và ghi cache mới.
+> - Giảm đáng kể tải DB cho trang sơ đồ ghế — trang này được nhiều user mở đồng thời khi chọn chuyến.
+>
 > **Chiến lược kiểm thử:**
 > - **State Transition Testing**: Ghế có 4 trạng thái (AVAILABLE → HELD → BOOKED, HELD → AVAILABLE khi hủy/hết hạn). Test mỗi transition hiển thị đúng màu/icon trên UI.
 > - **Integration test (SSE)**: Mở 2 client cùng xem 1 chuyến → client A đặt ghế → client B nhận SeatStatusChangedEvent trong < 1 giây mà không cần refresh.
 > - **Boundary Value**: Trip có 0 ghế trống (all BOOKED), trip có tất cả ghế trống, trip không tồn tại → 404.
-> - **Cache test**: Sơ đồ ghế cache hit/miss, cache invalidation khi trạng thái ghế thay đổi.
+> - **Cache test**: Sơ đồ ghế cache hit/miss, cache invalidation đúng khi trạng thái ghế thay đổi (event-driven).
 
 💻 **Người A:** *(Mở 2 tab cùng chuyến → tab 1 chọn ghế → tab 2 thấy ghế đổi màu real-time)*
 
@@ -221,9 +254,11 @@ Mỗi UC trình bày theo 3 phần:
 > - Idempotency: cùng idempotencyKey trả cùng booking, không tạo mới
 > - Error paths: user not found, trip not found, active hold exists, seat unavailable
 >
-> **2. Concurrency (2 stress tests):**
-> - 50 threads đặt cùng ghế → chỉ 1 thành công, 49 nhận SEAT_NOT_AVAILABLE
-> - Cơ chế: optimistic lock trên trip_seat_availability + DB constraint
+> **2. Concurrency — Optimistic Locking (2 stress tests):**
+> - Bảng `trip_seat_availability` có cột `version` (integer). Khi hold ghế, hệ thống thực hiện: `UPDATE ... SET status='HELD', version=version+1 WHERE id=:id AND version=:expectedVersion`. Nếu version không khớp (request khác đã chen) → update 0 rows → trả `SEAT_NOT_AVAILABLE`.
+> - Kết hợp **all-or-nothing**: đặt nhiều ghế trong 1 transaction — nếu bất kỳ ghế nào fail → rollback toàn bộ, không partial hold.
+> - Stress test: 50 threads đặt cùng ghế → chỉ 1 thành công, 49 nhận SEAT_NOT_AVAILABLE — chứng minh không bao giờ double-booking.
+> - Cơ chế: optimistic lock + DB constraint → không cần pessimistic lock (tránh deadlock, tăng throughput).
 >
 > **3. All-or-nothing (1 test):**
 > - Chọn 3 ghế, 1 đã HELD → tất cả bị reject, không partial hold
