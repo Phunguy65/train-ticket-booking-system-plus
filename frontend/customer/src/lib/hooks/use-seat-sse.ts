@@ -318,11 +318,12 @@ export function useSeatSSE(options: UseSeatSseOptions): UseSeatSseResult {
                 'Cache-Control': 'no-cache',
             };
             if (token) {
-                headers['Authorization'] = `Bearer ${token}`;
+                headers.Authorization = `Bearer ${token}`;
             }
 
+            const sseBaseUrl = process.env.NEXT_PUBLIC_SSE_BASE_URL ?? '';
             const response = await fetch(
-                `/api/v1/sse/trips/${scheduledTripId}/seats`,
+                `${sseBaseUrl}/api/v1/sse/trips/${scheduledTripId}/seats`,
                 {
                     method: 'GET',
                     headers,

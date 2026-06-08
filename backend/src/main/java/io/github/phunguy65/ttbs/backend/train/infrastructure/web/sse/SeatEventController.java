@@ -6,6 +6,7 @@ import io.github.phunguy65.ttbs.backend.train.application.sse.SeatEventBroadcast
 import io.github.phunguy65.ttbs.backend.train.domain.model.RouteSeatAvailability;
 import io.github.phunguy65.ttbs.backend.train.domain.model.ScheduledTripId;
 import io.swagger.v3.oas.annotations.Hidden;
+import jakarta.servlet.http.HttpServletResponse;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -59,9 +60,13 @@ public class SeatEventController {
             value = "/{version}/sse/trips/{scheduledTripId}/seats",
             produces = MediaType.TEXT_EVENT_STREAM_VALUE,
             version = "1.0")
-    public SseEmitter subscribe(@PathVariable UUID scheduledTripId) {
+    public SseEmitter subscribe(@PathVariable UUID scheduledTripId, HttpServletResponse response) {
 
         SseEmitter emitter = broadcaster.subscribe(scheduledTripId);
+
+        response.setHeader("X-Accel-Buffering", "no");
+        response.setHeader("Cache-Control", "no-cache, no-transform");
+        response.setHeader("Connection", "keep-alive");
 
         sendInitialState(scheduledTripId, emitter);
 

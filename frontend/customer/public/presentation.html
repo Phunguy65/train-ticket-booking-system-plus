@@ -434,7 +434,75 @@ bookings ||--o{ payments : "thanh toán"
 </div>
 </div>
 
-<!-- Slide 3: UC-01 Đăng ký tài khoản -->
+<!-- Slide 3b: Danh sách Use Case -->
+<div class="slide" style="padding: 40px 60px;">
+<h2 style="margin-bottom: 20px;">Danh sách Use Case</h2>
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px 30px; flex: 1; align-content: start;">
+
+<div style="background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 14px 18px; display: flex; align-items: center; gap: 14px;">
+<span class="uc-badge">UC-01</span>
+<div><span style="color: #e2e8f0; font-weight: 600;">Đăng ký tài khoản</span><p style="color: #94a3b8; font-size: 0.82em; margin-top: 2px;">Tạo tài khoản mới với email, mật khẩu, họ tên</p></div>
+</div>
+
+<div style="background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 14px 18px; display: flex; align-items: center; gap: 14px;">
+<span class="uc-badge">UC-02</span>
+<div><span style="color: #e2e8f0; font-weight: 600;">Đăng nhập</span><p style="color: #94a3b8; font-size: 0.82em; margin-top: 2px;">Xác thực thông tin, trả cặp mã thông báo (JWT + mã làm mới)</p></div>
+</div>
+
+<div style="background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 14px 18px; display: flex; align-items: center; gap: 14px;">
+<span class="uc-badge">UC-03</span>
+<div><span style="color: #e2e8f0; font-weight: 600;">Đăng xuất</span><p style="color: #94a3b8; font-size: 0.82em; margin-top: 2px;">Thu hồi mã làm mới (bình thường hóa)</p></div>
+</div>
+
+<div style="background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 14px 18px; display: flex; align-items: center; gap: 14px;">
+<span class="uc-badge">UC-04</span>
+<div><span style="color: #e2e8f0; font-weight: 600;">Quản lý thông tin cá nhân</span><p style="color: #94a3b8; font-size: 0.82em; margin-top: 2px;">Xem và cập nhật hồ sơ người dùng</p></div>
+</div>
+
+<div style="background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 14px 18px; display: flex; align-items: center; gap: 14px;">
+<span class="uc-badge">UC-05</span>
+<div><span style="color: #e2e8f0; font-weight: 600;">Tra cứu ga tàu</span><p style="color: #94a3b8; font-size: 0.82em; margin-top: 2px;">Tìm kiếm, duyệt danh sách, xem chi tiết ga</p></div>
+</div>
+
+<div style="background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 14px 18px; display: flex; align-items: center; gap: 14px;">
+<span class="uc-badge">UC-06</span>
+<div><span style="color: #e2e8f0; font-weight: 600;">Tra cứu chuyến tàu</span><p style="color: #94a3b8; font-size: 0.82em; margin-top: 2px;">Bộ lọc đa tiêu chí, sắp xếp, phân trang</p></div>
+</div>
+
+<div style="background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 14px 18px; display: flex; align-items: center; gap: 14px;">
+<span class="uc-badge">UC-07</span>
+<div><span style="color: #e2e8f0; font-weight: 600;">Xem sơ đồ ghế</span><p style="color: #94a3b8; font-size: 0.82em; margin-top: 2px;">Sơ đồ toa + cập nhật thời gian thực qua SSE</p></div>
+</div>
+
+<div style="background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 14px 18px; display: flex; align-items: center; gap: 14px;">
+<span class="uc-badge">UC-08</span>
+<div><span style="color: #e2e8f0; font-weight: 600;">Đặt vé tàu</span><p style="color: #94a3b8; font-size: 0.82em; margin-top: 2px;">Giữ chỗ trước thanh toán, giữ 15 phút, tất cả hoặc không</p></div>
+</div>
+
+<div style="background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 14px 18px; display: flex; align-items: center; gap: 14px;">
+<span class="uc-badge">UC-09</span>
+<div><span style="color: #e2e8f0; font-weight: 600;">Xem đặt vé</span><p style="color: #94a3b8; font-size: 0.82em; margin-top: 2px;">Danh sách + chi tiết đặt vé (gộp dữ liệu liên quan)</p></div>
+</div>
+
+<div style="background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 14px 18px; display: flex; align-items: center; gap: 14px;">
+<span class="uc-badge">UC-10</span>
+<div><span style="color: #e2e8f0; font-weight: 600;">Hủy đặt vé</span><p style="color: #94a3b8; font-size: 0.82em; margin-top: 2px;">Hủy Đang giữ/Đã xác nhận, giải phóng ghế, kích hoạt hoàn tiền</p></div>
+</div>
+
+<div style="background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 14px 18px; display: flex; align-items: center; gap: 14px;">
+<span class="uc-badge">UC-11</span>
+<div><span style="color: #e2e8f0; font-weight: 600;">Xem thanh toán</span><p style="color: #94a3b8; font-size: 0.82em; margin-top: 2px;">Chi tiết thanh toán theo mã thanh toán hoặc mã đặt vé</p></div>
+</div>
+
+<div style="background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 14px 18px; display: flex; align-items: center; gap: 14px;">
+<span class="uc-badge">UC-12</span>
+<div><span style="color: #e2e8f0; font-weight: 600;">Thanh toán</span><p style="color: #94a3b8; font-size: 0.82em; margin-top: 2px;">Stripe Checkout + webhook xác nhận/thất bại/hoàn tiền</p></div>
+</div>
+
+</div>
+</div>
+
+<!-- Slide 4: UC-01 Đăng ký tài khoản -->
 <div class="slide" style="padding: 30px 50px;">
 <div class="uc-header-compact"><span class="uc-badge">UC-01</span><span class="uc-title">Đăng ký tài khoản</span></div>
 <div class="uc-meta-compact"><span>Actor: Khách hàng chưa có tài khoản</span><span>Tiền điều kiện: Không</span></div>
@@ -443,12 +511,12 @@ bookings ||--o{ payments : "thanh toán"
 <div class="flow-box">
 <h3>Luồng chính</h3>
 <ul>
-<li>Nhập email, password, fullName</li>
-<li>Validate định dạng email, password ≥ 8 ký tự</li>
+<li>Nhập email, mật khẩu, họ tên</li>
+<li>Kiểm tra định dạng email, mật khẩu ≥ 8 ký tự</li>
 <li>Kiểm tra email chưa tồn tại</li>
-<li>Hash password (BCrypt)</li>
-<li>Tạo tài khoản với role CUSTOMER</li>
-<li>Trả thông tin user (không có password)</li>
+<li>Băm mật khẩu (BCrypt)</li>
+<li>Tạo tài khoản với vai trò Khách hàng</li>
+<li>Trả thông tin người dùng (không chứa mật khẩu)</li>
 </ul>
 </div>
 <div class="img-box">
@@ -474,16 +542,16 @@ end
 </pre>
 </div>
 <div class="test-box">
-<h3>Kiểm thử (12 tests)</h3>
+<h3>Kiểm thử (12 ca kiểm thử)</h3>
 <div class="test-tags">
-<span class="test-tag">Unit</span><span class="test-tag">Integration</span><span class="test-tag">Stress</span><span class="test-tag">Security</span>
+<span class="test-tag">Đơn vị</span><span class="test-tag">Tích hợp</span><span class="test-tag">Tải</span><span class="test-tag">Bảo mật</span>
 </div>
 <ul>
 <li>Đăng ký thành công với dữ liệu hợp lệ</li>
-<li>Email trùng → 409 Conflict</li>
-<li>Validation: format email, password ≥ 8 ký tự</li>
-<li>SQL injection prevention</li>
-<li>Stress: 50 concurrent registrations</li>
+<li>Email trùng → 409</li>
+<li>Kiểm tra: định dạng email, mật khẩu ≥ 8 ký tự</li>
+<li>Phòng chống chèn mã SQL</li>
+<li>Kiểm tra tải: 50 đăng ký đồng thời</li>
 </ul>
 </div>
 <div class="img-box">
@@ -502,12 +570,12 @@ end
 <div class="flow-box">
 <h3>Luồng chính</h3>
 <ul>
-<li>Nhập email và password</li>
-<li>Tìm user theo email</li>
-<li>So sánh password (timing-safe BCrypt)</li>
-<li>Tạo accessToken (JWT, 15 phút)</li>
-<li>Tạo refreshToken (hash lưu DB)</li>
-<li>Trả token pair + user profile</li>
+<li>Nhập email và mật khẩu</li>
+<li>Tìm người dùng theo email</li>
+<li>Đối chiếu mật khẩu (timing-safe BCrypt)</li>
+<li>Tạo mã truy cập (JWT, 15 phút)</li>
+<li>Tạo mã làm mới (băm lưu CSDL)</li>
+<li>Trả cặp mã thông báo + hồ sơ người dùng</li>
 </ul>
 </div>
 <div class="img-box">
@@ -535,14 +603,14 @@ end
 <div class="test-box">
 <h3>Kiểm thử (13 BE + 7 FE)</h3>
 <div class="test-tags">
-<span class="test-tag">Unit</span><span class="test-tag">Integration</span><span class="test-tag">Stress</span><span class="test-tag">Security</span><span class="test-tag">FE</span>
+<span class="test-tag">Đơn vị</span><span class="test-tag">Tích hợp</span><span class="test-tag">Tải</span><span class="test-tag">Bảo mật</span><span class="test-tag">Giao diện</span>
 </div>
 <ul>
-<li>Login thành công, trả token pair</li>
-<li>Credentials sai → 401 Unauthorized</li>
-<li>Timing-safe (chống timing attack)</li>
-<li>Chống user enumeration</li>
-<li>Stress: 50 concurrent logins</li>
+<li>Đăng nhập thành công, trả cặp mã thông báo</li>
+<li>Thông tin xác thực sai → 401</li>
+<li>An toàn thời gian (chống tấn công thời gian)</li>
+<li>Chống liệt kê người dùng</li>
+<li>Kiểm tra tải: 50 đăng nhập đồng thời</li>
 </ul>
 </div>
 <div class="img-box">
@@ -555,17 +623,17 @@ end
 <!-- Slide 5: UC-03 Đăng xuất -->
 <div class="slide" style="padding: 30px 50px;">
 <div class="uc-header-compact"><span class="uc-badge">UC-03</span><span class="uc-title">Đăng xuất</span></div>
-<div class="uc-meta-compact"><span>Actor: Khách hàng bất kỳ</span><span>Tiền điều kiện: Có refreshToken</span></div>
+<div class="uc-meta-compact"><span>Actor: Khách hàng bất kỳ</span><span>Tiền điều kiện: Có mã làm mới</span></div>
 <button class="test-run-button" data-uc="03" type="button">Mở kiểm thử</button>
 <div class="uc-grid">
 <div class="flow-box">
-<h3>Luồng chính (Idempotent)</h3>
+<h3>Luồng chính (Bình thường hóa)</h3>
 <ul>
-<li>Gửi refreshToken trong request body</li>
-<li>Hash refreshToken (SHA-256)</li>
-<li>Tìm token active trong DB</li>
-<li>Đánh dấu token là REVOKED</li>
-<li>Token đã revoked / không tồn tại → vẫn 200</li>
+<li>Gửi mã làm mới trong thân yêu cầu</li>
+<li>Băm mã làm mới (SHA-256)</li>
+<li>Tìm mã đang hoạt động trong CSDL</li>
+<li>Đánh dấu mã đã bị thu hồi</li>
+<li>Mã đã thu hồi / không tồn tại → vẫn 200</li>
 <li>Trả 200 OK trong mọi trường hợp hợp lệ</li>
 </ul>
 </div>
@@ -589,16 +657,16 @@ end
 </pre>
 </div>
 <div class="test-box">
-<h3>Kiểm thử (12 tests)</h3>
+<h3>Kiểm thử (12 ca kiểm thử)</h3>
 <div class="test-tags">
-<span class="test-tag">Unit</span><span class="test-tag">Integration</span><span class="test-tag">Stress</span><span class="test-tag">Security</span>
+<span class="test-tag">Đơn vị</span><span class="test-tag">Tích hợp</span><span class="test-tag">Tải</span><span class="test-tag">Bảo mật</span>
 </div>
 <ul>
-<li>Logout thành công, token bị revoke</li>
-<li>Idempotent: token đã revoked → 200</li>
-<li>Idempotent: token unknown → 200</li>
-<li>SQL injection prevention</li>
-<li>Stress: 50 concurrent logouts</li>
+<li>Đăng xuất thành công, mã bị thu hồi</li>
+<li>Bình thường hóa: mã đã thu hồi → 200</li>
+<li>Bình thường hóa: mã không xác định → 200</li>
+<li>Phòng chống chèn mã SQL</li>
+<li>Kiểm tra tải: 50 đăng xuất đồng thời</li>
 </ul>
 </div>
 <div class="img-box">
@@ -617,12 +685,12 @@ end
 <div class="flow-box">
 <h3>Luồng chính</h3>
 <ul>
-<li><span class="highlight">Xem hồ sơ:</span> JWT → trả profile</li>
-<li><span class="highlight">Cập nhật:</span> Full replacement body</li>
-<li>Validate: fullName, email, phone, DOB, gender</li>
-<li>Validate: identityNumber, address</li>
-<li>Email mới chưa tồn tại → unique check</li>
-<li>Lưu thay đổi → trả profile mới</li>
+<li><span class="highlight">Xem hồ sơ:</span> JWT → trả hồ sơ</li>
+<li><span class="highlight">Cập nhật:</span> Thay thế toàn bộ trường</li>
+<li>Kiểm tra: họ tên, email, điện thoại, ngày sinh, giới tính</li>
+<li>Kiểm tra: số CCCD, địa chỉ</li>
+<li>Email mới chưa tồn tại → kiểm tra duy nhất</li>
+<li>Lưu thay đổi → trả hồ sơ mới</li>
 </ul>
 </div>
 <div class="img-box">
@@ -666,14 +734,14 @@ end
 <div class="test-box">
 <h3>Kiểm thử</h3>
 <div class="test-tags">
-<span class="test-tag">Unit</span><span class="test-tag">Integration</span><span class="test-tag">FE</span>
+<span class="test-tag">Đơn vị</span><span class="test-tag">Tích hợp</span><span class="test-tag">Giao diện</span>
 </div>
 <ul>
 <li>Xem hồ sơ thành công</li>
 <li>Cập nhật với dữ liệu hợp lệ</li>
-<li>Email unique check khi thay đổi</li>
-<li>Validation từng trường (phone, DOB...)</li>
-<li>Access control: chỉ xem/sửa của mình</li>
+<li>Kiểm tra tính duy nhất email khi thay đổi</li>
+<li>Kiểm tra từng trường (điện thoại, ngày sinh...)</li>
+<li>Kiểm soát truy cập: chỉ xem/sửa của mình</li>
 </ul>
 </div>
 <div class="img-box">
@@ -692,11 +760,11 @@ end
 <div class="flow-box">
 <h3>Luồng chính (3 cách tra cứu)</h3>
 <ul>
-<li><span class="highlight">Tìm kiếm:</span> ILIKE auto-complete, limit 20</li>
-<li><span class="highlight">Duyệt:</span> Cursor pagination, sort theo tên</li>
-<li><span class="highlight">Chi tiết:</span> Xem thông tin ga theo ID</li>
-<li>Cache kết quả tìm kiếm (Valkey)</li>
-<li>Prefix priority trong kết quả search</li>
+<li><span class="highlight">Tìm kiếm:</span> Tìm kiếm mờ, tự động hoàn thành, giới hạn 20</li>
+<li><span class="highlight">Duyệt:</span> Phân trang con trỏ, sắp xếp theo tên</li>
+<li><span class="highlight">Chi tiết:</span> Xem thông tin ga theo mã định danh</li>
+<li>Lưu đệm kết quả tìm kiếm (Valkey)</li>
+<li>Ưu tiên tiền tố trong kết quả tìm kiếm</li>
 <li>Không tìm thấy → trả mảng rỗng</li>
 </ul>
 </div>
@@ -741,14 +809,14 @@ end
 <div class="test-box">
 <h3>Kiểm thử</h3>
 <div class="test-tags">
-<span class="test-tag">Unit</span><span class="test-tag">Integration</span><span class="test-tag">Performance</span>
+<span class="test-tag">Đơn vị</span><span class="test-tag">Tích hợp</span><span class="test-tag">Hiệu năng</span>
 </div>
 <ul>
-<li>Tìm kiếm ILIKE trả đúng kết quả</li>
-<li>Phân trang cursor-based chính xác</li>
+<li>Tìm kiếm mờ trả đúng kết quả</li>
+<li>Phân trang con trỏ chính xác</li>
 <li>Xem chi tiết ga thành công</li>
 <li>Ga không tồn tại → 404</li>
-<li>Cache hit/miss verification</li>
+<li>Xác minh trúng/trượt bộ nhớ đệm</li>
 </ul>
 </div>
 <div class="img-box">
@@ -768,11 +836,11 @@ end
 <h3>Luồng chính</h3>
 <ul>
 <li>Bộ lọc: ga đi/đến, ngày, giá, trạng thái</li>
-<li>Sắp xếp: thời gian, giá, duration, ghế trống</li>
-<li>Phân trang: cursor-based + offset-based</li>
-<li>Enriched response: tàu + ga + ghế trống</li>
-<li>Cache kết quả (Valkey)</li>
-<li>Xem chi tiết → trip detail + availability</li>
+<li>Sắp xếp: thời gian, giá, thời lượng, ghế trống</li>
+<li>Phân trang: con trỏ + dịch chuyển</li>
+<li>Phản hồi chi tiết: tàu + ga + ghế trống</li>
+<li>Lưu đệm kết quả (Valkey)</li>
+<li>Xem chi tiết → thông tin chuyến + tình trạng ghế</li>
 </ul>
 </div>
 <div class="img-box">
@@ -819,14 +887,14 @@ end
 <div class="test-box">
 <h3>Kiểm thử</h3>
 <div class="test-tags">
-<span class="test-tag">Unit</span><span class="test-tag">Integration</span><span class="test-tag">Stress</span>
+<span class="test-tag">Đơn vị</span><span class="test-tag">Tích hợp</span><span class="test-tag">Tải</span>
 </div>
 <ul>
 <li>Bộ lọc đa tiêu chí hoạt động đúng</li>
-<li>Cursor pagination không bỏ sót/trùng</li>
-<li>Sort đúng thứ tự theo tiêu chí</li>
-<li>Seat availability tính toán chính xác</li>
-<li>Stress: 50 concurrent searches</li>
+<li>Phân trang con trỏ không bỏ sót/trùng</li>
+<li>Sắp xếp đúng thứ tự theo tiêu chí</li>
+<li>Tính toán ghế trống chính xác</li>
+<li>Kiểm tra tải: 50 tìm kiếm đồng thời</li>
 </ul>
 </div>
 <div class="img-box">
@@ -845,12 +913,12 @@ end
 <div class="flow-box">
 <h3>Luồng chính (2 góc nhìn)</h3>
 <ul>
-<li><span class="highlight">Flat list:</span> Danh sách ghế trống (phân trang)</li>
-<li><span class="highlight">Sơ đồ toa:</span> Layout theo coach</li>
-<li>Trạng thái: AVAILABLE / HELD / BOOKED</li>
-<li>Real-time updates qua SSE</li>
-<li>Cache sơ đồ ghế (Valkey)</li>
-<li>Push SeatStatusChangedEvent khi thay đổi</li>
+<li><span class="highlight">Danh sách phẳng:</span> Danh sách ghế trống (phân trang)</li>
+<li><span class="highlight">Sơ đồ toa:</span> Bố cục theo toa</li>
+<li>Trạng thái: Trống / Đang giữ / Đã đặt</li>
+<li>Cập nhật thời gian thực qua SSE</li>
+<li>Lưu đệm sơ đồ ghế (Valkey)</li>
+<li>Phát sự kiện khi trạng thái ghế thay đổi</li>
 </ul>
 </div>
 <div class="img-box">
@@ -891,14 +959,14 @@ end
 <div class="test-box">
 <h3>Kiểm thử</h3>
 <div class="test-tags">
-<span class="test-tag">Unit</span><span class="test-tag">Integration</span><span class="test-tag">SSE</span>
+<span class="test-tag">Đơn vị</span><span class="test-tag">Tích hợp</span><span class="test-tag">SSE</span>
 </div>
 <ul>
-<li>Flat list trả đúng ghế trống</li>
-<li>Sơ đồ toa hiển thị đúng layout</li>
+<li>Danh sách phẳng trả đúng ghế trống</li>
+<li>Sơ đồ toa hiển thị đúng bố cục</li>
 <li>Trạng thái ghế chính xác</li>
-<li>SSE push event khi seat thay đổi</li>
-<li>Trip không tồn tại → 404</li>
+<li>Phát sự kiện SSE khi ghế thay đổi</li>
+<li>Chuyến tàu không tồn tại → 404</li>
 </ul>
 </div>
 <div class="img-box">
@@ -913,20 +981,20 @@ end
 <div class="uc-header-compact"><span class="uc-badge">UC-08</span><span class="uc-title">Đặt vé tàu</span></div>
 <div class="uc-meta-compact"><span>Actor: Khách hàng đã đăng nhập</span><span>Tiền điều kiện: Đã xem sơ đồ ghế (UC-07)</span></div>
 <button class="test-run-button" data-uc="08" type="button">Mở kiểm thử</button>
-<div class="uc-grid">
-<div class="flow-box">
-<h3>Luồng chính</h3>
-<ul>
-<li>Gửi: tripId, seatIds[], passengers[], idempotencyKey</li>
-<li>Validate user, trip, seats tồn tại</li>
-<li>Kiểm tra tất cả ghế AVAILABLE</li>
-<li>Hold seats: AVAILABLE → HELD (all-or-nothing)</li>
-<li>Tạo booking HELD (hết hạn 15 phút)</li>
-<li>Publish BookingCreatedEvent + SeatStatusChangedEvent</li>
+<div style="display: grid; grid-template-columns: 1fr 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 10px; margin-top: 8px; flex: 1; min-height: 0;">
+<div class="flow-box" style="padding: 10px 14px; min-height: 0; display: flex; flex-direction: column;">
+<h3 style="font-size: 0.95em; margin-bottom: 6px;">Luồng chính</h3>
+<ul style="padding-left: 18px;">
+<li style="font-size: 0.83em; line-height: 1.4; margin-bottom: 2px;">Gửi: mã chuyến, danh sách ghế, khóa bình thường hóa</li>
+<li style="font-size: 0.83em; line-height: 1.4; margin-bottom: 2px;">Kiểm tra người dùng, chuyến, ghế tồn tại</li>
+<li style="font-size: 0.83em; line-height: 1.4; margin-bottom: 2px;">Kiểm tra tất cả ghế đang trống</li>
+<li style="font-size: 0.83em; line-height: 1.4; margin-bottom: 2px;">Giữ chỗ: Trống → Đang giữ (tất cả hoặc không)</li>
+<li style="font-size: 0.83em; line-height: 1.4; margin-bottom: 2px;">Tạo đặt vé Đang giữ (hết hạn 15 phút)</li>
+<li style="font-size: 0.83em; line-height: 1.4; margin-bottom: 2px;">Phát sự kiện Tạo đặt vé + Thay đổi trạng thái ghế</li>
 </ul>
 </div>
-<div class="img-box">
-<h3>Sequence Diagram</h3>
+<div class="img-box" style="padding: 10px 14px; min-height: 0; display: flex; flex-direction: column;">
+<h3 style="font-size: 0.95em; margin-bottom: 6px;">Sequence Diagram</h3>
 <pre class="plantuml-diagram">
 @startuml UC-08
 title UC-08: Đặt vé tàu
@@ -973,21 +1041,45 @@ end
 @enduml
 </pre>
 </div>
-<div class="test-box">
-<h3>Kiểm thử</h3>
-<div class="test-tags">
-<span class="test-tag">Unit</span><span class="test-tag">Integration</span><span class="test-tag">Stress</span><span class="test-tag">Concurrency</span>
+<div class="img-box" style="grid-row: span 2; padding: 10px 14px; min-height: 0; display: flex; flex-direction: column;">
+<h3 style="font-size: 0.95em; margin-bottom: 6px;">State Diagram — Trạng thái ghế</h3>
+<pre class="plantuml-diagram">
+@startuml Seat-State
+skinparam state {
+  BackgroundColor #0f172a
+  BorderColor #334155
+  FontColor #e2e8f0
+  ArrowColor #94a3b8
+}
+hide empty description
+
+[*] --> AVAILABLE : Khởi tạo
+
+AVAILABLE --> HELD : Đặt vé\nholdSeatsWithBookingId()
+HELD --> BOOKED : Webhook thành công\nconfirmHeldSeats()
+HELD --> AVAILABLE : Hết hạn 15p / Hủy vé\nreleaseHeldSeats()
+
+AVAILABLE : Ghế trống, sẵn sàng đặt
+HELD : Đang giữ chỗ (15 phút)
+BOOKED : Đã xác nhận thanh toán\n(trạng thái cuối)
+@enduml
+</pre>
 </div>
-<ul>
-<li>Đặt vé thành công, seats → HELD</li>
-<li>All-or-nothing: không partial hold</li>
-<li>Idempotency key → trả cùng kết quả</li>
-<li>Ghế đã HELD/BOOKED → 409</li>
-<li>Stress: 50 concurrent bookings cùng ghế</li>
+<div class="test-box" style="padding: 10px 14px; min-height: 0; display: flex; flex-direction: column;">
+<h3 style="font-size: 0.95em; margin-bottom: 6px;">Kiểm thử</h3>
+<div class="test-tags" style="gap: 4px; margin-bottom: 6px;">
+<span class="test-tag" style="font-size: 0.7em; padding: 2px 7px;">Đơn vị</span><span class="test-tag" style="font-size: 0.7em; padding: 2px 7px;">Tích hợp</span><span class="test-tag" style="font-size: 0.7em; padding: 2px 7px;">Tải</span><span class="test-tag" style="font-size: 0.7em; padding: 2px 7px;">Đồng thời</span>
+</div>
+<ul style="padding-left: 18px;">
+<li style="font-size: 0.83em; line-height: 1.4; margin-bottom: 2px;">Đặt vé thành công, ghế → Đang giữ</li>
+<li style="font-size: 0.83em; line-height: 1.4; margin-bottom: 2px;">Tất cả hoặc không: không giữ một phần</li>
+<li style="font-size: 0.83em; line-height: 1.4; margin-bottom: 2px;">Khóa bình thường hóa → trả cùng kết quả</li>
+<li style="font-size: 0.83em; line-height: 1.4; margin-bottom: 2px;">Ghế đã giữ/đã đặt → 409</li>
+<li style="font-size: 0.83em; line-height: 1.4; margin-bottom: 2px;">Kiểm tra tải: 50 đặt vé đồng thời cùng ghế</li>
 </ul>
 </div>
-<div class="img-box">
-<h3>Giao diện ứng dụng</h3>
+<div class="img-box" style="padding: 10px 14px; min-height: 0; display: flex; flex-direction: column;">
+<h3 style="font-size: 0.95em; margin-bottom: 6px;">Giao diện ứng dụng</h3>
 <div class="img-wrap"><img src="/slide-images/ui-74.png" alt="UI Booking" class="zoomable" onclick="openLightbox(this.src, 'UC-08: Giao diện form đặt vé')"></div>
 </div>
 </div>
@@ -1002,12 +1094,12 @@ end
 <div class="flow-box">
 <h3>Luồng chính</h3>
 <ul>
-<li><span class="highlight">Danh sách:</span> Phân trang (createdAt DESC)</li>
-<li>Chỉ hiển thị booking của user hiện tại</li>
-<li><span class="highlight">Chi tiết:</span> Aggregate booking + trip + seats + payment</li>
-<li>Access control: chỉ xem booking của mình</li>
-<li>Booking người khác → 403 Forbidden</li>
-<li>Booking không tồn tại → 404</li>
+<li><span class="highlight">Danh sách:</span> Phân trang (mới nhất trước)</li>
+<li>Chỉ hiển thị đặt vé của người dùng hiện tại</li>
+<li><span class="highlight">Chi tiết:</span> Tổng hợp đặt vé + chuyến + ghế + thanh toán</li>
+<li>Kiểm soát truy cập: chỉ xem đặt vé của mình</li>
+<li>Đặt vé người khác → 403</li>
+<li>Đặt vé không tồn tại → 404</li>
 </ul>
 </div>
 <div class="img-box">
@@ -1052,14 +1144,14 @@ end
 <div class="test-box">
 <h3>Kiểm thử</h3>
 <div class="test-tags">
-<span class="test-tag">Unit</span><span class="test-tag">Integration</span><span class="test-tag">Security</span>
+<span class="test-tag">Đơn vị</span><span class="test-tag">Tích hợp</span><span class="test-tag">Bảo mật</span>
 </div>
 <ul>
 <li>Danh sách phân trang đúng thứ tự</li>
-<li>Chi tiết aggregate đủ thông tin</li>
-<li>Access control: xem của người khác → 403</li>
-<li>Booking not found → 404</li>
-<li>Pagination metadata chính xác</li>
+<li>Chi tiết tổng hợp đủ thông tin</li>
+<li>Kiểm soát truy cập: xem của người khác → 403</li>
+<li>Đặt vé không tồn tại → 404</li>
+<li>Siêu dữ liệu phân trang chính xác</li>
 </ul>
 </div>
 <div class="img-box">
@@ -1072,18 +1164,18 @@ end
 <!-- Slide 12: UC-10 Hủy đặt vé -->
 <div class="slide" style="padding: 30px 50px;">
 <div class="uc-header-compact"><span class="uc-badge">UC-10</span><span class="uc-title">Hủy đặt vé</span></div>
-<div class="uc-meta-compact"><span>Actor: Khách hàng đã đăng nhập</span><span>Tiền điều kiện: Có booking HELD hoặc CONFIRMED</span></div>
+<div class="uc-meta-compact"><span>Actor: Khách hàng đã đăng nhập</span><span>Tiền điều kiện: Có đặt vé Đang giữ hoặc Đã xác nhận</span></div>
 <button class="test-run-button" data-uc="10" type="button">Mở kiểm thử</button>
 <div class="uc-grid">
 <div class="flow-box">
 <h3>Luồng chính</h3>
 <ul>
-<li>Chọn booking cần hủy</li>
-<li>Validate: thuộc user, trạng thái cho phép</li>
-<li>Booking: HELD/CONFIRMED → CANCELLED</li>
-<li>Release seats: HELD/BOOKED → AVAILABLE</li>
-<li>Publish BookingCancelledEvent (requiresRefund flag)</li>
-<li>Publish SeatStatusChangedEvent (SSE)</li>
+<li>Chọn đặt vé cần hủy</li>
+<li>Kiểm tra: thuộc người dùng, trạng thái cho phép</li>
+<li>Đặt vé: Đang giữ/Đã xác nhận → Đã hủy</li>
+<li>Giải phóng ghế: Đang giữ/Đã đặt → Trống</li>
+<li>Phát sự kiện Hủy đặt vé (cờ yêu cầu hoàn tiền)</li>
+<li>Phát sự kiện thay đổi trạng thái ghế (SSE)</li>
 </ul>
 </div>
 <div class="img-box">
@@ -1121,14 +1213,14 @@ end
 <div class="test-box">
 <h3>Kiểm thử</h3>
 <div class="test-tags">
-<span class="test-tag">Unit</span><span class="test-tag">Integration</span><span class="test-tag">Event</span>
+<span class="test-tag">Đơn vị</span><span class="test-tag">Tích hợp</span><span class="test-tag">Sự kiện</span>
 </div>
 <ul>
-<li>Hủy HELD booking thành công</li>
-<li>Hủy CONFIRMED booking + refund flag</li>
-<li>Booking đã cancelled → 409</li>
-<li>Hủy booking người khác → 403</li>
-<li>Seats released, SSE event phát ra</li>
+<li>Hủy đặt vé đang giữ thành công</li>
+<li>Hủy đặt vé đã xác nhận + cờ hoàn tiền</li>
+<li>Đặt vé đã hủy → 409</li>
+<li>Hủy đặt vé người khác → 403</li>
+<li>Ghế được giải phóng, sự kiện SSE phát ra</li>
 </ul>
 </div>
 <div class="img-box">
@@ -1147,12 +1239,12 @@ end
 <div class="flow-box">
 <h3>Luồng chính</h3>
 <ul>
-<li><span class="highlight">Theo paymentId:</span> Xem chi tiết payment</li>
-<li><span class="highlight">Theo bookingId:</span> Xem payment của booking</li>
-<li>Trả PaymentResponse: status, amount, checkoutUrl</li>
-<li>checkoutUrl có giá trị khi status = PENDING</li>
-<li>Access control: chỉ xem payment của mình</li>
-<li>Payment người khác → 403, không tồn tại → 404</li>
+<li><span class="highlight">Theo mã thanh toán:</span> Xem chi tiết thanh toán</li>
+<li><span class="highlight">Theo mã đặt vé:</span> Xem thanh toán của đặt vé</li>
+<li>Trả phản hồi: trạng thái, số tiền, liên kết thanh toán</li>
+<li>Liên kết thanh toán có giá trị khi trạng thái = Chờ xử lý</li>
+<li>Kiểm soát truy cập: chỉ xem thanh toán của mình</li>
+<li>Thanh toán người khác → 403, không tồn tại → 404</li>
 </ul>
 </div>
 <div class="img-box">
@@ -1197,14 +1289,14 @@ end
 <div class="test-box">
 <h3>Kiểm thử</h3>
 <div class="test-tags">
-<span class="test-tag">Unit</span><span class="test-tag">Integration</span><span class="test-tag">Security</span>
+<span class="test-tag">Đơn vị</span><span class="test-tag">Tích hợp</span><span class="test-tag">Bảo mật</span>
 </div>
 <ul>
-<li>Xem payment theo paymentId thành công</li>
-<li>Xem payment theo bookingId thành công</li>
-<li>Xem payment người khác → 403</li>
-<li>Payment not found → 404</li>
-<li>Đúng status và checkoutUrl</li>
+<li>Xem thanh toán theo mã thành công</li>
+<li>Xem thanh toán theo mã đặt vé thành công</li>
+<li>Xem thanh toán người khác → 403</li>
+<li>Thanh toán không tồn tại → 404</li>
+<li>Đúng trạng thái và liên kết thanh toán</li>
 </ul>
 </div>
 <div class="img-box">
@@ -1217,18 +1309,18 @@ end
 <!-- Slide 14: UC-12 Thanh toán -->
 <div class="slide" style="padding: 30px 50px;">
 <div class="uc-header-compact"><span class="uc-badge">UC-12</span><span class="uc-title">Thanh toán</span></div>
-<div class="uc-meta-compact"><span>Actor: Khách hàng có booking HELD</span><span>Tiền điều kiện: Đã đặt vé (UC-08)</span></div>
+<div class="uc-meta-compact"><span>Actor: Khách hàng có đặt vé Đang giữ</span><span>Tiền điều kiện: Đã đặt vé (UC-08)</span></div>
 <button class="test-run-button" data-uc="12" type="button">Mở kiểm thử</button>
 <div class="uc-grid">
 <div class="flow-box">
 <h3>Luồng chính</h3>
 <ul>
-<li>Tạo Stripe Checkout Session (bookingId, amount)</li>
-<li>Trả checkoutUrl → redirect user đến Stripe</li>
-<li>User thanh toán trên Stripe</li>
-<li>Webhook: checkout.session.completed</li>
-<li>Confirm: HELD→CONFIRMED, seats→BOOKED</li>
-<li>Update payment: PENDING → PAID</li>
+<li>Tạo phiên thanh toán Stripe (mã đặt vé, số tiền)</li>
+<li>Trả liên kết → chuyển hướng người dùng đến Stripe</li>
+<li>Người dùng thanh toán trên Stripe</li>
+<li>Webhook: phiên thanh toán hoàn tất</li>
+<li>Xác nhận: Đang giữ → Đã xác nhận, ghế → Đã đặt</li>
+<li>Cập nhật thanh toán: Chờ xử lý → Đã thanh toán</li>
 </ul>
 </div>
 <div class="img-box">
@@ -1287,14 +1379,14 @@ end
 <div class="test-box">
 <h3>Kiểm thử</h3>
 <div class="test-tags">
-<span class="test-tag">Unit</span><span class="test-tag">Integration</span><span class="test-tag">Webhook</span><span class="test-tag">Refund</span>
+<span class="test-tag">Đơn vị</span><span class="test-tag">Tích hợp</span><span class="test-tag">Webhook</span><span class="test-tag">Hoàn tiền</span>
 </div>
 <ul>
-<li>Tạo checkout session thành công</li>
-<li>Webhook completed → booking CONFIRMED</li>
-<li>Webhook expired → payment FAILED</li>
-<li>Duplicate webhook → idempotent</li>
-<li>Late payment after cancel → auto refund</li>
+<li>Tạo phiên thanh toán thành công</li>
+<li>Webhook hoàn tất → đặt vé Đã xác nhận</li>
+<li>Webhook hết hạn → thanh toán Thất bại</li>
+<li>Webhook trùng lặp → bình thường hóa</li>
+<li>Thanh toán muộn sau hủy → tự động hoàn tiền</li>
 </ul>
 </div>
 <div class="img-box">

@@ -1,5 +1,6 @@
 http://localhost:2015 {
-	encode gzip
+	@notSSE not path /api/*/sse/*
+	encode @notSSE gzip
 
 	handle /slide-images/* {
 		root * /srv
@@ -12,7 +13,9 @@ http://localhost:2015 {
 	}
 
 	handle /api/* {
-		reverse_proxy backend:8080
+		reverse_proxy backend:8080 {
+			flush_interval -1
+		}
 	}
 
 	handle {
