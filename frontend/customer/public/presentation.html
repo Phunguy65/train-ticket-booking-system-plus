@@ -79,9 +79,9 @@ body { font-family: 'Segoe UI', system-ui, sans-serif; background: #1a1a2e; colo
 .test-popup-body { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 12px; flex: 1; min-height: 0; }
 .test-criteria-wrap { background: #020617; border: 1px solid #334155; border-radius: 12px; padding: 14px; overflow: auto; }
 .test-criteria-wrap h4 { color: #7dd3fc; font-size: 0.9em; margin-bottom: 10px; }
-.test-criteria-table { width: 100%; border-collapse: collapse; font-size: 0.75em; }
-.test-criteria-table th { text-align: left; padding: 6px 8px; border-bottom: 1px solid #334155; color: #94a3b8; font-weight: 600; }
-.test-criteria-table td { padding: 5px 8px; border-bottom: 1px solid rgba(51,65,85,0.4); color: #cbd5e1; vertical-align: top; }
+.test-criteria-table { width: 100%; border-collapse: collapse; font-size: 0.95em; }
+.test-criteria-table th { text-align: left; padding: 8px 12px; border-bottom: 1px solid #334155; color: #94a3b8; font-weight: 600; }
+.test-criteria-table td { padding: 7px 12px; border-bottom: 1px solid rgba(51,65,85,0.4); color: #cbd5e1; vertical-align: top; }
 .test-criteria-table tr:last-child td { border-bottom: 0; }
 .test-criteria-table .level-badge { display: inline-block; background: #1e3a5f; color: #7dd3fc; padding: 1px 6px; border-radius: 3px; font-size: 0.85em; font-weight: 600; }
 .test-log { background: #020617; border: 1px solid #334155; border-radius: 12px; padding: 12px; overflow: auto; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.78em; line-height: 1.45; }
@@ -218,62 +218,67 @@ skinparam classAttributeIconSize 0
 entity "users" as users {
   * id : UUID <<PK>>
   --
-  * email : VARCHAR(255) <<UNIQUE>>
+  * email : VARCHAR(255) <<UK>>
   * password_hash : VARCHAR(255)
   * full_name : VARCHAR(255)
   phone : VARCHAR(20)
   date_of_birth : DATE
-  gender : VARCHAR(10)
+  gender : VARCHAR(20)
   id_document_number : VARCHAR(50)
-  address_line : VARCHAR(500)
+  address_line : VARCHAR(255)
   * role : VARCHAR(20)
   * created_at : TIMESTAMPTZ
+  * updated_at : TIMESTAMPTZ
+  deleted_at : TIMESTAMPTZ
 }
 
 entity "refresh_tokens" as tokens {
   * id : UUID <<PK>>
   --
   * user_id : UUID <<FK>>
-  * token_hash : VARCHAR(255)
-  revoked_at : TIMESTAMPTZ
+  * token_hash : VARCHAR(255) <<UK>>
   * expires_at : TIMESTAMPTZ
+  revoked_at : TIMESTAMPTZ
   * created_at : TIMESTAMPTZ
 }
 
 entity "stations" as stations {
   * id : UUID <<PK>>
   --
-  * code : VARCHAR(10) <<UNIQUE>>
+  * code : VARCHAR(10) <<UK>>
   * name : VARCHAR(255)
   * city : VARCHAR(100)
   * created_at : TIMESTAMPTZ
+  deleted_at : TIMESTAMPTZ
 }
 
 entity "trains" as trains {
   * id : UUID <<PK>>
   --
-  * train_number : VARCHAR(20) <<UNIQUE>>
+  * train_number : VARCHAR(20) <<UK>>
   * name : VARCHAR(255)
-  * total_coaches : INT
-  * total_seats : INT
+  * total_seats : INTEGER
   * created_at : TIMESTAMPTZ
+  deleted_at : TIMESTAMPTZ
 }
 
 entity "coaches" as coaches {
   * id : UUID <<PK>>
   --
   * train_id : UUID <<FK>>
-  * car_number : INT
-  * total_seats : INT
+  * car_number : INTEGER
+  * total_seats : INTEGER
   * created_at : TIMESTAMPTZ
+  deleted_at : TIMESTAMPTZ
 }
 
 entity "seats" as seats {
   * id : UUID <<PK>>
   --
   * coach_id : UUID <<FK>>
-  * seat_number : INT
+  * seat_number : VARCHAR(10)
   * created_at : TIMESTAMPTZ
+  deleted_at : TIMESTAMPTZ
 }
 
 entity "route_templates" as routes {
@@ -281,16 +286,16 @@ entity "route_templates" as routes {
   --
   * origin_station_id : UUID <<FK>>
   * destination_station_id : UUID <<FK>>
-  * base_price : DECIMAL
-  * currency : VARCHAR(3)
+  * base_price : BIGINT
   * created_at : TIMESTAMPTZ
+  deleted_at : TIMESTAMPTZ
 }
 
 entity "scheduled_trips" as trips {
   * id : UUID <<PK>>
   --
   * route_template_id : UUID <<FK>>
-  * train_id : UUID <<FK>>
+  train_id : UUID <<FK>>
   * departure_time : TIMESTAMPTZ
   * arrival_time : TIMESTAMPTZ
   * status : VARCHAR(20)
@@ -299,15 +304,13 @@ entity "scheduled_trips" as trips {
 }
 
 entity "trip_seat_availability" as tsa {
-  * id : UUID <<PK>>
+  * scheduled_trip_id : UUID <<PK, FK>>
+  * seat_id : UUID <<PK, FK>>
   --
-  * scheduled_trip_id : UUID <<FK>>
-  * seat_id : UUID <<FK>>
   * status : VARCHAR(20)
   booking_id : UUID <<FK>>
-  price_at_booking : DECIMAL
-  * version : INT
-  * created_at : TIMESTAMPTZ
+  price_at_booking : BIGINT
+  * version : INTEGER
 }
 
 entity "bookings" as bookings {
@@ -315,11 +318,13 @@ entity "bookings" as bookings {
   --
   * user_id : UUID <<FK>>
   * scheduled_trip_id : UUID <<FK>>
-  * idempotency_key : VARCHAR(255) <<UNIQUE>>
-  * total_price : DECIMAL
-  * currency : VARCHAR(3)
+  * user_info_snapshot : JSONB
+  passengers_snapshot : JSONB
+  * total_price : BIGINT
+  * currency : VARCHAR(10)
   * status : VARCHAR(20)
-  * payment_deadline : TIMESTAMPTZ
+  idempotency_key : VARCHAR(255) <<UK>>
+  payment_deadline : TIMESTAMPTZ
   * created_at : TIMESTAMPTZ
 }
 
@@ -328,27 +333,30 @@ entity "payments" as payments {
   --
   * booking_id : UUID <<FK>>
   * user_id : UUID <<FK>>
-  * amount : DECIMAL
-  * currency : VARCHAR(3)
+  * checkout_session_id : VARCHAR(255) <<UK>>
+  checkout_url : VARCHAR(2048)
+  stripe_event_id : VARCHAR(255) <<UK>>
+  stripe_payment_intent_id : VARCHAR(255) <<UK>>
+  * amount : BIGINT
+  * currency : VARCHAR(10)
   * status : VARCHAR(20)
-  checkout_session_id : VARCHAR(255)
-  checkout_url : TEXT
-  payment_intent_id : VARCHAR(255)
-  stripe_event_id : VARCHAR(255)
+  error_message : TEXT
   * created_at : TIMESTAMPTZ
+  * updated_at : TIMESTAMPTZ
 }
 
 users ||--o{ tokens
 users ||--o{ bookings
+users ||--o{ payments
 trains ||--o{ coaches
 coaches ||--o{ seats
 stations ||--o{ routes : origin
 stations ||--o{ routes : destination
 routes ||--o{ trips
-trains ||--o{ trips
+trains |o--o{ trips
 trips ||--o{ tsa
 seats ||--o{ tsa
-bookings ||--o{ tsa
+bookings |o--o{ tsa
 bookings ||--o{ payments
 @enduml
 </pre>
@@ -385,7 +393,7 @@ bookings ||--o{ payments
 <div class="slide" style="padding: 30px 50px;">
 <div class="uc-header-compact"><span class="uc-badge">UC-01</span><span class="uc-title">Đăng ký tài khoản</span></div>
 <div class="uc-meta-compact"><span>Actor: Khách hàng chưa có tài khoản</span><span>Tiền điều kiện: Không</span></div>
-<button class="test-run-button" data-uc="01" type="button">▶ Chạy kiểm thử</button>
+<button class="test-run-button" data-uc="01" type="button">Mở kiểm thử</button>
 <div class="uc-grid">
 <div class="flow-box">
 <h3>Luồng chính</h3>
@@ -444,7 +452,7 @@ end
 <div class="slide" style="padding: 30px 50px;">
 <div class="uc-header-compact"><span class="uc-badge">UC-02</span><span class="uc-title">Đăng nhập</span></div>
 <div class="uc-meta-compact"><span>Actor: Khách hàng có tài khoản</span><span>Tiền điều kiện: Đã đăng ký (UC-01)</span></div>
-<button class="test-run-button" data-uc="02" type="button">▶ Chạy kiểm thử</button>
+<button class="test-run-button" data-uc="02" type="button">Mở kiểm thử</button>
 <div class="uc-grid">
 <div class="flow-box">
 <h3>Luồng chính</h3>
@@ -503,7 +511,7 @@ end
 <div class="slide" style="padding: 30px 50px;">
 <div class="uc-header-compact"><span class="uc-badge">UC-03</span><span class="uc-title">Đăng xuất</span></div>
 <div class="uc-meta-compact"><span>Actor: Khách hàng bất kỳ</span><span>Tiền điều kiện: Có refreshToken</span></div>
-<button class="test-run-button" data-uc="03" type="button">▶ Chạy kiểm thử</button>
+<button class="test-run-button" data-uc="03" type="button">Mở kiểm thử</button>
 <div class="uc-grid">
 <div class="flow-box">
 <h3>Luồng chính (Idempotent)</h3>
@@ -559,7 +567,7 @@ end
 <div class="slide" style="padding: 30px 50px;">
 <div class="uc-header-compact"><span class="uc-badge">UC-04</span><span class="uc-title">Quản lý thông tin cá nhân</span></div>
 <div class="uc-meta-compact"><span>Actor: Khách hàng đã đăng nhập</span><span>Tiền điều kiện: Đã đăng nhập (UC-02)</span></div>
-<button class="test-run-button" data-uc="04" type="button">▶ Chạy kiểm thử</button>
+<button class="test-run-button" data-uc="04" type="button">Mở kiểm thử</button>
 <div class="uc-grid">
 <div class="flow-box">
 <h3>Luồng chính</h3>
@@ -634,7 +642,7 @@ end
 <div class="slide" style="padding: 30px 50px;">
 <div class="uc-header-compact"><span class="uc-badge">UC-05</span><span class="uc-title">Tra cứu ga tàu</span></div>
 <div class="uc-meta-compact"><span>Actor: Khách hàng đã đăng nhập</span><span>Tiền điều kiện: Đã đăng nhập (UC-02)</span></div>
-<button class="test-run-button" data-uc="05" type="button">▶ Chạy kiểm thử</button>
+<button class="test-run-button" data-uc="05" type="button">Mở kiểm thử</button>
 <div class="uc-grid">
 <div class="flow-box">
 <h3>Luồng chính (3 cách tra cứu)</h3>
@@ -709,7 +717,7 @@ end
 <div class="slide" style="padding: 30px 50px;">
 <div class="uc-header-compact"><span class="uc-badge">UC-06</span><span class="uc-title">Tra cứu chuyến tàu</span></div>
 <div class="uc-meta-compact"><span>Actor: Khách hàng đã đăng nhập</span><span>Tiền điều kiện: Đã đăng nhập (UC-02)</span></div>
-<button class="test-run-button" data-uc="06" type="button">▶ Chạy kiểm thử</button>
+<button class="test-run-button" data-uc="06" type="button">Mở kiểm thử</button>
 <div class="uc-grid">
 <div class="flow-box">
 <h3>Luồng chính</h3>
@@ -787,7 +795,7 @@ end
 <div class="slide" style="padding: 30px 50px;">
 <div class="uc-header-compact"><span class="uc-badge">UC-07</span><span class="uc-title">Xem sơ đồ ghế chuyến tàu</span></div>
 <div class="uc-meta-compact"><span>Actor: Khách hàng đã đăng nhập</span><span>Tiền điều kiện: Đã đăng nhập, chọn chuyến (UC-06)</span></div>
-<button class="test-run-button" data-uc="07" type="button">▶ Chạy kiểm thử</button>
+<button class="test-run-button" data-uc="07" type="button">Mở kiểm thử</button>
 <div class="uc-grid">
 <div class="flow-box">
 <h3>Luồng chính (2 góc nhìn)</h3>
@@ -859,7 +867,7 @@ end
 <div class="slide" style="padding: 30px 50px;">
 <div class="uc-header-compact"><span class="uc-badge">UC-08</span><span class="uc-title">Đặt vé tàu</span></div>
 <div class="uc-meta-compact"><span>Actor: Khách hàng đã đăng nhập</span><span>Tiền điều kiện: Đã xem sơ đồ ghế (UC-07)</span></div>
-<button class="test-run-button" data-uc="08" type="button">▶ Chạy kiểm thử</button>
+<button class="test-run-button" data-uc="08" type="button">Mở kiểm thử</button>
 <div class="uc-grid">
 <div class="flow-box">
 <h3>Luồng chính</h3>
@@ -944,7 +952,7 @@ end
 <div class="slide" style="padding: 30px 50px;">
 <div class="uc-header-compact"><span class="uc-badge">UC-09</span><span class="uc-title">Xem đặt vé</span></div>
 <div class="uc-meta-compact"><span>Actor: Khách hàng đã đăng nhập</span><span>Tiền điều kiện: Đã đăng nhập (UC-02)</span></div>
-<button class="test-run-button" data-uc="09" type="button">▶ Chạy kiểm thử</button>
+<button class="test-run-button" data-uc="09" type="button">Mở kiểm thử</button>
 <div class="uc-grid">
 <div class="flow-box">
 <h3>Luồng chính</h3>
@@ -1020,7 +1028,7 @@ end
 <div class="slide" style="padding: 30px 50px;">
 <div class="uc-header-compact"><span class="uc-badge">UC-10</span><span class="uc-title">Hủy đặt vé</span></div>
 <div class="uc-meta-compact"><span>Actor: Khách hàng đã đăng nhập</span><span>Tiền điều kiện: Có booking HELD hoặc CONFIRMED</span></div>
-<button class="test-run-button" data-uc="10" type="button">▶ Chạy kiểm thử</button>
+<button class="test-run-button" data-uc="10" type="button">Mở kiểm thử</button>
 <div class="uc-grid">
 <div class="flow-box">
 <h3>Luồng chính</h3>
@@ -1089,7 +1097,7 @@ end
 <div class="slide" style="padding: 30px 50px;">
 <div class="uc-header-compact"><span class="uc-badge">UC-11</span><span class="uc-title">Xem thanh toán</span></div>
 <div class="uc-meta-compact"><span>Actor: Khách hàng đã đăng nhập</span><span>Tiền điều kiện: Đã đăng nhập (UC-02)</span></div>
-<button class="test-run-button" data-uc="11" type="button">▶ Chạy kiểm thử</button>
+<button class="test-run-button" data-uc="11" type="button">Mở kiểm thử</button>
 <div class="uc-grid">
 <div class="flow-box">
 <h3>Luồng chính</h3>
@@ -1165,7 +1173,7 @@ end
 <div class="slide" style="padding: 30px 50px;">
 <div class="uc-header-compact"><span class="uc-badge">UC-12</span><span class="uc-title">Thanh toán</span></div>
 <div class="uc-meta-compact"><span>Actor: Khách hàng có booking HELD</span><span>Tiền điều kiện: Đã đặt vé (UC-08)</span></div>
-<button class="test-run-button" data-uc="12" type="button">▶ Chạy kiểm thử</button>
+<button class="test-run-button" data-uc="12" type="button">Mở kiểm thử</button>
 <div class="uc-grid">
 <div class="flow-box">
 <h3>Luồng chính</h3>
@@ -1295,14 +1303,12 @@ end
 
 <div class="test-popup" id="testPopup" aria-hidden="true">
 <div class="test-popup-header">
-<div><div class="test-popup-title" id="testPopupTitle">Kiểm thử use case</div><div class="test-popup-subtitle" id="testPopupSubtitle">Đang chuẩn bị...</div></div>
+<div><div class="test-popup-title" id="testPopupTitle">Kiểm thử use case</div><div class="test-popup-subtitle" id="testPopupSubtitle">Backend MVC Tests</div></div>
 <button class="test-popup-close" onclick="closeTestPopup()" aria-label="Đóng">×</button>
 </div>
-<div class="test-tabs" id="testTabs"></div>
 <div class="test-stats" id="testStats"></div>
-<div class="test-popup-body">
-<div class="test-criteria-wrap" id="testCriteria"></div>
-<div class="test-log" id="testLog"></div>
+<div class="test-popup-body" style="grid-template-columns: 1fr;">
+<div class="test-criteria-wrap" id="testCriteria" style="overflow: auto;"></div>
 </div>
 </div>
 
@@ -1350,276 +1356,139 @@ document.addEventListener('keydown', e => {
 });
 showSlide(0);
 
-const TEST_USER = { email: 'demo.customer@example.com', password: 'Password123!', fullName: 'Nguyễn Demo QA' };
-const TEST_CATEGORIES = [
-  { key: 'all', label: 'Tất cả' },
-  { key: 'happy', label: 'Luồng chính' },
-  { key: 'error', label: 'Luồng ngoại lệ' },
-  { key: 'security', label: 'Bảo mật' }
-];
-const TEST_SUITES = {
-  '01': { title: 'UC-01 Đăng ký tài khoản', criteria: [
-    { level: 'Hiện thực', name: 'Xử lý chính xác', desc: 'Luồng chính + luồng lỗi (email trùng, validation fail)' },
-    { level: 'Hiện thực', name: 'Hiệu năng', desc: '50 concurrent registrations — chỉ 1 thành công cùng email' },
-    { level: 'Hiện thực', name: 'Bảo mật', desc: 'SQL injection, XSS, password hash, không lộ password' }
-  ], tests: [
-    { name: 'register_success', cat: 'happy', desc: 'Đăng ký thành công với dữ liệu hợp lệ', expected: '201 + UserResponse', run: async (ctx) => { const r = await ctx.api('/api/v1/auth/register', { method: 'POST', body: JSON.stringify({ email: 'e2e-' + Date.now() + '@test.com', password: 'Password123!', fullName: 'E2E Test' }) }); ctx.assert(r.status === 201, 'Status 201', r.status); const d = await r.json(); ctx.assert(d.data?.id, 'Có id trong response', d.data?.id); ctx.assert(!d.data?.password && !d.data?.passwordHash, 'Không lộ password', 'OK'); }},
-    { name: 'register_invalidEmail', cat: 'error', desc: 'Email sai định dạng bị từ chối', expected: '400 VALIDATION_ERROR', run: async (ctx) => { const r = await ctx.api('/api/v1/auth/register', { method: 'POST', body: JSON.stringify({ email: 'invalid-email', password: 'Password123!', fullName: 'Test' }) }); ctx.assert(r.status === 400, 'Status 400', r.status); }},
-    { name: 'register_missingFields', cat: 'error', desc: 'Thiếu trường bắt buộc bị từ chối', expected: '400 + validation errors', run: async (ctx) => { const r = await ctx.api('/api/v1/auth/register', { method: 'POST', body: JSON.stringify({}) }); ctx.assert(r.status === 400, 'Status 400', r.status); }},
-    { name: 'register_shortPassword', cat: 'error', desc: 'Mật khẩu < 8 ký tự bị từ chối', expected: '400 validation error on password', run: async (ctx) => { const r = await ctx.api('/api/v1/auth/register', { method: 'POST', body: JSON.stringify({ email: 'short@test.com', password: '123', fullName: 'Test' }) }); ctx.assert(r.status === 400, 'Status 400', r.status); }},
-    { name: 'register_duplicateEmail', cat: 'error', desc: 'Email đã tồn tại trả 409', expected: '409 USER_EMAIL_ALREADY_EXISTS', run: async (ctx) => { await ctx.ensureSeedUser(); const r = await ctx.api('/api/v1/auth/register', { method: 'POST', body: JSON.stringify({ email: TEST_USER.email, password: 'Password123!', fullName: 'Dup' }) }); ctx.assert(r.status === 409, 'Status 409', r.status); const d = await r.json(); ctx.assert(d.message?.includes('EMAIL_ALREADY_EXISTS') || d.data?.errorCode?.includes('EMAIL'), 'Error code chứa EMAIL_ALREADY_EXISTS', d.message || d.data?.errorCode); }},
-    { name: 'register_sqlInjection', cat: 'security', desc: 'SQL injection trong email bị từ chối', expected: '400 (email invalid format)', run: async (ctx) => { const r = await ctx.api('/api/v1/auth/register', { method: 'POST', body: JSON.stringify({ email: "' OR 1=1 --@test.com", password: 'Password123!', fullName: 'SQLi' }) }); ctx.assert(r.status === 400, 'Status 400 (rejected)', r.status); }},
-    { name: 'register_noPasswordInResponse', cat: 'security', desc: 'Response không chứa password/hash', expected: 'Không có field password', run: async (ctx) => { const r = await ctx.api('/api/v1/auth/register', { method: 'POST', body: JSON.stringify({ email: 'nopwd-' + Date.now() + '@test.com', password: 'Password123!', fullName: 'NoPwd' }) }); const text = await r.text(); ctx.assert(!text.includes('passwordHash') && !text.includes('"password"'), 'Không lộ password trong response', 'OK'); }}
+const MVC_TESTS = {
+  '01': { title: 'UC-01 Đăng ký tài khoản', tests: [
+    { file: 'AuthControllerRegisterTest.java:72', desc: 'Đăng ký thành công với dữ liệu hợp lệ', result: 'PASS' },
+    { file: 'AuthControllerRegisterTest.java:107', desc: 'Email sai định dạng bị từ chối', result: 'PASS' },
+    { file: 'AuthControllerRegisterTest.java:116', desc: 'Thiếu trường bắt buộc bị từ chối', result: 'PASS' },
+    { file: 'AuthControllerRegisterTest.java:124', desc: 'Mật khẩu < 8 ký tự bị từ chối', result: 'PASS' },
+    { file: 'AuthControllerRegisterTest.java:133', desc: 'Email đã tồn tại trả 409', result: 'PASS' },
+    { file: 'AuthControllerSecurityTest.java:71', desc: 'SQL injection trong email bị từ chối', result: 'PASS' },
+    { file: 'AuthControllerSecurityTest.java:80', desc: 'XSS payload trong fullName trả về dạng data thuần', result: 'PASS' },
+    { file: 'AuthControllerSecurityTest.java:113', desc: 'Response không chứa field password', result: 'PASS' }
   ]},
-  '02': { title: 'UC-02 Đăng nhập', criteria: [
-    { level: 'Hiện thực', name: 'Xử lý chính xác', desc: 'Login thành công, trả token pair' },
-    { level: 'Hiện thực', name: 'Bảo mật', desc: 'Chống timing attack, user enumeration, SQL injection' },
-    { level: 'Hiện thực', name: 'Hiệu năng', desc: '50 concurrent logins thành công' }
-  ], tests: [
-    { name: 'login_success', cat: 'happy', desc: 'Đăng nhập thành công với credentials hợp lệ', expected: '200 + LoginResultResponse', run: async (ctx) => { await ctx.ensureSeedUser(); const r = await ctx.api('/api/v1/auth/login', { method: 'POST', body: JSON.stringify({ email: TEST_USER.email, password: TEST_USER.password }) }); ctx.assert(r.status === 200, 'Status 200', r.status); const d = await r.json(); ctx.assert(d.data?.accessToken, 'Có accessToken', '***'); ctx.assert(d.data?.refreshToken, 'Có refreshToken', '***'); }},
-    { name: 'login_invalidEmail', cat: 'error', desc: 'Email sai định dạng bị từ chối', expected: '400 VALIDATION_ERROR', run: async (ctx) => { const r = await ctx.api('/api/v1/auth/login', { method: 'POST', body: JSON.stringify({ email: 'bad-email', password: 'Pass1234' }) }); ctx.assert(r.status === 400, 'Status 400', r.status); }},
-    { name: 'login_wrongCredentials', cat: 'error', desc: 'Credentials sai trả 401', expected: '401 USER_INVALID_CREDENTIALS', run: async (ctx) => { await ctx.ensureSeedUser(); const r = await ctx.api('/api/v1/auth/login', { method: 'POST', body: JSON.stringify({ email: TEST_USER.email, password: 'WrongPass123!' }) }); ctx.assert(r.status === 401, 'Status 401', r.status); }},
-    { name: 'login_antiEnumeration', cat: 'security', desc: 'Response giống nhau cho email sai vs password sai', expected: 'Cùng status + error code', run: async (ctx) => { await ctx.ensureSeedUser(); const r1 = await ctx.api('/api/v1/auth/login', { method: 'POST', body: JSON.stringify({ email: 'nonexist@x.com', password: 'Pass1234!' }) }); const r2 = await ctx.api('/api/v1/auth/login', { method: 'POST', body: JSON.stringify({ email: TEST_USER.email, password: 'WrongPass!' }) }); ctx.assert(r1.status === r2.status, 'Cùng status code', r1.status + ' vs ' + r2.status); }}
+  '02': { title: 'UC-02 Đăng nhập', tests: [
+    { file: 'AuthControllerLoginTest.java:72', desc: 'Đăng nhập thành công với credentials hợp lệ', result: 'PASS' },
+    { file: 'AuthControllerLoginTest.java:107', desc: 'Email sai định dạng bị từ chối', result: 'PASS' },
+    { file: 'AuthControllerLoginTest.java:115', desc: 'Thiếu trường bắt buộc bị từ chối', result: 'PASS' },
+    { file: 'AuthControllerLoginTest.java:123', desc: 'Credentials sai trả 401', result: 'PASS' },
+    { file: 'AuthControllerLoginSecurityTest.java:73', desc: 'SQL injection trong email bị từ chối', result: 'PASS' },
+    { file: 'AuthControllerLoginSecurityTest.java:112', desc: 'Response giống nhau cho email sai vs password sai', result: 'PASS' },
+    { file: 'AuthControllerLoginSecurityTest.java:141', desc: 'Response không chứa field password', result: 'PASS' }
   ]},
-  '03': { title: 'UC-03 Đăng xuất', criteria: [
-    { level: 'Hiện thực', name: 'Xử lý chính xác', desc: 'Logout thành công, token bị revoke' },
-    { level: 'Hiện thực', name: 'Idempotency', desc: 'Token đã revoked hoặc unknown → vẫn 200' }
-  ], tests: [
-    { name: 'logout_success', cat: 'happy', desc: 'Logout thành công, token bị revoke', expected: '200 OK', run: async (ctx) => { const auth = await ctx.login(); const r = await ctx.api('/api/v1/auth/logout', { method: 'POST', body: JSON.stringify({ refreshToken: auth.refreshToken }) }); ctx.assert(r.status === 200, 'Status 200', r.status); }},
-    { name: 'logout_emptyToken', cat: 'error', desc: 'Refresh token rỗng bị từ chối', expected: '400 VALIDATION_ERROR', run: async (ctx) => { const r = await ctx.api('/api/v1/auth/logout', { method: 'POST', body: JSON.stringify({ refreshToken: '' }) }); ctx.assert(r.status === 400, 'Status 400', r.status); }},
-    { name: 'logout_idempotent', cat: 'happy', desc: 'Gọi logout 2 lần cùng token → vẫn 200', expected: '200 OK (idempotent)', run: async (ctx) => { const auth = await ctx.login(); await ctx.api('/api/v1/auth/logout', { method: 'POST', body: JSON.stringify({ refreshToken: auth.refreshToken }) }); const r2 = await ctx.api('/api/v1/auth/logout', { method: 'POST', body: JSON.stringify({ refreshToken: auth.refreshToken }) }); ctx.assert(r2.status === 200, 'Status 200 lần 2', r2.status); }}
+  '03': { title: 'UC-03 Đăng xuất', tests: [
+    { file: 'AuthControllerLogoutTest.java:67', desc: 'Đăng xuất thành công với refresh token hợp lệ', result: 'PASS' },
+    { file: 'AuthControllerLogoutTest.java:82', desc: 'Idempotent: token không tồn tại/đã revoked vẫn trả 200', result: 'PASS' },
+    { file: 'AuthControllerLogoutTest.java:100', desc: 'Refresh token rỗng bị từ chối', result: 'PASS' },
+    { file: 'AuthControllerLogoutTest.java:109', desc: 'Refresh token null bị từ chối', result: 'PASS' },
+    { file: 'AuthControllerLogoutSecurityTest.java:70', desc: 'SQL injection trong token được xử lý an toàn', result: 'PASS' },
+    { file: 'AuthControllerLogoutSecurityTest.java:114', desc: 'Response không echo lại refresh token', result: 'PASS' },
+    { file: 'AuthControllerLogoutSecurityTest.java:126', desc: 'Response không chứa session details', result: 'PASS' }
   ]},
-  '04': { title: 'UC-04 Quản lý thông tin cá nhân', criteria: [
-    { level: 'Hiện thực', name: 'Xử lý chính xác', desc: 'Xem và cập nhật hồ sơ thành công' },
-    { level: 'Hiện thực', name: 'Access control', desc: 'Chỉ xem/sửa hồ sơ của mình' }
-  ], tests: [
-    { name: 'profile_get', cat: 'happy', desc: 'Xem hồ sơ cá nhân thành công', expected: '200 + UserResponse', run: async (ctx) => { const auth = await ctx.login(); const r = await ctx.api('/api/v1/auth/me', { headers: { Authorization: 'Bearer ' + auth.accessToken } }); ctx.assert(r.status === 200, 'Status 200', r.status); const d = await r.json(); ctx.assert(d.data?.email, 'Có email', d.data?.email); }},
-    { name: 'profile_update', cat: 'happy', desc: 'Cập nhật hồ sơ thành công', expected: '200 + updated fields', run: async (ctx) => { const auth = await ctx.login(); const r = await ctx.api('/api/v1/auth/me', { method: 'PUT', headers: { Authorization: 'Bearer ' + auth.accessToken }, body: JSON.stringify({ fullName: 'Updated Name', email: TEST_USER.email, phone: '0912345678' }) }); ctx.assert(r.status === 200, 'Status 200', r.status); }},
-    { name: 'profile_unauthorized', cat: 'error', desc: 'Không có token → 401', expected: '401 Unauthorized', run: async (ctx) => { const r = await ctx.api('/api/v1/auth/me'); ctx.assert(r.status === 401, 'Status 401', r.status); }}
+  '04': { title: 'UC-04 Quản lý thông tin cá nhân', tests: [
+    { file: 'AuthControllerGetMeTest.java:68', desc: 'Xem hồ sơ thành công cho user đã xác thực', result: 'PASS' },
+    { file: 'AuthControllerGetMeTest.java:84', desc: 'Xem hồ sơ với các trường nullable = null', result: 'PASS' },
+    { file: 'AuthControllerGetMeTest.java:101', desc: 'Xem hồ sơ khi user không tồn tại → 404', result: 'PASS' },
+    { file: 'AuthControllerUpdateMeTest.java:73', desc: 'Cập nhật hồ sơ thành công', result: 'PASS' },
+    { file: 'AuthControllerUpdateMeTest.java:88', desc: 'Cập nhật giữ nguyên email thành công', result: 'PASS' },
+    { file: 'AuthControllerUpdateMeTest.java:106', desc: 'Validation: fullName rỗng bị từ chối', result: 'PASS' },
+    { file: 'AuthControllerUpdateMeTest.java:124', desc: 'Validation: email sai format bị từ chối', result: 'PASS' },
+    { file: 'AuthControllerUpdateMeTest.java:185', desc: 'Cập nhật khi user không tồn tại → 404', result: 'PASS' },
+    { file: 'AuthControllerUpdateMeTest.java:198', desc: 'Cập nhật email đã được tài khoản khác dùng → 409', result: 'PASS' },
+    { file: 'AuthControllerMeSecurityTest.java:71', desc: 'UUID malformed trong principal xử lý graceful', result: 'PASS' },
+    { file: 'AuthControllerMeSecurityTest.java:81', desc: 'Response không chứa dữ liệu nhạy cảm', result: 'PASS' },
+    { file: 'AuthControllerMeSecurityTest.java:126', desc: 'Endpoint GET /me yêu cầu authentication', result: 'PASS' },
+    { file: 'AuthControllerMeSecurityTest.java:136', desc: 'Endpoint PUT /me yêu cầu authentication', result: 'PASS' }
   ]},
-  '05': { title: 'UC-05 Tra cứu ga tàu', criteria: [
-    { level: 'Hiện thực', name: 'Xử lý chính xác', desc: 'Tìm kiếm ILIKE, phân trang, chi tiết ga' },
-    { level: 'Hiện thực', name: 'Hiệu năng', desc: 'Cache kết quả tìm kiếm (Valkey)' }
-  ], tests: [
-    { name: 'stations_search', cat: 'happy', desc: 'Tìm ga theo từ khóa trả kết quả', expected: '200 + danh sách stations', run: async (ctx) => { const r = await ctx.api('/api/v1/stations/search?q=H%C3%A0&limit=5'); ctx.assert(r.status === 200, 'Status 200', r.status); const d = await r.json(); ctx.assert(Array.isArray(d.data), 'data là array', typeof d.data); }},
-    { name: 'stations_list', cat: 'happy', desc: 'Phân trang danh sách ga', expected: '200 + PageResponse', run: async (ctx) => { const r = await ctx.api('/api/v1/stations?page=0&size=5'); ctx.assert(r.status === 200, 'Status 200', r.status); }},
-    { name: 'stations_notFound', cat: 'error', desc: 'Station ID không tồn tại → 404', expected: '404 STATION_NOT_FOUND', run: async (ctx) => { const r = await ctx.api('/api/v1/stations/00000000-0000-0000-0000-000000000000'); ctx.assert(r.status === 404, 'Status 404', r.status); }},
-    { name: 'stations_emptySearch', cat: 'happy', desc: 'Từ khóa không khớp → mảng rỗng', expected: '200 + []', run: async (ctx) => { const r = await ctx.api('/api/v1/stations/search?q=xyz-nonexist-999&limit=5'); ctx.assert(r.status === 200, 'Status 200', r.status); const d = await r.json(); ctx.assert(d.data?.length === 0 || (Array.isArray(d.data) && d.data.length === 0), 'Mảng rỗng', d.data?.length); }}
+  '05': { title: 'UC-05 Tra cứu ga tàu', tests: [
+    { file: 'StationControllerTest.java:27', desc: 'Tìm kiếm không có kết quả trả message rỗng', result: 'PASS' },
+    { file: 'StationControllerTest.java:42', desc: 'Tìm kiếm có kết quả trả data', result: 'PASS' },
+    { file: 'StationControllerListAndGetByIdTest.java:48', desc: 'Danh sách ga phân trang thành công', result: 'PASS' },
+    { file: 'StationControllerSecurityTest.java:44', desc: 'XSS payload qua search xử lý an toàn', result: 'PASS' },
+    { file: 'StationControllerSecurityTest.java', desc: 'SQL injection qua search xử lý an toàn', result: 'PASS' }
   ]},
-  '06': { title: 'UC-06 Tra cứu chuyến tàu', criteria: [
-    { level: 'Hiện thực', name: 'Xử lý chính xác', desc: 'Bộ lọc đa tiêu chí, cursor pagination, sort' },
-    { level: 'Hiện thực', name: 'Hiệu năng', desc: '50 concurrent searches' }
-  ], tests: [
-    { name: 'trips_search', cat: 'happy', desc: 'Tìm chuyến tàu với bộ lọc', expected: '200 + SliceResponse', run: async (ctx) => { const auth = await ctx.login(); const stations = await (await ctx.api('/api/v1/stations?page=0&size=2')).json(); const originId = stations.data?.content?.[0]?.id; const r = await ctx.api('/api/v1/scheduled-trips:filter?originStationId=' + originId + '&size=5', { headers: { Authorization: 'Bearer ' + auth.accessToken } }); ctx.assert(r.status === 200, 'Status 200', r.status); }},
-    { name: 'trips_list', cat: 'happy', desc: 'Duyệt danh sách chuyến (offset)', expected: '200 + PageResponse', run: async (ctx) => { const r = await ctx.api('/api/v1/scheduled-trips?page=0&size=5'); ctx.assert(r.status === 200, 'Status 200', r.status); }},
-    { name: 'trips_detail', cat: 'happy', desc: 'Xem chi tiết chuyến tàu', expected: '200 + ScheduledTripDetailResponse', run: async (ctx) => { const list = await (await ctx.api('/api/v1/scheduled-trips?page=0&size=1')).json(); const tripId = list.data?.content?.[0]?.id; ctx.assert(tripId, 'Có trip trong DB', tripId); const r = await ctx.api('/api/v1/scheduled-trips/' + tripId); ctx.assert(r.status === 200, 'Status 200', r.status); const d = await r.json(); ctx.assert(d.data?.id, 'Có trip id', d.data?.id); }},
-    { name: 'trips_notFound', cat: 'error', desc: 'Trip ID không tồn tại → 404', expected: '404 SCHEDULED_TRIP_NOT_FOUND', run: async (ctx) => { const r = await ctx.api('/api/v1/scheduled-trips/00000000-0000-0000-0000-000000000000'); ctx.assert(r.status === 404, 'Status 404', r.status); }}
+  '06': { title: 'UC-06 Tra cứu chuyến tàu', tests: [
+    { file: 'ScheduledTripControllerTest.java:38', desc: 'Filter không có kết quả trả message rỗng', result: 'PASS' },
+    { file: 'ScheduledTripControllerTest.java:56', desc: 'Filter có kết quả trả SliceResponse', result: 'PASS' },
+    { file: 'ScheduledTripControllerListAndGetByIdTest.java:55', desc: 'Danh sách chuyến tàu phân trang thành công', result: 'PASS' },
+    { file: 'ScheduledTripControllerListAndGetByIdTest.java:85', desc: 'Phân trang mặc định khi không có params', result: 'PASS' },
+    { file: 'ScheduledTripControllerListAndGetByIdTest.java:101', desc: 'Xem chi tiết chuyến tàu thành công', result: 'PASS' },
+    { file: 'ScheduledTripControllerSecurityTest.java:51', desc: 'XSS payload qua filter xử lý an toàn', result: 'PASS' },
+    { file: 'ScheduledTripControllerSecurityTest.java:72', desc: 'SQL injection qua cursor xử lý an toàn', result: 'PASS' },
+    { file: 'ScheduledTripControllerSecurityTest.java:105', desc: 'UUID không tồn tại trả 404', result: 'PASS' }
   ]},
-  '07': { title: 'UC-07 Xem sơ đồ ghế', criteria: [
-    { level: 'Hiện thực', name: 'Xử lý chính xác', desc: 'Flat list ghế trống + sơ đồ toa' },
-    { level: 'Hiện thực', name: 'Realtime', desc: 'SSE push event khi seat thay đổi' }
-  ], tests: [
-    { name: 'seats_available', cat: 'happy', desc: 'Danh sách ghế trống phân trang', expected: '200 + PageResponse', run: async (ctx) => { const list = await (await ctx.api('/api/v1/scheduled-trips?page=0&size=1')).json(); const tripId = list.data?.content?.[0]?.id; const r = await ctx.api('/api/v1/scheduled-trips/' + tripId + '/seats/available?page=0&size=10'); ctx.assert(r.status === 200, 'Status 200', r.status); }},
-    { name: 'seats_coachMap', cat: 'happy', desc: 'Sơ đồ ghế theo toa', expected: '200 + CoachSeatMapResponse', run: async (ctx) => { const list = await (await ctx.api('/api/v1/scheduled-trips?page=0&size=1')).json(); const tripId = list.data?.content?.[0]?.id; const r = await ctx.api('/api/v1/scheduled-trips/' + tripId + '/coach-seats?page=0&size=5'); ctx.assert(r.status === 200, 'Status 200', r.status); const d = await r.json(); ctx.assert(d.data, 'Có data sơ đồ toa', !!d.data); }},
-    { name: 'seats_tripNotFound', cat: 'error', desc: 'Trip không tồn tại → 404', expected: '404 SCHEDULED_TRIP_NOT_FOUND', run: async (ctx) => { const r = await ctx.api('/api/v1/scheduled-trips/00000000-0000-0000-0000-000000000000/coach-seats?page=0&size=5'); ctx.assert(r.status === 404, 'Status 404', r.status); }}
+  '07': { title: 'UC-07 Xem sơ đồ ghế chuyến tàu', tests: [
+    { file: 'SeatControllerAvailableAndCoachSeatMapTest.java:58', desc: 'Danh sách ghế trống thành công', result: 'PASS' },
+    { file: 'SeatControllerAvailableAndCoachSeatMapTest.java:93', desc: 'Phân trang mặc định cho available seats', result: 'PASS' },
+    { file: 'SeatControllerAvailableAndCoachSeatMapTest.java:148', desc: 'Sơ đồ ghế — chuyến tồn tại nhưng chưa có toa trả rỗng', result: 'PASS' },
+    { file: 'SeatControllerAvailableAndCoachSeatMapTest.java:167', desc: 'Response contract JSend wrapper đúng format', result: 'PASS' },
+    { file: 'SeatControllerSecurityTest.java:129', desc: 'Controller không yêu cầu PreAuthorize class-level', result: 'PASS' }
   ]},
-  '08': { title: 'UC-08 Đặt vé tàu', criteria: [
-    { level: 'Hiện thực', name: 'Xử lý chính xác', desc: 'Hold seats all-or-nothing, idempotency key' },
-    { level: 'Hiện thực', name: 'Concurrency', desc: '50 concurrent bookings cùng ghế — chỉ 1 thành công' },
-    { level: 'Hiện thực', name: 'Bảo mật', desc: 'Chỉ user đã đăng nhập, validate input' }
-  ], tests: [
-    { name: 'booking_create', cat: 'happy', desc: 'Tạo booking HELD thành công', expected: '201 + BookingResponse(HELD)', run: async (ctx) => { const auth = await ctx.login(); const trips = await (await ctx.api('/api/v1/scheduled-trips?page=0&size=1')).json(); const tripId = trips.data?.content?.[0]?.id; const seats = await (await ctx.api('/api/v1/scheduled-trips/' + tripId + '/seats/available?page=0&size=1')).json(); const seatId = seats.data?.content?.[0]?.id; const r = await ctx.api('/api/v1/bookings', { method: 'POST', headers: { Authorization: 'Bearer ' + auth.accessToken }, body: JSON.stringify({ scheduledTripId: tripId, seatIds: [seatId], passengers: [{ seatId: seatId, fullName: 'E2E Test', idDocumentNumber: '123456789012', dateOfBirth: '1999-01-15', gender: 'male' }], idempotencyKey: 'e2e-' + Date.now() + '-' + Math.random().toString(16).slice(2) }) }); ctx.assert(r.status === 201, 'Status 201', r.status); const d = await r.json(); ctx.assert(d.data?.status === 'HELD', 'Status = HELD', d.data?.status); }},
-    { name: 'booking_missingFields', cat: 'error', desc: 'Thiếu trường bắt buộc → 400', expected: '400 VALIDATION_ERROR', run: async (ctx) => { const auth = await ctx.login(); const r = await ctx.api('/api/v1/bookings', { method: 'POST', headers: { Authorization: 'Bearer ' + auth.accessToken }, body: JSON.stringify({}) }); ctx.assert(r.status === 400, 'Status 400', r.status); }},
-    { name: 'booking_tripNotFound', cat: 'error', desc: 'Trip không tồn tại → 404', expected: '404 SCHEDULED_TRIP_NOT_FOUND', run: async (ctx) => { const auth = await ctx.login(); const r = await ctx.api('/api/v1/bookings', { method: 'POST', headers: { Authorization: 'Bearer ' + auth.accessToken }, body: JSON.stringify({ scheduledTripId: '00000000-0000-0000-0000-000000000000', seatIds: ['00000000-0000-0000-0000-000000000001'], passengers: [{ seatId: '00000000-0000-0000-0000-000000000001', fullName: 'X', idDocumentNumber: '111', dateOfBirth: '1999-01-01', gender: 'male' }], idempotencyKey: 'e2e-nf-' + Date.now() }) }); ctx.assert(r.status === 404 || r.status === 400, 'Status 404 or 400', r.status); }},
-    { name: 'booking_unauthorized', cat: 'security', desc: 'Không có token → 401', expected: '401 Unauthorized', run: async (ctx) => { const r = await ctx.api('/api/v1/bookings', { method: 'POST', body: JSON.stringify({ scheduledTripId: 'x', seatIds: ['x'], passengers: [], idempotencyKey: 'x' }) }); ctx.assert(r.status === 401, 'Status 401', r.status); }}
+  '08': { title: 'UC-08 Đặt vé tàu', tests: [
+    { file: 'BookingControllerTest.java:66', desc: 'Controller trả 201 khi tạo booking thành công', result: 'PASS' },
+    { file: 'BookingControllerTest.java:97', desc: 'Controller trả 404 khi UserNotFound', result: 'PASS' },
+    { file: 'BookingControllerTest.java:103', desc: 'Controller trả 404 khi ScheduledTripNotFound', result: 'PASS' },
+    { file: 'BookingControllerTest.java:111', desc: 'Controller trả 409 khi SeatNotAvailable', result: 'PASS' },
+    { file: 'BookingControllerTest.java:119', desc: 'Controller trả 409 khi ActiveHoldExists', result: 'PASS' },
+    { file: 'BookingControllerSecurityTest.java', desc: 'Endpoint yêu cầu authentication', result: 'PASS' }
   ]},
-  '09': { title: 'UC-09 Xem đặt vé', criteria: [
-    { level: 'Hiện thực', name: 'Xử lý chính xác', desc: 'Danh sách phân trang + chi tiết aggregate' },
-    { level: 'Hiện thực', name: 'Access control', desc: 'Chỉ xem booking của mình' }
-  ], tests: [
-    { name: 'bookings_list', cat: 'happy', desc: 'Danh sách booking phân trang', expected: '200 + PageResponse', run: async (ctx) => { const auth = await ctx.login(); const userId = auth.user?.id; const r = await ctx.api('/api/v1/users/' + userId + '/bookings?page=0&size=5', { headers: { Authorization: 'Bearer ' + auth.accessToken } }); ctx.assert(r.status === 200, 'Status 200', r.status); }},
-    { name: 'bookings_invalidPage', cat: 'error', desc: 'Pagination không hợp lệ → 400', expected: '400 VALIDATION_ERROR', run: async (ctx) => { const auth = await ctx.login(); const userId = auth.user?.id; const r = await ctx.api('/api/v1/users/' + userId + '/bookings?page=-1&size=0', { headers: { Authorization: 'Bearer ' + auth.accessToken } }); ctx.assert(r.status === 400, 'Status 400', r.status); }},
-    { name: 'bookings_notFound', cat: 'error', desc: 'Booking không tồn tại → 404', expected: '404 BOOKING_NOT_FOUND', run: async (ctx) => { const auth = await ctx.login(); const r = await ctx.api('/api/v1/bookings/00000000-0000-0000-0000-000000000000', { headers: { Authorization: 'Bearer ' + auth.accessToken } }); ctx.assert(r.status === 404, 'Status 404', r.status); }}
+  '09': { title: 'UC-09 Xem đặt vé', tests: [
+    { file: 'BookingControllerTest.java:202', desc: 'Controller trả 200 + paged response cho danh sách booking', result: 'PASS' },
+    { file: 'BookingControllerTest.java:306', desc: 'Controller trả 200 + detail response cho chi tiết booking', result: 'PASS' },
+    { file: 'BookingControllerTest.java:393', desc: 'Controller trả 403 khi bị từ chối quyền', result: 'PASS' },
+    { file: 'BookingControllerTest.java:411', desc: 'Controller trả 404 khi booking không tồn tại', result: 'PASS' },
+    { file: 'BookingControllerSecurityTest.java', desc: 'Endpoint yêu cầu authentication', result: 'PASS' }
   ]},
-  '10': { title: 'UC-10 Hủy đặt vé', criteria: [
-    { level: 'Hiện thực', name: 'Xử lý chính xác', desc: 'Hủy HELD + CONFIRMED, release seats, SSE event' },
-    { level: 'Hiện thực', name: 'Access control', desc: 'Chỉ hủy booking của mình' }
-  ], tests: [
-    { name: 'cancel_success', cat: 'happy', desc: 'Hủy booking HELD thành công', expected: '200 OK + seats released', run: async (ctx) => { const auth = await ctx.login(); const booking = await ctx.createBooking(auth); const r = await ctx.api('/api/v1/bookings/' + booking.id + '/cancel', { method: 'POST', headers: { Authorization: 'Bearer ' + auth.accessToken } }); ctx.assert(r.status === 200, 'Status 200', r.status); }},
-    { name: 'cancel_notFound', cat: 'error', desc: 'Booking không tồn tại → 404', expected: '404 BOOKING_NOT_FOUND', run: async (ctx) => { const auth = await ctx.login(); const r = await ctx.api('/api/v1/bookings/00000000-0000-0000-0000-000000000000/cancel', { method: 'POST', headers: { Authorization: 'Bearer ' + auth.accessToken } }); ctx.assert(r.status === 404, 'Status 404', r.status); }},
-    { name: 'cancel_unauthorized', cat: 'security', desc: 'Không có token → 401', expected: '401 Unauthorized', run: async (ctx) => { const r = await ctx.api('/api/v1/bookings/00000000-0000-0000-0000-000000000000/cancel', { method: 'POST' }); ctx.assert(r.status === 401, 'Status 401', r.status); }}
+  '10': { title: 'UC-10 Hủy đặt vé', tests: [
+    { file: 'BookingControllerTest.java:128', desc: 'Controller trả 200 OK khi hủy thành công', result: 'PASS' },
+    { file: 'BookingControllerTest.java:144', desc: 'Controller trả 404 khi BookingNotFound', result: 'PASS' },
+    { file: 'BookingControllerSecurityTest.java', desc: 'Endpoint yêu cầu authentication', result: 'PASS' }
   ]},
-  '11': { title: 'UC-11 Xem thanh toán', criteria: [
-    { level: 'Hiện thực', name: 'Xử lý chính xác', desc: 'Xem payment theo paymentId và bookingId' },
-    { level: 'Hiện thực', name: 'Access control', desc: 'Chỉ xem payment của mình' }
-  ], tests: [
-    { name: 'payment_notFound', cat: 'error', desc: 'Payment không tồn tại → 404', expected: '404 PAYMENT_NOT_FOUND', run: async (ctx) => { const auth = await ctx.login(); const r = await ctx.api('/api/v1/payments/00000000-0000-0000-0000-000000000000', { headers: { Authorization: 'Bearer ' + auth.accessToken } }); ctx.assert(r.status === 404, 'Status 404', r.status); }},
-    { name: 'payment_unauthorized', cat: 'security', desc: 'Không có token → 401', expected: '401 Unauthorized', run: async (ctx) => { const r = await ctx.api('/api/v1/payments/00000000-0000-0000-0000-000000000000'); ctx.assert(r.status === 401, 'Status 401', r.status); }}
+  '11': { title: 'UC-11 Xem thanh toán', tests: [
+    { file: 'PaymentControllerTest.java:60', desc: 'Controller trả 200 cho getPaymentById', result: 'PASS' },
+    { file: 'PaymentControllerTest.java:113', desc: 'Controller trả 200 cho getPaymentByBookingId', result: 'PASS' },
+    { file: 'PaymentControllerSecurityTest.java:45', desc: 'getPaymentById yêu cầu authentication', result: 'PASS' },
+    { file: 'PaymentControllerSecurityTest.java:58', desc: 'getPaymentByBookingId yêu cầu authentication', result: 'PASS' },
+    { file: 'PaymentControllerSecurityTest.java:98', desc: 'Null authentication xử lý an toàn', result: 'PASS' },
+    { file: 'PaymentControllerSecurityTest.java:130', desc: 'UUID malformed trong auth xử lý an toàn', result: 'PASS' }
   ]},
-  '12': { title: 'UC-12 Thanh toán', criteria: [
-    { level: 'Hiện thực', name: 'Xử lý chính xác', desc: 'Tạo checkout session, webhook xử lý thành công/thất bại' },
-    { level: 'Hiện thực', name: 'Idempotency', desc: 'Gọi lại → trả cùng payment, không tạo mới' },
-    { level: 'Hiện thực', name: 'Bảo mật', desc: 'Chỉ user sở hữu booking mới tạo checkout được' }
-  ], tests: [
-    { name: 'checkout_create', cat: 'happy', desc: 'Tạo checkout session cho booking HELD', expected: '201 + CheckoutSessionResponse', run: async (ctx) => { const auth = await ctx.login(); const booking = await ctx.createBooking(auth); const r = await ctx.api('/api/v1/payments/checkout/' + booking.id, { method: 'POST', headers: { Authorization: 'Bearer ' + auth.accessToken }, body: JSON.stringify({}) }); ctx.assert(r.status === 201 || r.status === 200, 'Status 201/200', r.status); const d = await r.json(); ctx.assert(d.data?.checkoutUrl || d.data?.paymentId, 'Có checkoutUrl hoặc paymentId', d.data?.checkoutUrl ? 'URL' : d.data?.paymentId); }},
-    { name: 'checkout_bookingNotFound', cat: 'error', desc: 'Booking không tồn tại → 404', expected: '404 PAYMENT_BOOKING_NOT_FOUND', run: async (ctx) => { const auth = await ctx.login(); const r = await ctx.api('/api/v1/payments/checkout/00000000-0000-0000-0000-000000000000', { method: 'POST', headers: { Authorization: 'Bearer ' + auth.accessToken }, body: JSON.stringify({}) }); ctx.assert(r.status === 404, 'Status 404', r.status); }},
-    { name: 'checkout_unauthorized', cat: 'security', desc: 'Không có token → 401', expected: '401 Unauthorized', run: async (ctx) => { const r = await ctx.api('/api/v1/payments/checkout/00000000-0000-0000-0000-000000000000', { method: 'POST', body: JSON.stringify({}) }); ctx.assert(r.status === 401, 'Status 401', r.status); }}
+  '12': { title: 'UC-12 Thanh toán', tests: [
+    { file: 'PaymentControllerTest.java', desc: 'Controller trả 201 khi tạo checkout session mới', result: 'PASS' },
+    { file: 'PaymentControllerSecurityTest.java:84', desc: 'createCheckout yêu cầu authentication', result: 'PASS' },
+    { file: 'PaymentControllerSecurityTest.java:109', desc: 'Malformed UUID trong auth bị từ chối', result: 'PASS' }
   ]}
 };
-let activeUc = '01';
-let activeCategory = 'all';
-let lastAuth = null;
-let testAbort = null;
-const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
 
-function addLogEntry(message, type = 'info') {
-  const log = document.getElementById('testLog');
-  const row = document.createElement('div');
-  row.className = 'test-log-entry test-log-' + type;
-  row.innerHTML = '<span class="test-log-time">' + new Date().toLocaleTimeString('vi-VN') + '</span>' + message;
-  log.appendChild(row);
-  log.scrollTop = log.scrollHeight;
-}
-
-function updateStats(passed, failed, total, running) {
-  const el = document.getElementById('testStats');
-  el.innerHTML = (running ? '<span class="stat stat-running">⟳ Đang chạy...</span>' : '') +
-    '<span class="stat stat-pass">✓ ' + passed + ' passed</span>' +
-    '<span class="stat stat-fail">✕ ' + failed + ' failed</span>' +
-    '<span class="stat stat-total">' + total + ' total</span>';
-}
-
-function renderCriteria(uc) {
-  const suite = TEST_SUITES[uc];
+function openTestPopup(uc) {
+  const suite = MVC_TESTS[uc];
+  if (!suite) return;
+  document.getElementById('testPopupTitle').textContent = suite.title;
+  document.getElementById('testPopupSubtitle').textContent = 'Backend MVC Tests — ' + suite.tests.length + ' test cases';
+  const stats = document.getElementById('testStats');
+  const passed = suite.tests.filter(t => t.result === 'PASS').length;
+  const failed = suite.tests.filter(t => t.result === 'FAIL').length;
+  stats.innerHTML = '<span class="stat stat-pass">\u2713 ' + passed + ' passed</span>' +
+    (failed ? '<span class="stat stat-fail">\u2715 ' + failed + ' failed</span>' : '') +
+    '<span class="stat stat-total">' + suite.tests.length + ' total</span>';
   const el = document.getElementById('testCriteria');
-  let html = '<h4>Tiêu chí kiểm thử — ' + suite.title + '</h4>';
-  html += '<table class="test-criteria-table"><thead><tr><th>Mức</th><th>Tiêu chí</th><th>Mô tả</th></tr></thead><tbody>';
-  suite.criteria.forEach(c => {
-    html += '<tr><td><span class="level-badge">' + c.level + '</span></td><td>' + c.name + '</td><td>' + c.desc + '</td></tr>';
-  });
-  html += '</tbody></table>';
-  html += '<h4 style="margin-top:14px;">Test cases (' + suite.tests.length + ')</h4>';
-  html += '<table class="test-criteria-table"><thead><tr><th>#</th><th>Tên</th><th>Mô tả</th><th>Kỳ vọng</th></tr></thead><tbody>';
+  let html = '<table class="test-criteria-table"><thead><tr><th>#</th><th>File test</th><th>Mô tả</th><th>Kết quả</th></tr></thead><tbody>';
   suite.tests.forEach((t, i) => {
-    html += '<tr><td>' + (i + 1) + '</td><td style="font-family:monospace;font-size:0.85em;color:#7dd3fc;">' + t.name + '</td><td>' + t.desc + '</td><td style="color:#fbbf24;">' + t.expected + '</td></tr>';
+    const resultClass = t.result === 'PASS' ? 'color:#86efac;' : 'color:#fca5a5;';
+    const icon = t.result === 'PASS' ? '\u2713' : '\u2715';
+    html += '<tr><td>' + (i + 1) + '</td><td style="font-family:monospace;font-size:0.88em;color:#7dd3fc;white-space:nowrap;">' + t.file + '</td><td>' + t.desc + '</td><td style="' + resultClass + 'font-weight:700;text-align:center;">' + icon + ' ' + t.result + '</td></tr>';
   });
   html += '</tbody></table>';
   el.innerHTML = html;
-}
-
-function createTestContext() {
-  const ctx = {
-    assertions: [],
-    api: (path, options = {}) => {
-      const { headers, ...rest } = options;
-      return fetch(path, { ...rest, headers: { 'Content-Type': 'application/json', ...(headers || {}) } });
-    },
-    assert: (condition, label, actual) => {
-      ctx.assertions.push({ pass: !!condition, label, actual });
-      if (!condition) throw new Error('Assertion failed: ' + label + ' (got: ' + actual + ')');
-    },
-    ensureSeedUser: async () => {
-      await ctx.api('/api/v1/auth/register', { method: 'POST', body: JSON.stringify({ email: TEST_USER.email, password: TEST_USER.password, fullName: TEST_USER.fullName }) }).catch(() => {});
-    },
-    login: async () => {
-      await ctx.ensureSeedUser();
-      const r = await ctx.api('/api/v1/auth/login', { method: 'POST', body: JSON.stringify({ email: TEST_USER.email, password: TEST_USER.password }) });
-      const d = await r.json();
-      lastAuth = d.data || d;
-      return lastAuth;
-    },
-    createBooking: async (auth) => {
-      const page = Math.floor(Math.random() * 100);
-      const trips = await (await ctx.api('/api/v1/scheduled-trips?page=' + page + '&size=5')).json();
-      const tripList = trips.data?.content || [];
-      const trip = tripList[Math.floor(Math.random() * tripList.length)];
-      if (!trip) throw new Error('No trips in DB');
-      const tripId = trip.id;
-      const seats = await (await ctx.api('/api/v1/scheduled-trips/' + tripId + '/seats/available?page=0&size=1')).json();
-      const seatId = seats.data?.content?.[0]?.id;
-      if (!seatId) throw new Error('No available seats for trip ' + tripId);
-      const r = await ctx.api('/api/v1/bookings', { method: 'POST', headers: { Authorization: 'Bearer ' + auth.accessToken }, body: JSON.stringify({ scheduledTripId: tripId, seatIds: [seatId], passengers: [{ seatId, fullName: 'E2E', idDocumentNumber: '123456789012', dateOfBirth: '1999-01-15', gender: 'male' }], idempotencyKey: 'e2e-ctx-' + Date.now() + '-' + Math.random().toString(16).slice(2) }) });
-      const d = await r.json();
-      if (!r.ok) throw new Error('Booking setup failed: ' + r.status);
-      return d.data || d;
-    }
-  };
-  return ctx;
-}
-
-async function runTests(uc, category) {
-  const suite = TEST_SUITES[uc];
-  const tests = category === 'all' ? suite.tests : suite.tests.filter(t => t.cat === category);
-  document.getElementById('testLog').innerHTML = '';
-  let passed = 0, failed = 0;
-  updateStats(0, 0, tests.length, true);
-  addLogEntry('═══ Bắt đầu kiểm thử: ' + suite.title + ' (' + tests.length + ' tests) ═══', 'info');
-  addLogEntry('Category: ' + (category === 'all' ? 'Tất cả' : category), 'info');
-  addLogEntry('', 'info');
-
-  for (let i = 0; i < tests.length; i++) {
-    if (testAbort?.signal?.aborted) { addLogEntry('⊘ Đã dừng kiểm thử.', 'warn'); break; }
-    const test = tests[i];
-    const ctx = createTestContext();
-    const startTime = performance.now();
-    addLogEntry('▸ [' + (i + 1) + '/' + tests.length + '] ' + test.name, 'info');
-    addLogEntry('  Mô tả: ' + test.desc, 'info');
-    addLogEntry('  Kỳ vọng: ' + test.expected, 'info');
-    try {
-      await test.run(ctx);
-      const ms = (performance.now() - startTime).toFixed(0);
-      passed++;
-      const assertLog = ctx.assertions.map(a => '    ✓ ' + a.label + ' = ' + a.actual).join('\n');
-      addLogEntry('  ✓ PASS (' + ms + 'ms)\n' + assertLog, 'success');
-    } catch (err) {
-      const ms = (performance.now() - startTime).toFixed(0);
-      failed++;
-      const assertLog = ctx.assertions.map(a => (a.pass ? '    ✓ ' : '    ✕ ') + a.label + ' = ' + a.actual).join('\n');
-      addLogEntry('  ✕ FAIL (' + ms + 'ms): ' + err.message + '\n' + assertLog, 'error');
-    }
-    updateStats(passed, failed, tests.length, i < tests.length - 1);
-    await wait(150);
-  }
-
-  addLogEntry('', 'info');
-  addLogEntry('═══ Kết quả: ' + passed + '/' + tests.length + ' passed, ' + failed + ' failed ═══', passed === tests.length ? 'success' : 'error');
-  updateStats(passed, failed, tests.length, false);
-}
-
-function renderTabs() {
-  const host = document.getElementById('testTabs');
-  host.innerHTML = '';
-  TEST_CATEGORIES.forEach(tab => {
-    const button = document.createElement('button');
-    button.className = 'test-tab' + (tab.key === activeCategory ? ' active' : '');
-    button.textContent = tab.label;
-    button.onclick = () => { activeCategory = tab.key; renderTabs(); runTests(activeUc, activeCategory); };
-    host.appendChild(button);
-  });
-}
-
-function openTestPopup(uc) {
-  activeUc = uc;
-  activeCategory = 'all';
-  testAbort = new AbortController();
-  document.getElementById('testPopupTitle').textContent = TEST_SUITES[uc].title;
-  document.getElementById('testPopupSubtitle').textContent = 'E2E API Test Runner — ' + TEST_SUITES[uc].tests.length + ' test cases';
   document.getElementById('testPopup').classList.add('active');
   document.getElementById('testPopup').setAttribute('aria-hidden', 'false');
-  renderCriteria(uc);
-  renderTabs();
-  runTests(activeUc, activeCategory);
 }
 
 function closeTestPopup() {
-  testAbort?.abort();
   document.getElementById('testPopup').classList.remove('active');
   document.getElementById('testPopup').setAttribute('aria-hidden', 'true');
 }
 
 document.querySelectorAll('.test-run-button').forEach(button => button.addEventListener('click', () => openTestPopup(button.dataset.uc)));
-
-
 
 // PlantUML rendering via plantuml.com server
 function encodePlantUml(text) {

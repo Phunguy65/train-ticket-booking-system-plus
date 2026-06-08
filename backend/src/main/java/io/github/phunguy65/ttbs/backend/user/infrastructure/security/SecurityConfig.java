@@ -72,6 +72,8 @@ public class SecurityConfig {
                         .permitAll()
                         .requestMatchers(HttpMethod.DELETE, "/api/*/stations", "/api/*/stations/**")
                         .hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/*/scheduled-trips:filter")
+                        .permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/*/scheduled-trips/**")
                         .permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/*/route-templates/**")
