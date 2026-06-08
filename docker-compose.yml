@@ -116,6 +116,8 @@ services:
             - '2015:2015'
         volumes:
             - ./conf/Caddyfile.dev:/etc/caddy/Caddyfile:ro
+            - ./slide-images:/srv/slide-images:ro
+            - ./frontend/customer/public/presentation.html:/srv/presentation.html:ro
             - caddy_data:/data
             - caddy_config:/config
         depends_on:
