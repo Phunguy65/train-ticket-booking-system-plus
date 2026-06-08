@@ -137,7 +137,35 @@ body { font-family: 'Segoe UI', system-ui, sans-serif; background: #1a1a2e; colo
 <p style="text-align: center; color: #64748b; font-size: 0.95em; font-style: italic; padding-bottom: 4px;">TP. Hồ Chí Minh, tháng 05/2026</p>
 </div>
 
-<!-- Slide 2: Kiến trúc + Lược đồ CSDL -->
+<!-- Slide 2: Giới thiệu đề tài -->
+<div class="slide" style="padding: 40px 60px;">
+<h2 style="margin-bottom: 20px;">Giới thiệu đề tài</h2>
+<div style="display: flex; flex-direction: column; gap: 18px; flex: 1; min-height: 0;">
+
+<div style="background: linear-gradient(135deg, #0f172a, #1e293b); border: 1px solid #334155; border-radius: 10px; padding: 20px 28px; display: flex; align-items: center; gap: 24px;">
+<div style="flex-shrink: 0; width: 56px; height: 56px; background: linear-gradient(135deg, #00d4ff, #0ea5e9); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.6em;">&#x1F685;</div>
+<div>
+<h3 style="color: #e2e8f0; font-size: 1.15em; margin-bottom: 6px;">Ứng dụng Đặt vé Tàu hỏa Trực tuyến</h3>
+<p style="color: #94a3b8; font-size: 0.92em; line-height: 1.5;">Hiện đại hóa quy trình bán vé cho công ty vận tải đường sắt. Hành khách tra cứu chuyến tàu, xem sơ đồ ghế, đặt vé và thanh toán trực tuyến mọi lúc mọi nơi mà không cần đến quầy giao dịch.</p>
+</div>
+</div>
+
+<div style="background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 22px 24px; flex: 1; display: flex; flex-direction: column;">
+<h3 style="color: #fbbf24; margin-bottom: 14px; font-size: 1.1em;">Vấn đề cần giải quyết</h3>
+<ul style="padding-left: 22px; flex: 1; display: flex; flex-direction: column; gap: 10px; font-size: 1em;">
+<li>Tra cứu chuyến tàu theo ga đi/đến, ngày, bộ lọc linh hoạt</li>
+<li>Xem sơ đồ ghế theo toa, chọn ghế trực quan</li>
+<li>Giữ chỗ tạm thời 15 phút (hold-then-pay), chống đặt trùng</li>
+<li>Thanh toán an toàn qua cổng thanh toán quốc tế (Stripe)</li>
+<li>Quản lý đặt vé: xem lịch sử, hủy vé, giải phóng ghế tự động</li>
+<li>Quản lý tài khoản: đăng ký, đăng nhập, cập nhật thông tin</li>
+</ul>
+</div>
+
+</div>
+</div>
+
+<!-- Slide 3: Kiến trúc + Lược đồ CSDL -->
 <div class="slide" style="padding: 40px 60px;">
 <h2 style="margin-bottom: 12px;">Kiến trúc hệ thống &amp; Lược đồ cơ sở dữ liệu</h2>
 <div style="display: grid; grid-template-columns: 1.05fr 1fr; gap: 24px; flex: 1; min-height: 0;">
@@ -1378,101 +1406,246 @@ const MVC_TESTS = {
     { file: 'AuthControllerRegisterTest.java:72', desc: 'Đăng ký thành công với dữ liệu hợp lệ', result: 'PASS' },
     { file: 'AuthControllerRegisterTest.java:107', desc: 'Email sai định dạng bị từ chối', result: 'PASS' },
     { file: 'AuthControllerRegisterTest.java:116', desc: 'Thiếu trường bắt buộc bị từ chối', result: 'PASS' },
-    { file: 'AuthControllerRegisterTest.java:124', desc: 'Mật khẩu < 8 ký tự bị từ chối', result: 'PASS' },
-    { file: 'AuthControllerRegisterTest.java:133', desc: 'Email đã tồn tại trả 409', result: 'PASS' },
-    { file: 'AuthControllerSecurityTest.java:71', desc: 'SQL injection trong email bị từ chối', result: 'PASS' },
-    { file: 'AuthControllerSecurityTest.java:80', desc: 'XSS payload trong fullName trả về dạng data thuần', result: 'PASS' },
-    { file: 'AuthControllerSecurityTest.java:113', desc: 'Response không chứa field password', result: 'PASS' }
+    { file: 'AuthControllerRegisterTest.java:124', desc: 'Mật khẩu ngắn hơn 8 ký tự bị từ chối', result: 'PASS' },
+    { file: 'AuthControllerRegisterTest.java:133', desc: 'Email đã tồn tại trả mã 409', result: 'PASS' },
+    { file: 'RegisterUserUseCaseTest.java:58', desc: 'Tạo tài khoản vai trò khách hàng và trả kết quả thành công', result: 'PASS' },
+    { file: 'RegisterUserUseCaseTest.java:84', desc: 'Phát sự kiện miền sau khi lưu tài khoản', result: 'PASS' },
+    { file: 'RegisterUserUseCaseTest.java:120', desc: 'Trả lỗi khi email đã tồn tại trong hệ thống', result: 'PASS' },
+    { file: 'RegisterUserStressTest.java:54', desc: 'Kiểm tra tải: 50 luồng đăng ký cùng email chỉ 1 thành công', result: 'PASS' },
+    { file: 'AuthControllerSecurityTest.java:71', desc: 'Chèn mã SQL trong email bị từ chối', result: 'PASS' },
+    { file: 'AuthControllerSecurityTest.java:80', desc: 'Mã XSS trong họ tên trả về dạng dữ liệu thuần', result: 'PASS' },
+    { file: 'AuthControllerSecurityTest.java:113', desc: 'Phản hồi không chứa trường mật khẩu', result: 'PASS' },
+    { file: 'register-form.test.tsx:62', desc: '[GD] Biểu mẫu đăng ký hiển thị đầy đủ các trường', result: 'PASS' },
+    { file: 'register-form.test.tsx:78', desc: '[GD] Hiển thị lỗi khi gửi biểu mẫu rỗng', result: 'PASS' },
+    { file: 'register-form.test.tsx:99', desc: '[GD] Hiển thị lỗi mật khẩu tối thiểu 8 ký tự', result: 'PASS' },
+    { file: 'register-form.test.tsx:119', desc: '[GD] Hiển thị lỗi khi xác nhận mật khẩu không khớp', result: 'PASS' },
+    { file: 'register-form.test.tsx:165', desc: '[GD] Gọi giao diện lập trình đúng dữ liệu khi biểu mẫu hợp lệ', result: 'PASS' },
+    { file: 'auth.test.ts:73', desc: '[GD] Lược đồ từ chối họ tên ngắn hơn 2 ký tự', result: 'PASS' },
+    { file: 'auth.test.ts:121', desc: '[GD] Lược đồ từ chối xác nhận mật khẩu không khớp', result: 'PASS' },
+    { file: 'auth-errors.test.ts:65', desc: '[GD] Nhận diện lỗi email đã tồn tại từ phản hồi máy chủ', result: 'PASS' }
   ]},
   '02': { title: 'UC-02 Đăng nhập', tests: [
-    { file: 'AuthControllerLoginTest.java:72', desc: 'Đăng nhập thành công với credentials hợp lệ', result: 'PASS' },
+    { file: 'AuthControllerLoginTest.java:72', desc: 'Đăng nhập thành công với thông tin xác thực hợp lệ', result: 'PASS' },
     { file: 'AuthControllerLoginTest.java:107', desc: 'Email sai định dạng bị từ chối', result: 'PASS' },
     { file: 'AuthControllerLoginTest.java:115', desc: 'Thiếu trường bắt buộc bị từ chối', result: 'PASS' },
-    { file: 'AuthControllerLoginTest.java:123', desc: 'Credentials sai trả 401', result: 'PASS' },
-    { file: 'AuthControllerLoginSecurityTest.java:73', desc: 'SQL injection trong email bị từ chối', result: 'PASS' },
-    { file: 'AuthControllerLoginSecurityTest.java:112', desc: 'Response giống nhau cho email sai vs password sai', result: 'PASS' },
-    { file: 'AuthControllerLoginSecurityTest.java:141', desc: 'Response không chứa field password', result: 'PASS' }
+    { file: 'AuthControllerLoginTest.java:123', desc: 'Thông tin xác thực sai trả mã 401', result: 'PASS' },
+    { file: 'LoginUserUseCaseTest.java:86', desc: 'Xác thực thành công và trả cặp mã thông báo', result: 'PASS' },
+    { file: 'LoginUserUseCaseTest.java:112', desc: 'Trả lỗi khi email không tồn tại', result: 'PASS' },
+    { file: 'LoginUserUseCaseTest.java:125', desc: 'Trả lỗi khi mật khẩu sai', result: 'PASS' },
+    { file: 'LoginUserUseCaseTest.java:145', desc: 'Gọi đối chiếu mật khẩu đúng tham số', result: 'PASS' },
+    { file: 'LoginUserUseCaseTest.java:159', desc: 'Tạo và lưu cặp mã thông báo sau xác thực', result: 'PASS' },
+    { file: 'LoginUserStressTest.java:61', desc: 'Kiểm tra tải: 50 luồng đăng nhập đồng thời đều thành công', result: 'PASS' },
+    { file: 'AuthControllerLoginSecurityTest.java:73', desc: 'Chèn mã SQL trong email bị từ chối', result: 'PASS' },
+    { file: 'AuthControllerLoginSecurityTest.java:112', desc: 'Phản hồi giống nhau cho email sai và mật khẩu sai', result: 'PASS' },
+    { file: 'AuthControllerLoginSecurityTest.java:141', desc: 'Phản hồi không chứa trường mật khẩu', result: 'PASS' },
+    { file: 'login-form.test.tsx:78', desc: '[GD] Biểu mẫu đăng nhập hiển thị đầy đủ các trường', result: 'PASS' },
+    { file: 'login-form.test.tsx:92', desc: '[GD] Hiển thị lỗi xác thực khi gửi biểu mẫu rỗng', result: 'PASS' },
+    { file: 'login-form.test.tsx:109', desc: '[GD] Hiển thị lỗi khi email sai định dạng', result: 'PASS' },
+    { file: 'login-form.test.tsx:157', desc: '[GD] Gọi giao diện lập trình đúng dữ liệu khi biểu mẫu hợp lệ', result: 'PASS' },
+    { file: 'auth.test.ts:5', desc: '[GD] Lược đồ chấp nhận email và mật khẩu hợp lệ', result: 'PASS' },
+    { file: 'auth.test.ts:14', desc: '[GD] Lược đồ từ chối email rỗng', result: 'PASS' },
+    { file: 'auth-errors.test.ts:12', desc: '[GD] Nhận diện lỗi thông tin xác thực không đúng', result: 'PASS' }
   ]},
   '03': { title: 'UC-03 Đăng xuất', tests: [
     { file: 'AuthControllerLogoutTest.java:67', desc: 'Đăng xuất thành công với refresh token hợp lệ', result: 'PASS' },
     { file: 'AuthControllerLogoutTest.java:82', desc: 'Idempotent: token không tồn tại/đã revoked vẫn trả 200', result: 'PASS' },
     { file: 'AuthControllerLogoutTest.java:100', desc: 'Refresh token rỗng bị từ chối', result: 'PASS' },
-    { file: 'AuthControllerLogoutTest.java:109', desc: 'Refresh token null bị từ chối', result: 'PASS' },
-    { file: 'AuthControllerLogoutSecurityTest.java:70', desc: 'SQL injection trong token được xử lý an toàn', result: 'PASS' },
-    { file: 'AuthControllerLogoutSecurityTest.java:114', desc: 'Response không echo lại refresh token', result: 'PASS' },
-    { file: 'AuthControllerLogoutSecurityTest.java:126', desc: 'Response không chứa session details', result: 'PASS' }
+    { file: 'AuthControllerLogoutTest.java:109', desc: 'Mã làm mới null bị từ chối', result: 'PASS' },
+    { file: 'LogoutUserUseCaseTest.java:52', desc: 'Băm, tìm và thu hồi mã làm mới đang hoạt động', result: 'PASS' },
+    { file: 'LogoutUserUseCaseTest.java:68', desc: 'Thực hiện đúng thứ tự: băm rồi tìm rồi thu hồi', result: 'PASS' },
+    { file: 'LogoutUserUseCaseTest.java:88', desc: 'Bình thường hóa: mã không hoạt động vẫn trả thành công', result: 'PASS' },
+    { file: 'LogoutUserUseCaseTest.java:101', desc: 'Bình thường hóa: mã không tồn tại vẫn trả thành công', result: 'PASS' },
+    { file: 'LogoutUserStressTest.java:64', desc: 'Kiểm tra tải: 50 luồng đăng xuất đồng thời cùng mã', result: 'PASS' },
+    { file: 'AuthControllerLogoutSecurityTest.java:70', desc: 'Chèn mã SQL trong mã làm mới được xử lý an toàn', result: 'PASS' },
+    { file: 'AuthControllerLogoutSecurityTest.java:114', desc: 'Phản hồi không trả lại mã làm mới gốc', result: 'PASS' },
+    { file: 'AuthControllerLogoutSecurityTest.java:126', desc: 'Phản hồi không chứa thông tin phiên làm việc', result: 'PASS' }
   ]},
   '04': { title: 'UC-04 Quản lý thông tin cá nhân', tests: [
-    { file: 'AuthControllerGetMeTest.java:68', desc: 'Xem hồ sơ thành công cho user đã xác thực', result: 'PASS' },
-    { file: 'AuthControllerGetMeTest.java:84', desc: 'Xem hồ sơ với các trường nullable = null', result: 'PASS' },
-    { file: 'AuthControllerGetMeTest.java:101', desc: 'Xem hồ sơ khi user không tồn tại → 404', result: 'PASS' },
-    { file: 'AuthControllerUpdateMeTest.java:73', desc: 'Cập nhật hồ sơ thành công', result: 'PASS' },
+    { file: 'AuthControllerGetMeTest.java:68', desc: 'Xem hồ sơ thành công cho người dùng đã xác thực', result: 'PASS' },
+    { file: 'AuthControllerGetMeTest.java:84', desc: 'Xem hồ sơ với các trường tùy chọn rỗng', result: 'PASS' },
+    { file: 'AuthControllerGetMeTest.java:101', desc: 'Xem hồ sơ khi người dùng không tồn tại trả mã 404', result: 'PASS' },
+    { file: 'AuthControllerUpdateMeTest.java:73', desc: 'Cập nhật hồ sơ thành công với đầy đủ dữ liệu', result: 'PASS' },
     { file: 'AuthControllerUpdateMeTest.java:88', desc: 'Cập nhật giữ nguyên email thành công', result: 'PASS' },
-    { file: 'AuthControllerUpdateMeTest.java:106', desc: 'Validation: fullName rỗng bị từ chối', result: 'PASS' },
-    { file: 'AuthControllerUpdateMeTest.java:124', desc: 'Validation: email sai format bị từ chối', result: 'PASS' },
-    { file: 'AuthControllerUpdateMeTest.java:185', desc: 'Cập nhật khi user không tồn tại → 404', result: 'PASS' },
-    { file: 'AuthControllerUpdateMeTest.java:198', desc: 'Cập nhật email đã được tài khoản khác dùng → 409', result: 'PASS' },
-    { file: 'AuthControllerMeSecurityTest.java:71', desc: 'UUID malformed trong principal xử lý graceful', result: 'PASS' },
-    { file: 'AuthControllerMeSecurityTest.java:81', desc: 'Response không chứa dữ liệu nhạy cảm', result: 'PASS' },
-    { file: 'AuthControllerMeSecurityTest.java:126', desc: 'Endpoint GET /me yêu cầu authentication', result: 'PASS' },
-    { file: 'AuthControllerMeSecurityTest.java:136', desc: 'Endpoint PUT /me yêu cầu authentication', result: 'PASS' }
+    { file: 'AuthControllerUpdateMeTest.java:106', desc: 'Kiểm tra: họ tên rỗng bị từ chối', result: 'PASS' },
+    { file: 'AuthControllerUpdateMeTest.java:124', desc: 'Kiểm tra: email sai định dạng bị từ chối', result: 'PASS' },
+    { file: 'AuthControllerUpdateMeTest.java:185', desc: 'Cập nhật khi người dùng không tồn tại trả mã 404', result: 'PASS' },
+    { file: 'AuthControllerUpdateMeTest.java:198', desc: 'Cập nhật email đã được tài khoản khác sử dụng trả mã 409', result: 'PASS' },
+    { file: 'GetAuthenticatedUserUseCaseTest.java:48', desc: 'Trả thông tin người dùng khi tìm thấy', result: 'PASS' },
+    { file: 'GetAuthenticatedUserUseCaseTest.java:105', desc: 'Trả lỗi khi người dùng không tồn tại', result: 'PASS' },
+    { file: 'UpdateAuthenticatedUserUseCaseTest.java:63', desc: 'Cập nhật thành công khi email giữ nguyên', result: 'PASS' },
+    { file: 'UpdateAuthenticatedUserUseCaseTest.java:80', desc: 'Cập nhật thành công khi email mới khả dụng', result: 'PASS' },
+    { file: 'UpdateAuthenticatedUserUseCaseTest.java:115', desc: 'Bỏ qua truy vấn email khi email không thay đổi', result: 'PASS' },
+    { file: 'UpdateAuthenticatedUserUseCaseTest.java:226', desc: 'Trả lỗi khi email mới đã bị chiếm', result: 'PASS' },
+    { file: 'UpdateAuthenticatedUserStressTest.java:65', desc: 'Kiểm tra tải: 50 luồng cập nhật hồ sơ đồng thời', result: 'PASS' },
+    { file: 'AuthControllerMeSecurityTest.java:71', desc: 'Mã định danh sai định dạng trong xác thực xử lý an toàn', result: 'PASS' },
+    { file: 'AuthControllerMeSecurityTest.java:81', desc: 'Phản hồi không chứa dữ liệu nhạy cảm', result: 'PASS' },
+    { file: 'AuthControllerMeSecurityTest.java:126', desc: 'Điểm cuối xem hồ sơ yêu cầu xác thực', result: 'PASS' },
+    { file: 'AuthControllerMeSecurityTest.java:136', desc: 'Điểm cuối cập nhật hồ sơ yêu cầu xác thực', result: 'PASS' },
+    { file: 'profile-form.test.tsx:46', desc: '[GD] Biểu mẫu hồ sơ hiển thị đầy đủ các trường tiếng Việt', result: 'PASS' },
+    { file: 'profile-form.test.tsx:66', desc: '[GD] Nút Lưu hiển thị và có thể nhấn', result: 'PASS' },
+    { file: 'profile-form.test.tsx:94', desc: '[GD] Hiển thị lỗi khi họ tên bị xóa trắng', result: 'PASS' },
+    { file: 'customer.test.ts:70', desc: '[GD] Lược đồ chấp nhận dữ liệu hồ sơ hợp lệ', result: 'PASS' },
+    { file: 'customer.test.ts:93', desc: '[GD] Lược đồ từ chối họ tên ngắn hơn 2 ký tự', result: 'PASS' },
+    { file: 'customer.test.ts:106', desc: '[GD] Lược đồ từ chối email sai định dạng', result: 'PASS' },
+    { file: 'customer.test.ts:119', desc: '[GD] Lược đồ từ chối số điện thoại sai định dạng', result: 'PASS' }
   ]},
   '05': { title: 'UC-05 Tra cứu ga tàu', tests: [
-    { file: 'StationControllerTest.java:27', desc: 'Tìm kiếm không có kết quả trả message rỗng', result: 'PASS' },
-    { file: 'StationControllerTest.java:42', desc: 'Tìm kiếm có kết quả trả data', result: 'PASS' },
+    { file: 'StationControllerTest.java:27', desc: 'Tìm kiếm không có kết quả trả thông báo rỗng', result: 'PASS' },
+    { file: 'StationControllerTest.java:42', desc: 'Tìm kiếm có kết quả trả danh sách ga', result: 'PASS' },
     { file: 'StationControllerListAndGetByIdTest.java:48', desc: 'Danh sách ga phân trang thành công', result: 'PASS' },
-    { file: 'StationControllerSecurityTest.java:44', desc: 'XSS payload qua search xử lý an toàn', result: 'PASS' },
-    { file: 'StationControllerSecurityTest.java', desc: 'SQL injection qua search xử lý an toàn', result: 'PASS' }
+    { file: 'GetStationByIdUseCaseTest.java:42', desc: 'Trả thông tin ga khi tìm thấy', result: 'PASS' },
+    { file: 'GetStationsUseCaseTest.java:43', desc: 'Ánh xạ đúng các trường dữ liệu ga', result: 'PASS' },
+    { file: 'StationSearchReaderTest.java:26', desc: 'Xây dựng truy vấn tìm kiếm mờ đúng cú pháp', result: 'PASS' },
+    { file: 'SearchStationsStressTest.java:63', desc: 'Kiểm tra tải: 50 luồng tìm kiếm đồng thời', result: 'PASS' },
+    { file: 'StationControllerSecurityTest.java:44', desc: 'Mã XSS qua tìm kiếm được xử lý an toàn', result: 'PASS' },
+    { file: 'StationControllerSecurityTest.java', desc: 'Chèn mã SQL qua tìm kiếm được xử lý an toàn', result: 'PASS' },
+    { file: 'trip-search-form.test.tsx:34', desc: '[GD] Biểu mẫu hiển thị đúng các trường ga đi, ga đến, ngày', result: 'PASS' },
+    { file: 'trip-search-form.test.tsx:49', desc: '[GD] Hiển thị lỗi khi chưa chọn ga đi', result: 'PASS' },
+    { file: 'trip-search-form.test.tsx:66', desc: '[GD] Hiển thị lỗi khi chưa chọn ga đến', result: 'PASS' },
+    { file: 'trip-search-form.test.tsx:85', desc: '[GD] Nút đổi ga tồn tại và hoạt động', result: 'PASS' },
+    { file: 'customer-flows.integration.test.ts:42', desc: '[GD] Từ chối khi ga đi trùng ga đến', result: 'PASS' },
+    { file: 'customer-flows.integration.test.ts:60', desc: '[GD] Từ chối ngày khởi hành trong quá khứ', result: 'PASS' }
   ]},
   '06': { title: 'UC-06 Tra cứu chuyến tàu', tests: [
-    { file: 'ScheduledTripControllerTest.java:38', desc: 'Filter không có kết quả trả message rỗng', result: 'PASS' },
-    { file: 'ScheduledTripControllerTest.java:56', desc: 'Filter có kết quả trả SliceResponse', result: 'PASS' },
+    { file: 'ScheduledTripControllerTest.java:38', desc: 'Bộ lọc không có kết quả trả thông báo rỗng', result: 'PASS' },
+    { file: 'ScheduledTripControllerTest.java:56', desc: 'Bộ lọc có kết quả trả danh sách phân đoạn', result: 'PASS' },
     { file: 'ScheduledTripControllerListAndGetByIdTest.java:55', desc: 'Danh sách chuyến tàu phân trang thành công', result: 'PASS' },
-    { file: 'ScheduledTripControllerListAndGetByIdTest.java:85', desc: 'Phân trang mặc định khi không có params', result: 'PASS' },
+    { file: 'ScheduledTripControllerListAndGetByIdTest.java:85', desc: 'Phân trang mặc định khi không có tham số', result: 'PASS' },
     { file: 'ScheduledTripControllerListAndGetByIdTest.java:101', desc: 'Xem chi tiết chuyến tàu thành công', result: 'PASS' },
-    { file: 'ScheduledTripControllerSecurityTest.java:51', desc: 'XSS payload qua filter xử lý an toàn', result: 'PASS' },
-    { file: 'ScheduledTripControllerSecurityTest.java:72', desc: 'SQL injection qua cursor xử lý an toàn', result: 'PASS' },
-    { file: 'ScheduledTripControllerSecurityTest.java:105', desc: 'UUID không tồn tại trả 404', result: 'PASS' }
+    { file: 'GetScheduledTripsUseCaseTest.java:44', desc: 'Ánh xạ đúng các trường dữ liệu chuyến tàu', result: 'PASS' },
+    { file: 'GetScheduledTripsUseCaseTest.java:85', desc: 'Truyền thứ tự sắp xếp đúng sang kho dữ liệu', result: 'PASS' },
+    { file: 'GetScheduledTripByIdUseCaseTest.java:43', desc: 'Trả chi tiết chuyến tàu khi tìm thấy', result: 'PASS' },
+    { file: 'GetScheduledTripByIdUseCaseTest.java:81', desc: 'Trả lỗi khi chuyến tàu không tồn tại', result: 'PASS' },
+    { file: 'SearchScheduledTripsStressTest.java:65', desc: 'Kiểm tra tải: 50 luồng tìm kiếm chuyến tàu đồng thời', result: 'PASS' },
+    { file: 'SearchScheduledTripsStressTest.java:106', desc: 'Kiểm tra tải: 50 luồng xem chi tiết đồng thời', result: 'PASS' },
+    { file: 'ScheduledTripControllerSecurityTest.java:51', desc: 'Mã XSS qua bộ lọc được xử lý an toàn', result: 'PASS' },
+    { file: 'ScheduledTripControllerSecurityTest.java:72', desc: 'Chèn mã SQL qua con trỏ phân trang được xử lý an toàn', result: 'PASS' },
+    { file: 'ScheduledTripControllerSecurityTest.java:105', desc: 'Mã định danh không tồn tại trả mã 404', result: 'PASS' },
+    { file: 'customer-flows.integration.test.ts:31', desc: '[GD] Kiểm tra xác thực biểu mẫu tìm chuyến', result: 'PASS' },
+    { file: 'customer-flows.integration.test.ts:71', desc: '[GD] Chuyển đổi tham số tìm kiếm qua lại đúng', result: 'PASS' },
+    { file: 'customer-flows.integration.test.ts:241', desc: '[GD] Luồng đầy đủ: tìm kiếm đến tham số đặt vé', result: 'PASS' }
   ]},
   '07': { title: 'UC-07 Xem sơ đồ ghế chuyến tàu', tests: [
-    { file: 'SeatControllerAvailableAndCoachSeatMapTest.java:58', desc: 'Danh sách ghế trống thành công', result: 'PASS' },
-    { file: 'SeatControllerAvailableAndCoachSeatMapTest.java:93', desc: 'Phân trang mặc định cho available seats', result: 'PASS' },
-    { file: 'SeatControllerAvailableAndCoachSeatMapTest.java:148', desc: 'Sơ đồ ghế — chuyến tồn tại nhưng chưa có toa trả rỗng', result: 'PASS' },
-    { file: 'SeatControllerAvailableAndCoachSeatMapTest.java:167', desc: 'Response contract JSend wrapper đúng format', result: 'PASS' },
-    { file: 'SeatControllerSecurityTest.java:129', desc: 'Controller không yêu cầu PreAuthorize class-level', result: 'PASS' }
+    { file: 'SeatControllerAvailableAndCoachSeatMapTest.java:58', desc: 'Danh sách ghế trống trả về thành công', result: 'PASS' },
+    { file: 'SeatControllerAvailableAndCoachSeatMapTest.java:93', desc: 'Phân trang mặc định cho danh sách ghế trống', result: 'PASS' },
+    { file: 'SeatControllerAvailableAndCoachSeatMapTest.java:148', desc: 'Sơ đồ toa: chuyến tồn tại nhưng chưa có toa trả rỗng', result: 'PASS' },
+    { file: 'SeatControllerAvailableAndCoachSeatMapTest.java:167', desc: 'Hợp đồng phản hồi bọc đúng định dạng chuẩn', result: 'PASS' },
+    { file: 'GetAvailableSeatsForScheduledTripUseCaseTest.java:42', desc: 'Ánh xạ đúng thông tin ghế sang phản hồi', result: 'PASS' },
+    { file: 'GetAvailableSeatsForScheduledTripUseCaseTest.java:140', desc: 'Truyền thứ tự sắp xếp đúng: số ghế tăng dần', result: 'PASS' },
+    { file: 'GetCoachSeatMapByScheduledTripUseCaseTest.java:50', desc: 'Trả sơ đồ ghế theo toa khi có dữ liệu', result: 'PASS' },
+    { file: 'GetCoachSeatMapByScheduledTripUseCaseTest.java:150', desc: 'Trả lỗi khi chuyến tàu không tồn tại', result: 'PASS' },
+    { file: 'SeatMapStressTest.java:62', desc: 'Kiểm tra tải: 50 luồng xem ghế trống đồng thời', result: 'PASS' },
+    { file: 'SeatMapStressTest.java:98', desc: 'Kiểm tra tải: 50 luồng xem sơ đồ toa đồng thời', result: 'PASS' },
+    { file: 'SeatControllerSecurityTest.java:129', desc: 'Bộ điều khiển không yêu cầu xác thực cấp lớp', result: 'PASS' },
+    { file: 'use-seat-sse.test.ts:19', desc: '[GD] Phân tích đúng khung sự kiện trạng thái ghế', result: 'PASS' },
+    { file: 'use-seat-sse.test.ts', desc: '[GD] Hợp nhất cập nhật ghế vào danh sách hiện tại', result: 'PASS' },
+    { file: 'use-seat-sse.test.ts', desc: '[GD] Đồng bộ ghế đã chọn khi có cập nhật trạng thái', result: 'PASS' },
+    { file: 'customer-flows.integration.test.ts:91', desc: '[GD] Giới hạn tối đa 5 ghế mỗi lần đặt vé', result: 'PASS' },
+    { file: 'customer-flows.integration.test.ts:107', desc: '[GD] Tạo đường dẫn đặt vé đúng từ chuyến và ghế', result: 'PASS' }
   ]},
   '08': { title: 'UC-08 Đặt vé tàu', tests: [
-    { file: 'BookingControllerTest.java:66', desc: 'Controller trả 201 khi tạo booking thành công', result: 'PASS' },
-    { file: 'BookingControllerTest.java:97', desc: 'Controller trả 404 khi UserNotFound', result: 'PASS' },
-    { file: 'BookingControllerTest.java:103', desc: 'Controller trả 404 khi ScheduledTripNotFound', result: 'PASS' },
-    { file: 'BookingControllerTest.java:111', desc: 'Controller trả 409 khi SeatNotAvailable', result: 'PASS' },
-    { file: 'BookingControllerTest.java:119', desc: 'Controller trả 409 khi ActiveHoldExists', result: 'PASS' },
-    { file: 'BookingControllerSecurityTest.java', desc: 'Endpoint yêu cầu authentication', result: 'PASS' }
+    { file: 'BookingControllerTest.java:66', desc: 'Trả mã 201 khi tạo đặt vé thành công', result: 'PASS' },
+    { file: 'BookingControllerTest.java:97', desc: 'Trả mã 404 khi người dùng không tồn tại', result: 'PASS' },
+    { file: 'BookingControllerTest.java:103', desc: 'Trả mã 404 khi chuyến tàu không tồn tại', result: 'PASS' },
+    { file: 'BookingControllerTest.java:111', desc: 'Trả mã 409 khi ghế không khả dụng', result: 'PASS' },
+    { file: 'BookingControllerTest.java:119', desc: 'Trả mã 409 khi đã có giữ chỗ đang hoạt động', result: 'PASS' },
+    { file: 'CreateBookingUseCaseTest.java:184', desc: 'Trả đặt vé cũ khi khóa bình thường hóa đã tồn tại', result: 'PASS' },
+    { file: 'CreateBookingUseCaseTest.java:233', desc: 'Trả lỗi khi người dùng không tồn tại trong hệ thống', result: 'PASS' },
+    { file: 'CreateBookingUseCaseTest.java:248', desc: 'Trả lỗi khi đã có giữ chỗ cho cùng chuyến', result: 'PASS' },
+    { file: 'CreateBookingUseCaseTest.java:301', desc: 'Trả lỗi khi mẫu tuyến đường không tồn tại', result: 'PASS' },
+    { file: 'CreateBookingUseCaseTest.java:330', desc: 'Trả lỗi khi ghế không khả dụng lúc giữ chỗ', result: 'PASS' },
+    { file: 'CreateBookingUseCaseTest.java:349', desc: 'Phát sự kiện tạo đặt vé khi thành công', result: 'PASS' },
+    { file: 'CreateBookingUseCaseTest.java:359', desc: 'Phát sự kiện thay đổi trạng thái ghế qua luồng sự kiện', result: 'PASS' },
+    { file: 'CreateBookingUseCaseTest.java:396', desc: 'Tổng giá bằng giá mỗi ghế nhân số ghế', result: 'PASS' },
+    { file: 'CreateBookingUseCaseTest.java:407', desc: 'Trạng thái đặt vé trả về là đang giữ chỗ', result: 'PASS' },
+    { file: 'CreateBookingUseCaseTest.java:420', desc: 'Phản hồi chứa đúng thông tin hành khách', result: 'PASS' },
+    { file: 'CreateBookingUseCaseTest.java:451', desc: 'Từ chối khi số hành khách khác số ghế', result: 'PASS' },
+    { file: 'CreateBookingStressTest.java:56', desc: 'Kiểm tra tải: chỉ 1 đặt vé thành công khi 50 luồng cùng ghế', result: 'PASS' },
+    { file: 'CreateBookingStressTest.java:84', desc: 'Kiểm tra tải: bình thường hóa dưới tải đồng thời', result: 'PASS' },
+    { file: 'BookingControllerSecurityTest.java', desc: 'Điểm cuối yêu cầu xác thực', result: 'PASS' },
+    { file: 'customer-flows.integration.test.ts:143', desc: '[GD] Tạo khóa bình thường hóa duy nhất', result: 'PASS' },
+    { file: 'customer-flows.integration.test.ts:156', desc: '[GD] Định dạng giá tiền theo đơn vị Việt Nam đồng', result: 'PASS' },
+    { file: 'price-breakdown.test.tsx:7', desc: '[GD] Hiển thị giá ghế và số lượng', result: 'PASS' },
+    { file: 'payment-status.test.tsx:26', desc: '[GD] Hiển thị trạng thái chờ thanh toán với đếm ngược', result: 'PASS' }
   ]},
   '09': { title: 'UC-09 Xem đặt vé', tests: [
-    { file: 'BookingControllerTest.java:202', desc: 'Controller trả 200 + paged response cho danh sách booking', result: 'PASS' },
-    { file: 'BookingControllerTest.java:306', desc: 'Controller trả 200 + detail response cho chi tiết booking', result: 'PASS' },
-    { file: 'BookingControllerTest.java:393', desc: 'Controller trả 403 khi bị từ chối quyền', result: 'PASS' },
-    { file: 'BookingControllerTest.java:411', desc: 'Controller trả 404 khi booking không tồn tại', result: 'PASS' },
-    { file: 'BookingControllerSecurityTest.java', desc: 'Endpoint yêu cầu authentication', result: 'PASS' }
+    { file: 'BookingControllerTest.java:202', desc: 'Trả mã 200 với danh sách đặt vé phân trang', result: 'PASS' },
+    { file: 'BookingControllerTest.java:306', desc: 'Trả mã 200 với chi tiết đặt vé đầy đủ', result: 'PASS' },
+    { file: 'BookingControllerTest.java:393', desc: 'Trả mã 403 khi bị từ chối quyền truy cập', result: 'PASS' },
+    { file: 'BookingControllerTest.java:411', desc: 'Trả mã 404 khi đặt vé không tồn tại', result: 'PASS' },
+    { file: 'GetUserBookingsUseCaseTest.java:35', desc: 'Trả lỗi khi xem đặt vé của người khác', result: 'PASS' },
+    { file: 'GetUserBookingsUseCaseTest.java:46', desc: 'Trả danh sách sắp xếp mới nhất trước', result: 'PASS' },
+    { file: 'GetUserBookingsUseCaseTest.java:92', desc: 'Trả trang rỗng khi không có đặt vé', result: 'PASS' },
+    { file: 'GetUserBookingsUseCaseTest.java:113', desc: 'Giữ nguyên siêu dữ liệu phân trang', result: 'PASS' },
+    { file: 'GetBookingDetailUseCaseTest.java:77', desc: 'Trả lỗi khi đặt vé không tồn tại', result: 'PASS' },
+    { file: 'GetBookingDetailUseCaseTest.java:89', desc: 'Trả lỗi khi người yêu cầu không sở hữu đặt vé', result: 'PASS' },
+    { file: 'GetBookingDetailUseCaseTest.java:102', desc: 'Trả chi tiết đầy đủ: chuyến, thanh toán, ghế', result: 'PASS' },
+    { file: 'GetBookingDetailUseCaseTest.java:141', desc: 'Cho phép chuyến và thanh toán rỗng trong chi tiết', result: 'PASS' },
+    { file: 'ViewBookingStressTest.java:61', desc: 'Kiểm tra tải: 50 luồng xem danh sách đồng thời', result: 'PASS' },
+    { file: 'ViewBookingStressTest.java:83', desc: 'Kiểm tra tải: 50 luồng xem chi tiết đồng thời', result: 'PASS' },
+    { file: 'BookingControllerSecurityTest.java:180', desc: 'Điểm cuối danh sách yêu cầu xác thực', result: 'PASS' },
+    { file: 'BookingControllerSecurityTest.java:193', desc: 'Điểm cuối chi tiết yêu cầu xác thực', result: 'PASS' },
+    { file: 'bookings-list.test.tsx:85', desc: '[GD] Hiển thị thẻ đặt vé với thông tin giá', result: 'PASS' },
+    { file: 'bookings-list.test.tsx:99', desc: '[GD] Hiển thị nhãn trạng thái bằng tiếng Việt', result: 'PASS' },
+    { file: 'bookings-list.test.tsx:112', desc: '[GD] Hiển thị liên kết xem chi tiết cho mỗi đặt vé', result: 'PASS' },
+    { file: 'bookings-list.test.tsx:125', desc: '[GD] Chỉ hiển thị nút hủy cho đặt vé đang giữ chỗ', result: 'PASS' }
   ]},
   '10': { title: 'UC-10 Hủy đặt vé', tests: [
-    { file: 'BookingControllerTest.java:128', desc: 'Controller trả 200 OK khi hủy thành công', result: 'PASS' },
-    { file: 'BookingControllerTest.java:144', desc: 'Controller trả 404 khi BookingNotFound', result: 'PASS' },
-    { file: 'BookingControllerSecurityTest.java', desc: 'Endpoint yêu cầu authentication', result: 'PASS' }
+    { file: 'BookingControllerTest.java:128', desc: 'Trả mã 200 khi hủy đặt vé thành công', result: 'PASS' },
+    { file: 'BookingControllerTest.java:144', desc: 'Trả mã 404 khi đặt vé không tồn tại', result: 'PASS' },
+    { file: 'CancelBookingUseCaseTest.java:87', desc: 'Hủy đặt vé đang giữ chỗ: giải phóng ghế thành công', result: 'PASS' },
+    { file: 'CancelBookingUseCaseTest.java:111', desc: 'Hủy đặt vé đã xác nhận: hủy ghế đã đặt thành công', result: 'PASS' },
+    { file: 'CancelBookingUseCaseTest.java:135', desc: 'Trả lỗi khi đặt vé không tồn tại', result: 'PASS' },
+    { file: 'CancelBookingUseCaseTest.java:148', desc: 'Trả lỗi khi hủy đặt vé của người khác', result: 'PASS' },
+    { file: 'CancelBookingUseCaseTest.java:162', desc: 'Trả lỗi khi đặt vé đã ở trạng thái đã hủy', result: 'PASS' },
+    { file: 'CancelBookingUseCaseTest.java:181', desc: 'Phát sự kiện hủy đặt vé khi thành công', result: 'PASS' },
+    { file: 'CancelBookingUseCaseTest.java:197', desc: 'Phát sự kiện thay đổi trạng thái ghế qua luồng sự kiện', result: 'PASS' },
+    { file: 'CancelBookingUseCaseTest.java:222', desc: 'Bỏ qua giải phóng ghế khi không tìm thấy ghế liên quan', result: 'PASS' },
+    { file: 'CancelBookingStressTest.java:56', desc: 'Kiểm tra tải: chỉ 1 lần hủy thành công khi 50 luồng đồng thời', result: 'PASS' },
+    { file: 'BookingControllerSecurityTest.java', desc: 'Điểm cuối yêu cầu xác thực', result: 'PASS' },
+    { file: 'bookings-list.test.tsx:125', desc: '[GD] Chỉ hiển thị nút hủy cho đặt vé đang giữ chỗ', result: 'PASS' },
+    { file: 'bookings-list.test.tsx:141', desc: '[GD] Mở hộp thoại xác nhận khi nhấn nút hủy', result: 'PASS' },
+    { file: 'customer-flows.integration.test.ts:172', desc: '[GD] Xác định khả năng hủy đúng theo trạng thái', result: 'PASS' }
   ]},
   '11': { title: 'UC-11 Xem thanh toán', tests: [
-    { file: 'PaymentControllerTest.java:60', desc: 'Controller trả 200 cho getPaymentById', result: 'PASS' },
-    { file: 'PaymentControllerTest.java:113', desc: 'Controller trả 200 cho getPaymentByBookingId', result: 'PASS' },
-    { file: 'PaymentControllerSecurityTest.java:45', desc: 'getPaymentById yêu cầu authentication', result: 'PASS' },
-    { file: 'PaymentControllerSecurityTest.java:58', desc: 'getPaymentByBookingId yêu cầu authentication', result: 'PASS' },
-    { file: 'PaymentControllerSecurityTest.java:98', desc: 'Null authentication xử lý an toàn', result: 'PASS' },
-    { file: 'PaymentControllerSecurityTest.java:130', desc: 'UUID malformed trong auth xử lý an toàn', result: 'PASS' }
+    { file: 'PaymentControllerTest.java:60', desc: 'Trả mã 200 khi xem thanh toán theo mã', result: 'PASS' },
+    { file: 'PaymentControllerTest.java:113', desc: 'Trả mã 200 khi xem thanh toán theo mã đặt vé', result: 'PASS' },
+    { file: 'GetPaymentByIdUseCaseTest.java:104', desc: 'Trả chi tiết thanh toán kèm thông tin đặt vé và chuyến', result: 'PASS' },
+    { file: 'GetPaymentByIdUseCaseTest.java:150', desc: 'Trả lỗi khi thanh toán không tồn tại', result: 'PASS' },
+    { file: 'GetPaymentByIdUseCaseTest.java:164', desc: 'Trả lỗi khi xem thanh toán của người khác', result: 'PASS' },
+    { file: 'GetPaymentByBookingIdUseCaseTest.java:101', desc: 'Trả thanh toán theo mã đặt vé thành công', result: 'PASS' },
+    { file: 'GetPaymentByBookingIdUseCaseTest.java:88', desc: 'Trả lỗi khi không có thanh toán cho đặt vé', result: 'PASS' },
+    { file: 'ViewPaymentStressTest.java:60', desc: 'Kiểm tra tải: 50 luồng xem thanh toán đồng thời', result: 'PASS' },
+    { file: 'ViewPaymentStressTest.java:86', desc: 'Kiểm tra tải: 50 luồng xem theo đặt vé đồng thời', result: 'PASS' },
+    { file: 'PaymentControllerSecurityTest.java:45', desc: 'Điểm cuối xem theo mã yêu cầu xác thực', result: 'PASS' },
+    { file: 'PaymentControllerSecurityTest.java:58', desc: 'Điểm cuối xem theo đặt vé yêu cầu xác thực', result: 'PASS' },
+    { file: 'PaymentControllerSecurityTest.java:98', desc: 'Xác thực rỗng được xử lý an toàn', result: 'PASS' },
+    { file: 'PaymentControllerSecurityTest.java:130', desc: 'Mã định danh sai định dạng trong xác thực xử lý an toàn', result: 'PASS' },
+    { file: 'payment-detail.test.tsx:151', desc: '[GD] Hiển thị chi tiết thanh toán đã hoàn thành', result: 'PASS' },
+    { file: 'payment-detail.test.tsx:220', desc: '[GD] Hiển thị thông tin ghế trong chi tiết', result: 'PASS' },
+    { file: 'payment-status-badge.test.tsx:24', desc: '[GD] Nhãn trạng thái đã thanh toán kiểu thành công', result: 'PASS' },
+    { file: 'payment-status-badge.test.tsx:49', desc: '[GD] Nhãn trạng thái thất bại kiểu cảnh báo', result: 'PASS' },
+    { file: 'payments-list.test.tsx:81', desc: '[GD] Hiển thị danh sách thanh toán với thông tin tuyến', result: 'PASS' },
+    { file: 'payments-list.test.tsx:139', desc: '[GD] Liên kết xem chi tiết thanh toán đúng đường dẫn', result: 'PASS' }
   ]},
   '12': { title: 'UC-12 Thanh toán', tests: [
-    { file: 'PaymentControllerTest.java', desc: 'Controller trả 201 khi tạo checkout session mới', result: 'PASS' },
-    { file: 'PaymentControllerSecurityTest.java:84', desc: 'createCheckout yêu cầu authentication', result: 'PASS' },
-    { file: 'PaymentControllerSecurityTest.java:109', desc: 'Malformed UUID trong auth bị từ chối', result: 'PASS' }
+    { file: 'PaymentControllerTest.java', desc: 'Trả mã 201 khi tạo phiên thanh toán mới', result: 'PASS' },
+    { file: 'CreateCheckoutSessionUseCaseTest.java:178', desc: 'Tạo phiên thanh toán mới cho đặt vé hợp lệ', result: 'PASS' },
+    { file: 'CreateCheckoutSessionUseCaseTest.java:294', desc: 'Bình thường hóa: trả phiên hiện tại khi đã có thanh toán chờ', result: 'PASS' },
+    { file: 'CreateCheckoutSessionUseCaseTest.java:213', desc: 'Trả lỗi khi đặt vé không thuộc về người yêu cầu', result: 'PASS' },
+    { file: 'CreateCheckoutSessionUseCaseTest.java:253', desc: 'Trả lỗi khi hạn thanh toán đã hết', result: 'PASS' },
+    { file: 'CreateCheckoutSessionUseCaseTest.java:312', desc: 'Trả lỗi khi thanh toán đã được xử lý', result: 'PASS' },
+    { file: 'HandlePaymentSuccessUseCaseTest.java:123', desc: 'Xác nhận đặt vé, ghế và thanh toán khi thành công', result: 'PASS' },
+    { file: 'HandlePaymentSuccessUseCaseTest.java:149', desc: 'Bình thường hóa: bỏ qua sự kiện đã xử lý', result: 'PASS' },
+    { file: 'HandlePaymentSuccessUseCaseTest.java:167', desc: 'Hoàn tiền tự động khi thanh toán đến muộn sau hủy', result: 'PASS' },
+    { file: 'HandlePaymentFailedByPaymentIntentUseCaseTest.java:66', desc: 'Đánh dấu thanh toán thất bại khi nhận thông báo lỗi', result: 'PASS' },
+    { file: 'CancelPendingPaymentUseCaseTest.java:64', desc: 'Đánh dấu thanh toán đã hủy khi phiên hết hạn', result: 'PASS' },
+    { file: 'PaymentControllerSecurityTest.java:84', desc: 'Điểm cuối tạo phiên yêu cầu xác thực', result: 'PASS' },
+    { file: 'PaymentControllerSecurityTest.java:109', desc: 'Mã định danh sai định dạng trong xác thực bị từ chối', result: 'PASS' },
+    { file: 'payment-status.test.tsx:26', desc: '[GD] Hiển thị trạng thái chờ với đếm ngược thời gian', result: 'PASS' },
+    { file: 'payment-status.test.tsx:62', desc: '[GD] Chuyển sang trạng thái hết hạn khi đếm ngược kết thúc', result: 'PASS' },
+    { file: 'payment-status.test.tsx:133', desc: '[GD] Hiển thị trạng thái thất bại với nút thử lại', result: 'PASS' },
+    { file: 'payment-detail.test.tsx:237', desc: '[GD] Hiển thị hoặc ẩn nút in vé theo trạng thái', result: 'PASS' }
   ]}
 };
 
@@ -1480,7 +1653,7 @@ function openTestPopup(uc) {
   const suite = MVC_TESTS[uc];
   if (!suite) return;
   document.getElementById('testPopupTitle').textContent = suite.title;
-  document.getElementById('testPopupSubtitle').textContent = 'Backend MVC Tests — ' + suite.tests.length + ' test cases';
+  document.getElementById('testPopupSubtitle').textContent = 'Kiểm thử tự động — ' + suite.tests.length + ' tiêu chí';
   const stats = document.getElementById('testStats');
   const passed = suite.tests.filter(t => t.result === 'PASS').length;
   const failed = suite.tests.filter(t => t.result === 'FAIL').length;

@@ -1,25 +1,25 @@
-# Script Báo cáo Đồ án — Đảm bảo Chất lượng Phần mềm
+# Kịch bản Báo cáo Đồ án — Đảm bảo Chất lượng Phần mềm
 
 > **Thời lượng mục tiêu:** 15–20 phút  
 > **Người B (Phú):** Mở đầu + UC-07 → UC-12 + Kết luận  
 > **Người A (Nguyên):** UC-01 → UC-06  
-> **Quy ước:** 🎤 = Thuyết trình | 💻 = Thao tác demo/chạy test trên máy
+> **Quy ước:** 🎤 = Thuyết trình | 💻 = Thao tác trình chiếu/chạy kiểm thử trên máy
 
 ---
 
-## Cấu trúc trình bày mỗi Use Case
+## Cấu trúc trình bày mỗi ca sử dụng
 
-Mỗi UC trình bày theo 3 phần:
+Mỗi ca sử dụng trình bày theo 3 phần:
 
-1. **Giới thiệu chức năng** (~30%): Mô tả luồng chính, actor, tiền điều kiện
-2. **Chiến lược kiểm thử** (~30%): Kỹ thuật test áp dụng (EP, BVA, State Transition...), phân tầng test (unit/integration/stress/security)
-3. **Demo kiểm thử** (~40%): Chạy test suite thực tế hoặc demo app + show kết quả
+1. **Giới thiệu chức năng** (~30%): Mô tả luồng chính, tác nhân, tiền điều kiện
+2. **Chiến lược kiểm thử** (~30%): Kỹ thuật kiểm thử áp dụng (phân lớp tương đương, phân tích giá trị biên, kiểm thử chuyển trạng thái...), phân tầng kiểm thử (đơn vị/tích hợp/tải/bảo mật)
+3. **Trình diễn kiểm thử** (~40%): Chạy bộ kiểm thử thực tế hoặc trình diễn ứng dụng + hiển thị kết quả
 
 ---
 
 ## Phần 1: Mở đầu (~3 phút) — Người B thuyết trình
 
-### Slide 1: Trang bìa
+### Trang chiếu 1: Trang bìa
 
 🎤 **Người B:**
 
@@ -27,176 +27,176 @@ Mỗi UC trình bày theo 3 phần:
 >
 > Thành viên nhóm: Nguyễn Ngọc Phú — N22DCCN159 và Y Cao Nguyên Byă — N22DCCN200.
 
-*(Chuyển slide)*
+*(Chuyển trang chiếu)*
 
-### Slide 1b: Mục đích & Cách triển khai tổng quan
-
-🎤 **Người B:**
-
-> **Mục đích đồ án:**
->
-> Đồ án nhằm xây dựng một hệ thống đặt vé tàu hoả trực tuyến hoàn chỉnh, đồng thời áp dụng và minh chứng các kỹ thuật đảm bảo chất lượng phần mềm xuyên suốt vòng đời phát triển. Cụ thể:
-> - Thiết kế kiến trúc **dễ kiểm thử** (testable) từ đầu nhờ Clean Architecture + DDD
-> - Áp dụng đa tầng kiểm thử: unit, integration, stress, security
-> - Đảm bảo **tính nhất quán dữ liệu** (data consistency) dưới tải đồng thời cao
-> - Đảm bảo **trải nghiệm thời gian thực** khi nhiều người dùng cùng thao tác
->
-> **Cách triển khai tổng quan — 3 cơ chế kỹ thuật then chốt:**
->
-> - **Cursor-based Pagination** (phân trang dựa trên con trỏ) — hiệu năng cao, không bỏ sót/trùng lặp → chi tiết tại UC-05, UC-06
-> - **Redis/Valkey Caching** (bộ nhớ đệm) — giảm tải DB, tăng tốc truy vấn → chi tiết tại UC-05, UC-06, UC-07
-> - **Optimistic Locking** (khoá lạc quan) — đảm bảo tính nhất quán dưới tải đồng thời → chi tiết tại UC-08
-
-*(Chuyển slide)*
-
-### Slide 2: Kiến trúc & Lược đồ CSDL
+### Trang chiếu 2: Giới thiệu đề tài
 
 🎤 **Người B:**
 
-> Hệ thống được xây dựng theo kiến trúc **Clean Architecture kết hợp DDD**, chia thành 3 tầng: Domain, Application, và Infrastructure — Dependency Rule đảm bảo tầng ngoài phụ thuộc tầng trong, không ngược lại.
+> **Ứng dụng đặt vé tàu hoả trực tuyến** nhằm hiện đại hoá quy trình bán vé cho công ty vận tải đường sắt. Hành khách tra cứu chuyến tàu, xem sơ đồ ghế, đặt vé và thanh toán trực tuyến mọi lúc mọi nơi mà không cần đến quầy giao dịch.
 >
-> Gồm **5 module nghiệp vụ** độc lập: User, Station, Train, Booking, Payment. Mỗi module đầy đủ 3 tầng, giao tiếp qua Port interface — đảm bảo **testability** cao vì mọi dependency đều có thể mock.
+> **Các vấn đề cần giải quyết:**
 >
-> **Tech stack:** Spring Boot 4.0 / Java 25, Next.js 16 / React 19, PostgreSQL 18 + Flyway, Valkey cache, Stripe payment, SSE real-time.
+> - Tra cứu chuyến tàu theo ga đi/đến, ngày, bộ lọc linh hoạt
+> - Xem sơ đồ ghế theo toa, chọn ghế trực quan
+> - Giữ chỗ tạm thời 15 phút (giữ rồi thanh toán), chống đặt trùng
+> - Thanh toán an toàn qua cổng thanh toán quốc tế (Stripe)
+> - Quản lý đặt vé: xem lịch sử, huỷ vé, giải phóng ghế tự động
+> - Quản lý tài khoản: đăng ký, đăng nhập, cập nhật thông tin
+
+*(Chuyển trang chiếu)*
+
+### Trang chiếu 3: Kiến trúc hệ thống và Lược đồ cơ sở dữ liệu
+
+🎤 **Người B:**
+
+> Hệ thống được xây dựng theo kiến trúc **Kiến trúc sạch kết hợp Thiết kế hướng miền**, chia thành 3 tầng: Miền, Ứng dụng, và Hạ tầng — Quy tắc phụ thuộc đảm bảo tầng ngoài phụ thuộc tầng trong, không ngược lại.
 >
-> Về **lược đồ CSDL**: 11 bảng, 5 phân hệ. UUID v7 primary key, soft delete, UTC timezone, optimistic locking trên trip_seat_availability.
+> Gồm **5 mô-đun nghiệp vụ** độc lập: Người dùng, Ga, Tàu, Đặt vé, Thanh toán. Mỗi mô-đun đầy đủ 3 tầng, giao tiếp qua cổng giao diện — đảm bảo **khả năng kiểm thử** cao vì mọi phụ thuộc đều có thể giả lập.
+>
+> **Công nghệ:** Spring Boot 4.0 / Java 25, Next.js 16 / React 19, PostgreSQL 18 + Flyway, Valkey (bộ nhớ đệm), Stripe (thanh toán), SSE (thời gian thực).
+>
+> Về **lược đồ cơ sở dữ liệu**: 11 bảng, 5 phân hệ. Khoá chính UUID v7, xoá mềm, múi giờ UTC, khoá lạc quan trên bảng tình trạng ghế.
 >
 > **Chiến lược kiểm thử tổng thể** của dự án:
-> - **3 mức kiểm thử**: phân tích (đối chiếu diagram), thiết kế (walkthrough/inspection), hiện thực (automated test)
-> - **Test pyramid**: Unit test (UseCase độc lập, mock dependencies) → Integration test (full HTTP endpoint + TestContainers PostgreSQL) → Stress test (50 concurrent threads)
-> - **Kỹ thuật áp dụng**: Equivalence Partitioning, Boundary Value Analysis, State Transition Testing, Security Testing
-> - Tổng cộng hơn **160 test cases** cho 12 use cases
+> - **3 mức kiểm thử**: phân tích (đối chiếu lược đồ), thiết kế (duyệt/thanh tra), hiện thực (kiểm thử tự động)
+> - **Kim tự tháp kiểm thử**: Kiểm thử đơn vị (ca sử dụng độc lập, giả lập phụ thuộc) → Kiểm thử tích hợp (toàn tuyến HTTP + TestContainers PostgreSQL) → Kiểm thử tải (50 luồng đồng thời)
+> - **Kỹ thuật áp dụng**: Phân lớp tương đương, Phân tích giá trị biên, Kiểm thử chuyển trạng thái, Kiểm thử bảo mật
+> - Tổng cộng hơn **160 trường hợp kiểm thử** cho 12 ca sử dụng
 >
-> Bây giờ em nhường lời cho bạn Nguyên trình bày 6 UC đầu tiên.
+> Bây giờ em nhường lời cho bạn Nguyên trình bày 6 ca sử dụng đầu tiên.
 
 ---
 
 ## Phần 2: UC-01 → UC-06 (~7 phút) — Người A thuyết trình
 
-### Slide 3: UC-01 — Đăng ký tài khoản (~1.5 phút)
+### Trang chiếu 4: UC-01 — Đăng ký tài khoản (~1,5 phút)
 
 💻 **Người B thao tác** | 🎤 **Người A thuyết trình**
 
 🎤 **Người A:**
 
-> UC-01: Đăng ký tài khoản. Actor là khách hàng chưa có tài khoản.
+> Ca sử dụng 01: Đăng ký tài khoản. Tác nhân là khách hàng chưa có tài khoản.
 >
-> **Luồng chính:** Nhập email, password, fullName → validate → kiểm tra email unique → hash BCrypt → tạo user CUSTOMER → phát sự kiện UserRegistered.
+> **Luồng chính:** Nhập email, mật khẩu, họ tên → kiểm tra hợp lệ → kiểm tra email duy nhất → băm mật khẩu BCrypt → tạo tài khoản vai trò KHÁCH HÀNG → trả thông tin (không có mật khẩu).
 >
-> **Chiến lược kiểm thử — 12 test cases, 4 mức:**
-> - **Unit test** (3 cases): UseCase tạo user thành công, phát event UserRegistered, trả lỗi khi email tồn tại. Mock UserRepository và PasswordEncoder.
-> - **Integration test** (4 cases): Full HTTP endpoint — đăng ký thành công trả 201, email trùng trả 409, validation email sai format, password < 8 ký tự.
-> - **Security test** (3 cases): SQL injection trong email bị reject, XSS payload trong fullName trả về dạng data thuần, response không chứa field password.
-> - **Stress test** (1 case): 50 threads đăng ký cùng email — chỉ 1 thành công nhờ DB unique constraint.
+> **Chiến lược kiểm thử — 20 trường hợp (12 phía sau + 8 giao diện):**
+> - **Kiểm thử đơn vị** (3): Ca sử dụng tạo tài khoản thành công, phát sự kiện đăng ký, trả lỗi khi email tồn tại. Giả lập kho dữ liệu và bộ băm mật khẩu.
+> - **Kiểm thử tích hợp** (4): Toàn tuyến HTTP — đăng ký thành công trả mã 201, email trùng trả mã 409, email sai định dạng, mật khẩu dưới 8 ký tự.
+> - **Kiểm thử bảo mật** (3): Chèn câu lệnh SQL trong email bị từ chối, mã XSS trong họ tên trả về dạng dữ liệu thuần, phản hồi không chứa trường mật khẩu.
+> - **Kiểm thử tải** (1): 50 luồng đăng ký cùng email — chỉ 1 thành công nhờ ràng buộc duy nhất của cơ sở dữ liệu.
+> - **Kiểm thử giao diện** (8): Biểu mẫu hiển thị đủ trường, lỗi biểu mẫu rỗng, mật khẩu tối thiểu, xác nhận mật khẩu không khớp, gọi giao diện lập trình đúng, lược đồ từ chối họ tên ngắn, xác nhận không khớp, nhận diện lỗi email tồn tại.
 >
-> Kỹ thuật test: **Equivalence Partitioning** cho email (valid/invalid format, existing/new), **Boundary Value** cho password (7 vs 8 ký tự).
+> Kỹ thuật kiểm thử: **Phân lớp tương đương** cho email (định dạng hợp lệ/không hợp lệ, tồn tại/mới), **Phân tích giá trị biên** cho mật khẩu (7 so với 8 ký tự).
 
-💻 **Người B:** *(Demo app: đăng ký thành công → demo email trùng → 409. Sau đó mở terminal chạy test)*
+💻 **Người B:** *(Trình diễn ứng dụng: đăng ký thành công → email trùng → mã 409. Sau đó mở đầu cuối chạy kiểm thử)*
 
 ```bash
 ./gradlew test --tests '*RegisterUser*' --tests '*AuthControllerRegisterTest*'
 ```
 
-💻 **Người B:** *(Show kết quả: 12 tests passed, highlight stress test output "1 success, 49 conflict")*
+💻 **Người B:** *(Hiển thị kết quả: tất cả kiểm thử đều đạt, nhấn mạnh kiểm thử tải "1 thành công, 49 xung đột")*
 
 ---
 
-### Slide 4: UC-02 — Đăng nhập (~1.5 phút)
+### Trang chiếu 5: UC-02 — Đăng nhập (~1,5 phút)
 
 💻 **Người B thao tác** | 🎤 **Người A thuyết trình**
 
 🎤 **Người A:**
 
-> UC-02: Đăng nhập. Tiền điều kiện: đã đăng ký.
+> Ca sử dụng 02: Đăng nhập. Tiền điều kiện: đã đăng ký.
 >
-> **Luồng chính:** Nhập email + password → tìm user → so sánh timing-safe BCrypt → tạo accessToken JWT (15 phút) + refreshToken (hash SHA-256 lưu DB).
+> **Luồng chính:** Nhập email + mật khẩu → tìm người dùng → so sánh an toàn thời gian BCrypt → tạo mã truy cập JWT (15 phút) + mã làm mới (băm SHA-256 lưu cơ sở dữ liệu).
 >
-> **Chiến lược kiểm thử — 13 BE + 7 FE tests:**
-> - **Unit test**: UseCase authenticate thành công trả token pair, password sai trả lỗi, user not found trả cùng lỗi (chống user enumeration).
-> - **Integration test**: Full endpoint — login thành công 200 + tokens, credentials sai 401, missing fields 400.
-> - **Security test**: Timing-safe comparison — response time cho "email tồn tại + sai pass" ≈ "email không tồn tại" (chống timing attack). Refresh token được hash trước khi lưu.
-> - **Stress test**: 50 concurrent logins — tất cả phải thành công và nhận token khác nhau.
-> - **Frontend test** (7 cases): Form render, validation, mutation call, error display, redirect on success.
+> **Chiến lược kiểm thử — 20 trường hợp (13 phía sau + 7 giao diện):**
+> - **Kiểm thử đơn vị** (5): Xác thực thành công trả cặp mã thông báo, email không tồn tại trả lỗi, mật khẩu sai trả lỗi, gọi đối chiếu mật khẩu đúng tham số, tạo và lưu cặp mã thông báo.
+> - **Kiểm thử tích hợp** (4): Toàn tuyến — đăng nhập thành công mã 200 + cặp mã, thông tin sai mã 401, thiếu trường bắt buộc, email sai định dạng.
+> - **Kiểm thử bảo mật** (3): Chèn SQL trong email bị từ chối, phản hồi giống nhau cho email sai và mật khẩu sai (chống liệt kê tài khoản), phản hồi không chứa mật khẩu.
+> - **Kiểm thử tải** (1): 50 luồng đăng nhập đồng thời — tất cả phải thành công và nhận mã khác nhau.
+> - **Kiểm thử giao diện** (7): Biểu mẫu hiển thị đủ trường, lỗi xác thực biểu mẫu rỗng, email sai định dạng, gọi giao diện lập trình đúng, lược đồ chấp nhận hợp lệ, lược đồ từ chối rỗng, nhận diện lỗi thông tin sai.
 >
-> Kỹ thuật: **State Transition** (token lifecycle: active → revoked), **Security Testing** (timing attack, user enumeration).
+> Kỹ thuật: **Kiểm thử chuyển trạng thái** (vòng đời mã thông báo: hoạt động → thu hồi), **Kiểm thử bảo mật** (tấn công thời gian, liệt kê tài khoản).
 
-💻 **Người B:** *(Demo: login thành công → login sai pass → show 401. Chạy test)*
+💻 **Người B:** *(Trình diễn: đăng nhập thành công → sai mật khẩu → mã 401. Chạy kiểm thử)*
 
 ```bash
 ./gradlew test --tests '*LoginUser*' --tests '*AuthControllerLoginTest*'
 ```
 
-💻 **Người B:** *(Show 13 tests passed)*
+💻 **Người B:** *(Hiển thị tất cả kiểm thử đều đạt)*
 
 ---
 
-### Slide 5: UC-03 — Đăng xuất (~40 giây)
+### Trang chiếu 6: UC-03 — Đăng xuất (~40 giây)
 
 💻 **Người B thao tác** | 🎤 **Người A thuyết trình**
 
 🎤 **Người A:**
 
-> UC-03: Đăng xuất — thiết kế **idempotent**, luôn trả 200.
+> Ca sử dụng 03: Đăng xuất — thiết kế **bình thường hoá** (luôn trả mã 200).
 >
-> **Kiểm thử (12 tests):** Kỹ thuật **State Transition Testing** — token chuyển từ ACTIVE → REVOKED. Test idempotency: token đã revoke hoặc unknown vẫn trả 200. SQL injection trong body bị reject. Stress 50 concurrent logouts cùng token.
-
-💻 **Người B:** *(Demo logout nhanh trên app)*
-
----
-
-### Slide 6: UC-04 — Quản lý thông tin cá nhân (~1 phút)
-
-💻 **Người B thao tác** | 🎤 **Người A thuyết trình**
-
-🎤 **Người A:**
-
-> UC-04: Quản lý thông tin cá nhân. 2 thao tác: xem (GET /me) và cập nhật (PUT /me).
+> **Luồng chính:** Gửi mã làm mới trong thân yêu cầu → băm SHA-256 → tìm mã đang hoạt động → đánh dấu THU HỒI. Mã đã thu hồi hoặc không tồn tại vẫn trả mã 200.
 >
-> **Kiểm thử:** Kỹ thuật **Equivalence Partitioning** trên từng field: phone (valid/invalid format), DOB (past/future date), gender (MALE/FEMALE/OTHER/invalid), identityNumber (9/12 digits/invalid). **Access control test**: JWT userId phải khớp — không cho xem/sửa profile người khác.
+> **Kiểm thử (12 trường hợp):** Kỹ thuật **Kiểm thử chuyển trạng thái** — mã chuyển từ HOẠT ĐỘNG → THU HỒI. Kiểm thử bình thường hoá: mã đã thu hồi hoặc không xác định vẫn trả mã 200. Chèn SQL trong thân yêu cầu bị từ chối. Kiểm thử tải 50 luồng đăng xuất cùng mã.
 
-💻 **Người B:** *(Demo: cập nhật profile thành công)*
+💻 **Người B:** *(Trình diễn đăng xuất nhanh trên ứng dụng)*
 
 ---
 
-### Slide 7: UC-05 — Tra cứu ga tàu (~1 phút)
+### Trang chiếu 7: UC-04 — Quản lý thông tin cá nhân (~1 phút)
 
 💻 **Người B thao tác** | 🎤 **Người A thuyết trình**
 
 🎤 **Người A:**
 
-> UC-05: Tra cứu ga tàu — 3 cách: search ILIKE, browse cursor pagination, detail by ID.
+> Ca sử dụng 04: Quản lý thông tin cá nhân. 2 thao tác: xem (GET /me) và cập nhật (PUT /me).
+>
+> **Kiểm thử (27 trường hợp — 20 phía sau + 7 giao diện):** Kỹ thuật **Phân lớp tương đương** trên từng trường: điện thoại (định dạng hợp lệ/không hợp lệ), ngày sinh (quá khứ/tương lai), giới tính (NAM/NỮ/KHÁC/không hợp lệ), số định danh (9/12 chữ số/không hợp lệ). **Kiểm thử kiểm soát truy cập**: mã định danh JWT phải khớp — không cho xem/sửa hồ sơ người khác. Kiểm thử tải 50 luồng cập nhật đồng thời.
+
+💻 **Người B:** *(Trình diễn: cập nhật hồ sơ thành công)*
+
+---
+
+### Trang chiếu 8: UC-05 — Tra cứu ga tàu (~1 phút)
+
+💻 **Người B thao tác** | 🎤 **Người A thuyết trình**
+
+🎤 **Người A:**
+
+> Ca sử dụng 05: Tra cứu ga tàu — 3 cách: tìm kiếm mờ, duyệt phân trang dựa con trỏ, xem chi tiết theo mã.
 >
 > **Kỹ thuật triển khai:**
-> - **Cursor-based Pagination:** Thay vì OFFSET (chậm ở page lớn, dễ trùng/sót khi data thay đổi), dùng cursor — mỗi response trả `nextCursor`, request tiếp gửi cursor đó để lấy page kế. Query: `WHERE (name, id) > (cursor_name, cursor_id) ORDER BY name, id LIMIT size`. Hiệu năng O(1) không phụ thuộc số trang.
-> - **Redis Caching (Valkey):** Kết quả search được cache theo key = query + limit. Chiến lược **cache-aside**: đọc cache trước → miss thì query DB → ghi cache. TTL ngắn vì data ga ít thay đổi.
+> - **Phân trang dựa con trỏ:** Thay vì dùng OFFSET (chậm ở trang lớn, dễ trùng/sót khi dữ liệu thay đổi), dùng con trỏ — mỗi phản hồi trả `nextCursor`, yêu cầu tiếp gửi con trỏ đó để lấy trang kế. Hiệu năng O(1) không phụ thuộc số trang.
+> - **Bộ nhớ đệm (Valkey):** Kết quả tìm kiếm được lưu đệm theo khoá = truy vấn + giới hạn. Chiến lược **đệm bên cạnh**: đọc bộ đệm trước → trượt thì truy vấn cơ sở dữ liệu → ghi bộ đệm.
 >
-> **Kiểm thử:** Kỹ thuật **Boundary Value** cho search query: empty string, 1 char, keyword match, no match. Cursor pagination: first page, middle page, last page (no more items). Cache verification: request 1 = cache miss (DB hit), request 2 = cache hit (no DB). Ga không tồn tại → 404.
+> **Kiểm thử (15 trường hợp — 9 phía sau + 6 giao diện):** Kỹ thuật **Phân tích giá trị biên** cho truy vấn tìm kiếm: chuỗi rỗng, 1 ký tự, từ khoá khớp, không khớp. Phân trang con trỏ: trang đầu, trang giữa, trang cuối (hết dữ liệu). Kiểm tra bộ đệm: yêu cầu 1 = trượt đệm (truy cập cơ sở dữ liệu), yêu cầu 2 = trúng đệm (không truy cập). Ga không tồn tại → mã 404. Kiểm thử tải 50 luồng tìm kiếm đồng thời.
 
-💻 **Người B:** *(Demo combobox: gõ "Hà N" → suggestion list)*
+💻 **Người B:** *(Trình diễn hộp gợi ý: gõ "Hà N" → danh sách gợi ý)*
 
 ---
 
-### Slide 8: UC-06 — Tra cứu chuyến tàu (~1.5 phút)
+### Trang chiếu 9: UC-06 — Tra cứu chuyến tàu (~1,5 phút)
 
 💻 **Người B thao tác** | 🎤 **Người A thuyết trình**
 
 🎤 **Người A:**
 
-> UC-06: Tra cứu chuyến tàu — bộ lọc đa tiêu chí, sort, phân trang.
+> Ca sử dụng 06: Tra cứu chuyến tàu — bộ lọc đa tiêu chí, sắp xếp, phân trang.
 >
 > **Kỹ thuật triển khai:**
-> - **Cursor-based Pagination:** Hỗ trợ sort đa tiêu chí (giờ khởi hành, giá, ghế trống). Cursor encode cặp `(sort_value, id)` — đảm bảo không trùng/sót ngay cả khi có booking mới chen giữa 2 lần phân trang. Query: `WHERE (departure_time, id) > (:cursorTime, :cursorId)`.
-> - **Redis Caching (Valkey):** Cache kết quả search theo composite key = filter params + sort + cursor. Chiến lược **cache-aside** với TTL ngắn (30s–60s). Cache invalidation: khi ghế bị hold/book → invalidate các cache key liên quan đến trip đó (số ghế trống thay đổi).
+> - **Phân trang dựa con trỏ:** Hỗ trợ sắp xếp đa tiêu chí (giờ khởi hành, giá, ghế trống). Con trỏ mã hoá cặp `(giá_trị_sắp_xếp, mã)` — đảm bảo không trùng/sót ngay cả khi có đặt vé mới chen giữa 2 lần phân trang.
+> - **Bộ nhớ đệm (Valkey):** Lưu đệm kết quả tìm kiếm theo khoá tổng hợp = tham số lọc + sắp xếp + con trỏ. Chiến lược **đệm bên cạnh** với thời gian sống ngắn (30–60 giây). Vô hiệu bộ đệm: khi ghế bị giữ/đặt → xoá các khoá đệm liên quan đến chuyến đó.
 >
-> **Kiểm thử:**
-> - **Equivalence Partitioning**: Filter combinations — chỉ ga đi, ga đi + đến, ga đi + đến + ngày, full filter. Sort: by time ASC/DESC, by price, by available seats.
-> - **Boundary Value**: minPrice = 0, maxPrice = MAX, date = today, date = past (empty result).
-> - **Integration test**: Cursor pagination không bỏ sót/trùng record khi data thay đổi giữa các page.
-> - **Stress test**: 50 concurrent searches — tất cả trả kết quả đúng, response time < 500ms p95.
+> **Kiểm thử (17 trường hợp — 14 phía sau + 3 giao diện):**
+> - **Phân lớp tương đương**: Tổ hợp bộ lọc — chỉ ga đi, ga đi + đến, ga đi + đến + ngày, đầy đủ. Sắp xếp: theo thời gian tăng/giảm, theo giá, theo ghế trống.
+> - **Phân tích giá trị biên**: giá tối thiểu = 0, giá tối đa = MAX, ngày = hôm nay, ngày = quá khứ (kết quả rỗng).
+> - **Kiểm thử tích hợp**: Phân trang con trỏ không bỏ sót/trùng bản ghi khi dữ liệu thay đổi giữa các trang.
+> - **Kiểm thử tải**: 50 luồng tìm kiếm đồng thời — tất cả trả kết quả đúng.
 >
-> Kỹ thuật đặc biệt: test **enriched response** — mỗi trip phải chứa đúng thông tin tàu, ga, số ghế trống tính toán real-time.
+> Kỹ thuật đặc biệt: kiểm thử **phản hồi làm giàu** — mỗi chuyến phải chứa đúng thông tin tàu, ga, số ghế trống tính toán thời gian thực.
 
-💻 **Người B:** *(Demo: search Hà Nội → Đà Nẵng → hiện kết quả. Chạy test)*
+💻 **Người B:** *(Trình diễn: tìm kiếm Hà Nội → Đà Nẵng → hiển thị kết quả. Chạy kiểm thử)*
 
 ```bash
 ./gradlew test --tests '*SearchScheduledTrip*'
@@ -210,198 +210,199 @@ Mỗi UC trình bày theo 3 phần:
 
 ## Phần 3: UC-07 → UC-12 (~8 phút) — Người B thuyết trình
 
-### Slide 9: UC-07 — Xem sơ đồ ghế (~1.5 phút)
+### Trang chiếu 10: UC-07 — Xem sơ đồ ghế chuyến tàu (~1,5 phút)
 
 💻 **Người A thao tác** | 🎤 **Người B thuyết trình**
 
 🎤 **Người B:**
 
-> UC-07: Xem sơ đồ ghế — 2 view: flat list phân trang và sơ đồ toa. 3 trạng thái ghế: AVAILABLE, HELD, BOOKED. Real-time update qua SSE.
+> Ca sử dụng 07: Xem sơ đồ ghế — 2 góc nhìn: danh sách phẳng phân trang và sơ đồ theo toa. 3 trạng thái ghế: CÒN TRỐNG, ĐANG GIỮ, ĐÃ ĐẶT. Cập nhật thời gian thực qua SSE.
 >
-> **Kỹ thuật triển khai — Redis Caching (Valkey):**
-> - Sơ đồ ghế theo toa (coach seat map) được cache trong Valkey theo key = `trip:{tripId}:coach-seat-map:page:{page}`.
-> - Chiến lược **cache-aside** + **event-driven invalidation**: khi SeatStatusChangedEvent phát ra (ghế bị hold/book/release), cache của trip tương ứng bị xoá ngay lập tức → request tiếp theo sẽ query DB và ghi cache mới.
-> - Giảm đáng kể tải DB cho trang sơ đồ ghế — trang này được nhiều user mở đồng thời khi chọn chuyến.
+> **Kỹ thuật triển khai — Bộ nhớ đệm (Valkey):**
+> - Sơ đồ ghế theo toa được lưu đệm trong Valkey theo khoá = `trip:{mã_chuyến}:coach-seat-map:page:{trang}`.
+> - Chiến lược **đệm bên cạnh + vô hiệu hoá dựa sự kiện**: khi sự kiện ThayĐổiTrạngThaiGhế phát ra (ghế bị giữ/đặt/giải phóng), bộ đệm của chuyến tương ứng bị xoá ngay → yêu cầu tiếp theo sẽ truy vấn cơ sở dữ liệu và ghi đệm mới.
+> - Giảm đáng kể tải cơ sở dữ liệu cho trang sơ đồ ghế — trang này được nhiều người dùng mở đồng thời khi chọn chuyến.
 >
-> **Chiến lược kiểm thử:**
-> - **State Transition Testing**: Ghế có 4 trạng thái (AVAILABLE → HELD → BOOKED, HELD → AVAILABLE khi hủy/hết hạn). Test mỗi transition hiển thị đúng màu/icon trên UI.
-> - **Integration test (SSE)**: Mở 2 client cùng xem 1 chuyến → client A đặt ghế → client B nhận SeatStatusChangedEvent trong < 1 giây mà không cần refresh.
-> - **Boundary Value**: Trip có 0 ghế trống (all BOOKED), trip có tất cả ghế trống, trip không tồn tại → 404.
-> - **Cache test**: Sơ đồ ghế cache hit/miss, cache invalidation đúng khi trạng thái ghế thay đổi (event-driven).
+> **Chiến lược kiểm thử (16 trường hợp — 10 phía sau + 6 giao diện):**
+> - **Kiểm thử chuyển trạng thái**: Ghế có 4 trạng thái (CÒN TRỐNG → ĐANG GIỮ → ĐÃ ĐẶT, ĐANG GIỮ → CÒN TRỐNG khi huỷ/hết hạn). Kiểm thử mỗi chuyển đổi hiển thị đúng trên giao diện.
+> - **Kiểm thử tích hợp (SSE)**: Mở 2 máy khách cùng xem 1 chuyến → máy khách A đặt ghế → máy khách B nhận sự kiện ThayĐổiTrạngThaiGhế trong dưới 1 giây mà không cần tải lại.
+> - **Phân tích giá trị biên**: Chuyến có 0 ghế trống (tất cả ĐÃ ĐẶT), chuyến tất cả ghế trống, chuyến không tồn tại → mã 404.
+> - **Kiểm thử bộ đệm**: Trúng/trượt đệm sơ đồ ghế, vô hiệu đệm đúng khi trạng thái ghế thay đổi (dựa sự kiện).
 
-💻 **Người A:** *(Mở 2 tab cùng chuyến → tab 1 chọn ghế → tab 2 thấy ghế đổi màu real-time)*
+💻 **Người A:** *(Mở 2 thẻ cùng chuyến → thẻ 1 chọn ghế → thẻ 2 thấy ghế đổi màu thời gian thực)*
 
 🎤 **Người B:**
 
-> Đây là demo trực tiếp SSE real-time — khi tab 1 hold ghế, tab 2 nhận event ngay lập tức.
+> Đây là trình diễn trực tiếp SSE thời gian thực — khi thẻ 1 giữ ghế, thẻ 2 nhận sự kiện ngay lập tức.
 
 ---
 
-### Slide 10: UC-08 — Đặt vé tàu (~2 phút)
+### Trang chiếu 11: UC-08 — Đặt vé tàu (~2 phút)
 
 💻 **Người A thao tác** | 🎤 **Người B thuyết trình**
 
 🎤 **Người B:**
 
-> UC-08: Đặt vé — use case phức tạp nhất, **23 test cases backend + 10 test cases frontend**.
+> Ca sử dụng 08: Đặt vé — ca sử dụng phức tạp nhất, **23 trường hợp kiểm thử phía sau + 4 giao diện**.
 >
-> **Luồng chính:** Gửi tripId, seatIds[], passengers[], idempotencyKey → validate → kiểm tra seats AVAILABLE → all-or-nothing hold → tạo booking HELD (15 phút) → publish events.
+> **Luồng chính:** Gửi mã chuyến, danh sách mã ghế, danh sách hành khách, khoá bình thường hoá → kiểm tra hợp lệ → kiểm tra ghế CÒN TRỐNG → giữ tất cả hoặc không giữ gì → tạo đặt vé trạng thái ĐANG GIỮ (15 phút) → phát sự kiện.
 >
 > **Chiến lược kiểm thử theo 5 tiêu chí:**
 >
-> **1. Xử lý chính xác (7 unit tests):**
-> - Happy path: tạo booking thành công, status = HELD, totalPrice = price × seats
-> - Idempotency: cùng idempotencyKey trả cùng booking, không tạo mới
-> - Error paths: user not found, trip not found, active hold exists, seat unavailable
+> **1. Xử lý chính xác (7 kiểm thử đơn vị):**
+> - Luồng thành công: tạo đặt vé, trạng thái = ĐANG GIỮ, tổng giá = giá × số ghế
+> - Bình thường hoá: cùng khoá bình thường hoá trả cùng đặt vé, không tạo mới
+> - Luồng lỗi: người dùng không tồn tại, chuyến không tồn tại, đã có giữ chỗ đang hoạt động, ghế không khả dụng, số hành khách khác số ghế
 >
-> **2. Concurrency — Optimistic Locking (2 stress tests):**
-> - Bảng `trip_seat_availability` có cột `version` (integer). Khi hold ghế, hệ thống thực hiện: `UPDATE ... SET status='HELD', version=version+1 WHERE id=:id AND version=:expectedVersion`. Nếu version không khớp (request khác đã chen) → update 0 rows → trả `SEAT_NOT_AVAILABLE`.
-> - Kết hợp **all-or-nothing**: đặt nhiều ghế trong 1 transaction — nếu bất kỳ ghế nào fail → rollback toàn bộ, không partial hold.
-> - Stress test: 50 threads đặt cùng ghế → chỉ 1 thành công, 49 nhận SEAT_NOT_AVAILABLE — chứng minh không bao giờ double-booking.
-> - Cơ chế: optimistic lock + DB constraint → không cần pessimistic lock (tránh deadlock, tăng throughput).
+> **2. Đồng thời — Khoá lạc quan (2 kiểm thử tải):**
+> - Bảng `trip_seat_availability` có cột `version` (số nguyên). Khi giữ ghế, hệ thống thực hiện: `UPDATE ... SET status='HELD', version=version+1 WHERE id=:id AND version=:expectedVersion`. Nếu phiên bản không khớp (yêu cầu khác đã chen) → cập nhật 0 dòng → trả `GHẾ_KHÔNG_KHẢ_DỤNG`.
+> - Kết hợp **tất cả hoặc không gì**: đặt nhiều ghế trong 1 giao dịch — nếu bất kỳ ghế nào thất bại → hoàn tác toàn bộ, không giữ một phần.
+> - Kiểm thử tải: 50 luồng đặt cùng ghế → chỉ 1 thành công, 49 nhận GHẾ_KHÔNG_KHẢ_DỤNG — chứng minh không bao giờ đặt trùng.
 >
-> **3. All-or-nothing (1 test):**
-> - Chọn 3 ghế, 1 đã HELD → tất cả bị reject, không partial hold
+> **3. Tất cả hoặc không gì (1 kiểm thử):**
+> - Chọn 3 ghế, 1 đã ĐANG GIỮ → tất cả bị từ chối, không giữ một phần
 >
-> **4. Event publishing (2 tests):**
-> - BookingCreated event cho booking service
-> - SeatStatusChangedEvent cho SSE broadcast
+> **4. Phát sự kiện (2 kiểm thử):**
+> - Sự kiện TạoĐặtVé cho dịch vụ đặt vé
+> - Sự kiện ThayĐổiTrạngThaiGhế cho phát sóng SSE
 >
-> **5. Security (integration tests):**
-> - 401 khi không có token, userId luôn lấy từ JWT (chống impersonation)
+> **5. Bảo mật (kiểm thử tích hợp):**
+> - Mã 401 khi không có mã thông báo, mã định danh người dùng luôn lấy từ JWT (chống mạo danh)
 
-💻 **Người A:** *(Demo: chọn 2 ghế → điền info → submit → thành công. Sau đó chạy stress test)*
+💻 **Người A:** *(Trình diễn: chọn 2 ghế → điền thông tin → gửi → thành công. Sau đó chạy kiểm thử tải)*
 
 ```bash
 ./gradlew test --tests '*CreateBookingStressTest*'
 ```
 
-💻 **Người A:** *(Show output: "1 success, 49 seat_not_available" — chứng minh concurrent safety)*
+💻 **Người A:** *(Hiển thị kết quả: "1 thành công, 49 ghế_không_khả_dụng" — chứng minh an toàn đồng thời)*
 
 🎤 **Người B:**
 
-> Stress test này chứng minh hệ thống đảm bảo data consistency dưới tải đồng thời 50 requests — không bao giờ xảy ra double-booking.
+> Kiểm thử tải này chứng minh hệ thống đảm bảo tính nhất quán dữ liệu dưới tải đồng thời 50 yêu cầu — không bao giờ xảy ra đặt trùng.
 
 ---
 
-### Slide 11: UC-09 — Xem đặt vé (~1 phút)
+### Trang chiếu 12: UC-09 — Xem đặt vé (~1 phút)
 
 💻 **Người A thao tác** | 🎤 **Người B thuyết trình**
 
 🎤 **Người B:**
 
-> UC-09: Xem đặt vé — danh sách phân trang + chi tiết aggregate.
+> Ca sử dụng 09: Xem đặt vé — danh sách phân trang + chi tiết tổng hợp.
 >
-> **Kiểm thử:**
-> - **Access control test (Security)**: Gọi API với bookingId của user khác → 403 Forbidden. Đây là test quan trọng vì IDOR (Insecure Direct Object Reference) là vulnerability phổ biến.
-> - **Pagination test**: Verify thứ tự createdAt DESC, metadata (totalItems, hasNext) chính xác.
-> - **Aggregate test**: Chi tiết booking phải chứa đầy đủ trip info, seat info, payment info — không thiếu field.
+> **Kiểm thử (20 trường hợp — 16 phía sau + 4 giao diện):**
+> - **Kiểm thử kiểm soát truy cập (Bảo mật)**: Gọi giao diện lập trình với mã đặt vé của người khác → mã 403 Cấm. Đây là kiểm thử quan trọng vì IDOR (Tham chiếu đối tượng trực tiếp không an toàn) là lỗ hổng phổ biến.
+> - **Kiểm thử phân trang**: Xác minh thứ tự mới nhất trước, siêu dữ liệu (tổng mục, có trang sau) chính xác.
+> - **Kiểm thử tổng hợp**: Chi tiết đặt vé phải chứa đầy đủ thông tin chuyến, ghế, thanh toán — không thiếu trường.
+> - **Kiểm thử tải**: 50 luồng xem danh sách đồng thời, 50 luồng xem chi tiết đồng thời.
 
-💻 **Người A:** *(Demo: vào "Đặt vé của tôi" → xem danh sách → click chi tiết)*
+💻 **Người A:** *(Trình diễn: vào "Đặt vé của tôi" → xem danh sách → nhấn chi tiết)*
 
 ---
 
-### Slide 12: UC-10 — Hủy đặt vé (~1 phút)
+### Trang chiếu 13: UC-10 — Huỷ đặt vé (~1 phút)
 
 💻 **Người A thao tác** | 🎤 **Người B thuyết trình**
 
 🎤 **Người B:**
 
-> UC-10: Hủy đặt vé — cho phép hủy HELD hoặc CONFIRMED.
+> Ca sử dụng 10: Huỷ đặt vé — cho phép huỷ khi trạng thái ĐANG GIỮ hoặc ĐÃ XÁC NHẬN.
 >
-> **Kiểm thử — kỹ thuật State Transition:**
-> - Valid transitions: HELD → CANCELLED (release seats), CONFIRMED → CANCELLED (release seats + flag refund)
-> - Invalid transition: CANCELLED → CANCELLED → 409 Conflict (idempotent check)
-> - **Event test**: BookingCancelledEvent chứa flag requiresRefund = true khi hủy CONFIRMED
-> - **SSE test**: SeatStatusChangedEvent broadcast khi ghế release → các client khác thấy ghế trống
-> - **Access control**: Hủy booking người khác → 403
+> **Kiểm thử (15 trường hợp — 12 phía sau + 3 giao diện) — kỹ thuật Kiểm thử chuyển trạng thái:**
+> - Chuyển đổi hợp lệ: ĐANG GIỮ → ĐÃ HUỶ (giải phóng ghế), ĐÃ XÁC NHẬN → ĐÃ HUỶ (giải phóng ghế + đánh dấu hoàn tiền)
+> - Chuyển đổi không hợp lệ: ĐÃ HUỶ → ĐÃ HUỶ → mã 409 Xung đột
+> - **Kiểm thử sự kiện**: Sự kiện HuỷĐặtVé chứa cờ cầnHoànTiền = đúng khi huỷ ĐÃ XÁC NHẬN
+> - **Kiểm thử SSE**: Sự kiện ThayĐổiTrạngThaiGhế phát sóng khi ghế giải phóng → các máy khách khác thấy ghế trống
+> - **Kiểm soát truy cập**: Huỷ đặt vé người khác → mã 403
+> - **Kiểm thử tải**: 50 luồng huỷ cùng đặt vé — chỉ 1 thành công
 
-💻 **Người A:** *(Demo: click hủy booking → xác nhận → status chuyển CANCELLED → ghế trở lại available trên sơ đồ)*
+💻 **Người A:** *(Trình diễn: nhấn huỷ → xác nhận → trạng thái chuyển ĐÃ HUỶ → ghế trở lại trống trên sơ đồ)*
 
 ---
 
-### Slide 13: UC-11 — Xem thanh toán (~40 giây)
+### Trang chiếu 14: UC-11 — Xem thanh toán (~40 giây)
 
 💻 **Người A thao tác** | 🎤 **Người B thuyết trình**
 
 🎤 **Người B:**
 
-> UC-11: Xem thanh toán — tra cứu theo paymentId hoặc bookingId.
+> Ca sử dụng 11: Xem thanh toán — tra cứu theo mã thanh toán hoặc mã đặt vé.
 >
-> **Kiểm thử:** Access control 403 khi xem payment người khác, 404 khi không tồn tại, verify checkoutUrl chỉ có giá trị khi status = PENDING (Equivalence Partitioning trên PaymentStatus: PENDING/PAID/FAILED/CANCELLED/REFUNDED).
+> **Kiểm thử (19 trường hợp — 13 phía sau + 6 giao diện):** Kiểm soát truy cập mã 403 khi xem thanh toán người khác, mã 404 khi không tồn tại, xác minh đường dẫn thanh toán chỉ có giá trị khi trạng thái = CHỜ XỬ LÝ (Phân lớp tương đương trên trạng thái thanh toán: CHỜ/ĐÃ THANH TOÁN/THẤT BẠI/ĐÃ HUỶ/ĐÃ HOÀN TIỀN). Kiểm thử tải 50 luồng xem đồng thời.
 
-💻 **Người A:** *(Demo nhanh: xem payment detail với status PENDING)*
+💻 **Người A:** *(Trình diễn nhanh: xem chi tiết thanh toán với trạng thái CHỜ XỬ LÝ)*
 
 ---
 
-### Slide 14: UC-12 — Thanh toán (~2 phút)
+### Trang chiếu 15: UC-12 — Thanh toán (~2 phút)
 
 💻 **Người A thao tác** | 🎤 **Người B thuyết trình**
 
 🎤 **Người B:**
 
-> UC-12: Thanh toán Stripe — UC phức tạp nhất về mặt **state management** và **external integration**.
+> Ca sử dụng 12: Thanh toán Stripe — ca sử dụng phức tạp nhất về mặt **quản lý trạng thái** và **tích hợp bên ngoài**.
 >
-> **Luồng:** Tạo Stripe Checkout Session → redirect user → user thanh toán → Stripe gửi webhook → hệ thống confirm booking.
+> **Luồng:** Tạo phiên thanh toán Stripe → chuyển hướng người dùng → người dùng thanh toán → Stripe gửi webhook → hệ thống xác nhận đặt vé.
 >
-> **Chiến lược kiểm thử — 5 nhóm:**
+> **Chiến lược kiểm thử — 17 trường hợp (13 phía sau + 4 giao diện), 5 nhóm:**
 >
-> **1. Webhook handling (State Transition Testing):**
-> - `checkout.session.completed`: HELD → CONFIRMED, HELD → BOOKED, PENDING → PAID
-> - `checkout.session.expired`: PENDING → FAILED
-> - `payment_intent.payment_failed`: PENDING → CANCELLED
+> **1. Xử lý webhook (Kiểm thử chuyển trạng thái):**
+> - `checkout.session.completed`: ĐANG GIỮ → ĐÃ XÁC NHẬN, ĐANG GIỮ → ĐÃ ĐẶT, CHỜ → ĐÃ THANH TOÁN
+> - `checkout.session.expired`: CHỜ → ĐÃ HUỶ
+> - `payment_intent.payment_failed`: CHỜ → THẤT BẠI
 >
-> **2. Idempotency test:**
-> - Stripe có thể gửi webhook trùng lặp → test gửi event 2 lần → lần 2 no-op, không exception
+> **2. Kiểm thử bình thường hoá:**
+> - Stripe có thể gửi webhook trùng lặp → kiểm thử gửi sự kiện 2 lần → lần 2 không thao tác, không ngoại lệ
 >
-> **3. Late payment edge case:**
-> - User thanh toán SAU khi booking đã bị hủy (hết 15 phút) → hệ thống tự động refund qua Stripe API
-> - Test: webhook completed + booking.status = CANCELLED → trigger RefundPaymentUseCase → payment = REFUNDED
+> **3. Trường hợp biên thanh toán muộn:**
+> - Người dùng thanh toán SAU khi đặt vé đã bị huỷ (hết 15 phút) → hệ thống tự động hoàn tiền qua Stripe
+> - Kiểm thử: webhook hoàn thành + đặt vé trạng thái = ĐÃ HUỶ → kích hoạt hoàn tiền tự động → thanh toán = ĐÃ HOÀN TIỀN
 >
-> **4. Signature verification (Security):**
-> - Webhook payload phải verify Stripe signature → reject nếu signature invalid (chống giả mạo webhook)
+> **4. Xác minh chữ ký (Bảo mật):**
+> - Nội dung webhook phải xác minh chữ ký Stripe → từ chối nếu chữ ký không hợp lệ (chống giả mạo webhook)
 >
-> **5. Integration test:**
-> - Full flow với mock Stripe API: create session → verify checkoutUrl format → simulate webhook → verify final state
+> **5. Kiểm thử tích hợp:**
+> - Luồng đầy đủ với giả lập Stripe: tạo phiên → xác minh định dạng đường dẫn → mô phỏng webhook → xác minh trạng thái cuối cùng
 
-💻 **Người A:** *(Demo full flow: click thanh toán → redirect Stripe → nhập card test 4242... → thành công → redirect về app → status CONFIRMED)*
+💻 **Người A:** *(Trình diễn luồng đầy đủ: nhấn thanh toán → chuyển hướng Stripe → nhập thẻ kiểm thử 4242... → thành công → chuyển hướng về ứng dụng → trạng thái ĐÃ XÁC NHẬN)*
 
 🎤 **Người B:**
 
-> Card test `4242 4242 4242 4242` là card test của Stripe cho môi trường sandbox — không charge tiền thật.
+> Thẻ kiểm thử `4242 4242 4242 4242` là thẻ kiểm thử của Stripe cho môi trường thử nghiệm — không tính phí thật.
 
-💻 **Người A:** *(Chạy test)*
+💻 **Người A:** *(Chạy kiểm thử)*
 
 ```bash
 ./gradlew test --tests '*Payment*UseCase*'
 ```
 
-💻 **Người A:** *(Show kết quả: HandlePaymentSuccess, HandlePaymentFailed, CancelPendingPayment, RefundPayment — all passed)*
+💻 **Người A:** *(Hiển thị kết quả: XửLýThanhToánThànhCông, XửLýThanhToánThấtBại, HuỷThanhToánChờ, HoànTiền — tất cả đều đạt)*
 
 ---
 
-## Phần 4: Kết luận (~1.5 phút) — Người B thuyết trình
+## Phần 4: Kết luận (~1,5 phút) — Người B thuyết trình
 
-### Slide 15: Kết luận
+### Trang chiếu 16: Kết luận
 
 🎤 **Người B:**
 
-> Tổng kết, nhóm đã hoàn thành **12 use cases** với hơn **160 test cases** tự động hóa, áp dụng đầy đủ các kỹ thuật kiểm thử phần mềm:
+> Tổng kết, nhóm đã hoàn thành **12 ca sử dụng** với hơn **160 trường hợp kiểm thử** tự động hoá, áp dụng đầy đủ các kỹ thuật kiểm thử phần mềm:
 >
 > **Kỹ thuật kiểm thử đã áp dụng:**
-> - **Equivalence Partitioning**: Phân lớp input cho validation (email format, password length, payment status...)
-> - **Boundary Value Analysis**: Giá trị biên cho password (7/8 chars), search query (empty/1 char), pagination (first/last page)
-> - **State Transition Testing**: Booking lifecycle (HELD→CONFIRMED→CANCELLED), Seat lifecycle (AVAILABLE→HELD→BOOKED), Payment lifecycle (PENDING→PAID/FAILED/REFUNDED)
-> - **Concurrency/Stress Testing**: 50 concurrent threads cho các chức năng critical (đăng ký, đặt vé, thanh toán)
-> - **Security Testing**: SQL injection, XSS, timing attack, user enumeration, IDOR, webhook signature verification
+> - **Phân lớp tương đương**: Phân lớp đầu vào cho kiểm tra hợp lệ (định dạng email, độ dài mật khẩu, trạng thái thanh toán...)
+> - **Phân tích giá trị biên**: Giá trị biên cho mật khẩu (7/8 ký tự), truy vấn tìm kiếm (rỗng/1 ký tự), phân trang (trang đầu/cuối)
+> - **Kiểm thử chuyển trạng thái**: Vòng đời đặt vé (ĐANG GIỮ→ĐÃ XÁC NHẬN→ĐÃ HUỶ), vòng đời ghế (CÒN TRỐNG→ĐANG GIỮ→ĐÃ ĐẶT), vòng đời thanh toán (CHỜ→ĐÃ THANH TOÁN/THẤT BẠI/ĐÃ HOÀN TIỀN)
+> - **Kiểm thử đồng thời/tải**: 50 luồng đồng thời cho các chức năng then chốt (đăng ký, đặt vé, thanh toán)
+> - **Kiểm thử bảo mật**: Chèn SQL, XSS, tấn công thời gian, liệt kê tài khoản, tham chiếu đối tượng trực tiếp không an toàn, xác minh chữ ký webhook
 >
-> **Điểm nổi bật QA:**
-> - Kiến trúc Clean Architecture đảm bảo **testability** — mọi dependency đều mock được
-> - Test pyramid đầy đủ: unit → integration → stress → security
-> - Concurrent test chứng minh **data consistency** dưới tải
-> - Idempotency test đảm bảo **reliability** khi network retry
+> **Điểm nổi bật đảm bảo chất lượng:**
+> - Kiến trúc sạch đảm bảo **khả năng kiểm thử** — mọi phụ thuộc đều giả lập được
+> - Kim tự tháp kiểm thử đầy đủ: đơn vị → tích hợp → tải → bảo mật
+> - Kiểm thử đồng thời chứng minh **tính nhất quán dữ liệu** dưới tải
+> - Kiểm thử bình thường hoá đảm bảo **độ tin cậy** khi thử lại mạng
 >
-> Hướng phát triển: mở rộng test coverage với mutation testing, thêm E2E test với Playwright, performance benchmark dưới production-like load.
+> Hướng phát triển: mở rộng phạm vi kiểm thử với kiểm thử đột biến, thêm kiểm thử đầu cuối với Playwright, đánh giá hiệu năng dưới tải giống sản xuất.
 >
 > Em xin cảm ơn thầy và các bạn đã lắng nghe. Nhóm sẵn sàng trả lời câu hỏi ạ.
 
@@ -411,11 +412,11 @@ Mỗi UC trình bày theo 3 phần:
 
 | Phần | Nội dung | Thời lượng | Người thuyết trình |
 |------|----------|-----------|-------------------|
-| 1 | Mở đầu + Kiến trúc + Chiến lược test | ~3 phút | Người B (Phú) |
+| 1 | Mở đầu + Giới thiệu đề tài + Kiến trúc | ~3 phút | Người B (Phú) |
 | 2 | UC-01 → UC-06 | ~7 phút | Người A (Nguyên) |
 | 3 | UC-07 → UC-12 | ~8 phút | Người B (Phú) |
-| 4 | Kết luận | ~1.5 phút | Người B (Phú) |
-| | **Tổng** | **~19.5 phút** | |
+| 4 | Kết luận | ~1,5 phút | Người B (Phú) |
+| | **Tổng** | **~19,5 phút** | |
 
 ---
 
@@ -423,34 +424,34 @@ Mỗi UC trình bày theo 3 phần:
 
 ### Môi trường
 
-- Docker containers running (PostgreSQL + Valkey + backend + frontend)
-- Browser mở sẵn app tại localhost:3000, đã có data seed
-- Terminal mở sẵn tại thư mục project, đã build xong
-- 2 tab browser cho demo SSE real-time (UC-07)
+- Các bộ chứa Docker đang chạy (PostgreSQL + Valkey + phía sau + phía trước)
+- Trình duyệt mở sẵn ứng dụng tại localhost:3000, đã có dữ liệu gieo
+- Đầu cuối mở sẵn tại thư mục dự án, đã biên dịch xong
+- 2 thẻ trình duyệt cho trình diễn SSE thời gian thực (UC-07)
 
-### Demo test nhanh (nếu thầy yêu cầu chạy thêm)
+### Chạy kiểm thử nhanh (nếu thầy yêu cầu chạy thêm)
 
 ```bash
-# Chạy toàn bộ test suite
+# Chạy toàn bộ bộ kiểm thử
 ./gradlew test
 
-# Chạy test theo module
+# Chạy kiểm thử theo mô-đun
 ./gradlew test --tests '*booking*'
 ./gradlew test --tests '*payment*'
 
-# Chạy chỉ stress tests
+# Chạy chỉ kiểm thử tải
 ./gradlew test --tests '*StressTest*'
 
-# Frontend tests
+# Kiểm thử giao diện
 cd frontend/customer && bun run test
 ```
 
-### Stripe test mode
+### Chế độ kiểm thử Stripe
 
-- Card: `4242 4242 4242 4242`, expiry bất kỳ trong tương lai, CVC bất kỳ 3 số
+- Thẻ: `4242 4242 4242 4242`, ngày hết hạn bất kỳ trong tương lai, CVC bất kỳ 3 số
 
 ### Điều chỉnh thời gian
 
-- **Thiếu thời gian**: Rút ngắn UC-03, UC-04, UC-11 (chỉ nói 1-2 câu mỗi UC, không demo)
-- **Thừa thời gian**: Demo concurrent booking conflict ở UC-08 (mở 2 browser, đặt cùng ghế), demo SSE chi tiết hơn ở UC-07
-- **Thầy hỏi về test**: Sẵn sàng chạy bất kỳ test class nào, show coverage report
+- **Thiếu thời gian**: Rút ngắn UC-03, UC-04, UC-11 (chỉ nói 1–2 câu mỗi ca sử dụng, không trình diễn)
+- **Thừa thời gian**: Trình diễn xung đột đặt vé đồng thời ở UC-08 (mở 2 trình duyệt, đặt cùng ghế), trình diễn SSE chi tiết hơn ở UC-07
+- **Thầy hỏi về kiểm thử**: Sẵn sàng chạy bất kỳ lớp kiểm thử nào, hiển thị báo cáo phạm vi
