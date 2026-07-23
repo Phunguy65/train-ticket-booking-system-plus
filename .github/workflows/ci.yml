@@ -71,7 +71,7 @@ jobs:
                   distribution: temurin
                   java-version: '25'
 
-            - uses: gradle/actions/setup-gradle@v4
+            - uses: gradle/actions/setup-gradle@v6
 
             - name: ktlint check
               run: ./gradlew ktlintCheck
@@ -90,7 +90,7 @@ jobs:
                   distribution: temurin
                   java-version: '25'
 
-            - uses: gradle/actions/setup-gradle@v4
+            - uses: gradle/actions/setup-gradle@v6
 
             - name: Spotless check
               working-directory: backend
@@ -112,7 +112,7 @@ jobs:
                   distribution: temurin
                   java-version: '25'
 
-            - uses: gradle/actions/setup-gradle@v4
+            - uses: gradle/actions/setup-gradle@v6
 
             - name: Run tests
               working-directory: backend
@@ -174,7 +174,7 @@ jobs:
                   distribution: temurin
                   java-version: '25'
 
-            - uses: gradle/actions/setup-gradle@v4
+            - uses: gradle/actions/setup-gradle@v6
 
             - name: Export customer OpenAPI contract
               # --rerun-tasks bypasses the UP-TO-DATE cache so the exporter always
