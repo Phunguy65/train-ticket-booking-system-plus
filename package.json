@@ -24,7 +24,7 @@
         "markdownlint-cli2": "^0.21.0",
         "prettier": "^3.8.1",
         "prettier-plugin-sh": "^0.18.0",
-        "prettier-plugin-sql": "^0.19.2",
+        "prettier-plugin-sql": "^0.20.0",
         "prettier-plugin-toml": "^2.0.6",
         "remark-parse": "^11.0.0",
         "unified": "^11.0.0",
